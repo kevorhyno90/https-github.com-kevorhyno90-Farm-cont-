@@ -1,0 +1,6 @@
+{
+  "name": "JR Farm Omni-Estate",
+  "description": "Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
