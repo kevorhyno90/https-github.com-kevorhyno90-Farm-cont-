@@ -27,7 +27,8 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { MilkingRecord, Todo } from '../types';
+import { MilkingRecord, Todo, StaffOffRecord, StaffMember } from '../types';
+import { CalendarIcon, Bell, Users, Eye } from 'lucide-react';
 
 interface DashboardProps {
   milkRecords: MilkingRecord[];
@@ -36,9 +37,11 @@ interface DashboardProps {
   upcomingDueAlarm: string;
   todos: Todo[];
   onToggleTodo: (id: string) => void;
-  onAddTodo: (text: string) => void;
+  onAddTodo: (text: string, assigneeName?: string) => void;
   onDeleteTodo: (id: string) => void;
   totalTeaQty: number;
+  staffOffRecords: StaffOffRecord[];
+  staffList: StaffMember[];
 }
 
 export function Dashboard({
@@ -50,9 +53,12 @@ export function Dashboard({
   onToggleTodo,
   onAddTodo,
   onDeleteTodo,
-  totalTeaQty
+  totalTeaQty,
+  staffOffRecords = [],
+  staffList = []
 }: DashboardProps) {
   const [newTodo, setNewTodo] = useState('');
+  const [todoAssignee, setTodoAssignee] = useState('');
   const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'rainy' | 'dry-cold'>('sunny');
   const [soilMoisture, setSoilMoisture] = useState<number>(42);
 
@@ -87,8 +93,9 @@ export function Dashboard({
   const handleSubmitTodo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    onAddTodo(newTodo.trim());
+    onAddTodo(newTodo.trim(), todoAssignee || undefined);
     setNewTodo('');
+    setTodoAssignee('');
   };
 
   return (
@@ -158,6 +165,166 @@ export function Dashboard({
         </div>
       </div>
 
+      {/* 🧑‍🌾 Staff Attendance & Leave Alerts Reminders */}
+      {(() => {
+        const todayString = new Date().toISOString().split('T')[0];
+
+        const getDayOffsetString = (offset: number) => {
+          const d = new Date();
+          d.setDate(d.getDate() + offset);
+          return d.toISOString().split('T')[0];
+        };
+
+        const activeOffsToday = staffOffRecords.filter(r => {
+          return r.status === 'Approved' && r.startDate <= todayString && todayString <= r.endDate;
+        });
+
+        const upcomingOffs = staffOffRecords.filter(r => {
+          return r.status === 'Approved' && r.startDate > todayString && r.startDate <= getDayOffsetString(3);
+        });
+
+        // Calculate and check conflicts in the next 5 days
+        const conflicts: string[] = [];
+        const units = ['Dairy', 'Horti', 'Fields', 'Security'];
+
+        for (let offset = 0; offset <= 5; offset++) {
+          const checkDate = getDayOffsetString(offset);
+          const dateFormatted = new Date(checkDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          
+          units.forEach(unit => {
+            const unitStaffIds = staffList.filter(s => s.unit === unit).map(s => s.id);
+            const activeOffUnit = staffOffRecords.filter(r => {
+              return r.status === 'Approved' && 
+                     r.startDate <= checkDate && 
+                     checkDate <= r.endDate && 
+                     unitStaffIds.includes(r.staffId);
+            });
+
+            if (activeOffUnit.length > 1) {
+              const names = activeOffUnit.map(r => r.staffName).join(' & ');
+              conflicts.push(`Multiple ${unit} officers (${names}) are schedule-off on ${dateFormatted}! Unit coverage vulnerable.`);
+            }
+          });
+        }
+
+        return (
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden transition-all hover:shadow-indigo-950/20">
+            <div className="absolute top-0 right-0 w-36 h-36 bg-indigo-500 rounded-bl-full opacity-5 pointer-events-none"></div>
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5 border-b border-indigo-900/40 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-500/15 text-indigo-300 rounded-xl border border-indigo-500/25">
+                  <Bell size={18} className="animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-indigo-200">Workforce Duty & Leave Alert Center</h4>
+                  <p className="text-[10px] text-indigo-300/80 font-bold uppercase tracking-widest mt-1 leading-none">Smart coverage guards & real-time team availability</p>
+                </div>
+              </div>
+              <div className="text-[10px] font-mono text-indigo-200 bg-indigo-900/40 px-3 py-1.5 rounded-lg border border-indigo-900/60 font-black">
+                SYSTEM CALENDAR: {todayString}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Col 1: Currently Off Today */}
+              <div className="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span className="text-[10px] uppercase font-black text-slate-300 tracking-wider">Off-Duty Today ({activeOffsToday.length})</span>
+                </div>
+                {activeOffsToday.length === 0 ? (
+                  <p className="text-[11px] text-slate-450 font-bold italic py-2">✓ Entire farm workforce is active and report on-field.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {activeOffsToday.map((r) => {
+                      const sMatch = staffList.find(s => s.id === r.staffId);
+                      return (
+                        <div key={r.id} className="p-3 bg-red-950/30 border border-red-900/30 rounded-xl">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-extrabold text-xs text-white block">{r.staffName}</span>
+                              <span className="text-[9px] uppercase font-black bg-rose-500/10 text-rose-300 px-1.5 py-0.2 rounded font-mono block mt-1 w-max">
+                                {r.type}
+                              </span>
+                            </div>
+                            <span className="text-[9px] uppercase font-black bg-white/10 text-slate-300 px-1.5 py-0.5 rounded">
+                              {sMatch?.unit || 'Unit'}
+                            </span>
+                          </div>
+                          {r.notes && (
+                            <p className="text-[10px] text-slate-400 mt-1.5 border-t border-red-950/20 pt-1 italic">
+                              "{r.notes}"
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Col 2: Upcoming Off/Leaves */}
+              <div className="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span className="text-[10px] uppercase font-black text-slate-300 tracking-wider">Scheduled Leaves ({upcomingOffs.length})</span>
+                </div>
+                {upcomingOffs.length === 0 ? (
+                  <p className="text-[11px] text-slate-450 font-bold italic py-2">No departures planned in next 3 days.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {upcomingOffs.map((r) => {
+                      const sMatch = staffList.find(s => s.id === r.staffId);
+                      return (
+                        <div key={r.id} className="p-3 bg-amber-950/30 border border-amber-900/30 rounded-xl">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-extrabold text-xs text-white block">{r.staffName}</span>
+                              <span className="text-[9px] uppercase font-black bg-amber-500/10 text-amber-300 px-1.5 py-0.2 rounded font-mono block mt-1 w-max">
+                                {r.type}
+                              </span>
+                            </div>
+                            <span className="text-[9px] uppercase font-black bg-white/10 text-slate-300 px-1.5 py-0.5 rounded">
+                              {sMatch?.unit || 'Unit'}
+                            </span>
+                          </div>
+                          <p className="text-[9px] text-amber-200 mt-2 font-mono font-bold uppercase tracking-wider">
+                            Starts: {r.startDate}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Col 3: Coverage safeties & conflicts */}
+              <div className="bg-indigo-950/40 p-4 rounded-xl border border-indigo-900/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                  <span className="text-[10px] uppercase font-black text-slate-300 tracking-wider">Labor Overlap Security ({conflicts.length})</span>
+                </div>
+                {conflicts.length === 0 ? (
+                  <div className="p-3.5 bg-emerald-950/40 border border-emerald-900/30 rounded-xl text-[11px] text-emerald-300 font-bold leading-relaxed">
+                    ✓ Optimal workforce redundancy intact. Overlap protection validated.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[12rem] overflow-y-auto pr-1">
+                    {conflicts.map((msg, idx) => (
+                      <div key={idx} className="p-3 bg-red-950/40 border border-red-920 rounded-xl text-[10px] text-red-200 font-bold leading-normal flex gap-2">
+                        <span className="text-red-400 font-black shrink-0 font-mono">!</span>
+                        <span>{msg}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Main Charts area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recharts production trend */}
@@ -205,69 +372,93 @@ export function Dashboard({
         </div>
 
         {/* Strategic Tasks */}
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="mb-6">
-            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Dr. Devin Omwenga's Strategic Plan</h4>
-            <p className="text-xs text-slate-400 font-medium">Operational priority action steps</p>
-          </div>
+        <div className="bg-white p-8 rounded-3xl border border-slate-105 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="mb-6">
+              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Strategic Task Assignment</h4>
+              <p className="text-xs text-slate-400 font-medium">Link operations directly to key officers</p>
+            </div>
 
-          <form onSubmit={handleSubmitTodo} className="flex gap-2 mb-6">
-            <input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              placeholder="E.g. Clear pasture sector D..."
-              className="flex-1 text-xs border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-700/20 text-slate-700 font-medium"
-            />
-            <button
-              type="submit"
-              className="bg-emerald-950 text-white rounded-xl px-4 flex items-center justify-center hover:bg-emerald-800 active:scale-95 transition-all shadow-sm"
-              aria-label="Add Task"
-            >
-              <Plus size={16} />
-            </button>
-          </form>
-
-          <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
-            {todos.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-6">All tasks completed successfully!</p>
-            ) : (
-              todos.map((todo) => (
-                <div
-                  key={todo.id}
-                  className={`flex items-center justify-between p-3 rounded-xl border border-slate-100/80 transition-all ${
-                    todo.completed ? 'bg-slate-50 border-transparent opacity-60' : 'bg-white hover:border-slate-200'
-                  }`}
+            <form onSubmit={handleSubmitTodo} className="space-y-3 mb-6">
+              <input
+                type="text"
+                value={newTodo}
+                onChange={(e) => setNewTodo(e.target.value)}
+                placeholder="E.g. Clear pasture sector D..."
+                className="w-full text-xs border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-700/20 text-slate-700 font-medium"
+              />
+              <div className="flex gap-2">
+                <select
+                  value={todoAssignee}
+                  onChange={(e) => setTodoAssignee(e.target.value)}
+                  className="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-600 font-semibold cursor-pointer"
                 >
-                  <button
-                    onClick={() => onToggleTodo(todo.id)}
-                    className="flex items-start gap-3 flex-1 text-left"
+                  <option value="">-- Assign Operator (Optional) --</option>
+                  {staffList.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name} ({s.unit})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="bg-emerald-950 text-white rounded-xl px-5 py-2 flex items-center justify-center hover:bg-emerald-800 active:scale-95 transition-all shadow-sm font-black text-xs uppercase cursor-pointer"
+                >
+                  Assign
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+              {todos.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-6">All tasks completed successfully!</p>
+              ) : (
+                todos.map((todo) => (
+                  <div
+                    key={todo.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border border-slate-100/80 transition-all ${
+                      todo.completed ? 'bg-slate-50 border-transparent opacity-60' : 'bg-white hover:border-slate-200'
+                    }`}
                   >
-                    <span className="mt-0.5 text-emerald-800 shrink-0">
-                      {todo.completed ? (
-                        <CheckSquare size={16} className="fill-emerald-100" />
-                      ) : (
-                        <Square size={16} />
-                      )}
-                    </span>
-                    <span
-                      className={`text-xs text-slate-700 font-medium leading-relaxed ${
-                        todo.completed ? 'line-through text-slate-400' : ''
-                      }`}
+                    <button
+                      onClick={() => onToggleTodo(todo.id)}
+                      className="flex items-start gap-3 flex-1 text-left"
                     >
-                      {todo.text}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => onDeleteTodo(todo.id)}
-                    className="text-slate-300 hover:text-red-600 p-1 rounded-lg transition-colors shrink-0 m-0"
-                    title="Delete item"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              ))
-            )}
+                      <span className="mt-0.5 text-emerald-800 shrink-0">
+                        {todo.completed ? (
+                          <CheckSquare size={16} className="fill-emerald-100" />
+                        ) : (
+                          <Square size={16} />
+                        )}
+                      </span>
+                      <div>
+                        <span
+                          className={`text-xs text-slate-700 font-medium leading-relaxed ${
+                            todo.completed ? 'line-through text-slate-400' : ''
+                          }`}
+                        >
+                          {todo.text}
+                        </span>
+                        {todo.assigneeName && (
+                          <span className={`inline-block ml-2 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded font-mono ${
+                            todo.completed ? 'bg-slate-200 text-slate-400' : 'bg-emerald-50 text-emerald-850 border border-emerald-100'
+                          }`}>
+                            👤 {todo.assigneeName}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => onDeleteTodo(todo.id)}
+                      className="text-slate-300 hover:text-red-600 p-1 rounded-lg transition-colors shrink-0 m-0 cursor-pointer"
+                      title="Delete item"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -276,7 +467,7 @@ export function Dashboard({
       <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/60 shadow-xs space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Limuru Weather & Agro-Advisory Simulator</h4>
+            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Nyaronde, Nyamira County Weather & Agro-Advisory Simulator</h4>
             <p className="text-xs text-slate-400 font-medium">Contextual farming intelligence based on micro-climates & ambient factors</p>
           </div>
           {/* Controllers */}

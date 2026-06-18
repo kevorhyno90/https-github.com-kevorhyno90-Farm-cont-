@@ -15,7 +15,15 @@ import {
   StaffMember,
   LivestockRecord,
   FieldRecord,
-  InventoryItem
+  InventoryItem,
+  StaffOffRecord,
+  Cow,
+  VetRecord,
+  GoatRecord,
+  CalfRecord,
+  BsfRecord,
+  CropOpRecord,
+  CropSaleRecord
 } from './types';
 
 // Helper to get formatted dates relative to today
@@ -297,3 +305,174 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   { id: 'inv-4', name: 'NPK 26:0:0 Fertilizer', category: 'Fertilizer', quantity: 15, unit: 'bags (50kg)', minStock: 5 },
   { id: 'inv-5', name: 'Tea Pruning Knives', category: 'Tools', quantity: 12, unit: 'units', minStock: 4 }
 ];
+
+export const INITIAL_STAFF_OFF_RECORDS: StaffOffRecord[] = [
+  {
+    id: 'off-1',
+    staffId: 'st-1', // Mosoti
+    staffName: 'Mosoti',
+    type: 'Day Off',
+    startDate: getRelativeDate(0), // Today
+    endDate: getRelativeDate(0),
+    notes: 'Approved standard weekly rest day.',
+    status: 'Approved'
+  },
+  {
+    id: 'off-2',
+    staffId: 'st-3', // David
+    staffName: 'David',
+    type: 'Annual Leave',
+    startDate: getRelativeDate(2), // Starts in 2 days
+    endDate: getRelativeDate(12),
+    notes: 'Family visit in Kisumu.',
+    status: 'Pending'
+  },
+  {
+    id: 'off-3',
+    staffId: 'st-5', // Josephine
+    staffName: 'Josephine',
+    type: 'Sick Leave',
+    startDate: getRelativeDate(-4),
+    endDate: getRelativeDate(-2),
+    notes: 'Recovered from flu.',
+    status: 'Completed'
+  }
+];
+
+export const INITIAL_COWS: Cow[] = [
+  { id: 'Cow-101 (Daisy)', name: 'Daisy', breed: 'Holstein-Friesian', dob: '2021-04-12', status: 'Dry', notes: 'High lactation index mother.' },
+  { id: 'Cow-102 (Goldie)', name: 'Goldie', breed: 'Guernsey', dob: '2020-08-30', status: 'Lactating', notes: 'Solid prime butterfat producer.' },
+  { id: 'Cow-103 (Ruby)', name: 'Ruby', breed: 'Jersey', dob: '2022-01-15', status: 'Lactating', notes: 'Excellent feed conversion ratio.' },
+  { id: 'Cow-104 (Blossom)', name: 'Blossom', breed: 'Ayrshire', dob: '2023-11-10', status: 'Heifer', notes: 'Ready for first AI straw soon.' },
+  { id: 'Cow-105 (Cherry)', name: 'Cherry', breed: 'Brown Swiss', dob: '2021-12-22', status: 'In-Calf', notes: 'Awaiting calving due in early July.' }
+];
+
+export const INITIAL_VET_RECORDS: VetRecord[] = [
+  {
+    id: 'vet-1',
+    cowId: 'Cow-101 (Daisy)',
+    date: getRelativeDate(-15),
+    type: 'Deworming',
+    treatment: 'Valbazen Broad Spectrum Dewormer',
+    nextDueDate: getRelativeDate(75), // 90 days interval
+    cost: 1550,
+    staff: 'Dr. Devin Omwenga',
+    notes: 'Dosed post-dry off. Excellent coat condition response.'
+  },
+  {
+    id: 'vet-2',
+    cowId: 'Cow-103 (Ruby)',
+    date: getRelativeDate(-8),
+    type: 'Treatment',
+    treatment: 'Mastitis teat ointment & Penicillin G',
+    cost: 3200,
+    staff: 'Dr. Devin Omwenga',
+    notes: 'Left rear quarter light mastitis flare. Cleared successfully, milk withdrawal ended.'
+  },
+  {
+    id: 'vet-3',
+    cowId: 'Cow-102 (Goldie)',
+    date: getRelativeDate(-2),
+    type: 'Vaccination',
+    treatment: 'Foot & Mouth Disease (FMD) Vaccine',
+    cost: 1200,
+    staff: 'Dr. Devin Omwenga',
+    notes: 'Bi-annual routine booster dose.'
+  }
+];
+
+export const INITIAL_GOAT_RECORDS: GoatRecord[] = [
+  {
+    id: 'gt-1',
+    tagId: 'Goat-201 (Pippa)',
+    breed: 'Toggenburg',
+    purpose: 'Dairy',
+    milkYieldLiters: 2.8,
+    activity: 'Milk Log',
+    notes: 'Premium lactation doe. Milk is high-protein for family consumption.',
+    date: getRelativeDate(-1)
+  },
+  {
+    id: 'gt-2',
+    tagId: 'Goat-202 (Billy)',
+    breed: 'Boer',
+    purpose: 'Meat',
+    activity: 'Weight tracking & deworming',
+    notes: 'Breeding buck. Achieved 68kg liveweight chest girth.',
+    date: getRelativeDate(-5)
+  },
+  {
+    id: 'gt-3',
+    tagId: 'Goat-203 (Alpine Doe)',
+    breed: 'Alpine',
+    purpose: 'Dairy',
+    milkYieldLiters: 2.2,
+    activity: 'Foot rot preventive dressing',
+    notes: 'Trimmed hoofs and added copper sulfate dip. Alert on dry bedding.',
+    date: getRelativeDate(0)
+  }
+];
+
+export const INITIAL_CALF_RECORDS: CalfRecord[] = [
+  {
+    id: 'cf-1',
+    calfId: 'Calf-901 (Princess)',
+    damId: 'Cow-101 (Daisy)',
+    dob: getRelativeDate(-45),
+    milkIntakeLiters: 5.0,
+    creepFeedIntroDate: getRelativeDate(-15),
+    weaned: false,
+    notes: 'Highly active. Consuming calf-starter creep feed aggressively.',
+    date: getRelativeDate(0)
+  },
+  {
+    id: 'cf-2',
+    calfId: 'Calf-902 (Rocky)',
+    damId: 'Cow-103 (Ruby)',
+    dob: getRelativeDate(-90),
+    milkIntakeLiters: 0, // Fully weaned
+    creepFeedIntroDate: getRelativeDate(-60),
+    weaned: true,
+    notes: 'Successfully weaned to alfalfa hay and high protein dry concentrates.',
+    date: getRelativeDate(-1)
+  }
+];
+
+export const INITIAL_BSF_RECORDS: BsfRecord[] = [
+  {
+    id: 'bsf-1',
+    batchId: 'BSF-BATCH-001',
+    substrateType: 'Overripe Avocados & Banana waste',
+    inoculationDate: getRelativeDate(-16),
+    larvaeHarvestedKg: 35.8,
+    status: 'Harvested',
+    notes: 'Superior harvest size. Grubs dried in solar dryer for poultry feed supplement.',
+    date: getRelativeDate(-1)
+  },
+  {
+    id: 'bsf-2',
+    batchId: 'BSF-BATCH-002',
+    substrateType: 'Kitchen waste & Maize feed dust',
+    inoculationDate: getRelativeDate(-8),
+    larvaeHarvestedKg: 0, // Growing
+    status: 'Larvae Feeding',
+    notes: 'Highly voracious feed intake. Moderate temperature around 28C maintained.',
+    date: getRelativeDate(0)
+  }
+];
+
+export const INITIAL_CROP_OP_RECORDS: CropOpRecord[] = [
+  { id: 'co-1', crop: 'Tea', operationName: 'Pruning & Mulching', date: getRelativeDate(-10), status: 'Completed', completedBy: 'David', notes: 'Lower slope block C pruned to maintain a 24-inch flat plucking table.' },
+  { id: 'co-2', crop: 'Avocado', operationName: 'Foliar Copper Fungicide Spray', date: getRelativeDate(-2), status: 'Completed', completedBy: 'Josephine', notes: 'Pre-harvest copper spray for anthracnose defense. 21 days PHI lock active.' },
+  { id: 'co-3', crop: 'Banana', operationName: 'De-suckering & Propping', date: getRelativeDate(0), status: 'In-Progress', completedBy: 'Charles', notes: 'Removed secondary water suckers. Retained only 1 mother + 1 daughter + 1 granddaughter system.' },
+  { id: 'co-4', crop: 'Vegetables', operationName: 'Sack or Drip watering & compost prep', date: getRelativeDate(0), status: 'In-Progress', completedBy: 'Charles', notes: 'Drip line flush for kales/sukuma and tomatoes. Composted dairy dry manure.' },
+  { id: 'co-5', crop: 'Sorghum', operationName: 'Thinning & Bird scaring setup', date: getRelativeDate(2), status: 'Pending', completedBy: 'Charles', notes: 'Thin young sorghum plants to 15cm spacing. Prepare reflective flash tapes.' },
+  { id: 'co-6', crop: 'Maize', operationName: 'NPK 23:23:0 Top Dressing & Weeding', date: getRelativeDate(1), status: 'Pending', completedBy: 'David', notes: 'Scheduled for knee-high stage fertilization coinciding with rains.' }
+];
+
+export const INITIAL_CROP_SALES: CropSaleRecord[] = [
+  { id: 'cs-1', crop: 'Banana', qty: 15, unit: 'bunches', pricePerUnit: 1200, buyer: 'Nyamira Fresh Green Market', ref: 'NYM-B-041', date: getRelativeDate(-4), totalSales: 18000 },
+  { id: 'cs-2', crop: 'Vegetables', qty: 25, unit: 'crates', pricePerUnit: 800, buyer: 'Nairobi Organic Hub Retail', ref: 'NRO-V-992', date: getRelativeDate(-2), totalSales: 20000 },
+  { id: 'cs-3', crop: 'Maize', qty: 40, unit: 'bags (90kg)', pricePerUnit: 3600, buyer: 'National Cereals Board (NCPB)', ref: 'NCPB-M-112', date: getRelativeDate(-1), totalSales: 144000 }
+];
+

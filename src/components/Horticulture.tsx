@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { TeaRecord, AvocadoRecord } from '../types';
-import { Leaf, Plus, Package, Activity, BadgePercent, Filter, TrendingUp, Trash2 } from 'lucide-react';
+import { Leaf, Plus, Package, Activity, BadgePercent, Filter, TrendingUp, Trash2, Edit2, FileSpreadsheet } from 'lucide-react';
 
 interface HorticultureProps {
   teaRecords: TeaRecord[];
@@ -14,14 +14,20 @@ interface HorticultureProps {
   onAddAvo: (rec: AvocadoRecord) => void;
   onDeleteTea: (ref: string) => void;
   onDeleteAvo: (ref: string) => void;
+  onEditTea?: (oldRef: string, updated: TeaRecord) => void;
+  onEditAvo?: (oldRef: string, updated: AvocadoRecord) => void;
 }
 
-export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDeleteTea, onDeleteAvo }: HorticultureProps) {
+export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDeleteTea, onDeleteAvo, onEditTea, onEditAvo }: HorticultureProps) {
   // Tea state
   const [teaQty, setTeaQty] = useState<number | ''>('');
   const [teaRef, setTeaRef] = useState('');
   const [teaPrice, setTeaPrice] = useState<number | ''>(58); // default base rate Ksh
   const [teaBuyer, setTeaBuyer] = useState('Chinga KTDA Factory'); // default buyer
+
+  // Edit States
+  const [editingTea, setEditingTea] = useState<TeaRecord | null>(null);
+  const [editingAvo, setEditingAvo] = useState<AvocadoRecord | null>(null);
 
   // Avocado state
   const [avoRef, setAvoRef] = useState('');
@@ -83,6 +89,49 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
   // Compute total aggregates for Horticulture
   const totalTeaAllTime = teaRecords.reduce((sum, r) => sum + r.qty, 0);
   const totalAvoBoxes = avoRecords.reduce((sum, r) => sum + r.gradeA + r.gradeB, 0);
+
+  // CSV downlod helper functions
+  const downloadTeaCSV = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'KTDA TEA EXPORTS HARVEST & DELIVERIES\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csv += 'Date,Plucking Ref,Primary Buyer,Harvest Weight (KG),Price/KG (Ksh),Gross Amount (Ksh)\n';
+    teaRecords.forEach((t) => {
+      const p = t.pricePerKg ?? 58;
+      const b = t.buyer ?? 'Chinga KTDA Factory';
+      const s = t.totalSales ?? (t.qty * p);
+      csv += `${t.date},"${t.ref}","${b}",${t.qty},${p},${s}\n`;
+    });
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Tea_Harvest_Records_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadAvoCSV = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'AVOCADO EXPORT LOGISTICS & REVENUES\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csv += 'Date,Shipping Ref,Primary Exporter,Grade A (Boxes),Grade B (Boxes),Reject (KG),Price Grade A (Ksh),Price Grade B (Ksh),Price Reject (Ksh),Gross Revenue (Ksh)\n';
+    avoRecords.forEach((item) => {
+      const pA = item.priceGradeA ?? 1500;
+      const pB = item.priceGradeB ?? 850;
+      const pR = item.priceReject ?? 38;
+      const b = item.buyer ?? 'Kakuzi Agribusiness Exporters';
+      const s = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
+      csv += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
+    });
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Avocado_Export_Logistics_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-8">
@@ -166,8 +215,19 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
           {/* Past tea logs */}
           <div className="border-t border-slate-100 pt-5 space-y-3">
             <div className="flex justify-between items-center text-xs">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Collection Receipt Timeline</label>
-              <span className="font-bold text-emerald-900">Total: {totalTeaAllTime.toLocaleString()} KG</span>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-bold">Collection Receipt Timeline</label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadTeaCSV}
+                  type="button"
+                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                  title="Export Tea Harvests CSV"
+                >
+                  <FileSpreadsheet size={10} />
+                  Export CSV
+                </button>
+                <span className="font-bold text-emerald-900">Total: {totalTeaAllTime.toLocaleString()} KG</span>
+              </div>
             </div>
 
             <div className="max-h-52 overflow-y-auto pr-1">
@@ -205,13 +265,24 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                           <span className="text-[8px] bg-emerald-100 font-extrabold text-emerald-900 px-1 py-0.2 rounded inline-block uppercase">Sold</span>
                         </td>
                         <td className="p-2 text-center">
-                          <button
-                            onClick={() => onDeleteTea(t.ref)}
-                            className="text-slate-300 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 inline-block"
-                            title="Delete Receipt"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {onEditTea && (
+                              <button
+                                onClick={() => setEditingTea(t)}
+                                className="text-slate-300 hover:text-[#0e3a24] p-1 rounded transition-colors cursor-pointer m-0 inline-block"
+                                title="Edit Receipt"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => onDeleteTea(t.ref)}
+                              className="text-slate-300 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 inline-block"
+                              title="Delete Receipt"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -332,8 +403,19 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
           {/* Past avocado grading */}
           <div className="border-t border-slate-100 pt-5 space-y-3">
             <div className="flex justify-between items-center text-xs">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Export Shipping Ledger</label>
-              <span className="font-bold text-indigo-950">Total Boxes: {totalAvoBoxes} Bags/Crates</span>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-bold">Export Shipping Ledger</label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadAvoCSV}
+                  type="button"
+                  className="flex items-center gap-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                  title="Export Avocado Logistics CSV"
+                >
+                  <FileSpreadsheet size={10} />
+                  Export CSV
+                </button>
+                <span className="font-bold text-indigo-950">Total Boxes: {totalAvoBoxes} Bags/Crates</span>
+              </div>
             </div>
 
             <div className="max-h-[30rem] overflow-y-auto pr-1">
@@ -375,13 +457,24 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                           {ratio.toFixed(0)}% Grade A
                         </span>
                       </div>
-                      <button
-                        onClick={() => onDeleteAvo(item.ref)}
-                        className="text-slate-300 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border hover:border-red-100 bg-white"
-                        title="Delete shipment"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {onEditAvo && (
+                          <button
+                            onClick={() => setEditingAvo(item)}
+                            className="text-slate-300 hover:text-indigo-850 p-2 rounded transition-colors cursor-pointer m-0 border hover:border-slate-200 bg-white"
+                            title="Edit shipment"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteAvo(item.ref)}
+                          className="text-slate-300 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border hover:border-red-100 bg-white"
+                          title="Delete shipment"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -390,6 +483,196 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
           </div>
         </div>
       </div>
+
+      {/* Editing Tea Modal */}
+      {editingTea && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Tea Record ({editingTea.ref})</h3>
+              <button onClick={() => setEditingTea(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={editingTea.date}
+                  onChange={(e) => setEditingTea({ ...editingTea, date: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Quantity (KG)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editingTea.qty}
+                  onChange={(e) => setEditingTea({ ...editingTea, qty: parseFloat(e.target.value) || 0 })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price per KG (Ksh)</label>
+                <input
+                  type="number"
+                  value={editingTea.pricePerKg ?? 58}
+                  onChange={(e) => setEditingTea({ ...editingTea, pricePerKg: parseInt(e.target.value) || 0 })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Primary Buyer</label>
+                <input
+                  type="text"
+                  value={editingTea.buyer ?? ''}
+                  onChange={(e) => setEditingTea({ ...editingTea, buyer: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+              <button
+                onClick={() => setEditingTea(null)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditTea) {
+                    onEditTea(editingTea.ref, {
+                      ...editingTea,
+                      totalSales: editingTea.qty * (editingTea.pricePerKg ?? 58),
+                    });
+                  }
+                  setEditingTea(null);
+                }}
+                className="px-5 py-2.5 bg-emerald-950 text-white rounded-lg text-xs font-black uppercase hover:bg-emerald-900 m-0 shadow cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Editing Avocado Modal */}
+      {editingAvo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Avocado Shipment ({editingAvo.ref})</h3>
+              <button onClick={() => setEditingAvo(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+            </div>
+            <div className="space-y-3 max-h-[30rem] overflow-y-auto pr-1">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={editingAvo.date}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, date: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade A (Box count)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.gradeA}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, gradeA: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade B (Box count)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.gradeB}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, gradeB: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Grade A (Ksh/box)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.priceGradeA ?? 1500}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, priceGradeA: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Grade B (Ksh/box)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.priceGradeB ?? 850}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, priceGradeB: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Reject (KG count)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.reject}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, reject: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Reject (Ksh/KG)</label>
+                  <input
+                    type="number"
+                    value={editingAvo.priceReject ?? 38}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, priceReject: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Exporter / Buyer Name</label>
+                <input
+                  type="text"
+                  value={editingAvo.buyer ?? ''}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, buyer: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+              <button
+                onClick={() => setEditingAvo(null)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditAvo) {
+                    const pA = editingAvo.priceGradeA ?? 1500;
+                    const pB = editingAvo.priceGradeB ?? 850;
+                    const pR = editingAvo.priceReject ?? 38;
+                    onEditAvo(editingAvo.ref, {
+                      ...editingAvo,
+                      totalSales: (editingAvo.gradeA * pA) + (editingAvo.gradeB * pB) + (editingAvo.reject * pR),
+                    });
+                  }
+                  setEditingAvo(null);
+                }}
+                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

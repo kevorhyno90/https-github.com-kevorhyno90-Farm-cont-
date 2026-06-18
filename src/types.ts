@@ -68,6 +68,7 @@ export interface Todo {
   text: string;
   completed: boolean;
   date: string;
+  assigneeName?: string;
 }
 
 export interface Ingredient {
@@ -124,3 +125,92 @@ export interface InventoryItem {
   unit: string; // "bags", "liters", "KG", "units"
   minStock: number;
 }
+
+export interface StaffOffRecord {
+  id: string;
+  staffId: string;
+  staffName: string;
+  type: 'Day Off' | 'Annual Leave' | 'Sick Leave' | 'Compassionate Leave';
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  notes?: string;
+  status: 'Approved' | 'Pending' | 'Completed';
+}
+
+export interface Cow {
+  id: string; // Cow tag
+  name: string;
+  breed: string;
+  dob: string;
+  status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf';
+  notes: string;
+}
+
+export interface VetRecord {
+  id: string;
+  cowId: string; // Cow tag or Cow name
+  date: string; // YYYY-MM-DD
+  type: 'Deworming' | 'Treatment' | 'Vaccination' | 'General Practice';
+  treatment: string; // e.g. "Safeguard deworming bolus", "Mastitis antibiotic syringe"
+  nextDueDate?: string; // YYYY-MM-DD (vital for deworming reminders!)
+  cost: number; // Ksh
+  staff: string;
+  notes: string;
+}
+
+export interface GoatRecord {
+  id: string;
+  tagId: string;
+  breed: 'Toggenburg' | 'Alpine' | 'Saanen' | 'Galla' | 'Boer' | 'Cross';
+  purpose: 'Dairy' | 'Meat' | 'Breeding';
+  milkYieldLiters?: number;
+  activity: string; // e.g., "Kidding twins", "Foot rot dressing", "Normal grazing"
+  notes: string;
+  date: string;
+}
+
+export interface CalfRecord {
+  id: string;
+  calfId: string;
+  damId: string; // Mother Cow tag
+  dob: string; // Date of birth
+  milkIntakeLiters: number; // Daily liquid feeder volume
+  creepFeedIntroDate?: string; // Creep ration start
+  weaned: boolean;
+  notes: string;
+  date: string;
+}
+
+export interface BsfRecord {
+  id: string;
+  batchId: string; // e.g., "BSF-BATCH-202"
+  substrateType: string; // e.g., "Overripe Avocado & Banana peels"
+  inoculationDate: string; // YYYY-MM-DD
+  larvaeHarvestedKg: number; // harvested size
+  status: 'Inoculation' | 'Larvae Feeding' | 'Harvested' | 'Love Cage Breeding';
+  notes: string;
+  date: string;
+}
+
+export interface CropOpRecord {
+  id: string;
+  crop: 'Tea' | 'Avocado' | 'Banana' | 'Vegetables' | 'Sorghum' | 'Maize';
+  operationName: string; // E.g., "De-suckering", "Foliar spray", "Thinning"
+  date: string; // YYYY-MM-DD
+  status: 'Pending' | 'Completed' | 'In-Progress';
+  completedBy?: string; // Staff member assigned
+  notes: string;
+}
+
+export interface CropSaleRecord {
+  id: string;
+  crop: 'Banana' | 'Vegetables' | 'Sorghum' | 'Maize' | 'Napier' | 'Eucalyptus' | string;
+  qty: number;
+  unit: string; // 'bunches', 'crates', 'bags', 'KGs', etc.
+  pricePerUnit: number; // Ksh
+  buyer: string;
+  ref: string; // Invoice / Receipt ref
+  date: string; // YYYY-MM-DD
+  totalSales: number; // qty * pricePerUnit
+}
+

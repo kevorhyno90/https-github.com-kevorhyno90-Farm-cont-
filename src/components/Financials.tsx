@@ -5,19 +5,23 @@
 
 import React, { useState } from 'react';
 import { FinancialRecord } from '../types';
-import { Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, BookOpen } from 'lucide-react';
+import { Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, BookOpen, Edit2, FileSpreadsheet } from 'lucide-react';
 
 interface FinancialsProps {
   financialRecords: FinancialRecord[];
   onAddTransaction: (rec: FinancialRecord) => void;
   onDeleteTransaction: (id: string) => void;
+  onEditFinancialRecord?: (id: string, updated: FinancialRecord) => void;
 }
 
-export function Financials({ financialRecords, onAddTransaction, onDeleteTransaction }: FinancialsProps) {
+export function Financials({ financialRecords, onAddTransaction, onDeleteTransaction, onEditFinancialRecord }: FinancialsProps) {
   // Income form state
   const [incAmt, setIncAmt] = useState<number | ''>('');
   const [incSrc, setIncSrc] = useState('');
   const [incDesc, setIncDesc] = useState('');
+
+  // Editing state
+  const [editingFinancial, setEditingFinancial] = useState<FinancialRecord | null>(null);
 
   // Expense form state
   const [expAmt, setExpAmt] = useState<number | ''>('');
@@ -82,6 +86,23 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
       return matchType && matchTerm;
     })
     .sort((a, b) => b.date.localeCompare(a.date));
+
+  const downloadFinancialsCSV = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'NYARONDE FARM ACCOUNTING LEDGER\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csv += 'Date,Transaction Reference ID,Type,Category/Source,Description,Amount (Ksh)\n';
+    filteredRecords.forEach((f) => {
+      csv += `${f.date},"${f.id}","${f.type}","${f.category}","${f.description}",${f.amount}\n`;
+    });
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Financial_Operational_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-8">
@@ -249,8 +270,18 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
             <p className="text-xs text-slate-400 font-medium">Granular drilldown of all processed accounts</p>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={downloadFinancialsCSV}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-950 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
+              title="Download Ledger CSV"
+            >
+              <FileSpreadsheet size={13} />
+              Export
+            </button>
+
+            <div className="relative flex-1 sm:w-48">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                 <Search size={14} />
               </span>
@@ -259,16 +290,16 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                 placeholder="Search ledger..."
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
-                className="text-xs border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white"
+                className="text-xs border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white font-bold"
               />
             </div>
 
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as any)}
-              className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none"
+              className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
             >
-              <option value="all">All ledger ledger</option>
+              <option value="all">All ledger records</option>
               <option value="income">Credits only</option>
               <option value="expense">Debits only</option>
             </select>
@@ -313,13 +344,24 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                       </span>
                     </td>
                     <td className="p-3 text-center">
-                      <button
-                        onClick={() => onDeleteTransaction(r.id)}
-                        className="text-slate-300 hover:text-red-650 p-2 border border-transparent hover:border-red-100 rounded-lg transition-colors cursor-pointer m-0"
-                        title="Void entry"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {onEditFinancialRecord && (
+                          <button
+                            onClick={() => setEditingFinancial(r)}
+                            className="text-slate-300 hover:text-indigo-800 p-2 border border-transparent hover:border-slate-200 rounded-lg transition-colors cursor-pointer m-0"
+                            title="Edit entry"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteTransaction(r.id)}
+                          className="text-slate-300 hover:text-red-650 p-2 border border-transparent hover:border-red-100 rounded-lg transition-colors cursor-pointer m-0"
+                          title="Void entry"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -328,6 +370,88 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
           </table>
         </div>
       </div>
+
+      {/* Edit Financial Record Modal */}
+      {editingFinancial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Transaction Flow</h3>
+              <button onClick={() => setEditingFinancial(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Flow Type</label>
+                <select
+                  value={editingFinancial.type}
+                  onChange={(e) => setEditingFinancial({ ...editingFinancial, type: e.target.value as 'income' | 'expense' })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                >
+                  <option value="income">Income (+ Record)</option>
+                  <option value="expense">Expense (- Loss)</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Amount (Ksh)</label>
+                  <input
+                    type="number"
+                    value={editingFinancial.amount}
+                    onChange={(e) => setEditingFinancial({ ...editingFinancial, amount: parseInt(e.target.value) || 0 })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={editingFinancial.date}
+                    onChange={(e) => setEditingFinancial({ ...editingFinancial, date: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Source / Category</label>
+                <input
+                  type="text"
+                  value={editingFinancial.category}
+                  onChange={(e) => setEditingFinancial({ ...editingFinancial, category: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-extrabold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Description</label>
+                <textarea
+                  value={editingFinancial.description}
+                  onChange={(e) => setEditingFinancial({ ...editingFinancial, description: e.target.value })}
+                  rows={2}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+              <button
+                onClick={() => setEditingFinancial(null)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditFinancialRecord) {
+                    onEditFinancialRecord(editingFinancial.id, editingFinancial);
+                  }
+                  setEditingFinancial(null);
+                }}
+                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

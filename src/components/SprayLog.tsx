@@ -5,19 +5,23 @@
 
 import React, { useState } from 'react';
 import { SprayRecord } from '../types';
-import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet } from 'lucide-react';
 
 interface SprayLogProps {
   sprayRecords: SprayRecord[];
   onAddSpray: (rec: SprayRecord) => void;
   onDeleteSpray: (id: string) => void;
+  onEditSprayRecord?: (id: string, updated: SprayRecord) => void;
 }
 
-export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray }: SprayLogProps) {
+export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayRecord }: SprayLogProps) {
   const [block, setBlock] = useState('');
   const [chemical, setChemical] = useState('');
   const [phi, setPhi] = useState<number | ''>('');
   const [target, setTarget] = useState('');
+
+  // Editing state
+  const [editingSpray, setEditingSpray] = useState<SprayRecord | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +59,23 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray }: SprayLogPr
       isQuarantined: daysLeft > 0,
       daysRemaining: daysLeft
     };
+  };
+
+  const downloadSprayCSV = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'GLOBALGAP SPRAY COMPLIANCE PROTOCOLS & LOGS\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csv += 'Date Sprayed,Plot/Section,Chemical Brand,PHI Days,Pest Target,Authorized Harvest Date\n';
+    sprayRecords.forEach((s) => {
+      csv += `${s.date},"${s.block}","${s.chemical}",${s.phi},"${s.target}",${s.safeDate}\n`;
+    });
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `GlobalGAP_Spray_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -144,8 +165,21 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray }: SprayLogPr
         {/* Quarantine Active Monitors & Archive Logs */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-            <h5 className="text-[11px] font-black tracking-widest text-slate-805 uppercase">Active Quarantine Controls & Safe Dates</h5>
-            <p className="text-xs text-slate-400 font-medium">Real-time Safety Checkpoints for Plucking Managers</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h5 className="text-[11px] font-black tracking-widest text-slate-805 uppercase">Active Quarantine Controls & Safe Dates</h5>
+                <p className="text-xs text-slate-400 font-medium">Real-time Safety Checkpoints for Plucking Managers</p>
+              </div>
+              <button
+                onClick={downloadSprayCSV}
+                type="button"
+                className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                title="Download Spray Records CSV"
+              >
+                <FileSpreadsheet size={12} />
+                Export Spray Logs
+              </button>
+            </div>
 
             <div className="space-y-3">
               {sprayRecords.length === 0 ? (
@@ -203,14 +237,26 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray }: SprayLogPr
                             )}
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => onDeleteSpray(rec.id)}
-                            className="text-slate-300 hover:text-red-600 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-red-100 bg-white shadow-xs shrink-0"
-                            title="Delete spray history"
-                          >
-                            <Trash2 size={13} />
-                          </button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {onEditSprayRecord && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingSpray(rec)}
+                                className="text-slate-300 hover:text-indigo-805 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-indigo-100 bg-white shadow-xs shrink-0"
+                                title="Edit spray record"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => onDeleteSpray(rec.id)}
+                              className="text-slate-300 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-red-100 bg-white shadow-xs shrink-0"
+                              title="Delete spray history"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -221,6 +267,104 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray }: SprayLogPr
           </div>
         </div>
       </div>
+
+      {/* Edit Spray Record Modal */}
+      {editingSpray && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Spray Log</h3>
+              <button onClick={() => setEditingSpray(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block / Unit Targeted</label>
+                <input
+                  type="text"
+                  value={editingSpray.block}
+                  onChange={(e) => setEditingSpray({ ...editingSpray, block: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Chemical Applied</label>
+                <input
+                  type="text"
+                  value={editingSpray.chemical}
+                  onChange={(e) => setEditingSpray({ ...editingSpray, chemical: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Target Pest / Disease</label>
+                <input
+                  type="text"
+                  value={editingSpray.target}
+                  onChange={(e) => setEditingSpray({ ...editingSpray, target: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">PHI (Days)</label>
+                  <input
+                    type="number"
+                    value={editingSpray.phi}
+                    onChange={(e) => {
+                      const phiVal = parseInt(e.target.value) || 0;
+                      const dateObj = new Date(editingSpray.date);
+                      dateObj.setDate(dateObj.getDate() + phiVal);
+                      setEditingSpray({
+                        ...editingSpray,
+                        phi: phiVal,
+                        safeDate: dateObj.toISOString().split('T')[0]
+                      });
+                    }}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Sprayed Date</label>
+                  <input
+                    type="date"
+                    value={editingSpray.date}
+                    onChange={(e) => {
+                      const sDate = e.target.value;
+                      const dateObj = new Date(sDate);
+                      dateObj.setDate(dateObj.getDate() + editingSpray.phi);
+                      setEditingSpray({
+                        ...editingSpray,
+                        date: sDate,
+                        safeDate: dateObj.toISOString().split('T')[0]
+                      });
+                    }}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+              <button
+                onClick={() => setEditingSpray(null)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditSprayRecord) {
+                    onEditSprayRecord(editingSpray.id, editingSpray);
+                  }
+                  setEditingSpray(null);
+                }}
+                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

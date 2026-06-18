@@ -49,7 +49,15 @@ import {
   StaffMember,
   LivestockRecord,
   FieldRecord,
-  InventoryItem
+  InventoryItem,
+  StaffOffRecord,
+  Cow,
+  VetRecord,
+  GoatRecord,
+  CalfRecord,
+  BsfRecord,
+  CropOpRecord,
+  CropSaleRecord
 } from './types';
 
 // Mock Primers
@@ -65,7 +73,15 @@ import {
   INITIAL_TODOS,
   INITIAL_LIVESTOCK,
   INITIAL_FIELDS,
-  INITIAL_INVENTORY
+  INITIAL_INVENTORY,
+  INITIAL_STAFF_OFF_RECORDS,
+  INITIAL_COWS,
+  INITIAL_VET_RECORDS,
+  INITIAL_GOAT_RECORDS,
+  INITIAL_CALF_RECORDS,
+  INITIAL_BSF_RECORDS,
+  INITIAL_CROP_OP_RECORDS,
+  INITIAL_CROP_SALES
 } from './initialData';
 
 export default function App() {
@@ -157,6 +173,46 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_INVENTORY;
   });
 
+  const [staffOffRecords, setStaffOffRecords] = useState<StaffOffRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_staff_off');
+    return saved ? JSON.parse(saved) : INITIAL_STAFF_OFF_RECORDS;
+  });
+
+  const [cows, setCows] = useState<Cow[]>(() => {
+    const saved = localStorage.getItem('jr_farm_cows');
+    return saved ? JSON.parse(saved) : INITIAL_COWS;
+  });
+
+  const [vetRecords, setVetRecords] = useState<VetRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_vets');
+    return saved ? JSON.parse(saved) : INITIAL_VET_RECORDS;
+  });
+
+  const [goatRecords, setGoatRecords] = useState<GoatRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_goats');
+    return saved ? JSON.parse(saved) : INITIAL_GOAT_RECORDS;
+  });
+
+  const [calfRecords, setCalfRecords] = useState<CalfRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_calves');
+    return saved ? JSON.parse(saved) : INITIAL_CALF_RECORDS;
+  });
+
+  const [bsfRecords, setBsfRecords] = useState<BsfRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_bsfs');
+    return saved ? JSON.parse(saved) : INITIAL_BSF_RECORDS;
+  });
+
+  const [cropOps, setCropOps] = useState<CropOpRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_crop_ops');
+    return saved ? JSON.parse(saved) : INITIAL_CROP_OP_RECORDS;
+  });
+
+  const [cropSales, setCropSales] = useState<CropSaleRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_crop_sales');
+    return saved ? JSON.parse(saved) : INITIAL_CROP_SALES;
+  });
+
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
@@ -208,6 +264,38 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('jr_farm_inventory', JSON.stringify(inventory));
   }, [inventory]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_staff_off', JSON.stringify(staffOffRecords));
+  }, [staffOffRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_cows', JSON.stringify(cows));
+  }, [cows]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_vets', JSON.stringify(vetRecords));
+  }, [vetRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_goats', JSON.stringify(goatRecords));
+  }, [goatRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_calves', JSON.stringify(calfRecords));
+  }, [calfRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_bsfs', JSON.stringify(bsfRecords));
+  }, [bsfRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_crop_ops', JSON.stringify(cropOps));
+  }, [cropOps]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_crop_sales', JSON.stringify(cropSales));
+  }, [cropSales]);
 
   // Live timer effect
   useEffect(() => {
@@ -269,12 +357,13 @@ export default function App() {
     );
   };
 
-  const handleAddTodo = (text: string) => {
+  const handleAddTodo = (text: string, assigneeName?: string) => {
     const newTodoItem: Todo = {
       id: `todo-${Date.now()}`,
       text,
       completed: false,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      assigneeName
     };
     setTodos([...todos, newTodoItem]);
   };
@@ -370,6 +459,19 @@ export default function App() {
     setFinancials((prev) => [autoIncome, ...prev]);
   };
 
+  const handleAddCropSale = (rec: CropSaleRecord) => {
+    setCropSales([rec, ...cropSales]);
+    const autoIncome: FinancialRecord = {
+      id: `f-auto-${Date.now()}`,
+      type: 'income',
+      amount: rec.totalSales,
+      category: 'General Crop Sale',
+      description: `Crop Sale (${rec.crop}) payout Ref ${rec.ref} to (${rec.buyer}) - ${rec.qty} ${rec.unit} @ Ksh ${rec.pricePerUnit}/${rec.unit}`,
+      date: rec.date
+    };
+    setFinancials((prev) => [autoIncome, ...prev]);
+  };
+
   const handleAddTransaction = (rec: FinancialRecord) => {
     setFinancials([rec, ...financials]);
   };
@@ -380,6 +482,51 @@ export default function App() {
 
   const handleDeleteStaff = (id: string) => {
     setStaffList(staffList.filter((s) => s.id !== id));
+    setStaffOffRecords(staffOffRecords.filter((r) => r.staffId !== id)); // Clean up off records if staff is deleted
+  };
+
+  const handleAddOffRecord = (record: Omit<StaffOffRecord, 'id'>) => {
+    const newRecord: StaffOffRecord = {
+      ...record,
+      id: `off-${Date.now()}`
+    };
+    setStaffOffRecords([newRecord, ...staffOffRecords]);
+    
+    // Automatically update the main staffList status field if the off start date is <= today and today is <= end date!
+    const today = new Date().toISOString().split('T')[0];
+    if (newRecord.startDate <= today && today <= newRecord.endDate && newRecord.status === 'Approved') {
+      const liveStatus = newRecord.type === 'Day Off' ? 'Off' : 'On Leave';
+      setStaffList((prev) => prev.map((s) => s.id === newRecord.staffId ? { ...s, status: liveStatus } : s));
+    }
+  };
+
+  const handleDeleteOffRecord = (id: string) => {
+    const target = staffOffRecords.find((r) => r.id === id);
+    setStaffOffRecords(staffOffRecords.filter((r) => r.id !== id));
+    if (target) {
+      setStaffList((prev) => prev.map((s) => s.id === target.staffId ? { ...s, status: 'Present' } : s));
+    }
+  };
+
+  const handleUpdateOffRecordStatus = (id: string, status: 'Approved' | 'Pending' | 'Completed') => {
+    setStaffOffRecords((prevList) =>
+      prevList.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, status };
+          const today = new Date().toISOString().split('T')[0];
+          if (updated.startDate <= today && today <= updated.endDate) {
+            if (status === 'Approved') {
+              const liveStatus = updated.type === 'Day Off' ? 'Off' : 'On Leave';
+              setStaffList((prev) => prev.map((s) => s.id === updated.staffId ? { ...s, status: liveStatus } : s));
+            } else {
+              setStaffList((prev) => prev.map((s) => s.id === updated.staffId ? { ...s, status: 'Present' } : s));
+            }
+          }
+          return updated;
+        }
+        return r;
+      })
+    );
   };
 
   const handleDeleteIngredientLib = (name: string) => {
@@ -400,6 +547,10 @@ export default function App() {
 
   const handleDeleteAvo = (ref: string) => {
     setAvoRecords(avoRecords.filter((a) => a.ref !== ref));
+  };
+
+  const handleDeleteCropSale = (id: string) => {
+    setCropSales(cropSales.filter((s) => s.id !== id));
   };
 
   const handleDeleteSpray = (id: string) => {
@@ -438,6 +589,144 @@ export default function App() {
 
   const handleAddInventoryItem = (item: InventoryItem) => {
     setInventory([...inventory, item]);
+  };
+
+  const handleAddCow = (rec: Cow) => {
+    setCows([rec, ...cows]);
+  };
+
+  const handleDeleteCow = (id: string) => {
+    setCows(cows.filter(c => c.id !== id));
+  };
+
+  const handleUpdateCowStatus = (id: string, status: Cow['status']) => {
+    setCows(cows.map(c => c.id === id ? { ...c, status } : c));
+  };
+
+  const handleAddVetRecord = (rec: VetRecord) => {
+    setVetRecords([rec, ...vetRecords]);
+    if (rec.cost > 0) {
+      handleAddTransaction({
+        id: `f-vet-${Date.now()}`,
+        type: 'expense',
+        amount: rec.cost,
+        category: 'Veternary Care',
+        description: `Vet care ${rec.type} for ${rec.cowId} (${rec.treatment})`,
+        date: rec.date
+      });
+    }
+  };
+
+  const handleDeleteVetRecord = (id: string) => {
+    setVetRecords(vetRecords.filter(r => r.id !== id));
+  };
+
+  const handleAddGoatRecord = (rec: GoatRecord) => {
+    setGoatRecords([rec, ...goatRecords]);
+  };
+
+  const handleDeleteGoatRecord = (id: string) => {
+    setGoatRecords(goatRecords.filter(r => r.id !== id));
+  };
+
+  const handleAddCalfRecord = (rec: CalfRecord) => {
+    setCalfRecords([rec, ...calfRecords]);
+  };
+
+  const handleDeleteCalfRecord = (id: string) => {
+    setCalfRecords(calfRecords.filter(r => r.id !== id));
+  };
+
+  const handleAddBsfRecord = (rec: BsfRecord) => {
+    setBsfRecords([rec, ...bsfRecords]);
+  };
+
+  const handleDeleteBsfRecord = (id: string) => {
+    setBsfRecords(bsfRecords.filter(r => r.id !== id));
+  };
+
+  const handleAddCropOp = (rec: CropOpRecord) => {
+    setCropOps([rec, ...cropOps]);
+  };
+
+  const handleDeleteCropOp = (id: string) => {
+    setCropOps(cropOps.filter(r => r.id !== id));
+  };
+
+  const handleUpdateCropOpStatus = (id: string, status: CropOpRecord['status'], completedBy?: string, notes?: string) => {
+    setCropOps(cropOps.map(c => c.id === id ? { ...c, status, completedBy: completedBy ?? c.completedBy, notes: notes ?? c.notes } : c));
+  };
+
+  const handleEditStaff = (id: string, updated: StaffMember) => {
+    setStaffList((prev) => prev.map((s) => s.id === id ? updated : s));
+  };
+
+  const handleEditMilkRecord = (id: string, date: string, updated: MilkingRecord) => {
+    setMilkRecords((prev) => prev.map((m) => (m.id === id && m.date === date) ? updated : m));
+  };
+
+  const handleEditAIRecord = (cowId: string, date: string, updated: AIRecord) => {
+    setAiRecords((prev) => prev.map((a) => (a.cowId === cowId && a.date === date) ? updated : a));
+  };
+
+  const handleEditTea = (oldRef: string, updated: TeaRecord) => {
+    setTeaRecords((prev) => prev.map((t) => t.ref === oldRef ? updated : t));
+  };
+
+  const handleEditAvo = (oldRef: string, updated: AvocadoRecord) => {
+    setAvoRecords((prev) => prev.map((a) => a.ref === oldRef ? updated : a));
+  };
+
+  const handleEditFinancialRecord = (id: string, updated: FinancialRecord) => {
+    setFinancials((prev) => prev.map((f) => f.id === id ? updated : f));
+  };
+
+  const handleEditSprayRecord = (id: string, updated: SprayRecord) => {
+    setSprayRecords((prev) => prev.map((s) => s.id === id ? updated : s));
+  };
+
+  const handleEditFieldRecord = (id: string, updated: FieldRecord) => {
+    setFields((prev) => prev.map((f) => f.id === id ? updated : f));
+  };
+
+  const handleEditLivestockRecord = (id: string, updated: LivestockRecord) => {
+    setLivestock((prev) => prev.map((l) => l.id === id ? updated : l));
+  };
+
+  const handleEditInventoryItem = (id: string, updated: InventoryItem) => {
+    setInventory((prev) => prev.map((i) => i.id === id ? updated : i));
+  };
+
+  const handleEditStaffOffRecord = (id: string, updated: StaffOffRecord) => {
+    setStaffOffRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditCow = (id: string, updated: Cow) => {
+    setCows((prev) => prev.map((c) => c.id === id ? updated : c));
+  };
+
+  const handleEditVetRecord = (id: string, updated: VetRecord) => {
+    setVetRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditGoatRecord = (id: string, updated: GoatRecord) => {
+    setGoatRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditCalfRecord = (id: string, updated: CalfRecord) => {
+    setCalfRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditBsfRecord = (id: string, updated: BsfRecord) => {
+    setBsfRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditCropOpRecord = (id: string, updated: CropOpRecord) => {
+    setCropOps((prev) => prev.map((r) => r.id === id ? updated : r));
+  };
+
+  const handleEditCropSale = (id: string, updated: CropSaleRecord) => {
+    setCropSales((prev) => prev.map((r) => r.id === id ? updated : r));
   };
 
   // CSV Exporter helper
@@ -479,6 +768,13 @@ export default function App() {
       csvContent += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
     });
 
+    // Other Crops Local Sales Section
+    csvContent += '\n--- OTHER FIELD CROPS LOCAL SALES RECORD ---\n';
+    csvContent += 'Date,Invoice/Receipt Ref,Local Crop,Quantity Sold,Unit,Rate per Unit (Ksh),Gross Income (Ksh),Primary Buyer\n';
+    cropSales.forEach((cs) => {
+      csvContent += `${cs.date},"${cs.ref}","${cs.crop}",${cs.qty},"${cs.unit}",${cs.pricePerUnit},${cs.totalSales},"${cs.buyer}"\n`;
+    });
+
     // Financials Section
     csvContent += '\n--- ESTATE OPERATIONS CASHFLOW ---\n';
     csvContent += 'Date,Transaction,Amount (Ksh),Type,Description\n';
@@ -511,7 +807,7 @@ export default function App() {
     { id: 'tmr', label: 'TMR Mixing', icon: Truck, category: 'Feed & Factory' },
 
     { id: 'dairy', label: 'Dairy & AI', icon: Activity, category: 'Livestock' },
-    { id: 'livestock', label: 'Poultry & Dogs', icon: Heart, category: 'Livestock' },
+    { id: 'livestock', label: 'Livestock & BSF', icon: Heart, category: 'Livestock' },
 
     { id: 'horti', label: 'Tea & Avocado', icon: Leaf, category: 'Crop Exports' },
     { id: 'fields', label: 'Fields & Trees', icon: Sprout, category: 'Crop Exports' },
@@ -697,6 +993,8 @@ export default function App() {
               onAddTodo={handleAddTodo}
               onDeleteTodo={handleDeleteTodo}
               totalTeaQty={totalTeaQty}
+              staffOffRecords={staffOffRecords}
+              staffList={staffList}
             />
           )}
 
@@ -706,6 +1004,12 @@ export default function App() {
               onUpdateStatus={handleUpdateStaffStatus}
               onAddStaff={handleAddStaff}
               onDeleteStaff={handleDeleteStaff}
+              onEditStaff={handleEditStaff}
+              staffOffRecords={staffOffRecords}
+              onAddOffRecord={handleAddOffRecord}
+              onDeleteOffRecord={handleDeleteOffRecord}
+              onUpdateOffRecordStatus={handleUpdateOffRecordStatus}
+              onEditStaffOffRecord={handleEditStaffOffRecord}
             />
           )}
 
@@ -729,6 +1033,17 @@ export default function App() {
               onUpdateAIStatus={handleUpdateAIStatus}
               onDeleteMilkRecord={handleDeleteMilkRecord}
               onDeleteAIRecord={handleDeleteAIRecord}
+              cows={cows}
+              vetRecords={vetRecords}
+              onAddCow={handleAddCow}
+              onDeleteCow={handleDeleteCow}
+              onUpdateCowStatus={handleUpdateCowStatus}
+              onAddVetRecord={handleAddVetRecord}
+              onDeleteVetRecord={handleDeleteVetRecord}
+              onEditMilkRecord={handleEditMilkRecord}
+              onEditAIRecord={handleEditAIRecord}
+              onEditCow={handleEditCow}
+              onEditVetRecord={handleEditVetRecord}
             />
           )}
 
@@ -740,6 +1055,8 @@ export default function App() {
               onAddAvo={handleAddAvo}
               onDeleteTea={handleDeleteTea}
               onDeleteAvo={handleDeleteAvo}
+              onEditTea={handleEditTea}
+              onEditAvo={handleEditAvo}
             />
           )}
 
@@ -748,6 +1065,7 @@ export default function App() {
               sprayRecords={sprayRecords}
               onAddSpray={handleAddSpray}
               onDeleteSpray={handleDeleteSpray}
+              onEditSprayRecord={handleEditSprayRecord}
             />
           )}
 
@@ -756,6 +1074,7 @@ export default function App() {
               financialRecords={financials}
               onAddTransaction={handleAddTransaction}
               onDeleteTransaction={handleDeleteTransaction}
+              onEditFinancialRecord={handleEditFinancialRecord}
             />
           )}
 
@@ -773,6 +1092,31 @@ export default function App() {
               onDeleteFields={handleDeleteFields}
               onDeleteLivestock={handleDeleteLivestock}
               onDeleteInventoryItem={handleDeleteInventoryItem}
+              goatRecords={goatRecords}
+              calfRecords={calfRecords}
+              bsfRecords={bsfRecords}
+              cropOps={cropOps}
+              staffList={staffList}
+              onAddGoatRecord={handleAddGoatRecord}
+              onDeleteGoatRecord={handleDeleteGoatRecord}
+              onAddCalfRecord={handleAddCalfRecord}
+              onDeleteCalfRecord={handleDeleteCalfRecord}
+              onAddBsfRecord={handleAddBsfRecord}
+              onDeleteBsfRecord={handleDeleteBsfRecord}
+              onAddCropOp={handleAddCropOp}
+              onDeleteCropOp={handleDeleteCropOp}
+              onUpdateCropOpStatus={handleUpdateCropOpStatus}
+              cropSales={cropSales}
+              onAddCropSale={handleAddCropSale}
+              onDeleteCropSale={handleDeleteCropSale}
+              onEditField={handleEditFieldRecord}
+              onEditLivestock={handleEditLivestockRecord}
+              onEditInventoryItem={handleEditInventoryItem}
+              onEditGoatRecord={handleEditGoatRecord}
+              onEditCalfRecord={handleEditCalfRecord}
+              onEditBsfRecord={handleEditBsfRecord}
+              onEditCropOp={handleEditCropOpRecord}
+              onEditCropSale={handleEditCropSale}
             />
           )}
         </main>
