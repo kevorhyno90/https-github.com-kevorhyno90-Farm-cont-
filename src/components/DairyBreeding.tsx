@@ -24,7 +24,12 @@ import {
   TrendingUp,
   Stethoscope,
   PenSquare,
-  FileDown
+  FileDown,
+  GitFork,
+  Printer,
+  Download,
+  Sparkles,
+  Award
 } from 'lucide-react';
 
 interface DairyBreedingProps {
@@ -102,6 +107,14 @@ export function DairyBreeding({
   const [newCowDob, setNewCowDob] = useState('');
   const [newCowStatus, setNewCowStatus] = useState<Cow['status']>('Lactating');
   const [newCowNotes, setNewCowNotes] = useState('');
+  const [newCowSire, setNewCowSire] = useState('');
+  const [newCowDam, setNewCowDam] = useState('');
+  const [newCowGsp, setNewCowGsp] = useState('');
+  const [newCowGdp, setNewCowGdp] = useState('');
+  const [newCowGsm, setNewCowGsm] = useState('');
+  const [newCowGdm, setNewCowGdm] = useState('');
+  const [newCowReg, setNewCowReg] = useState('');
+  const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [cowSearch, setCowSearch] = useState('');
 
@@ -184,13 +197,27 @@ export function DairyBreeding({
       breed: newCowBreed,
       dob: newCowDob,
       status: newCowStatus,
-      notes: newCowNotes.trim() || 'Import grade lineage'
+      notes: newCowNotes.trim() || 'Import grade lineage',
+      sire: newCowSire.trim() || undefined,
+      dam: newCowDam.trim() || undefined,
+      grandSirePaternal: newCowGsp.trim() || undefined,
+      grandDamPaternal: newCowGdp.trim() || undefined,
+      grandSireMaternal: newCowGsm.trim() || undefined,
+      grandDamMaternal: newCowGdm.trim() || undefined,
+      registrationNo: newCowReg.trim() || undefined
     });
 
     setNewCowTag('');
     setNewCowName('');
     setNewCowNotes('');
     setNewCowDob('');
+    setNewCowSire('');
+    setNewCowDam('');
+    setNewCowGsp('');
+    setNewCowGdp('');
+    setNewCowGsm('');
+    setNewCowGdm('');
+    setNewCowReg('');
     setShowAddCowForm(false);
   };
 
@@ -367,6 +394,271 @@ export function DairyBreeding({
   }).filter(Boolean) as Array<{ cow: Cow; status: 'safe' | 'warning' | 'overdue'; text: string; nextDate: string }>;
 
   const activeRemindersCount = dewormingReminders.filter(r => r.status !== 'safe').length;
+
+  const handleDownloadPedigree = (cow: Cow) => {
+    const certificateHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sovereign Pedigree Ledger - \${cow.name} (\${cow.id})</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 0;
+      padding: 50px;
+      background: #fafaf9;
+      color: #1c1917;
+    }
+    .cert-container {
+      background: #ffffff;
+      border: 12px double #064e3b;
+      padding: 50px;
+      max-width: 950px;
+      margin: 0 auto;
+      border-radius: 4px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    }
+    .top-banner {
+      text-align: center;
+      border-bottom: 4px double #064e3b;
+      padding-bottom: 24px;
+      margin-bottom: 35px;
+    }
+    .top-banner h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #064e3b;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.5px;
+    }
+    .top-banner p {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #78716c;
+      margin: 0;
+    }
+    .badge-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .b-cell {
+      background: #f0fdf4;
+      border: 1px solid #dcfce7;
+      padding: 14px;
+      border-radius: 8px;
+    }
+    .b-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #166534;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .b-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1c1917;
+    }
+    .tree-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      position: relative;
+    }
+    .generation-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 30px;
+    }
+    .tree-box {
+      background: #ffffff;
+      border: 1px solid #e7e5e4;
+      padding: 14px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .tree-box.proband {
+      border: 2px solid #059669;
+      background: #f0fdf4;
+    }
+    .tree-box.male {
+      border-left: 5px solid #2563eb;
+    }
+    .tree-box.female {
+      border-left: 5px solid #db2777;
+    }
+    .box-role {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #78716c;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .box-role.sire-col { color: #2563eb; }
+    .box-role.dam-col { color: #db2777; }
+    .box-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .box-details {
+      font-size: 10px;
+      color: #78716c;
+      display: block;
+      margin-top: 4px;
+    }
+    .foot-seals {
+      margin-top: 60px;
+      border-top: 2px dashed #e7e5e4;
+      padding-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .official-seal {
+      width: 140px;
+      height: 140px;
+      border: 4px double #15803d;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: #15803d;
+      text-align: center;
+      transform: rotate(-8deg);
+    }
+    .seal-star {
+      font-size: 14px;
+      color: #b45309;
+      margin: 4px 0;
+    }
+    .seal-text {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .signature-area {
+      text-align: center;
+    }
+    .signature-line {
+      border-top: 1.5px solid #1c1917;
+      width: 220px;
+      margin-bottom: 6px;
+    }
+    .signature-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #78716c;
+    }
+  </style>
+</head>
+<body>
+  <div class="cert-container">
+    <div class="top-banner">
+      <h1>JR Farm Cooperative Estate</h1>
+      <p>Official Certified Sovereign Lineage & Pedigree Deed</p>
+    </div>
+
+    <div class="badge-bar">
+      <div class="b-cell">
+        <span class="b-title">Registered Proband</span>
+        <span class="b-val">\${cow.name}</span>
+      </div>
+      <div class="b-cell">
+        <span class="b-title">State Catalog ID</span>
+        <span class="b-val">\${cow.id}</span>
+      </div>
+      <div class="b-cell">
+        <span class="b-title">Studbook Registration #</span>
+        <span class="b-val font-mono">\${cow.registrationNo || 'KAG-UNREG-SEED'}</span>
+      </div>
+    </div>
+
+    <div class="tree-grid">
+      <!-- GEN 1: PROBAND -->
+      <div class="generation-col">
+        <div class="tree-box proband">
+          <span class="box-role" style="color: #047857;">Registered Proband</span>
+          <span class="box-name">\${cow.name}</span>
+          <span class="box-details">Breed: \${cow.breed} | DOB: \${cow.dob}</span>
+        </div>
+      </div>
+
+      <!-- GEN 2: PARENTS -->
+      <div class="generation-col">
+        <div class="tree-box male">
+          <span class="box-role sire-col">Sire (Father ♂)</span>
+          <span class="box-name">\${cow.sire || 'Imported Semen Specimen'}</span>
+          <span class="box-details">Pureblood Registered Seed Straw</span>
+        </div>
+        <div class="tree-box female">
+          <span class="box-role dam-col">Dam (Mother ♀)</span>
+          <span class="box-name">\${cow.dam || 'Acr-Grade Sire Maternal'}</span>
+          <span class="box-details">Registered Dam Herd Registry</span>
+        </div>
+      </div>
+
+      <!-- GEN 3: GRANDPARENTS -->
+      <div class="generation-col">
+        <div class="tree-box male" style="padding: 10px;">
+          <span class="box-role" style="color: #2563eb;">Paternal Grand Sire</span>
+          <span class="box-name" style="font-size: 11px;">\${cow.grandSirePaternal || 'Sire Line G2 ♂'}</span>
+        </div>
+        <div class="tree-box female" style="padding: 10px;">
+          <span class="box-role" style="color: #db2777;">Paternal Grand Dam</span>
+          <span class="box-name" style="font-size: 11px;">\${cow.grandDamPaternal || 'Sire Line G2 ♀'}</span>
+        </div>
+        <div class="tree-box male" style="padding: 10px;">
+          <span class="box-role" style="color: #2563eb;">Maternal Grand Sire</span>
+          <span class="box-name" style="font-size: 11px;">\${cow.grandSireMaternal || 'Dam Line G2 ♂'}</span>
+        </div>
+        <div class="tree-box female" style="padding: 10px;">
+          <span class="box-role" style="color: #db2777;">Maternal Grand Dam</span>
+          <span class="box-name" style="font-size: 11px;">\${cow.grandDamMaternal || 'Dam Line G2 ♀'}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot-seals">
+      <div>
+        <p style="font-size: 10px; color: #78716c; margin: 0 0 4px 0; text-transform: uppercase; font-weight: 700;">Certificate Authenticity ID</p>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;">JR-BLOOD-\${cow.id.replace(/\\s+/g, '')}-\${Date.now().toString().slice(-6)}</span>
+      </div>
+      
+      <div class="official-seal">
+        <span class="seal-text">JR FARM COOP</span>
+        <span class="seal-star">★★★★★</span>
+        <span class="seal-text">OFFICIAL REGISTER</span>
+      </div>
+
+      <div class="signature-area">
+        <div class="signature-line"></div>
+        <span class="signature-title">Veterinary Scribe</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+    const blob = new Blob([certificateHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pedigree_\${cow.name.toLowerCase()}_\${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.html`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -932,13 +1224,86 @@ export function DairyBreeding({
                     <option value="In-Calf">In-Calf (Pregnant Heifer)</option>
                   </select>
                 </div>
-                <div className="col-span-1 md:col-span-3">
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Lineage Notes / Sire Details</label>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Studbook Reg # (Optional)</label>
+                  <input
+                    type="text"
+                    value={newCowReg}
+                    onChange={(e) => setNewCowReg(e.target.value)}
+                    placeholder="E.g. KAG-HF-2023-1120"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Sire / Father</label>
+                  <input
+                    type="text"
+                    value={newCowSire}
+                    onChange={(e) => setNewCowSire(e.target.value)}
+                    placeholder="E.g. Supreme Bull (SH-404)"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dam / Mother</label>
+                  <input
+                    type="text"
+                    value={newCowDam}
+                    onChange={(e) => setNewCowDam(e.target.value)}
+                    placeholder="E.g. Daisy Mother (DM-09)"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  />
+                </div>
+
+                {/* Sub-generation Grandparents */}
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Paternal Grand Sire</label>
+                  <input
+                    type="text"
+                    value={newCowGsp}
+                    onChange={(e) => setNewCowGsp(e.target.value)}
+                    placeholder="Sire's Father"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Paternal Grand Dam</label>
+                  <input
+                    type="text"
+                    value={newCowGdp}
+                    onChange={(e) => setNewCowGdp(e.target.value)}
+                    placeholder="Sire's Mother"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Maternal Grand Sire</label>
+                  <input
+                    type="text"
+                    value={newCowGsm}
+                    onChange={(e) => setNewCowGsm(e.target.value)}
+                    placeholder="Dam's Father"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Maternal Grand Dam</label>
+                  <input
+                    type="text"
+                    value={newCowGdm}
+                    onChange={(e) => setNewCowGdm(e.target.value)}
+                    placeholder="Dam's Mother"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                  />
+                </div>
+
+                <div className="col-span-1 md:col-span-4">
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Lactation Grade Notes</label>
                   <input
                     type="text"
                     value={newCowNotes}
                     onChange={(e) => setNewCowNotes(e.target.value)}
-                    placeholder="E.g. Sire: Jersey Prime, Mother: Daisy. Born organic..."
+                    placeholder="E.g. High lactation yield index, first calving expected with zero stress..."
                     className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
                   />
                 </div>
@@ -1017,6 +1382,33 @@ export function DairyBreeding({
                       </div>
                     </div>
 
+                    <div className="border-t border-slate-100/65 mt-4 pt-3 space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span className="uppercase text-slate-400 font-extrabold flex items-center gap-1">
+                          <GitFork size={11} className="text-emerald-700" /> Ancestry / Lineage
+                        </span>
+                        {cow.registrationNo ? (
+                          <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 uppercase font-black">{cow.registrationNo}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">No Studbook Reg</span>
+                        )}
+                      </div>
+                      <div className="bg-slate-50 border border-slate-150 rounded-xl p-2.5 space-y-1.5 text-[11px] leading-tight">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-semibold">Sire:</span>
+                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.sire || 'Unregistered Bull'}>
+                            {cow.sire || 'Unknown Sire ♂'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-semibold">Dam:</span>
+                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.dam || 'Unregistered Cow'}>
+                            {cow.dam || 'Unknown Dam ♀'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="border-t border-slate-100/60 mt-4 pt-3 space-y-1">
                       <span className="text-[10px] uppercase font-black text-slate-400 font-bold flex items-center gap-1">
                         <Activity size={11} className="text-emerald-700" /> Lactation Yield Metric
@@ -1028,6 +1420,15 @@ export function DairyBreeding({
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-400 font-bold italic mt-2">"{cow.notes}"</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-50">
+                      <button
+                        onClick={() => setPedigreeCow(cow)}
+                        className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors cursor-pointer m-0"
+                      >
+                        🧬 View Pedigree Family Tree
+                      </button>
                     </div>
                   </div>
                 );
@@ -1481,13 +1882,13 @@ export function DairyBreeding({
       {/* Edit Cow Registry Modal */}
       {editingCow && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Cow Record</h3>
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Cow Record & Pedigree</h3>
               <button onClick={() => setEditingCow(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
             </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cow TAG / ID</label>
                   <input
@@ -1507,7 +1908,7 @@ export function DairyBreeding({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Breed Class</label>
                   <input
@@ -1527,13 +1928,13 @@ export function DairyBreeding({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Milking/Production Status</label>
                   <select
                     value={editingCow.status}
                     onChange={(e) => setEditingCow({ ...editingCow, status: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
                   >
                     <option value="Lactating">Lactating</option>
                     <option value="Dry">Dry Rest</option>
@@ -1542,14 +1943,90 @@ export function DairyBreeding({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Yield Cap (Estimated)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Studbook Reg # (Optional)</label>
                   <input
                     type="text"
-                    value={editingCow.notes || ''}
-                    onChange={(e) => setEditingCow({ ...editingCow, notes: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-semibold"
+                    value={editingCow.registrationNo || ''}
+                    onChange={(e) => setEditingCow({ ...editingCow, registrationNo: e.target.value })}
+                    placeholder="E.g. KAG-HF-2023-1120"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Pedigree section border divider */}
+              <div className="border-t border-slate-100 pt-3">
+                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block mb-2">Pedigree Tree Config (Ancestry Ledger)</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Sire (Father)</label>
+                    <input
+                      type="text"
+                      value={editingCow.sire || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, sire: e.target.value })}
+                      className="border border-slate-205 border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-500 uppercase block mb-1">Dam (Mother)</label>
+                    <input
+                      type="text"
+                      value={editingCow.dam || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, dam: e.target.value })}
+                      className="border border-slate-205 border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Paternal Grand Sire</label>
+                    <input
+                      type="text"
+                      value={editingCow.grandSirePaternal || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, grandSirePaternal: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Paternal Grand Dam</label>
+                    <input
+                      type="text"
+                      value={editingCow.grandDamPaternal || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, grandDamPaternal: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  <div>
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Maternal Grand Sire</label>
+                    <input
+                      type="text"
+                      value={editingCow.grandSireMaternal || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, grandSireMaternal: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Maternal Grand Dam</label>
+                    <input
+                      type="text"
+                      value={editingCow.grandDamMaternal || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, grandDamMaternal: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Lactation Grade / General Notes</label>
+                <input
+                  type="text"
+                  value={editingCow.notes || ''}
+                  onChange={(e) => setEditingCow({ ...editingCow, notes: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-semibold"
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
@@ -1687,6 +2164,175 @@ export function DairyBreeding({
                 Save Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Pedigree & Relationship Tree Modal */}
+      {pedigreeCow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl p-6 md:p-8 border border-slate-100 flex flex-col space-y-6 max-h-[90vh] overflow-y-auto animate-fadeIn">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-emerald-100 text-emerald-850 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                    Official Pedigree Deed
+                  </span>
+                  {pedigreeCow.registrationNo && (
+                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider border border-blue-200">
+                      Reg: {pedigreeCow.registrationNo}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mt-2 flex items-center gap-2">
+                  <Award className="text-amber-500" size={20} />
+                  Lineage: {pedigreeCow.name}
+                </h3>
+                <p className="text-xs text-slate-400 font-bold mt-1">
+                  Tag ID: {pedigreeCow.id} | Breed: {pedigreeCow.breed} | DOB: {pedigreeCow.dob}
+                </p>
+              </div>
+              <button 
+                onClick={() => setPedigreeCow(null)} 
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg m-0 p-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Tree Presentation Area */}
+            <div className="py-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase block mb-4 text-center tracking-widest">
+                Three Generation Ancestor Pedigree Mapping (Live Active Ledger)
+              </span>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                
+                {/* FIRST GENERATION: PROBAND (SELF) */}
+                <div className="flex flex-col justify-center">
+                  <div className="p-4 bg-emerald-50/50 border-2 border-emerald-950/20 rounded-2xl shadow-sm text-center relative hover:border-emerald-600 transition-colors">
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-950 text-white rounded px-2 py-0.5 text-[8px] uppercase font-black tracking-wider">
+                      Proband/Subject
+                    </div>
+                    <div className="pt-4 pb-2">
+                      <span className="text-base font-black text-slate-900 block mt-1">{pedigreeCow.name}</span>
+                      <span className="text-[11px] font-bold text-slate-400 block mt-1">Tag: {pedigreeCow.id}</span>
+                      <span className="text-[10px] bg-emerald-950/10 text-emerald-900 font-black px-2 py-1 rounded mt-2 inline-block">
+                        Breed: {pedigreeCow.breed}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECOND GENERATION: PARENTS */}
+                <div className="flex flex-col justify-center space-y-6">
+                  {/* SIRE (FATHER ♂) */}
+                  <div className="p-4 bg-blue-50/20 border-2 border-blue-900/10 rounded-2xl shadow-sm relative hover:border-blue-400 transition-colors">
+                    <span className="text-[8px] font-black uppercase text-blue-700 block tracking-wider mb-1">Sire / Father ♂</span>
+                    <span className="text-sm font-black text-slate-800 block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
+                    <span className="text-[10px] text-slate-400 font-bold block mt-1">Certified Pureblood Lineage</span>
+                    
+                    {pedigreeCow.sire && cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) && (
+                      <button 
+                        onClick={() => {
+                          const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase());
+                          if (target) setPedigreeCow(target);
+                        }}
+                        className="mt-2.5 text-[9px] font-black uppercase text-blue-800 bg-blue-10/20 hover:bg-blue-100 hover:text-blue-950 border border-blue-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
+                      >
+                        🧬 Trace Sire Pedigree
+                      </button>
+                    )}
+                  </div>
+
+                  {/* DAM (MOTHER ♀) */}
+                  <div className="p-4 bg-rose-50/20 border-2 border-rose-900/10 rounded-2xl shadow-sm relative hover:border-rose-400 transition-colors">
+                    <span className="text-[8px] font-black uppercase text-rose-700 block tracking-wider mb-1">Dam / Mother ♀</span>
+                    <span className="text-sm font-black text-slate-800 block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
+                    <span className="text-[10px] text-slate-400 font-bold block mt-1">Excellent Butterfat Producer</span>
+
+                    {pedigreeCow.dam && cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) && (
+                      <button 
+                        onClick={() => {
+                          const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase());
+                          if (target) setPedigreeCow(target);
+                        }}
+                        className="mt-2.5 text-[9px] font-black uppercase text-rose-800 bg-rose-10/20 hover:bg-rose-100 hover:text-rose-950 border border-rose-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
+                      >
+                        🧬 Trace Dam Pedigree
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* THIRD GENERATION: GRANDPARENTS */}
+                <div className="flex flex-col justify-between space-y-4">
+                  {/* PATERNAL GRANDPARENTS */}
+                  <div className="space-y-2">
+                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                      <span className="text-[7.5px] font-black uppercase text-blue-600 block">Paternal Grand Sire</span>
+                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                      <span className="text-[7.5px] font-black uppercase text-rose-600 block">Paternal Grand Dam</span>
+                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
+                    </div>
+                  </div>
+
+                  {/* MATERNAL GRANDPARENTS */}
+                  <div className="space-y-2 border-t border-slate-100 pt-3">
+                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                      <span className="text-[7.5px] font-black uppercase text-blue-600 block">Maternal Grand Sire</span>
+                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                      <span className="text-[7.5px] font-black uppercase text-rose-600 block">Maternal Grand Dam</span>
+                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Pedigree Certificate Actions (Download & Print) */}
+            <div className="bg-slate-50 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 text-center sm:text-left">
+                <Sparkles className="text-emerald-700 shrink-0" size={15} />
+                <span>Verified by JR Cooperative Registry board. Ready for local Studbook print download.</span>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => handleDownloadPedigree(pedigreeCow)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase rounded-xl transition-all shadow-sm cursor-pointer m-0"
+                >
+                  <Download size={13} />
+                  Download Pedigree Slip (HTML)
+                </button>
+                <button
+                  onClick={() => {
+                    // Open a small customizable print setup of this element or trigger download
+                    handleDownloadPedigree(pedigreeCow);
+                  }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs uppercase rounded-xl transition-all cursor-pointer m-0"
+                  title="Generate certified documentation of the breeding pedigree chart"
+                >
+                  <Printer size={13} />
+                  Print Official Deed
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setPedigreeCow(null)}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black uppercase text-xs rounded-xl transition-colors cursor-pointer m-0"
+              >
+                Close Family Tree
+              </button>
+            </div>
+
           </div>
         </div>
       )}

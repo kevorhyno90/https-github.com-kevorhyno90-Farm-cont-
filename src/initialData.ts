@@ -340,11 +340,81 @@ export const INITIAL_STAFF_OFF_RECORDS: StaffOffRecord[] = [
 ];
 
 export const INITIAL_COWS: Cow[] = [
-  { id: 'Cow-101 (Daisy)', name: 'Daisy', breed: 'Holstein-Friesian', dob: '2021-04-12', status: 'Dry', notes: 'High lactation index mother.' },
-  { id: 'Cow-102 (Goldie)', name: 'Goldie', breed: 'Guernsey', dob: '2020-08-30', status: 'Lactating', notes: 'Solid prime butterfat producer.' },
-  { id: 'Cow-103 (Ruby)', name: 'Ruby', breed: 'Jersey', dob: '2022-01-15', status: 'Lactating', notes: 'Excellent feed conversion ratio.' },
-  { id: 'Cow-104 (Blossom)', name: 'Blossom', breed: 'Ayrshire', dob: '2023-11-10', status: 'Heifer', notes: 'Ready for first AI straw soon.' },
-  { id: 'Cow-105 (Cherry)', name: 'Cherry', breed: 'Brown Swiss', dob: '2021-12-22', status: 'In-Calf', notes: 'Awaiting calving due in early July.' }
+  { 
+    id: 'Cow-101 (Daisy)', 
+    name: 'Daisy', 
+    breed: 'Holstein-Friesian', 
+    dob: '2021-04-12', 
+    status: 'Dry', 
+    notes: 'High lactation index mother.',
+    sire: 'Supreme Champion Bull (SH-404)',
+    dam: 'Daisy Mother Superior (DM-09)',
+    grandSirePaternal: 'Friesian King (FK-99)',
+    grandDamPaternal: 'Meadow Queen (MQ-12)',
+    grandSireMaternal: 'Dairy Lord (DL-88)',
+    grandDamMaternal: 'Super Milkmaid (SM-05)',
+    registrationNo: 'KAG-HF-2021-9302'
+  },
+  { 
+    id: 'Cow-102 (Goldie)', 
+    name: 'Goldie', 
+    breed: 'Guernsey', 
+    dob: '2020-08-30', 
+    status: 'Lactating', 
+    notes: 'Solid prime butterfat producer.',
+    sire: 'Giltspur Goldmine (GG-102)',
+    dam: 'Sunset Buttercup (SB-55)',
+    grandSirePaternal: 'Guernsey Duke (GD-401)',
+    grandDamPaternal: 'Giltspur Belle (GB-88)',
+    grandSireMaternal: 'Sovereign Prince (SP-99)',
+    grandDamMaternal: 'Sunset Gold (SG-12)',
+    registrationNo: 'KAG-G-2020-4381'
+  },
+  { 
+    id: 'Cow-103 (Ruby)', 
+    name: 'Ruby', 
+    breed: 'Jersey', 
+    dob: '2022-01-15', 
+    status: 'Lactating', 
+    notes: 'Excellent feed conversion ratio.',
+    sire: 'Jersey King (JK-202)',
+    dam: 'Ruby Queen (RQ-101)',
+    grandSirePaternal: 'Ferdinand (F-001)',
+    grandDamPaternal: 'Jersey Princess (JP-11)',
+    grandSireMaternal: 'Westerville Chief (WC-50)',
+    grandDamMaternal: 'Ruby Duchess (RD-49)',
+    registrationNo: 'KAG-J-2022-1049'
+  },
+  { 
+    id: 'Cow-104 (Blossom)', 
+    name: 'Blossom', 
+    breed: 'Ayrshire', 
+    dob: '2023-11-10', 
+    status: 'Heifer', 
+    notes: 'Ready for first AI straw soon.',
+    sire: 'Ayrshire Archer (AA-55)',
+    dam: 'Blossom Senior (BS-82)',
+    grandSirePaternal: 'Gala Warrior (GW-33)',
+    grandDamPaternal: 'Archer Lass (AL-21)',
+    grandSireMaternal: 'Red Knight (RK-99)',
+    grandDamMaternal: 'Blossom Beauty (BB-02)',
+    registrationNo: 'KAG-A-2023-7740'
+  },
+  { 
+    id: 'Cow-105 (Cherry)', 
+    name: 'Cherry', 
+    breed: 'Brown Swiss', 
+    dob: '2021-12-22', 
+    status: 'In-Calf', 
+    notes: 'Awaiting calving due in early July.',
+    sire: 'Alpine Ranger (AR-101)',
+    dam: 'Swiss Heidi (SH-44)',
+    grandSirePaternal: 'Sentry (S-555)',
+    grandDamPaternal: 'Ranger Belle (RB-12)',
+    grandSireMaternal: 'Swiss Edelweiss (SE-21)',
+    grandDamMaternal: 'Heidi Pure (HP-01)',
+    registrationNo: 'KAG-BS-2021-3938'
+  }
 ];
 
 export const INITIAL_VET_RECORDS: VetRecord[] = [

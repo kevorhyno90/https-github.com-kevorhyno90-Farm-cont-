@@ -144,6 +144,13 @@ export interface Cow {
   dob: string;
   status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf';
   notes: string;
+  sire?: string;
+  dam?: string;
+  grandSirePaternal?: string;
+  grandDamPaternal?: string;
+  grandSireMaternal?: string;
+  grandDamMaternal?: string;
+  registrationNo?: string;
 }
 
 export interface VetRecord {
