@@ -23,7 +23,8 @@ import {
   FileSpreadsheet,
   TrendingUp,
   Stethoscope,
-  PenSquare
+  PenSquare,
+  FileDown
 } from 'lucide-react';
 
 interface DairyBreedingProps {
@@ -46,6 +47,7 @@ interface DairyBreedingProps {
   onEditAIRecord?: (cowId: string, date: string, updated: AIRecord) => void;
   onEditCow?: (id: string, updated: Cow) => void;
   onEditVetRecord?: (id: string, updated: VetRecord) => void;
+  onTriggerSectionPdf?: (sectionKey: string) => void;
 }
 
 export function DairyBreeding({
@@ -67,7 +69,8 @@ export function DairyBreeding({
   onEditMilkRecord,
   onEditAIRecord,
   onEditCow,
-  onEditVetRecord
+  onEditVetRecord,
+  onTriggerSectionPdf
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
   const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary'>('lactation');
@@ -557,6 +560,17 @@ export function DairyBreeding({
                     <FileSpreadsheet size={10} />
                     Export CSV
                   </button>
+                  {onTriggerSectionPdf && (
+                    <button
+                      onClick={() => onTriggerSectionPdf('milk')}
+                      type="button"
+                      className="flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer"
+                      title="Export Milking Report as PDF"
+                    >
+                      <FileDown size={10} />
+                      Export PDF
+                    </button>
+                  )}
                   <Filter size={12} className="text-slate-400" />
                   <input
                     type="text"
@@ -834,6 +848,17 @@ export function DairyBreeding({
                 <FileSpreadsheet size={13} />
                 Export AI Logs
               </button>
+              {onTriggerSectionPdf && (
+                <button
+                  onClick={() => onTriggerSectionPdf('ai')}
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 animate-pulse"
+                  title="Export Inseminations Report in PDF"
+                >
+                  <FileDown size={13} />
+                  Insemination Reports PDF
+                </button>
+              )}
               <button
                 onClick={() => setShowAddCowForm(!showAddCowForm)}
                 className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-900 flex items-center justify-center gap-1.5 m-0 shadow-sm"
@@ -1075,6 +1100,17 @@ export function DairyBreeding({
                 <FileSpreadsheet size={13} />
                 Export Vet History
               </button>
+              {onTriggerSectionPdf && (
+                <button
+                  onClick={() => onTriggerSectionPdf('vet')}
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
+                  title="Export Vet History Report as PDF"
+                >
+                  <FileDown size={13} />
+                  Export Vet PDF
+                </button>
+              )}
               <button
                 onClick={() => setShowAddVetForm(!showAddVetForm)}
                 className="bg-slate-900 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-slate-800 flex items-center justify-center gap-1.5 m-0 shadow-sm"
