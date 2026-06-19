@@ -25,7 +25,9 @@ import {
   Download,
   FileDown,
   ArrowLeft,
-  Database
+  Database,
+  BookOpen,
+  CalendarDays
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -39,6 +41,8 @@ import { SprayLog } from './components/SprayLog';
 import { Financials } from './components/Financials';
 import { OtherSections } from './components/OtherSections';
 import { BackupCenter } from './components/BackupCenter';
+import FarmerAcademy from './components/FarmerAcademy';
+import OperationsSchedule from './components/OperationsSchedule';
 
 // Master Types
 import {
@@ -61,7 +65,9 @@ import {
   CalfRecord,
   BsfRecord,
   CropOpRecord,
-  CropSaleRecord
+  CropSaleRecord,
+  AnimalSaleRecord,
+  MortalityRecord
 } from './types';
 
 // Mock Primers
@@ -85,7 +91,9 @@ import {
   INITIAL_CALF_RECORDS,
   INITIAL_BSF_RECORDS,
   INITIAL_CROP_OP_RECORDS,
-  INITIAL_CROP_SALES
+  INITIAL_CROP_SALES,
+  INITIAL_ANIMAL_SALES,
+  INITIAL_MORTALITY_RECORDS
 } from './initialData';
 
 export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
@@ -275,6 +283,16 @@ export default function App() {
   const [cropSales, setCropSales] = useState<CropSaleRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_crop_sales');
     return saved ? JSON.parse(saved) : INITIAL_CROP_SALES;
+  });
+
+  const [animalSales, setAnimalSales] = useState<AnimalSaleRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_animal_sales');
+    return saved ? JSON.parse(saved) : INITIAL_ANIMAL_SALES;
+  });
+
+  const [mortalities, setMortalities] = useState<MortalityRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_mortalities');
+    return saved ? JSON.parse(saved) : INITIAL_MORTALITY_RECORDS;
   });
 
   // Report modal state
@@ -1192,6 +1210,14 @@ export default function App() {
     localStorage.setItem('jr_farm_crop_sales', JSON.stringify(cropSales));
   }, [cropSales]);
 
+  useEffect(() => {
+    localStorage.setItem('jr_farm_animal_sales', JSON.stringify(animalSales));
+  }, [animalSales]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_mortalities', JSON.stringify(mortalities));
+  }, [mortalities]);
+
   // Live timer effect
   useEffect(() => {
     const updateTime = () => {
@@ -1543,6 +1569,33 @@ export default function App() {
     setVetRecords(vetRecords.filter(r => r.id !== id));
   };
 
+  const handleAddAnimalSale = (rec: AnimalSaleRecord) => {
+    setAnimalSales([rec, ...animalSales]);
+    if (rec.price > 0) {
+      handleAddTransaction({
+        id: `tx-sale-${rec.id}`,
+        type: 'income',
+        amount: rec.price,
+        category: 'Livestock Sale',
+        description: `Sold ${rec.qty}x ${rec.category} (${rec.animalIdOrBatch})`,
+        date: rec.date
+      });
+    }
+  };
+
+  const handleDeleteAnimalSale = (id: string) => {
+    setAnimalSales(prev => prev.filter(r => r.id !== id));
+    handleDeleteTransaction(`tx-sale-${id}`);
+  };
+
+  const handleAddMortality = (rec: MortalityRecord) => {
+    setMortalities([rec, ...mortalities]);
+  };
+
+  const handleDeleteMortality = (id: string) => {
+    setMortalities(prev => prev.filter(r => r.id !== id));
+  };
+
   const handleAddGoatRecord = (rec: GoatRecord) => {
     setGoatRecords([rec, ...goatRecords]);
   };
@@ -1854,7 +1907,10 @@ export default function App() {
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
-    { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' }
+    { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
+
+    { id: 'education', label: "Farmer's Academy", icon: BookOpen, category: 'Academy' },
+    { id: 'timetable', label: "Operations Schedule", icon: CalendarDays, category: 'Academy' }
   ];
 
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
@@ -2469,7 +2525,7 @@ export default function App() {
 
         {/* Sidebar Nav links grouped by category */}
         <nav className="flex-1 px-4 space-y-6">
-          {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations'].map((cat) => (
+          {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => (
             <div key={cat} className="space-y-1">
               <span className="px-4 text-[9px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
                 {cat}
@@ -2583,7 +2639,7 @@ export default function App() {
               </div>
 
               <nav className="flex-1 space-y-5">
-                {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations'].map((cat) => (
+                {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => (
                   <div key={cat} className="space-y-1">
                     <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
                       {cat}
@@ -2677,7 +2733,9 @@ export default function App() {
                     activeTab === 'finance' ? 'Ledger & Financials' :
                     activeTab === 'fields' ? 'Agronomy Fields' :
                     activeTab === 'livestock' ? 'Livestock & Canines' :
-                    activeTab === 'inventory' ? 'Warehouse Stock' : 'Section'
+                    activeTab === 'inventory' ? 'Warehouse Stock' :
+                    activeTab === 'education' ? "Farmer's Academy Guide" :
+                    activeTab === 'timetable' ? "Operations Calendar" : 'Section'
                   } (HTML)
                 </button>
               </div>
@@ -2746,6 +2804,12 @@ export default function App() {
               onEditAIRecord={handleEditAIRecord}
               onEditCow={handleEditCow}
               onEditVetRecord={handleEditVetRecord}
+              animalSales={animalSales}
+              onAddAnimalSale={handleAddAnimalSale}
+              onDeleteAnimalSale={handleDeleteAnimalSale}
+              mortalities={mortalities}
+              onAddMortality={handleAddMortality}
+              onDeleteMortality={handleDeleteMortality}
               onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
             />
           )}
@@ -2813,6 +2877,12 @@ export default function App() {
               cropSales={cropSales}
               onAddCropSale={handleAddCropSale}
               onDeleteCropSale={handleDeleteCropSale}
+              animalSales={animalSales}
+              onAddAnimalSale={handleAddAnimalSale}
+              onDeleteAnimalSale={handleDeleteAnimalSale}
+              mortalities={mortalities}
+              onAddMortality={handleAddMortality}
+              onDeleteMortality={handleDeleteMortality}
               onEditField={handleEditFieldRecord}
               onEditLivestock={handleEditLivestockRecord}
               onEditInventoryItem={handleEditInventoryItem}
@@ -2829,6 +2899,14 @@ export default function App() {
               onResetToDefaults={handleResetToDefaults}
               onImportFullBackup={handleImportFullBackup}
             />
+          )}
+
+          {activeTab === 'education' && (
+            <FarmerAcademy />
+          )}
+
+          {activeTab === 'timetable' && (
+            <OperationsSchedule />
           )}
         </main>
       </div>

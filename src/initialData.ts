@@ -23,7 +23,9 @@ import {
   CalfRecord,
   BsfRecord,
   CropOpRecord,
-  CropSaleRecord
+  CropSaleRecord,
+  AnimalSaleRecord,
+  MortalityRecord
 } from './types';
 
 // Helper to get formatted dates relative to today
@@ -545,4 +547,55 @@ export const INITIAL_CROP_SALES: CropSaleRecord[] = [
   { id: 'cs-2', crop: 'Vegetables', qty: 25, unit: 'crates', pricePerUnit: 800, buyer: 'Nairobi Organic Hub Retail', ref: 'NRO-V-992', date: getRelativeDate(-2), totalSales: 20000 },
   { id: 'cs-3', crop: 'Maize', qty: 40, unit: 'bags (90kg)', pricePerUnit: 3600, buyer: 'National Cereals Board (NCPB)', ref: 'NCPB-M-112', date: getRelativeDate(-1), totalSales: 144000 }
 ];
+
+export const INITIAL_ANIMAL_SALES: AnimalSaleRecord[] = [
+  {
+    id: 'as-1',
+    category: 'Poultry',
+    animalIdOrBatch: 'Layers Batch A (Retired culled hens)',
+    qty: 50,
+    price: 35000,
+    buyer: 'Nyamira Retail Hotel Chain',
+    ref: 'SL-PL-005',
+    date: getRelativeDate(-6),
+    weightKg: 105,
+    notes: 'Sold at Ksh 700 per live bird post-lay period.'
+  },
+  {
+    id: 'as-2',
+    category: 'Goat',
+    animalIdOrBatch: 'Boer Cross Kid Male #12',
+    qty: 1,
+    price: 12500,
+    buyer: 'Neighbouring Stud breeder Joseph',
+    ref: 'SL-GT-012',
+    date: getRelativeDate(-3),
+    weightKg: 28,
+    notes: 'Premium Boer kid sold for breeding. High growth pedigree.'
+  }
+];
+
+export const INITIAL_MORTALITY_RECORDS: MortalityRecord[] = [
+  {
+    id: 'mr-1',
+    category: 'Poultry',
+    animalIdOrBatch: 'Layers Batch B (Chicks)',
+    count: 12,
+    date: getRelativeDate(-10),
+    causeOfDeath: 'Coocidiosis cold damp stress',
+    veterinaryConfirmed: true,
+    notes: 'Experienced brooding draft in section 2. Handled via Amprolium dose in water.'
+  },
+  {
+    id: 'mr-2',
+    category: 'Calf',
+    animalIdOrBatch: 'Calf-Dry-Run-Abort',
+    count: 1,
+    date: getRelativeDate(-20),
+    causeOfDeath: 'Stillborn delivery abortion (Brucella negative)',
+    veterinaryConfirmed: true,
+    notes: 'Dam had slight fall near slippery drinking trough. Rest of herd screened and cleared.'
+  }
+];
+
 

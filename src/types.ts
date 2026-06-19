@@ -221,3 +221,28 @@ export interface CropSaleRecord {
   totalSales: number; // qty * pricePerUnit
 }
 
+export interface AnimalSaleRecord {
+  id: string;
+  category: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
+  animalIdOrBatch: string; // Name, tag, or batch
+  qty: number;
+  price: number; // Ksh
+  buyer: string;
+  ref: string; // e.g., SL-101
+  date: string; // YYYY-MM-DD
+  weightKg?: number; // Estimated weight in KG
+  notes: string;
+}
+
+export interface MortalityRecord {
+  id: string;
+  category: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
+  animalIdOrBatch: string; // e.g., "Cow-104 (Blossom)" or "Layers Batch 2"
+  count: number; // count of deceased
+  date: string; // YYYY-MM-DD
+  causeOfDeath: string;
+  veterinaryConfirmed: boolean;
+  notes: string;
+}
+
+

@@ -52,6 +52,12 @@ interface DairyBreedingProps {
   onEditAIRecord?: (cowId: string, date: string, updated: AIRecord) => void;
   onEditCow?: (id: string, updated: Cow) => void;
   onEditVetRecord?: (id: string, updated: VetRecord) => void;
+  animalSales: any[];
+  onAddAnimalSale: (rec: any) => void;
+  onDeleteAnimalSale: (id: string) => void;
+  mortalities: any[];
+  onAddMortality: (rec: any) => void;
+  onDeleteMortality: (id: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
@@ -75,10 +81,16 @@ export function DairyBreeding({
   onEditAIRecord,
   onEditCow,
   onEditVetRecord,
+  animalSales,
+  onAddAnimalSale,
+  onDeleteAnimalSale,
+  mortalities,
+  onAddMortality,
+  onDeleteMortality,
   onTriggerSectionReport
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
-  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary'>('lactation');
+  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger'>('lactation');
 
   // Edit States for Milk, AI, Cow, Vet
   const [editingMilk, setEditingMilk] = useState<MilkingRecord | null>(null);
@@ -705,8 +717,315 @@ export function DairyBreeding({
               <span className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping absolute -top-0.5 -right-0.5" />
             )}
           </button>
+          <button
+            onClick={() => setSubTab('life_ledger')}
+            className={`px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 flex items-center gap-1.5 ${
+              subTab === 'life_ledger' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Sales & Mortality
+          </button>
         </div>
       </div>
+
+      {/* SUB-TAB 4: COWS & CALVES SALES & MORTALITY LEDGER */}
+      {subTab === 'life_ledger' && (
+        <div className="space-y-6 animate-fadeIn" id="life-ledger-dairy">
+          
+          {/* Header Summary Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="bg-emerald-950 text-white rounded-3xl p-5 border border-emerald-900 shadow-sm relative overflow-hidden">
+              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Total Cattle Sales Value</span>
+              <span className="text-2xl font-black font-mono">
+                Ksh {animalSales
+                  .filter(s => s.type === 'Cow' || s.type === 'Calf')
+                  .reduce((sum, s) => sum + s.price, 0)
+                  .toLocaleString()}
+              </span>
+              <p className="text-[10px] text-emerald-300 mt-1 font-semibold">
+                From {animalSales.filter(s => s.type === 'Cow' || s.type === 'Calf').length} livestock transactions
+              </p>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-150 rounded-3xl p-5 shadow-xs">
+              <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest block mb-1">Cattle Mortalities</span>
+              <span className="text-2xl font-black font-mono text-rose-950">
+                {mortalities.filter(m => m.type === 'Cow' || m.type === 'Calf').length} Animals
+              </span>
+              <p className="text-[10px] text-rose-600 mt-1 font-semibold">
+                Recorded losses requiring sanitary disposal checks
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-150 rounded-3xl p-5 shadow-xs flex flex-col justify-center">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Herd Active Rate</span>
+              <span className="text-base font-extrabold text-slate-900 mt-1">
+                {cows.length} Live Cattle Registered
+              </span>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Active milking register capacity
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* COLUMN 1: ANIMAL SALES HISTORY */}
+            <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <div className="space-y-0.5">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">Cattle Sales & Culling Logs</h4>
+                  <p className="text-[10px] text-slate-450 font-semibold uppercase">Manage bovine disposals and secondary revenue</p>
+                </div>
+                <span className="bg-emerald-100 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded uppercase">Ledger</span>
+              </div>
+
+              {/* Add Sale Form */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const target = e.currentTarget as HTMLFormElement;
+                  const data = new FormData(target);
+                  const aType = data.get('animalType') as string;
+                  const aId = data.get('animalId') as string;
+                  const date = data.get('saleDate') as string;
+                  const price = Number(data.get('salePrice'));
+                  const buyer = data.get('saleBuyer') as string;
+                  const sNotes = data.get('saleNotes') as string;
+
+                  if (!aId || !date || isNaN(price) || price <= 0) return;
+
+                  onAddAnimalSale({
+                    id: `sale-${Date.now()}`,
+                    animalId: aId.trim(),
+                    type: aType,
+                    date,
+                    price,
+                    buyer: buyer.trim() || 'Local Market Buyer',
+                    notes: sNotes.trim() || 'Direct sale'
+                  });
+                  target.reset();
+                }}
+                className="space-y-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl"
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Animal Category</label>
+                    <select name="animalType" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs">
+                      <option value="Cow">Milking Cow</option>
+                      <option value="Calf">Young Calf</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Tag / ID Number</label>
+                    <input type="text" name="animalId" required placeholder="e.g., J-601" className="w-full bg-white border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Date</label>
+                    <input type="date" name="saleDate" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Value (Ksh)</label>
+                    <input type="number" name="salePrice" required placeholder="80000" className="w-full bg-white border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Buyer / Purchaser Details</label>
+                    <input type="text" name="saleBuyer" placeholder="Brookside heifers breeder or local dealer" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Transaction Notes (e.g. Weight, Breed, Lineage, Pedigree status)</label>
+                    <input type="text" name="saleNotes" placeholder="e.g. Sold due to low daily lactation yield of 8L or pedigree grade upgrade" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border-0 m-0">
+                  Save Cattle Sale Transaction
+                </button>
+              </form>
+
+              {/* Sales List */}
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {animalSales.filter(s => s.type === 'Cow' || s.type === 'Calf').length === 0 ? (
+                  <p className="text-center text-slate-400 py-6 text-xs font-bold">No cattle sales transactions recorded.</p>
+                ) : (
+                  animalSales
+                    .filter(s => s.type === 'Cow' || s.type === 'Calf')
+                    .map(sale => (
+                      <div key={sale.id} className="p-3.5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center shadow-xs">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-black text-xs text-slate-900 uppercase">
+                              {sale.animalId}
+                            </span>
+                            <span className="bg-slate-150 text-slate-700 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+                              {sale.type}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-bold font-mono">
+                              {sale.date}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-450 block font-semibold leading-relaxed">
+                            Purchaser: {sale.buyer} • Notes: <span className="italic">"{sale.notes}"</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-xs font-black text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                            Ksh {sale.price.toLocaleString()}
+                          </span>
+                          <button
+                            onClick={() => onDeleteAnimalSale(sale.id)}
+                            className="text-slate-350 hover:text-red-700 cursor-pointer m-0 bg-transparent border-0"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+
+            {/* COLUMN 2: ANIMAL MORTALITY LEDGER */}
+            <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <div className="space-y-0.5">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">Cattle Mortality Ledger</h4>
+                  <p className="text-[10px] text-slate-450 font-semibold uppercase">Log sanitations, post-mortems and disease casualties</p>
+                </div>
+                <span className="bg-rose-100 text-rose-950 text-[9px] font-black px-2 py-0.5 rounded uppercase">Loss Register</span>
+              </div>
+
+              {/* Add Mortality Form */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const target = e.currentTarget as HTMLFormElement;
+                  const data = new FormData(target);
+                  const mType = data.get('animalType') as string;
+                  const mId = data.get('animalId') as string;
+                  const date = data.get('mortalityDate') as string;
+                  const cause = data.get('mortalityCause') as string;
+                  const disposal = data.get('mortalityDisposal') as string;
+                  const mNotes = data.get('mortalityNotes') as string;
+
+                  if (!mId || !date || !cause) return;
+
+                  onAddMortality({
+                    id: `mort-${Date.now()}`,
+                    animalId: mId.trim(),
+                    type: mType,
+                    date,
+                    causeOfDeath: cause.trim(),
+                    disposalMethod: disposal.trim() || 'Buried Deep in Lime',
+                    notes: mNotes.trim() || 'Disposed'
+                  });
+                  target.reset();
+                }}
+                className="space-y-4 bg-rose-50/20 border border-rose-100/50 p-4 rounded-2xl"
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Animal Category</label>
+                    <select name="animalType" className="w-full bg-white border border-slate-205 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
+                      <option value="Cow">Milking Cow</option>
+                      <option value="Calf">Young Calf</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Tag / ID Number</label>
+                    <input type="text" name="animalId" required placeholder="e.g., J-603" className="w-full bg-white border border-slate-205 focus:border-red-700 rounded-xl px-3 py-2 font-bold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Incident Date</label>
+                    <input type="date" name="mortalityDate" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Cause of Death</label>
+                    <select name="mortalityCause" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
+                      <option value="Bloat (Frothy/Gaseous)">Bloat (Frothy/Gaseous)</option>
+                      <option value="East Coast Fever (ECF)">East Coast Fever (ECF)</option>
+                      <option value="Milk Fever (Severe Hypocalcaemia)">Milk Fever (Severe Hypocalcaemia)</option>
+                      <option value="Physical Injury or Fracture">Physical Injury or Fracture</option>
+                      <option value="Stillborn Abortion">Stillborn Abortion</option>
+                      <option value="Mastitis Sepsis Shock">Mastitis Sepsis Shock</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Safe Disposal Protocol (How disposing?)</label>
+                    <input type="text" name="mortalityDisposal" placeholder="e.g. Buried 6ft deep with agricultural chemical lime" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Autopsy / Post-Mortem & Diagnosis Notes</label>
+                    <input type="text" name="mortalityNotes" placeholder="e.g. Diagnosed by Dr Devin; triggered by extreme early-morning wet clover bloat" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-2.5 bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer border-0 m-0">
+                  Save Cattle Loss Incident
+                </button>
+              </form>
+
+              {/* Mortality List */}
+              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                {mortalities.filter(m => m.type === 'Cow' || m.type === 'Calf').length === 0 ? (
+                  <p className="text-center text-slate-400 py-6 text-xs font-bold">No cattle mortality incidents recorded.</p>
+                ) : (
+                  mortalities
+                    .filter(m => m.type === 'Cow' || m.type === 'Calf')
+                    .map(inc => (
+                      <div key={inc.id} className="p-3.5 bg-rose-50/10 border border-rose-100 rounded-2xl flex justify-between items-center shadow-xs">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-black text-xs text-rose-950 uppercase">
+                              {inc.animalId}
+                            </span>
+                            <span className="bg-rose-100 text-rose-900 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+                              {inc.type}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-bold font-mono">
+                              {inc.date}
+                            </span>
+                            <span className="bg-red-950/50 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+                              {inc.causeOfDeath}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-450 block font-semibold leading-relaxed">
+                            Disposal: {inc.disposalMethod} • Notes: <span className="italic">"{inc.notes}"</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => onDeleteMortality(inc.id)}
+                          className="text-slate-350 hover:text-red-700 cursor-pointer m-0 bg-transparent border-0"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* SUB-TAB 1: LACTATION & AI BREEDING */}
       {subTab === 'lactation' && (

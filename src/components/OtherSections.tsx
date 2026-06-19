@@ -75,6 +75,12 @@ interface OtherSectionsProps {
   cropSales: CropSaleRecord[];
   onAddCropSale: (rec: CropSaleRecord) => void;
   onDeleteCropSale: (id: string) => void;
+  animalSales: any[];
+  onAddAnimalSale: (rec: any) => void;
+  onDeleteAnimalSale: (id: string) => void;
+  mortalities: any[];
+  onAddMortality: (rec: any) => void;
+  onDeleteMortality: (id: string) => void;
   onEditField?: (id: string, updated: FieldRecord) => void;
   onEditLivestock?: (id: string, updated: LivestockRecord) => void;
   onEditInventoryItem?: (id: string, updated: InventoryItem) => void;
@@ -114,6 +120,12 @@ export function OtherSections({
   cropSales,
   onAddCropSale,
   onDeleteCropSale,
+  animalSales,
+  onAddAnimalSale,
+  onDeleteAnimalSale,
+  mortalities,
+  onAddMortality,
+  onDeleteMortality,
   onEditField,
   onEditLivestock,
   onEditInventoryItem,
