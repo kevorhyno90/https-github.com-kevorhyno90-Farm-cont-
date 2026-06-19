@@ -12,10 +12,10 @@ interface FinancialsProps {
   onAddTransaction: (rec: FinancialRecord) => void;
   onDeleteTransaction: (id: string) => void;
   onEditFinancialRecord?: (id: string, updated: FinancialRecord) => void;
-  onTriggerSectionPdf?: (sectionKey: string) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
-export function Financials({ financialRecords, onAddTransaction, onDeleteTransaction, onEditFinancialRecord, onTriggerSectionPdf }: FinancialsProps) {
+export function Financials({ financialRecords, onAddTransaction, onDeleteTransaction, onEditFinancialRecord, onTriggerSectionReport }: FinancialsProps) {
   // Income form state
   const [incAmt, setIncAmt] = useState<number | ''>('');
   const [incSrc, setIncSrc] = useState('');
@@ -281,15 +281,15 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
               <FileSpreadsheet size={13} />
               Export CSV
             </button>
-            {onTriggerSectionPdf && (
+            {onTriggerSectionReport && (
               <button
-                onClick={() => onTriggerSectionPdf('financials')}
+                onClick={() => onTriggerSectionReport('financials')}
                 type="button"
                 className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 shrink-0"
-                title="Export Financial Report as PDF"
+                title="Export Financial Report as HTML Document"
               >
                 <FileDown size={13} />
-                Export Ledger PDF
+                Export Ledger Report (HTML)
               </button>
             )}
 

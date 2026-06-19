@@ -47,7 +47,7 @@ interface DairyBreedingProps {
   onEditAIRecord?: (cowId: string, date: string, updated: AIRecord) => void;
   onEditCow?: (id: string, updated: Cow) => void;
   onEditVetRecord?: (id: string, updated: VetRecord) => void;
-  onTriggerSectionPdf?: (sectionKey: string) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 export function DairyBreeding({
@@ -70,7 +70,7 @@ export function DairyBreeding({
   onEditAIRecord,
   onEditCow,
   onEditVetRecord,
-  onTriggerSectionPdf
+  onTriggerSectionReport
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
   const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary'>('lactation');
@@ -560,15 +560,15 @@ export function DairyBreeding({
                     <FileSpreadsheet size={10} />
                     Export CSV
                   </button>
-                  {onTriggerSectionPdf && (
+                  {onTriggerSectionReport && (
                     <button
-                      onClick={() => onTriggerSectionPdf('milk')}
+                      onClick={() => onTriggerSectionReport('milk')}
                       type="button"
                       className="flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer"
-                      title="Export Milking Report as PDF"
+                      title="Export Milking Report as HTML"
                     >
                       <FileDown size={10} />
-                      Export PDF
+                      Export Report (HTML)
                     </button>
                   )}
                   <Filter size={12} className="text-slate-400" />
@@ -848,15 +848,15 @@ export function DairyBreeding({
                 <FileSpreadsheet size={13} />
                 Export AI Logs
               </button>
-              {onTriggerSectionPdf && (
+              {onTriggerSectionReport && (
                 <button
-                  onClick={() => onTriggerSectionPdf('ai')}
+                  onClick={() => onTriggerSectionReport('ai')}
                   type="button"
-                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 animate-pulse"
-                  title="Export Inseminations Report in PDF"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
+                  title="Export Inseminations Report in HTML"
                 >
                   <FileDown size={13} />
-                  Insemination Reports PDF
+                  Insemination Reports (HTML)
                 </button>
               )}
               <button
@@ -1100,15 +1100,15 @@ export function DairyBreeding({
                 <FileSpreadsheet size={13} />
                 Export Vet History
               </button>
-              {onTriggerSectionPdf && (
+              {onTriggerSectionReport && (
                 <button
-                  onClick={() => onTriggerSectionPdf('vet')}
+                  onClick={() => onTriggerSectionReport('vet')}
                   type="button"
                   className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
-                  title="Export Vet History Report as PDF"
+                  title="Export Vet History Report as HTML"
                 >
                   <FileDown size={13} />
-                  Export Vet PDF
+                  Export Vet Report (HTML)
                 </button>
               )}
               <button

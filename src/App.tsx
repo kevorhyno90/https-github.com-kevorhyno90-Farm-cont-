@@ -24,7 +24,8 @@ import {
   Printer,
   Download,
   FileDown,
-  ArrowLeft
+  ArrowLeft,
+  Database
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -37,6 +38,7 @@ import { Horticulture } from './components/Horticulture';
 import { SprayLog } from './components/SprayLog';
 import { Financials } from './components/Financials';
 import { OtherSections } from './components/OtherSections';
+import { BackupCenter } from './components/BackupCenter';
 
 // Master Types
 import {
@@ -85,6 +87,66 @@ import {
   INITIAL_CROP_OP_RECORDS,
   INITIAL_CROP_SALES
 } from './initialData';
+
+export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Circular Badge Backdrop -->
+  <rect width="256" height="256" rx="48" fill="#022c22" />
+  <!-- Main Emblem -->
+  <!-- Outer glowing green-gold circle -->
+  <circle cx="128" cy="128" r="96" fill="none" stroke="url(#gold)" stroke-width="6" />
+  <circle cx="128" cy="128" r="88" fill="none" stroke="url(#emerald)" stroke-width="1.5" stroke-dasharray="8 4" />
+
+  <!-- Stylized Sunrays at top -->
+  <g stroke="url(#gold)" stroke-width="3" stroke-linecap="round" opacity="0.8">
+    <line x1="128" y1="52" x2="128" y2="60" />
+    <line x1="108" y1="56" x2="112" y2="64" />
+    <line x1="148" y1="56" x2="144" y2="64" />
+    <line x1="92" y1="68" x2="98" y2="74" />
+    <line x1="164" y1="68" x2="158" y2="74" />
+  </g>
+
+  <!-- Elegant Tea Plant & Crown design -->
+  <g transform="translate(128, 130)">
+    <!-- Center Tea Leaf -->
+    <path d="M0,-50 C12,-20 8,-5 0,10 C-8,-5 -12,-20 0,-50 Z" fill="url(#emerald)" />
+    <!-- Left Leaf -->
+    <path d="M-3,-35 C-25,-25 -25,-5 -8,5 C-5,-5 2,-20 -3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    <!-- Right Leaf -->
+    <path d="M3,-35 C25,-25 25,-5 8,5 C5,-5 -2,-20 3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    
+    <!-- Central stalk with grain details -->
+    <path d="M0,10 L0,-30" stroke="url(#gold)" stroke-width="3.5" stroke-linecap="round" />
+    
+    <!-- Grain kernels (L & R) -->
+    <path d="M-2,-10 C-10,-14 -10,-8 -2,-4" fill="url(#gold)" />
+    <path d="M2,-10 C10,-14 10,-8 2,-4" fill="url(#gold)" />
+    <path d="M-2,-20 C-10,-24 -10,-18 -2,-14" fill="url(#gold)" />
+    <path d="M2,-20 C10,-24 10,-18 2,-14" fill="url(#gold)" />
+
+    <!-- Dairy Cow Silhouette overlay Representing Dairy -->
+    <path d="M-22,12 C-22,-2 -30,2 -35,2 C-38,2 -36,8 -30,10 C-24,11 -18,18 0,18 C18,18 24,11 30,10 C36,8 38,2 35,2 C30,2 22,-2 22,12 C20,24 15,28 0,28 C-15,28 -20,24 -22,12 Z" fill="#ffffff" />
+    <!-- Golden Horns -->
+    <path d="M-20,6 C-24,-2 -28,-6 -34,-4 C-32,2 -26,4 -21,8" fill="url(#gold)" />
+    <path d="M20,6 C24,-2 28,-6 34,-4 C32,2 26,4 21,8" fill="url(#gold)" />
+  </g>
+
+  <!-- Crown on Top -->
+  <path d="M112,82 L116,92 L128,86 L140,92 L144,82 L136,85 L128,78 L120,85 Z" fill="url(#gold)" />
+  
+  <!-- "JR" initials in the middle center base -->
+  <text x="128" y="205" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="2">JR</text>
+  <text x="128" y="218" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="9" fill="url(#gold)" text-anchor="middle" letter-spacing="1.5" opacity="0.95">ESTATE</text>
+</svg>`;
 
 export default function App() {
   // Navigation tab state
@@ -218,6 +280,793 @@ export default function App() {
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
+  const generateHtmlReportContent = (sections: Record<string, boolean>): string => {
+    let sectionsHtml = '';
+    
+    // Helper for table header & body
+    const buildTableHtml = (headers: string[], rows: string[][]) => {
+      const headerRowHtml = headers.map(h => `<th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-weight: bold; font-family: sans-serif;">${h}</th>`).join('');
+      const bodyRowsHtml = rows.map(r => {
+        return `<tr style="border-bottom: 1px solid #f1f5f9;">` + r.map(cell => `<td style="padding: 10px; font-family: sans-serif;">${cell}</td>`).join('') + `</tr>`;
+      }).join('');
+      return `<table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; margin-bottom: 25px;"><thead><tr>${headerRowHtml}</tr></thead><tbody>${bodyRowsHtml}</tbody></table>`;
+    };
+
+    // 1. Staff
+    if (sections.staff) {
+      const rows = staffList.map(st => [
+        `<strong>${st.name}</strong>`,
+        st.unit,
+        st.shiftMorning,
+        st.shiftAfternoon,
+        `<strong>${st.status}</strong>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>1. Staff Deployment Schedule</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${staffList.length} staff)</span>
+          </h3>
+          ${buildTableHtml(['Name', 'Section', 'Morning Shift', 'Afternoon Shift', 'Duty Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 2. Milk
+    if (sections.milk) {
+      const rows = milkRecords.map(m => [
+        `<span style="font-family: monospace; font-weight: bold;">${m.date}</span>`,
+        `<strong>${m.id}</strong>`,
+        m.am.toFixed(1),
+        m.pm.toFixed(1),
+        `<strong>${(m.am + m.pm).toFixed(1)} L</strong>`,
+        m.staff
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>2. Dairy Production Log</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${milkRecords.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Cow Tag ID', 'AM Liters', 'PM Liters', 'Total Yield', 'Milker'], rows)}
+        </div>
+      `;
+    }
+
+    // 3. AI
+    if (sections.ai) {
+      const rows = aiRecords.map(ai => [
+        `<strong>${ai.cowId}</strong>`,
+        `<span style="font-family: monospace;">${ai.date}</span>`,
+        `<span style="font-style: italic; color: #475569;">${ai.bull}</span>`,
+        `<span style="font-family: monospace; font-weight: bold;">${ai.due}</span>`,
+        `<span style="font-weight: bold;">${ai.status}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>3. Artificial Insemination & Breeding</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${aiRecords.length} cycles)</span>
+          </h3>
+          ${buildTableHtml(['Cow Tag ID', 'Service Date', 'Bull Name/Semen Ref', 'Expected Due', 'Pregnancy Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 4. Tea Harvest
+    if (sections.tea) {
+      const rows = teaRecords.map(t => [
+        `<span style="font-family: monospace;">${t.date}</span>`,
+        `<strong>${t.ref}</strong>`,
+        t.buyer || 'Chinga KTDA',
+        `<strong>${t.qty.toLocaleString()} KG</strong>`,
+        `<span style="color: #166534; font-weight: bold; font-family: monospace;">Ksh ${(t.totalSales || (t.qty * (t.pricePerKg ?? 58))).toLocaleString()}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>4. Tea Exports Harvest & Deliveries</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${teaRecords.length} dispatches)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Plucking Ref', 'Factory Buyer', 'Harvest Weight', 'Gross Revenue'], rows)}
+        </div>
+      `;
+    }
+
+    // 5. Avocado
+    if (sections.avo) {
+      const rows = avoRecords.map(item => [
+        `<span style="font-family: monospace;">${item.date}</span>`,
+        `<strong>${item.ref}</strong>`,
+        item.gradeA.toString(),
+        item.gradeB.toString(),
+        item.reject.toString(),
+        `<span style="color: #166534; font-weight: bold; font-family: monospace;">Ksh ${(item.totalSales || ((item.gradeA * (item.priceGradeA ?? 1500)) + (item.gradeB * (item.priceGradeB ?? 850)) + (item.reject * (item.priceReject ?? 38)))).toLocaleString()}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>5. Avocado Export Grading & Logistics</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${avoRecords.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Shipping Ref', 'Grade A (Boxes)', 'Grade B (Boxes)', 'Reject (KG)', 'Gross Proceeds'], rows)}
+        </div>
+      `;
+    }
+
+    // 6. Crop Sales
+    if (sections.cropSales) {
+      const rows = cropSales.map(cs => [
+        `<span style="font-family: monospace;">${cs.date}</span>`,
+        `<strong>${cs.crop}</strong>`,
+        `${cs.qty} ${cs.unit}`,
+        `<span style="font-family: monospace;">Ksh ${cs.pricePerUnit}</span>`,
+        `<span style="color: #166534; font-weight: bold; font-family: monospace;">Ksh ${cs.totalSales.toLocaleString()}</span>`,
+        cs.buyer
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>6. Local Commodities Cash Transactions</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${cropSales.length} trades)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Commodity Crop', 'Quantity', 'Price per Unit', 'Gross Revenue', 'Buyer Name'], rows)}
+        </div>
+      `;
+    }
+
+    // 7. Financial Ledger
+    if (sections.financials) {
+      const rows = financials.map(f => [
+        `<span style="font-family: monospace;">${f.date}</span>`,
+        `<strong>${f.category}</strong> <span style="font-size: 10px; color: #64748b;">(${f.description})</span>`,
+        `<span style="text-transform: uppercase; font-weight: bold; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">${f.type}</span>`,
+        `<span style="font-weight: bold; font-family: monospace; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">Ksh ${f.amount.toLocaleString()}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>7. Operational Accounting General Ledger</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${financials.length} journals)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Reference & Description', 'Type', 'Amount'], rows)}
+        </div>
+      `;
+    }
+
+    // 8. Spray
+    if (sections.spray) {
+      const rows = sprayRecords.map(s => [
+        `<strong>${s.block}</strong>`,
+        `<em>${s.chemical}</em>`,
+        `<span style="font-weight: bold; color: #9a3412; font-family: monospace;">${s.phi} Days</span>`,
+        s.target,
+        `<span style="font-weight: bold; color: #166534; font-family: monospace;">${s.safeDate}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>8. Agrochemical Spray Compliance & Quarantines</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${sprayRecords.length} treatments)</span>
+          </h3>
+          ${buildTableHtml(['Plot Section', 'Chemical Brand', 'PHI Quarantine', 'Target Pest', 'Safe Pick Date'], rows)}
+        </div>
+      `;
+    }
+
+    // 9. Fields
+    if (sections.fields) {
+      const rows = fields.map(f => [
+        `<span style="font-family: monospace;">${f.id}</span>`,
+        `<strong>${f.blockName}</strong>`,
+        `<em>${f.cropType}</em>`,
+        `<strong>${f.acreage} Acres</strong>`,
+        `<strong>${f.status}</strong>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 850;">
+            <span>9. Registered Blocks & Silage Fields Directory</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${fields.length} plots)</span>
+          </h3>
+          ${buildTableHtml(['Plot ID', 'Block Name', 'Primary Feed Crop', 'Size', 'Audit Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 10. Livestock
+    if (sections.livestock) {
+      const rows = livestock.map(item => [
+        `<span style="font-family: monospace;">${item.date}</span>`,
+        `<strong>${item.name}</strong> <span style="font-size: 10px; color: #64748b;">(${item.type})</span>`,
+        item.countOrBreed,
+        `<strong>${item.activity}</strong>`,
+        `<span style="font-style: italic; color: #64748b;">${item.notes}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>10. Poultry Eggs & Canine Protection Assets</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date Logged', 'Asset Group', 'Details Classification', 'Activity', 'Notes'], rows)}
+        </div>
+      `;
+    }
+
+    // 11. Goats
+    if (sections.goats) {
+      const rows = goatRecords.map(gt => [
+        `<span style="font-family: monospace;">${gt.date}</span>`,
+        `<strong>${gt.tagId}</strong>`,
+        `<em>${gt.breed}</em>`,
+        gt.purpose,
+        `<strong style="font-family: monospace;">${gt.milkYieldLiters !== undefined ? `${gt.milkYieldLiters} L` : 'N/A'}</strong>`,
+        gt.notes
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>11. Goats Dairy Herd & Lactation Logs</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${goatRecords.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Tag/Collar ID', 'Breed Class', 'Classification', 'Yield', 'Observations'], rows)}
+        </div>
+      `;
+    }
+
+    // 12. Calves
+    if (sections.calves) {
+      const rows = calfRecords.map(cf => [
+        `<span style="font-family: monospace;">${cf.date}</span>`,
+        `<strong>${cf.calfId}</strong>`,
+        `<em>${cf.damId}</em>`,
+        `<strong style="font-family: monospace;">${cf.milkIntakeLiters} Liters</strong>`,
+        `<strong>${cf.weaned ? 'WEANED' : 'Active Nursery'}</strong>`,
+        `<span style="font-style: italic; color: #64748b;">${cf.notes}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>12. Nursery Young Calf Nutrition Logs</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${calfRecords.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date Logged', 'Calf ID', 'Mother Cow ID', 'Liquid Milk Intake', 'Weaned Status', 'Clinical Note'], rows)}
+        </div>
+      `;
+    }
+
+    // 13. BSF
+    if (sections.bsf) {
+      const rows = bsfRecords.map(batch => [
+        `<span style="font-family: monospace;">${batch.date}</span>`,
+        `<strong>${batch.batchId}</strong>`,
+        `<em>${batch.substrateType}</em>`,
+        `<span style="font-family: monospace;">${batch.inoculationDate}</span>`,
+        `<strong style="font-family: monospace; color: #854d0e;">${batch.larvaeHarvestedKg} KG</strong>`,
+        `<strong>${batch.status}</strong>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>13. Organic Black Soldier Fly (BSF) Larval Cycles</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${bsfRecords.length} batches)</span>
+          </h3>
+          ${buildTableHtml(['Date', 'Batch ID', 'Substrate Type', 'Inoculated', 'Larvae Harvested', 'Stage Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 14. Inventory
+    if (sections.inventory) {
+      const rows = inventory.map(item => {
+        const isLow = item.quantity <= item.minStock;
+        return [
+          `<span style="font-family: monospace;">${item.id}</span>`,
+          `<strong>${item.name}</strong>`,
+          `<em>${item.category}</em>`,
+          `<strong style="font-family: monospace;">${item.quantity} ${item.unit}</strong>`,
+          `<span style="font-family: monospace;">${item.minStock}</span>`,
+          `<span style="font-weight: bold; color: ${isLow ? '#9a3412' : '#166534'};">${isLow ? 'RESTOCK' : 'SECURE'}</span>`
+        ];
+      });
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>14. Storage Warehouse Stocks Reserves</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${inventory.length} items)</span>
+          </h3>
+          ${buildTableHtml(['Item ID', 'Name', 'Category Classification', 'Available Stock', 'Safety Level', 'Alert Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 15. Vet
+    if (sections.vet) {
+      const rows = vetRecords.map(vet => [
+        `<span style="font-family: monospace;">${vet.date}</span>`,
+        `<strong>${vet.cowId}</strong>`,
+        `<em>${vet.type}</em>`,
+        `<strong>${vet.treatment}</strong> <span style="font-size: 10px; color: #64748b; display: block;">${vet.notes}</span>`,
+        `<strong style="font-family: monospace;">Ksh ${vet.cost.toLocaleString()}</strong>`,
+        vet.staff
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>15. Clinical Veterinary Treatments & Diagnostics</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${vetRecords.length} entries)</span>
+          </h3>
+          ${buildTableHtml(['Incident Date', 'Animal Cow Tag', 'Treatment Type', 'Clinical Diagnosis', 'Authorized Cost', 'Vet'], rows)}
+        </div>
+      `;
+    }
+
+    const netPlAmount = financials.reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JR Farm Cooperative Estate Report</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #0f172a;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 45px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 3px double #0f172a;
+      padding-bottom: 25px;
+      margin-bottom: 30px;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    .logo-container svg {
+      width: 96px;
+      height: 96px;
+    }
+    .header h1 {
+      font-family: monospace;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin: 0 0 10px 0;
+      text-transform: uppercase;
+      font-style: italic;
+    }
+    .header p {
+      font-size: 11px;
+      color: #475569;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0 0 15px 0;
+    }
+    .meta-line {
+      font-size: 12px;
+      font-family: monospace;
+      color: #64748b;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .summary-card {
+      border: 1.5px solid #cbd5e1;
+      padding: 20px 16px;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      text-align: center;
+    }
+    .summary-card span {
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+      color: #64748b;
+      display: block;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .summary-card h3 {
+      font-size: 22px;
+      font-weight: 900;
+      font-family: monospace;
+      color: #0f172a;
+      margin: 0;
+    }
+    .sign-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      font-size: 12px;
+      margin-top: 60px;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 30px;
+    }
+    .sign-box {
+      text-align: center;
+    }
+    .sign-line {
+      border-top: 1.5px solid #94a3b8;
+      margin-top: 40px;
+      padding-top: 8px;
+      font-family: monospace;
+      font-weight: bold;
+      color: #1e293b;
+    }
+    .print-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #022c22;
+      color: #ffffff;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(2, 44, 34, 0.4);
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .print-btn:hover {
+      background-color: #064e3b;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px -5px rgba(2, 44, 34, 0.5);
+    }
+    @media print {
+      body {
+        background-color: white;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .print-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-container">
+        ${LOGO_SVG_STRING}
+      </div>
+      <h1>JR FARM COOPERATIVE ESTATE</h1>
+      <p>Sovereign Agricultural Compliance &bull; GlobalGAP Registered Plot No. KT-205A</p>
+      <div class="meta-line">
+        <span>Authorized Comptroller: Dr. Devin Omwenga</span> &bull; <span>Generated: ${new Date().toLocaleString()}</span>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <span>All-time Milk Yield</span>
+        <h3>${milkRecords.reduce((sum, r) => sum + r.am + r.pm, 0).toFixed(1)} L</h3>
+      </div>
+      <div class="summary-card">
+        <span>All-time Tea Volumes</span>
+        <h3>${totalTeaQty.toLocaleString()} KG</h3>
+      </div>
+      <div class="summary-card">
+        <span>P&L Operating Balance</span>
+        <h3 style="color: ${netPlAmount >= 0 ? '#166534' : '#9a3412'};">Ksh ${netPlAmount.toLocaleString()}</h3>
+      </div>
+    </div>
+
+    <div class="report-sections">
+      ${sectionsHtml || '<p style="text-align: center; color: #94a3b8; font-weight: bold; padding: 40px 0;">No active sections selected for this compilation report.</p>'}
+    </div>
+
+    <div class="sign-section">
+      <div class="sign-box">
+        <div style="height: 40px;"></div>
+        <div class="sign-line">Mosoti (Senior Herdsman)</div>
+        <div style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Operations Inspector Sig</div>
+      </div>
+      <div class="sign-box">
+        <div style="height: 40px;"></div>
+        <div class="sign-line">Dr. Devin Omwenga (Overall Farm Manager)</div>
+        <div style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sovereign Superintendent Sig</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+</body>
+</html>
+    `;
+  };
+
+  const handleDownloadHtmlReport = (customKeys?: string[]) => {
+    let tempSections: Record<string, boolean>;
+    if (customKeys && customKeys.length > 0) {
+      tempSections = {
+        staff: false, milk: false, ai: false, tea: false, avo: false,
+        cropSales: false, financials: false, spray: false, fields: false,
+        livestock: false, goats: false, calves: false, bsf: false,
+        inventory: false, vet: false
+      } as Record<string, boolean>;
+      customKeys.forEach(k => {
+        tempSections[k] = true;
+      });
+    } else {
+      tempSections = { ...selectedSections };
+    }
+
+    const htmlContent = generateHtmlReportContent(tempSections);
+    
+    let filename = 'JR_Farm_Compiled_Report.html';
+    const activeKeys = Object.keys(tempSections).filter(k => tempSections[k]);
+    if (activeKeys.length === 1) {
+      const key = activeKeys[0];
+      const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
+      filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.html`;
+    } else if (activeKeys.length < 15) {
+      filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.html`;
+    } else {
+      filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.html`;
+    }
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+
+
+
+
+  const handleDownloadDirectPdf = async (customKeys?: string[]) => {
+    // Obsolete
+  };
+  /*
+    await new Promise(resolve => setTimeout(resolve, 850));
+
+    // Intercept original window properties
+    const originalGetComputedStyle = window.getComputedStyle;
+    const fillStyleDesc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'fillStyle');
+    const strokeStyleDesc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'strokeStyle');
+    const originalFillStyleSet = fillStyleDesc?.set;
+    const originalStrokeStyleSet = strokeStyleDesc?.set;
+
+    try {
+      // 1. Intercept getComputedStyle to sanitize on-the-fly to protect third-party layout solvers
+      window.getComputedStyle = function(el, pseudoElt) {
+        const originalStyle = originalGetComputedStyle.call(this, el, pseudoElt);
+        return new Proxy(originalStyle, {
+          get(target, prop, receiver) {
+            if (prop === 'getPropertyValue') {
+              return (propertyName: string) => {
+                const val = target.getPropertyValue(propertyName);
+                if (typeof val === 'string' && val.includes('oklch')) {
+                  return replaceOklchParenthesisSafe(val);
+                }
+                return val;
+              };
+            }
+            try {
+              const val = Reflect.get(target, prop, receiver);
+              if (typeof val === 'function') {
+                return val.bind(target);
+              }
+              if (typeof prop === 'string' && typeof val === 'string' && val.includes('oklch')) {
+                return replaceOklchParenthesisSafe(val);
+              }
+              return val;
+            } catch (err) {
+              try {
+                const val = target[prop as any];
+                if (typeof val === 'function') {
+                  return val.bind(target);
+                }
+                return val;
+              } catch (_) {
+                return undefined;
+              }
+            }
+          },
+          ownKeys(target) {
+            return Reflect.ownKeys(target);
+          },
+          getOwnPropertyDescriptor(target, prop) {
+            return Reflect.getOwnPropertyDescriptor(target, prop);
+          }
+        });
+      };
+
+      // 2. Intercept Canvas fillStyle & strokeStyle setters for nested graph libraries
+      if (originalFillStyleSet) {
+        Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillStyle', {
+          set(val) {
+            if (typeof val === 'string' && val.includes('oklch')) {
+              val = replaceOklchParenthesisSafe(val);
+            }
+            originalFillStyleSet.call(this, val);
+          },
+          configurable: true
+        });
+      }
+      if (originalStrokeStyleSet) {
+        Object.defineProperty(CanvasRenderingContext2D.prototype, 'strokeStyle', {
+          set(val) {
+            if (typeof val === 'string' && val.includes('oklch')) {
+              val = replaceOklchParenthesisSafe(val);
+            }
+            originalStrokeStyleSet.call(this, val);
+          },
+          configurable: true
+        });
+      }
+
+      setPdfProgressText('Mounting CDN PDF render drivers...');
+      
+      const loadScript = (url: string) => {
+        return new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error(`Failed to load ${url}`));
+          document.head.appendChild(script);
+        });
+      };
+
+      if (!(window as any).html2pdf) {
+        try {
+          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+        } catch (err1) {
+          await loadScript("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
+        }
+      }
+
+      setPdfProgressText('Compiling & sanitizing responsive layout rules...');
+      const sourceElement = document.getElementById('printable-area-pdf');
+      if (!sourceElement) {
+        throw new Error("Preview element not found in DOM");
+      }
+
+      // Unique human labels for specific subset exports
+      let filename = 'JR_Farm_Compiled_Report.pdf';
+      const activeKeys = Object.keys(tempSections).filter(k => tempSections[k]);
+      
+      if (activeKeys.length === 1) {
+        const key = activeKeys[0];
+        const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
+        filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      } else if (activeKeys.length < 15) {
+        filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      } else {
+        filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      }
+
+      const opt = {
+        margin: [0.4, 0.4, 0.4, 0.4],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          letterRendering: true,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          onclone: (clonedDoc: Document) => {
+            const element = clonedDoc.getElementById('printable-area-pdf');
+            if (element) {
+              const clone = element.cloneNode(true) as HTMLElement;
+              
+              // Clear other elements to bypass scrolls and viewport clipping sizes
+              clonedDoc.body.innerHTML = '';
+              clonedDoc.body.style.margin = '0';
+              clonedDoc.body.style.padding = '0';
+              clonedDoc.body.style.backgroundColor = '#ffffff';
+              clonedDoc.body.style.color = '#000000';
+              clonedDoc.body.style.width = '820px';
+              clonedDoc.body.style.height = 'auto';
+              clonedDoc.body.style.overflow = 'visible';
+              clonedDoc.body.appendChild(clone);
+
+              clone.style.display = 'block';
+              clone.style.opacity = '1';
+              clone.style.visibility = 'visible';
+              clone.style.position = 'static';
+              clone.style.left = '0px';
+              clone.style.top = '0px';
+              clone.style.width = '820px';
+              clone.style.maxHeight = 'none';
+              clone.style.height = 'auto';
+              clone.style.overflow = 'visible';
+              clone.style.padding = '30px';
+              clone.style.background = '#ffffff';
+              clone.style.color = '#000000';
+
+              // Expand sub-table and scrollable list viewport boxes to layout full-length tables
+              const rawScrollables = clone.querySelectorAll('.overflow-y-auto, .overflow-x-auto, .overflow-hidden, .max-h-\\[70vh\\], .max-h-\\[75vh\\], .max-h-96');
+              rawScrollables.forEach((node) => {
+                const el = node as HTMLElement;
+                el.style.overflow = 'visible';
+                el.style.maxHeight = 'none';
+                el.style.height = 'auto';
+              });
+
+              // Clean up interactive and print-hidden components from the render tree
+              const guideAlert = clone.querySelector('.print\\:hidden, #pdf-guide-alert');
+              if (guideAlert) {
+                guideAlert.remove();
+              }
+              const actionButtons = clone.querySelectorAll('button');
+              actionButtons.forEach(btn => btn.remove());
+            }
+
+            sanitizeStylesheets(clonedDoc);
+          }
+        },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr, h5, .grid' }
+      };
+
+      setPdfProgressText('Downloading direct PDF document file...');
+      await (window as any).html2pdf().set(opt).from(sourceElement).save();
+
+    } catch (e) {
+      console.error('PDF library fail, falling back to native print popup:', e);
+      window.print();
+    } finally {
+      // Restore original getters
+      window.getComputedStyle = originalGetComputedStyle;
+      if (originalFillStyleSet) {
+        Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillStyle', {
+          set: originalFillStyleSet,
+          configurable: true
+        });
+      }
+      if (originalStrokeStyleSet) {
+        Object.defineProperty(CanvasRenderingContext2D.prototype, 'strokeStyle', {
+          set: originalStrokeStyleSet,
+          configurable: true
+        });
+      }
+      
+      setIsPdfExporting(false);
+      setPdfProgressText('');
+    }
+  };
+  */
 
   const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>({
     staff: true,
@@ -395,6 +1244,33 @@ export default function App() {
   };
 
   const upcomingDueAlarm = getUpcomingDueAlarm();
+
+  const handleResetToDefaults = () => {
+    const keys = [
+      'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+      'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+      'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+      'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales'
+    ];
+    keys.forEach(k => {
+      localStorage.removeItem(k);
+    });
+  };
+
+  const handleImportFullBackup = (dbData: Record<string, any>): boolean => {
+    if (!dbData || typeof dbData !== 'object') return false;
+    try {
+      Object.entries(dbData).forEach(([k, val]) => {
+        if (k.startsWith('jr_farm_')) {
+          localStorage.setItem(k, JSON.stringify(val));
+        }
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   // state updates handlers
   const handleToggleTodo = (id: string) => {
@@ -977,14 +1853,19 @@ export default function App() {
     { id: 'spray', label: 'GlobalGAP Spray', icon: FlaskConical, category: 'Crop Exports' },
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
-    { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' }
+    { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
+    { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' }
   ];
 
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
     return (
       <div className="space-y-6 text-black">
         {/* Formal Letterhead */}
-        <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1">
+        <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1 flex flex-col items-center justify-center">
+          <div 
+            className="w-16 h-16 mb-2 overflow-hidden opacity-95" 
+            dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
+          />
           <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
           <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
             Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
@@ -1079,7 +1960,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? milkRecords : milkRecords.slice(0, 10)).map((m, idx) => (
                     <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{m.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
                       <td className="p-1.5 text-right font-mono">{m.am.toFixed(1)}</td>
                       <td className="p-1.5 text-right font-mono">{m.pm.toFixed(1)}</td>
@@ -1116,7 +1997,7 @@ export default function App() {
                   {(forPdf ? aiRecords : aiRecords.slice(0, 10)).map((ai, idx) => (
                     <tr key={idx} className="border-b border-slate-100">
                       <td className="p-1.5 font-bold text-slate-800">{ai.cowId}</td>
-                      <td className="p-1.5 font-mono text-slate-400">{ai.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{ai.date}</td>
                       <td className="p-1.5 italic text-slate-600">{ai.bull}</td>
                       <td className="p-1.5 font-mono font-bold">{ai.due}</td>
                       <td className="p-1.5">{ai.status}</td>
@@ -1150,7 +2031,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? teaRecords : teaRecords.slice(0, 10)).map((t, idx) => (
                     <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{t.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{t.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{t.ref}</td>
                       <td className="p-1.5">{t.buyer || 'Chinga KTDA'}</td>
                       <td className="p-1.5 text-right font-mono font-bold">{t.qty.toLocaleString()} KG</td>
@@ -1186,7 +2067,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? avoRecords : avoRecords.slice(0, 10)).map((item, idx) => (
                     <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{item.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{item.ref}</td>
                       <td className="p-1.5 text-right font-mono">{item.gradeA}</td>
                       <td className="p-1.5 text-right font-mono">{item.gradeB}</td>
@@ -1225,7 +2106,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? cropSales : cropSales.slice(0, 10)).map((cs, idx) => (
                     <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{cs.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{cs.date}</td>
                       <td className="p-1.5 font-bold text-slate-805">{cs.crop}</td>
                       <td className="p-1.5 italic">{cs.qty} {cs.unit}</td>
                       <td className="p-1.5 text-right font-mono">Ksh {cs.pricePerUnit}</td>
@@ -1257,7 +2138,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? financials : financials.slice(0, 10)).map((f) => (
                     <tr key={f.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{f.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{f.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">
                         {f.category} <span className="text-[10px] text-slate-450 font-medium italic">({f.description})</span>
                       </td>
@@ -1328,7 +2209,7 @@ export default function App() {
                 <tbody>
                   {fields.map((f) => (
                     <tr key={f.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-400">{f.id}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{f.id}</td>
                       <td className="p-1.5 font-bold text-slate-805">{f.blockName}</td>
                       <td className="p-1.5 italic text-slate-655">{f.cropType}</td>
                       <td className="p-1.5 text-right font-mono font-bold">{f.acreage} Acres</td>
@@ -1360,7 +2241,7 @@ export default function App() {
                 <tbody>
                   {livestock.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-405">{item.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{item.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{item.name} <span className="text-[10px] text-slate-450 italic">({item.type})</span></td>
                       <td className="p-1.5">{item.countOrBreed}</td>
                       <td className="p-1.5 font-bold text-slate-700">{item.activity}</td>
@@ -1377,7 +2258,7 @@ export default function App() {
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>11. Goats Dairy herd & lactation logs</span>
-                <span className="text-[9px] font-mono text-slate-404 font-bold">({goatRecords.length} records)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({goatRecords.length} records)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -1393,9 +2274,9 @@ export default function App() {
                 <tbody>
                   {(forPdf ? goatRecords : goatRecords.slice(0, 10)).map((gt) => (
                     <tr key={gt.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-404">{gt.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{gt.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{gt.tagId}</td>
-                      <td className="p-1.5 italic text-slate-500">{gt.breed}</td>
+                      <td className="p-1.5 italic text-slate-505">{gt.breed}</td>
                       <td className="p-1.5">{gt.purpose}</td>
                       <td className="p-1.5 text-right font-mono font-bold text-slate-800">{gt.milkYieldLiters !== undefined ? `${gt.milkYieldLiters} L` : 'N/A'}</td>
                       <td className="p-1.5 font-medium">{gt.notes}</td>
@@ -1411,7 +2292,7 @@ export default function App() {
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>12. Nursery young calf nutrition logs</span>
-                <span className="text-[9px] font-mono text-slate-404 font-bold">({calfRecords.length} records)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({calfRecords.length} records)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -1427,7 +2308,7 @@ export default function App() {
                 <tbody>
                   {(forPdf ? calfRecords : calfRecords.slice(0, 10)).map((cf) => (
                     <tr key={cf.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-404">{cf.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{cf.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{cf.calfId}</td>
                       <td className="p-1.5 italic text-slate-505">{cf.damId}</td>
                       <td className="p-1.5 text-right font-mono font-bold">{cf.milkIntakeLiters} Liters</td>
@@ -1445,7 +2326,7 @@ export default function App() {
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>13. organic black Soldier Fly (BSF) Larval cycles</span>
-                <span className="text-[9px] font-mono text-slate-404 font-bold">({bsfRecords.length} batches)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({bsfRecords.length} batches)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -1461,7 +2342,7 @@ export default function App() {
                 <tbody>
                   {bsfRecords.map((batch) => (
                     <tr key={batch.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-404">{batch.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{batch.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{batch.batchId}</td>
                       <td className="p-1.5 italic text-slate-705">{batch.substrateType}</td>
                       <td className="p-1.5 text-center font-mono">{batch.inoculationDate}</td>
@@ -1479,7 +2360,7 @@ export default function App() {
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>14. Storage Warehouse stocks reserves</span>
-                <span className="text-[9px] font-mono text-slate-404 font-bold">({inventory.length} items)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({inventory.length} items)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -1497,7 +2378,7 @@ export default function App() {
                     const isLow = item.quantity <= item.minStock;
                     return (
                       <tr key={item.id} className="border-b border-slate-100">
-                        <td className="p-1.5 font-mono text-slate-404">{item.id}</td>
+                        <td className="p-1.5 font-mono text-slate-700 font-bold">{item.id}</td>
                         <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
                         <td className="p-1.5 italic text-slate-600">{item.category}</td>
                         <td className="p-1.5 text-right font-mono font-bold">{item.quantity} {item.unit}</td>
@@ -1518,7 +2399,7 @@ export default function App() {
             <div className="space-y-2">
                <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>15. Clinical veterinary treatments & diagnostics</span>
-                <span className="text-[9px] font-mono text-slate-404 font-bold">({vetRecords.length} entries)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({vetRecords.length} entries)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -1534,7 +2415,7 @@ export default function App() {
                 <tbody>
                   {vetRecords.map((vet) => (
                     <tr key={vet.id} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-404">{vet.date}</td>
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{vet.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{vet.cowId}</td>
                       <td className="p-1.5 italic text-slate-500">{vet.type}</td>
                       <td className="p-1.5 font-mono">{vet.treatment} <span className="text-[10px] text-slate-500 block">{vet.notes}</span></td>
@@ -1569,13 +2450,20 @@ export default function App() {
     <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* 1. DESKTOP SIDEBAR */}
       <aside className="fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 w-72 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto hidden lg:flex flex-col z-40 transition-all">
-        <div className="p-8 text-center border-b border-emerald-900 mb-6 shrink-0 relative">
+        <div className="p-8 text-center border-b border-emerald-950 mb-6 shrink-0 relative flex flex-col items-center">
           <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-800 border border-green-700 text-yellow-500 rounded text-[9px] font-black uppercase tracking-wider">
             Live
           </div>
-          <h1 className="text-2xl font-black text-white italic tracking-tighter">JR FARM MASTER</h1>
-          <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1.5">
-            Estate Manager: Dr. Devin Omwenga
+          {/* Branded Logo */}
+          <div className="flex justify-center mb-3">
+            <div 
+              className="w-16 h-16 shadow-xl rounded-2xl border-2 border-yellow-500/20 overflow-hidden bg-emerald-950 p-[1px]" 
+              dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
+            />
+          </div>
+          <h1 className="text-2xl font-black text-white italic tracking-tighter">JR FARM</h1>
+          <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1">
+            Manager: Dr. Devin Omwenga
           </p>
         </div>
 
@@ -1676,9 +2564,15 @@ export default function App() {
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs" onClick={() => setMobileMenuOpen(false)}></div>
             <aside className="relative flex flex-col w-full max-w-xs h-full bg-emerald-950 text-emerald-100 shadow-2xl p-6 overflow-y-auto">
               <div className="flex justify-between items-center pb-6 border-b border-emerald-900 mb-6">
-                <div>
-                  <h1 className="text-lg font-black text-white italic tracking-tighter">JR FARM MASTER</h1>
-                  <p className="text-[9px] text-[10px] text-green-400 font-bold uppercase mt-0.5">Dr. Devin Omwenga</p>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 shadow-md rounded-xl border border-yellow-500/20 overflow-hidden bg-emerald-950 p-[1px] shrink-0" 
+                    dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
+                  />
+                  <div>
+                    <h1 className="text-base font-black text-white italic tracking-tighter leading-none">JR FARM</h1>
+                    <p className="text-[9px] text-green-400 font-bold uppercase mt-1 leading-none">Dr. Devin Omwenga</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -1750,7 +2644,43 @@ export default function App() {
                 ← Back to Dashboard Hub
               </button>
               
-
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <span className="text-[10px] uppercase font-black tracking-widest text-[#a1a1aa] block sm:inline">Active Module</span>
+                <button
+                  onClick={() => {
+                    let keys: string[] = [];
+                    if (activeTab === 'roster') keys = ['staff'];
+                    else if (activeTab === 'factory') keys = ['bsf', 'inventory'];
+                    else if (activeTab === 'tmr') keys = ['inventory'];
+                    else if (activeTab === 'dairy') keys = ['milk', 'ai', 'vet', 'calves'];
+                    else if (activeTab === 'horti') keys = ['tea', 'avo', 'cropSales'];
+                    else if (activeTab === 'spray') keys = ['spray'];
+                    else if (activeTab === 'finance') keys = ['financials'];
+                    else if (activeTab === 'fields') keys = ['fields'];
+                    else if (activeTab === 'livestock') keys = ['livestock', 'goats'];
+                    else if (activeTab === 'inventory') keys = ['inventory'];
+                    
+                    if (keys.length > 0) {
+                      handleDownloadHtmlReport(keys);
+                    }
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all border border-amber-600/10 m-0 cursor-pointer shadow-sm animate-fade-in"
+                >
+                  <FileDown size={14} />
+                  Export {
+                    activeTab === 'roster' ? 'Staff Roster' :
+                    activeTab === 'factory' ? 'Feed Formula' :
+                    activeTab === 'tmr' ? 'TMR Mixing' :
+                    activeTab === 'dairy' ? 'Milking & Breeding' :
+                    activeTab === 'horti' ? 'Horticulture Harvest' :
+                    activeTab === 'spray' ? 'Spray & Quarantine' :
+                    activeTab === 'finance' ? 'Ledger & Financials' :
+                    activeTab === 'fields' ? 'Agronomy Fields' :
+                    activeTab === 'livestock' ? 'Livestock & Canines' :
+                    activeTab === 'inventory' ? 'Warehouse Stock' : 'Section'
+                  } (HTML)
+                </button>
+              </div>
             </div>
           )}
 
@@ -1816,6 +2746,7 @@ export default function App() {
               onEditAIRecord={handleEditAIRecord}
               onEditCow={handleEditCow}
               onEditVetRecord={handleEditVetRecord}
+              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
             />
           )}
 
@@ -1847,6 +2778,7 @@ export default function App() {
               onAddTransaction={handleAddTransaction}
               onDeleteTransaction={handleDeleteTransaction}
               onEditFinancialRecord={handleEditFinancialRecord}
+              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
             />
           )}
 
@@ -1889,6 +2821,13 @@ export default function App() {
               onEditBsfRecord={handleEditBsfRecord}
               onEditCropOp={handleEditCropOpRecord}
               onEditCropSale={handleEditCropSale}
+            />
+          )}
+
+          {activeTab === 'backup' && (
+            <BackupCenter
+              onResetToDefaults={handleResetToDefaults}
+              onImportFullBackup={handleImportFullBackup}
             />
           )}
         </main>
@@ -1970,7 +2909,11 @@ export default function App() {
 
 
                 {/* Formal Letterhead */}
-                <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1">
+                <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1 flex flex-col items-center justify-center">
+                  <div 
+                    className="w-16 h-16 mb-2 overflow-hidden opacity-95" 
+                    dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
+                  />
                   <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
                   <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
                     Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
@@ -2566,6 +3509,13 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => handleDownloadHtmlReport()}
+                className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 transition-all m-0 cursor-pointer shadow-sm border border-amber-600/15"
+              >
+                <FileDown size={14} /> Download Master (HTML)
+              </button>
+
+              <button
                 onClick={() => window.print()}
                 className="px-6 py-3 bg-slate-900 text-white font-black rounded-xl text-xs uppercase flex items-center gap-2 hover:bg-slate-800 transition-all m-0 cursor-pointer"
               >
@@ -2575,6 +3525,8 @@ export default function App() {
           </div>
         </div>
       )}
+
+
 
 
     </div>
