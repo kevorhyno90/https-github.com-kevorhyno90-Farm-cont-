@@ -22,7 +22,8 @@ import {
   ChevronRight,
   ClipboardList,
   Printer,
-  Download
+  Download,
+  FileDown
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -215,6 +216,24 @@ export default function App() {
 
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
+  const [showPdfGuide, setShowPdfGuide] = useState<boolean>(false);
+  const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>({
+    staff: true,
+    milk: true,
+    ai: true,
+    tea: true,
+    avo: true,
+    cropSales: true,
+    financials: true,
+    spray: true,
+    fields: true,
+    livestock: true,
+    goats: true,
+    calves: true,
+    bsf: true,
+    inventory: true,
+    vet: true
+  });
 
   // Synchronize localStorage
   useEffect(() => {
@@ -736,58 +755,167 @@ export default function App() {
     csvContent += `Generated: ${new Date().toLocaleString()}\n`;
     csvContent += `Estate Manager: Dr. Devin Omwenga\n\n`;
 
-    // Milking records Section
-    csvContent += '--- MILKING RECORDS & BULK SALES ---\n';
-    csvContent += 'Date,Cow Tag ID,AM Liters,PM Liters,Total Liters,Price/L (Ksh),Buyer/Purchaser,Total Milk Sales (Ksh),Recorder Officer\n';
-    milkRecords.forEach((m) => {
-      const p = m.pricePerLiter ?? 0;
-      const b = m.buyer ?? 'Domestic Use';
-      const s = m.totalSales ?? ((m.am + m.pm) * p);
-      csvContent += `${m.date},"${m.id}",${m.am},${m.pm},${(m.am + m.pm).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
-    });
+    // 1. Staff deployment
+    if (selectedSections.staff) {
+      csvContent += '--- STAFF DEPLOYMENT STATUS ROSTER ---\n';
+      csvContent += 'Name,Section/Unit,Morning Shift,Afternoon Shift,Status\n';
+      staffList.forEach((st) => {
+        csvContent += `"${st.name}","${st.unit}","${st.shiftMorning}","${st.shiftAfternoon}","${st.status}"\n`;
+      });
+      csvContent += '\n';
+    }
 
-    // Tea harvest Section
-    csvContent += '\n--- KTDA TEA EXPORTS HARVEST & DELIVERIES ---\n';
-    csvContent += 'Date,Plucking Ref,Primary Buyer,Harvest Weight (KG),Price/KG (Ksh),Gross Amount (Ksh)\n';
-    teaRecords.forEach((t) => {
-      const p = t.pricePerKg ?? 58;
-      const b = t.buyer ?? 'Chinga KTDA Factory';
-      const s = t.totalSales ?? (t.qty * p);
-      csvContent += `${t.date},"${t.ref}","${b}",${t.qty},${p},${s}\n`;
-    });
+    // 2. Milking records Section
+    if (selectedSections.milk) {
+      csvContent += '--- MILKING RECORDS & BULK SALES ---\n';
+      csvContent += 'Date,Cow Tag ID,AM Liters,PM Liters,Total Liters,Price/L (Ksh),Buyer/Purchaser,Total Milk Sales (Ksh),Recorder Officer\n';
+      milkRecords.forEach((m) => {
+        const p = m.pricePerLiter ?? 0;
+        const b = m.buyer ?? 'Domestic Use';
+        const s = m.totalSales ?? ((m.am + m.pm) * p);
+        csvContent += `${m.date},"${m.id}",${m.am},${m.pm},${(m.am + m.pm).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
+      });
+      csvContent += '\n';
+    }
 
-    // Avocado Section
-    csvContent += '\n--- AVOCADO EXPORT LOGISTICS ---\n';
-    csvContent += 'Date,Shipping Ref,Primary Exporter,Grade A (Boxes),Grade B (Boxes),Reject (KG),Price Grade A (Ksh),Price Grade B (Ksh),Price Reject (Ksh),Gross Revenue (Ksh)\n';
-    avoRecords.forEach((item) => {
-      const pA = item.priceGradeA ?? 1500;
-      const pB = item.priceGradeB ?? 850;
-      const pR = item.priceReject ?? 38;
-      const b = item.buyer ?? 'Kakuzi Agribusiness Exporters';
-      const s = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
-      csvContent += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
-    });
+    // 3. Breeding / AI Records Section
+    if (selectedSections.ai) {
+      csvContent += '--- ARTIFICIAL INSEMINATION AND BREEDING HERD CYCLES ---\n';
+      csvContent += 'Cow Tag ID,Service Date,Bull Name / Semen Reference,Expected Due Date (Gestation),Pregnancy Status\n';
+      aiRecords.forEach((cycle) => {
+        csvContent += `"${cycle.cowId}",${cycle.date},"${cycle.bull}",${cycle.due},"${cycle.status}"\n`;
+      });
+      csvContent += '\n';
+    }
 
-    // Other Crops Local Sales Section
-    csvContent += '\n--- OTHER FIELD CROPS LOCAL SALES RECORD ---\n';
-    csvContent += 'Date,Invoice/Receipt Ref,Local Crop,Quantity Sold,Unit,Rate per Unit (Ksh),Gross Income (Ksh),Primary Buyer\n';
-    cropSales.forEach((cs) => {
-      csvContent += `${cs.date},"${cs.ref}","${cs.crop}",${cs.qty},"${cs.unit}",${cs.pricePerUnit},${cs.totalSales},"${cs.buyer}"\n`;
-    });
+    // 4. Tea harvest Section
+    if (selectedSections.tea) {
+      csvContent += '--- KTDA TEA EXPORTS HARVEST & DELIVERIES ---\n';
+      csvContent += 'Date,Plucking Ref,Primary Buyer,Harvest Weight (KG),Price/KG (Ksh),Gross Amount (Ksh)\n';
+      teaRecords.forEach((t) => {
+        const p = t.pricePerKg ?? 58;
+        const b = t.buyer ?? 'Chinga KTDA Factory';
+        const s = t.totalSales ?? (t.qty * p);
+        csvContent += `${t.date},"${t.ref}","${b}",${t.qty},${p},${s}\n`;
+      });
+      csvContent += '\n';
+    }
 
-    // Financials Section
-    csvContent += '\n--- ESTATE OPERATIONS CASHFLOW ---\n';
-    csvContent += 'Date,Transaction,Amount (Ksh),Type,Description\n';
-    financials.forEach((f) => {
-      csvContent += `${f.date},"${f.category}",${f.amount},${f.type.toUpperCase()},"${f.description}"\n`;
-    });
+    // 5. Avocado Section
+    if (selectedSections.avo) {
+      csvContent += '--- AVOCADO EXPORT LOGISTICS ---\n';
+      csvContent += 'Date,Shipping Ref,Primary Exporter,Grade A (Boxes),Grade B (Boxes),Reject (KG),Price Grade A (Ksh),Price Grade B (Ksh),Price Reject (Ksh),Gross Revenue (Ksh)\n';
+      avoRecords.forEach((item) => {
+        const pA = item.priceGradeA ?? 1500;
+        const pB = item.priceGradeB ?? 850;
+        const pR = item.priceReject ?? 38;
+        const b = item.buyer ?? 'Kakuzi Agribusiness Exporters';
+        const s = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
+        csvContent += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
+      });
+      csvContent += '\n';
+    }
 
-    // Spray Section
-    csvContent += '\n--- AGROCHEMICAL SPRAY QUARANTINE INDEX ---\n';
-    csvContent += 'Date Sprayed,Plot/Section,Chemical Brand,PHI Days,Pest Target,Authorized Harvest Date\n';
-    sprayRecords.forEach((s) => {
-      csvContent += `${s.date},"${s.block}","${s.chemical}",${s.phi},"${s.target}",${s.safeDate}\n`;
-    });
+    // 6. Other Crops Local Sales Section
+    if (selectedSections.cropSales) {
+      csvContent += '--- OTHER FIELD CROPS LOCAL SALES RECORD ---\n';
+      csvContent += 'Date,Invoice/Receipt Ref,Local Crop,Quantity Sold,Unit,Rate per Unit (Ksh),Gross Income (Ksh),Primary Buyer\n';
+      cropSales.forEach((cs) => {
+        csvContent += `${cs.date},"${cs.ref}","${cs.crop}",${cs.qty},"${cs.unit}",${cs.pricePerUnit},${cs.totalSales},"${cs.buyer}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 7. Financials Section
+    if (selectedSections.financials) {
+      csvContent += '--- OPERATING FINANCIAL GENERAL LEDGER ---\n';
+      csvContent += 'Date,Transaction,Amount (Ksh),Type,Description\n';
+      financials.forEach((f) => {
+        csvContent += `${f.date},"${f.category}",${f.amount},${f.type.toUpperCase()},"${f.description}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 8. Spray Section
+    if (selectedSections.spray) {
+      csvContent += '--- AGROCHEMICAL SPRAY QUARANTINE INDEX ---\n';
+      csvContent += 'Date Sprayed,Plot/Section,Chemical Brand,PHI Days,Pest Target,Authorized Harvest Date\n';
+      sprayRecords.forEach((s) => {
+        csvContent += `${s.date},"${s.block}","${s.chemical}",${s.phi},"${s.target}",${s.safeDate}\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 9. Fields Directory Section
+    if (selectedSections.fields) {
+      csvContent += '--- REGISTERED FIELDS & AGRO FORESTRY COMPLIANCE DIRECTORY ---\n';
+      csvContent += 'Plot ID,Block Name,Crop Type,Area (Acres),Status,Observational Notes,Date Logged\n';
+      fields.forEach((f) => {
+        csvContent += `"${f.id}","${f.blockName}","${f.cropType}",${f.acreage},"${f.status}","${f.notes || ''}","${f.date}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 10. Livestock Canine / Poultry Log Section
+    if (selectedSections.livestock) {
+      csvContent += '--- AGRICULTURAL CANINE & POULTRY STATUS MANAGER ---\n';
+      csvContent += 'Date,Asset Name,Category Type,Quantity/Breed details,Current Activity,Observational Log\n';
+      livestock.forEach((item) => {
+        csvContent += `"${item.date}","${item.name}","${item.type}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 11. Goats Section
+    if (selectedSections.goats) {
+      csvContent += '--- GOAT DAIRY & BREEDING HERD REGISTER ---\n';
+      csvContent += 'Date,Record ID,Tag/Collar ID,Breed,Purpose,Milk Yield (Liters),Activity,Observational Notes\n';
+      goatRecords.forEach((gt) => {
+        csvContent += `${gt.date},"${gt.id}","${gt.tagId}","${gt.breed}","${gt.purpose}",${gt.milkYieldLiters ?? ''},"${gt.activity}","${gt.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 12. Calves Section
+    if (selectedSections.calves) {
+      csvContent += '--- NURSERY CALF WEANING & HEALTH DOSAGE HISTORY ---\n';
+      csvContent += 'Date,Record ID,Calf ID,Dam/Mother ID,DOB,Milk Intake (L),Creep Feed Intro Date,Weaned Status,Observational Notes\n';
+      calfRecords.forEach((cf) => {
+        csvContent += `${cf.date},"${cf.id}","${cf.calfId}","${cf.damId}","${cf.dob}",${cf.milkIntakeLiters},"${cf.creepFeedIntroDate || ''}","${cf.weaned ? 'Weaned' : 'Nursery active'}","${cf.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 13. BSF Batches Section
+    if (selectedSections.bsf) {
+      csvContent += '--- BLACK SOLDIER FLY (BSF) LARVAE REARING CYCLES ---\n';
+      csvContent += 'Date,Record ID,Batch ID,Substrate Feed Type,Inoculation Date,Larvae Harvested (KG),Status Stage,Observational Notes\n';
+      bsfRecords.forEach((batch) => {
+        csvContent += `${batch.date},"${batch.id}","${batch.batchId}","${batch.substrateType}","${batch.inoculationDate}",${batch.larvaeHarvestedKg},"${batch.status}","${batch.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 14. Inventory items
+    if (selectedSections.inventory) {
+      csvContent += '--- STORAGE WAREHOUSE INVENTORY RESERVES ---\n';
+      csvContent += 'Item ID,Item Name,Primary Category,Current Stock,Unit Measure,Reorder Safety Level,Status Alert\n';
+      inventory.forEach((item) => {
+        const isLow = item.quantity <= item.minStock;
+        csvContent += `"${item.id}","${item.name}","${item.category}",${item.quantity},"${item.unit}",${item.minStock},"${isLow ? 'RESTOCK REQUIRED' : 'Secure level'}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 15. Vet records
+    if (selectedSections.vet) {
+      csvContent += '--- VETERINARY CLINICAL OPERATIONS & HERD TREATMENTS ---\n';
+      csvContent += 'Incident Date,Target animal Tag,Type,clinical Diagnosis / Drugs,Cost (Ksh),Veterinary Inoculator,Notes\n';
+      vetRecords.forEach((vet) => {
+        csvContent += `${vet.date},"${vet.cowId}","${vet.type}","${vet.treatment}",${vet.cost},"${vet.staff}","${vet.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
@@ -1125,14 +1253,14 @@ export default function App() {
       {/* 5. MASTER PRINT / EXPORT REPORT PREVIEW MODAL */}
       {showReportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col my-8 border border-slate-200">
+          <div className="bg-white rounded-3xl w-full max-w-6xl shadow-2xl overflow-hidden flex flex-col my-8 border border-slate-200">
             {/* Modal Header */}
             <div className="bg-emerald-950 text-white p-6 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <FileText size={20} className="text-yellow-500" />
                 <div>
                   <h3 className="font-black text-sm uppercase tracking-widest text-white">Master Estate Compiler Panel</h3>
-                  <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5">Auditing & Compliance Reports</p>
+                  <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 font-sans">Auditing & Compliance Reports</p>
                 </div>
               </div>
               <button
@@ -1143,147 +1271,726 @@ export default function App() {
               </button>
             </div>
 
-            {/* Document body for Printing/Previewing */}
-            <div className="p-8 overflow-y-auto max-h-[65vh] space-y-6" id="printable-area">
-              {/* Formal Letterhead */}
-              <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1">
-                <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
-                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
-                  Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
-                </p>
-                <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-                  <span>Authorized Comptroller: Dr. Devin Omwenga</span> • <span>Generated: {new Date().toLocaleString()}</span>
-                </div>
-              </div>
+            {/* Split Composer Workspace */}
+            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0 bg-slate-100">
+              {/* Left Pane: Configurator (Hidden on print) */}
+              <div className="w-full lg:w-80 bg-slate-50 border-r border-slate-200 p-6 overflow-y-auto flex flex-col justify-between print:hidden gap-5 shrink-0">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">Configure Report Deck</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Toggle datasets to compile or print</p>
+                  </div>
 
-              {/* High-Level P&L Summary Cards for print */}
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-                  <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Milk Compiled</span>
-                  <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
-                    {milkRecords.reduce((sum, r) => sum + r.am + r.pm, 0).toFixed(1)} L
-                  </h3>
-                </div>
-                <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-                  <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Tea Volumes</span>
-                  <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
-                    {totalTeaQty.toLocaleString()} KG
-                  </h3>
-                </div>
-                <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-                  <span className="text-[9px] uppercase font-black text-slate-400 block">P&L Operating Balance</span>
-                  <h3 className="text-xl font-black font-mono text-emerald-800 mt-1">
-                    Ksh {netPl.toLocaleString()}
-                  </h3>
-                </div>
-              </div>
+                  {/* Mass Toggles */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const allOn = Object.keys(selectedSections).reduce((acc, key) => {
+                          acc[key] = true;
+                          return acc;
+                        }, {} as Record<string, boolean>);
+                        setSelectedSections(allOn);
+                      }}
+                      className="text-center font-bold text-[10px] uppercase py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg transition-all cursor-pointer m-0"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      onClick={() => {
+                        const allOff = Object.keys(selectedSections).reduce((acc, key) => {
+                          acc[key] = false;
+                          return acc;
+                        }, {} as Record<string, boolean>);
+                        setSelectedSections(allOff);
+                      }}
+                      className="text-center font-bold text-[10px] uppercase py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg transition-all cursor-pointer m-0"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
 
-              {/* Granular Section 1: Staff Presence */}
-              <div className="space-y-2">
-                <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1">
-                  1. Staff Deployment Schedule
-                </h5>
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
-                      <th className="p-1">Name</th>
-                      <th className="p-1">Section</th>
-                      <th className="p-1">Morning Shift</th>
-                      <th className="p-1">Afternoon Shift</th>
-                      <th className="p-1 text-center">Duty Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {staffList.map((st) => (
-                      <tr key={st.id} className="border-b border-slate-100">
-                        <td className="p-1.5 font-bold text-slate-800">{st.name}</td>
-                        <td className="p-1.5">{st.unit}</td>
-                        <td className="p-1.5 text-slate-500">{st.shiftMorning}</td>
-                        <td className="p-1.5 text-slate-500">{st.shiftAfternoon}</td>
-                        <td className="p-1.5 text-center font-bold">{st.status}</td>
-                      </tr>
+                  {/* Section checklist */}
+                  <div className="space-y-2 max-h-[45vh] lg:max-h-[50vh] overflow-y-auto pr-1">
+                    {[
+                      { key: 'staff', label: '1. Staff Deployment Roster', count: staffList.length },
+                      { key: 'milk', label: '2. Milk Harvest Yields', count: milkRecords.length },
+                      { key: 'ai', label: '3. Insemination & Breeding', count: aiRecords.length },
+                      { key: 'tea', label: '4. KTDA Tea Deliveries', count: teaRecords.length },
+                      { key: 'avo', label: '5. Avocado Exports Logs', count: avoRecords.length },
+                      { key: 'cropSales', label: '6. Local Commodities Cash Sales', count: cropSales.length },
+                      { key: 'financials', label: '7. Operational Ledger Postings', count: financials.length },
+                      { key: 'spray', label: '8. Chemical PHI Quarantines', count: sprayRecords.length },
+                      { key: 'fields', label: '9. Registered Field plots', count: fields.length },
+                      { key: 'livestock', label: '10. Poultry & Canine Assets', count: livestock.length },
+                      { key: 'goats', label: '11. Goat Milk Registers', count: goatRecords.length },
+                      { key: 'calves', label: '12. Liquidfed Calves log', count: calfRecords.length },
+                      { key: 'bsf', label: '13. Organic BSF Batches', count: bsfRecords.length },
+                      { key: 'inventory', label: '14. Storage Warehouse stocks', count: inventory.length },
+                      { key: 'vet', label: '15. Clinical Treatments', count: vetRecords.length }
+                    ].map((sec) => (
+                      <label
+                        key={sec.key}
+                        className={`flex items-center justify-between p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+                          selectedSections[sec.key]
+                            ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950'
+                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedSections[sec.key] || false}
+                            onChange={(e) => {
+                              setSelectedSections((prev) => ({
+                                ...prev,
+                                [sec.key]: e.target.checked
+                              }));
+                            }}
+                            className="rounded-sm text-emerald-950 border-slate-300 focus:ring-emerald-500 w-3.5 h-3.5"
+                          />
+                          <span className="capitalize text-[11px] font-sans pr-2">{sec.label.toLowerCase()}</span>
+                        </div>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 border bg-white font-mono text-slate-600 shrink-0 font-bold">
+                          {sec.count}
+                        </span>
+                      </label>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Granular Section 2: Milking Records */}
-              <div className="space-y-2">
-                <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1">
-                  2. Dairy Production Log
-                </h5>
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
-                      <th className="p-1">Date</th>
-                      <th className="p-1">Cow Tag ID</th>
-                      <th className="p-1 text-right">AM Liters</th>
-                      <th className="p-1 text-right">PM Liters</th>
-                      <th className="p-1 text-right">Total Yield</th>
-                      <th className="p-1">Milker</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {milkRecords.slice(0, 10).map((m, idx) => (
-                      <tr key={idx} className="border-b border-slate-100">
-                        <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
-                        <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
-                        <td className="p-1.5 text-right font-mono">{m.am.toFixed(1)}</td>
-                        <td className="p-1.5 text-right font-mono">{m.pm.toFixed(1)}</td>
-                        <td className="p-1.5 text-right font-mono font-bold">{(m.am + m.pm).toFixed(1)} L</td>
-                        <td className="p-1.5">{m.staff}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p className="text-[10px] text-slate-400 italic font-mono">* Only showing the 10 most recent milking trials</p>
-              </div>
-
-              {/* Granular Section 3: spray chemical */}
-              <div className="space-y-2">
-                <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1">
-                  3. Agrochemical Spray Compliance & Quarantines
-                </h5>
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
-                      <th className="p-1">Plot Section</th>
-                      <th className="p-1">Chemical Brand</th>
-                      <th className="p-1 text-center">PHI Quarantine</th>
-                      <th className="p-1">Target pest</th>
-                      <th className="p-1">Safe pick date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sprayRecords.map((s) => (
-                      <tr key={s.id} className="border-b border-slate-100">
-                        <td className="p-1.5 font-bold text-slate-800">{s.block}</td>
-                        <td className="p-1.5 italic">{s.chemical}</td>
-                        <td className="p-1.5 text-center font-mono font-bold">{s.phi} Days</td>
-                        <td className="p-1.5">{s.target}</td>
-                        <td className="p-1.5 font-mono font-bold">{s.safeDate}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Signoff Blocks */}
-              <div className="pt-8 grid grid-cols-2 gap-8 text-xs shrink-0">
-                <div className="border-t border-slate-400 pt-3 text-center space-y-1">
-                  <div className="h-10"></div>
-                  <span className="font-mono font-bold block">Mosoti (Senior Herdsman)</span>
-                  <span className="text-[10px] text-slate-450 block uppercase">Operations Inspector Sig</span>
+                  </div>
                 </div>
-                <div className="border-t border-slate-400 pt-3 text-center space-y-1">
-                  <div className="h-10"></div>
-                  <span className="font-mono font-bold block">Dr. Devin Omwenga (Overall Farm Manager)</span>
-                  <span className="text-[10px] text-slate-450 block uppercase">Sovereign Superintendent Sig</span>
+
+                <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-widest hidden lg:block">
+                  Compiling {Object.values(selectedSections).filter(Boolean).length} of 15 Active modules
+                </div>
+              </div>
+
+              {/* Right Pane: Document Preview Container */}
+              <div className="p-8 overflow-y-auto flex-1 bg-white max-h-[70vh] lg:max-h-[75vh] space-y-6" id="printable-area">
+                {showPdfGuide && (
+                  <div className="p-5 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-4 text-amber-950 font-sans print:hidden animate-fade-in relative z-10 shadow-sm mb-6">
+                    <div className="p-2.5 bg-amber-100 rounded-xl shrink-0 mt-0.5">
+                      <FileDown size={20} className="text-amber-800" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <h4 className="font-extrabold text-xs uppercase tracking-wider text-amber-950">PDF Document Export Ready</h4>
+                        <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest mt-0.5">Active modules: {Object.values(selectedSections).filter(Boolean).length} sections compiled</p>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-amber-900 font-sans">
+                        We have optimized the layout for professional, high-fidelity PDF outputs. Follow these three steps in the system dialog:
+                      </p>
+                      <ol className="text-[10px] text-amber-850 list-decimal pl-4 space-y-1.5 font-bold font-sans">
+                        <li>
+                          Change the <span className="bg-amber-100 px-1 py-0.5 rounded">Destination</span> to <span className="text-amber-950 underline italic">Save as PDF</span>.
+                        </li>
+                        <li>
+                          In the "More Settings" drilldown, ensure <span className="bg-amber-100 px-1 py-0.5 rounded">Background graphics</span> is <span className="text-amber-950 font-black">CHECKED</span> (to show labels & striping).
+                        </li>
+                        <li>
+                          Click the blue <span className="bg-amber-200 px-1 py-0.5 rounded">Save</span> button at the bottom of the printing prompt.
+                        </li>
+                      </ol>
+                      <div className="pt-2 flex gap-2">
+                        <button
+                          onClick={() => {
+                            window.print();
+                          }}
+                          className="px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 font-black uppercase text-[10px] tracking-wider rounded-xl transition-all cursor-pointer m-0"
+                        >
+                          Trigger PDF Save
+                        </button>
+                        <button
+                          onClick={() => setShowPdfGuide(false)}
+                          className="px-3 py-2 border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold text-[10px] rounded-xl transition-all cursor-pointer m-0"
+                        >
+                          Cancel Export
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Formal Letterhead */}
+                <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1">
+                  <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
+                  <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
+                    Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
+                  </p>
+                  <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
+                    <span>Authorized Comptroller: Dr. Devin Omwenga</span> • <span>Generated: {new Date().toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* High-Level P&L Summary Cards for print */}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                    <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Milk Compiled</span>
+                    <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
+                      {milkRecords.reduce((sum, r) => sum + r.am + r.pm, 0).toFixed(1)} L
+                    </h3>
+                  </div>
+                  <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                    <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Tea Volumes</span>
+                    <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
+                      {totalTeaQty.toLocaleString()} KG
+                    </h3>
+                  </div>
+                  <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                    <span className="text-[9px] uppercase font-black text-slate-400 block">P&L Operating Balance</span>
+                    <h3 className="text-xl font-black font-mono text-emerald-800 mt-1">
+                      Ksh {netPl.toLocaleString()}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Sections Compilation Stack */}
+                <div className="space-y-8 pt-4">
+                  {Object.values(selectedSections).filter(Boolean).length === 0 && (
+                    <div className="py-20 text-center text-slate-400 space-y-3">
+                      <FileText className="mx-auto text-slate-300 animate-pulse" size={48} />
+                      <p className="font-black text-xs uppercase tracking-widest font-sans">No Report Sections Compiled</p>
+                      <p className="text-[10px] text-slate-400 font-medium font-sans">Toggle section blocks in the composer panel to preview or export.</p>
+                    </div>
+                  )}
+
+                  {/* 1. Staff deployment List */}
+                  {selectedSections.staff && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>1. Staff Deployment Schedule</span>
+                        <span className="text-[9px] font-mono text-slate-400">({staffList.length} staff)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Name</th>
+                            <th className="p-1">Section</th>
+                            <th className="p-1">Morning Shift</th>
+                            <th className="p-1">Afternoon Shift</th>
+                            <th className="p-1 text-center">Duty Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {staffList.map((st) => (
+                            <tr key={st.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-bold text-slate-800">{st.name}</td>
+                              <td className="p-1.5">{st.unit}</td>
+                              <td className="p-1.5 text-slate-500">{st.shiftMorning}</td>
+                              <td className="p-1.5 text-slate-500">{st.shiftAfternoon}</td>
+                              <td className="p-1.5 text-center font-bold">{st.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 2. Milk harvest yields */}
+                  {selectedSections.milk && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>2. Dairy Production Log</span>
+                        <span className="text-[9px] font-mono text-slate-400">({milkRecords.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Cow Tag ID</th>
+                            <th className="p-1 text-right">AM Liters</th>
+                            <th className="p-1 text-right">PM Liters</th>
+                            <th className="p-1 text-right">Total Yield</th>
+                            <th className="p-1">Milker</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {milkRecords.slice(0, 10).map((m, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
+                              <td className="p-1.5 text-right font-mono">{m.am.toFixed(1)}</td>
+                              <td className="p-1.5 text-right font-mono">{m.pm.toFixed(1)}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{(m.am + m.pm).toFixed(1)} L</td>
+                              <td className="p-1.5">{m.staff}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {milkRecords.length > 10 && (
+                        <p className="text-[9px] text-slate-400 italic font-mono">* Only showing the 10 most recent milking trials of {milkRecords.length} total.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 3. Insemination & Breeding */}
+                  {selectedSections.ai && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>3. Artificial Insemination & Breeding</span>
+                        <span className="text-[9px] font-mono text-slate-400">({aiRecords.length} cycles)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Cow Tag ID</th>
+                            <th className="p-1">Service Date</th>
+                            <th className="p-1">Bull Name/Semen Ref</th>
+                            <th className="p-1">Gestation Expected Due</th>
+                            <th className="p-1">Pregnancy Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {aiRecords.slice(0, 10).map((ai, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-bold text-slate-800">{ai.cowId}</td>
+                              <td className="p-1.5 font-mono text-slate-400">{ai.date}</td>
+                              <td className="p-1.5 italic text-slate-600">{ai.bull}</td>
+                              <td className="p-1.5 font-mono font-bold">{ai.due}</td>
+                              <td className="p-1.5">{ai.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {aiRecords.length > 10 && (
+                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {aiRecords.length} AI cycles.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 4. Tea harvest */}
+                  {selectedSections.tea && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>4. Tea Exports Harvest & Deliveries</span>
+                        <span className="text-[9px] font-mono text-slate-400">({teaRecords.length} dispatches)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Plucking Ref</th>
+                            <th className="p-1">Factory Buyer</th>
+                            <th className="p-1 text-right">Harvest Weight</th>
+                            <th className="p-1 text-right">Gross Revenue</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {teaRecords.slice(0, 10).map((t, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{t.date}</td>
+                              <td className="p-1.5 font-bold text-slate-850">{t.ref}</td>
+                              <td className="p-1.5">{t.buyer || 'Chinga KTDA'}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{t.qty.toLocaleString()} KG</td>
+                              <td className="p-1.5 text-right font-mono text-emerald-800">Ksh {(t.totalSales || (t.qty * (t.pricePerKg ?? 58))).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {teaRecords.length > 10 && (
+                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent records of {teaRecords.length} total.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 5. Avocado Grading */}
+                  {selectedSections.avo && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>5. Avocado Export Grading & Logistics</span>
+                        <span className="text-[9px] font-mono text-slate-400">({avoRecords.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Shipping Ref</th>
+                            <th className="p-1 text-right">Grade A (Boxes)</th>
+                            <th className="p-1 text-right">Grade B (Boxes)</th>
+                            <th className="p-1 text-right">Reject (KG)</th>
+                            <th className="p-1 text-right">Gross proceeds</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {avoRecords.slice(0, 10).map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                              <td className="p-1.5 font-bold text-slate-850">{item.ref}</td>
+                              <td className="p-1.5 text-right font-mono">{item.gradeA}</td>
+                              <td className="p-1.5 text-right font-mono">{item.gradeB}</td>
+                              <td className="p-1.5 text-right font-mono">{item.reject}</td>
+                              <td className="p-1.5 text-right font-mono font-bold text-emerald-850">
+                                Ksh {(item.totalSales || ((item.gradeA * (item.priceGradeA ?? 1500)) + (item.gradeB * (item.priceGradeB ?? 850)) + (item.reject * (item.priceReject ?? 38)))).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {avoRecords.length > 10 && (
+                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {avoRecords.length} Avocado shipments.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 6. Crop Sales */}
+                  {selectedSections.cropSales && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>6. Local Commodities cash transactions</span>
+                        <span className="text-[9px] font-mono text-slate-400">({cropSales.length} trades)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Commodity Crop</th>
+                            <th className="p-1">Quantity</th>
+                            <th className="p-1 text-right">Price per Unit</th>
+                            <th className="p-1 text-right">Gross Revenue</th>
+                            <th className="p-1">Buyer Name</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cropSales.slice(0, 10).map((cs, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{cs.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{cs.crop}</td>
+                              <td className="p-1.5 italic">{cs.qty} {cs.unit}</td>
+                              <td className="p-1.5 text-right font-mono">Ksh {cs.pricePerUnit}</td>
+                              <td className="p-1.5 text-right font-mono font-bold text-emerald-850">Ksh {cs.totalSales.toLocaleString()}</td>
+                              <td className="p-1.5">{cs.buyer}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 7. Financial Ledger */}
+                  {selectedSections.financials && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>7. Operational accounting General Ledger</span>
+                        <span className="text-[9px] font-mono text-slate-400">({financials.length} journals)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Reference & description</th>
+                            <th className="p-1">Accounting Type</th>
+                            <th className="p-1 text-right">Amount (Ksh)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {financials.slice(0, 10).map((f) => (
+                            <tr key={f.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{f.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">
+                                {f.category} <span className="text-[10px] text-slate-450 font-medium italic">({f.description})</span>
+                              </td>
+                              <td className="p-1.5 uppercase font-mono font-black text-[10px]">
+                                <span className={f.type === 'income' ? 'text-emerald-705' : 'text-amber-805'}>
+                                  {f.type}
+                                </span>
+                              </td>
+                              <td className={`p-1.5 text-right font-mono font-bold ${f.type === 'income' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                Ksh {f.amount.toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 8. Spray Compliance and Quarantines */}
+                  {selectedSections.spray && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>8. Agrochemical Spray Compliance & Quarantines</span>
+                        <span className="text-[9px] font-mono text-slate-400">({sprayRecords.length} treatments)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Plot Section</th>
+                            <th className="p-1">Chemical Brand</th>
+                            <th className="p-1 text-center font-mono">PHI Quarantine</th>
+                            <th className="p-1">Target pest</th>
+                            <th className="p-1">Safe pick date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sprayRecords.map((s) => (
+                            <tr key={s.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-bold text-slate-800">{s.block}</td>
+                              <td className="p-1.5 italic">{s.chemical}</td>
+                              <td className="p-1.5 text-center font-mono font-bold">{s.phi} Days</td>
+                              <td className="p-1.5">{s.target}</td>
+                              <td className="p-1.5 font-mono font-bold text-green-700">{s.safeDate}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 9. Registered field Plots */}
+                  {selectedSections.fields && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>9. Registered Blocks & Silage Fields Directory</span>
+                        <span className="text-[9px] font-mono text-slate-400">({fields.length} plots)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Plot ID</th>
+                            <th className="p-1">Block Name</th>
+                            <th className="p-1">Primary Feed Crop</th>
+                            <th className="p-1 text-right">Size (Acres)</th>
+                            <th className="p-1 text-center">Audit Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {fields.map((f) => (
+                            <tr key={f.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{f.id}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{f.blockName}</td>
+                              <td className="p-1.5 italic">{f.cropType}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{f.acreage} Acres</td>
+                              <td className="p-1.5 text-center font-bold text-[10px] text-slate-600">{f.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 10. Poultry & Canines */}
+                  {selectedSections.livestock && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>10. Poultry Eggs & Canine Protection assets</span>
+                        <span className="text-[9px] font-mono text-slate-400">({livestock.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date Logged</th>
+                            <th className="p-1">Asset Group</th>
+                            <th className="p-1">Details Classification</th>
+                            <th className="p-1">Activity</th>
+                            <th className="p-1">Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {livestock.map((item) => (
+                            <tr key={item.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.name} <span className="text-[10px] text-slate-450 italic">({item.type})</span></td>
+                              <td className="p-1.5">{item.countOrBreed}</td>
+                              <td className="p-1.5 font-bold text-slate-700">{item.activity}</td>
+                              <td className="p-1.5 text-slate-500 italic">{item.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 11. Goats Milk registers */}
+                  {selectedSections.goats && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>11. Goats Dairy herd & lactation logs</span>
+                        <span className="text-[9px] font-mono text-slate-400">({goatRecords.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Tag/Collar ID</th>
+                            <th className="p-1">Breed Class</th>
+                            <th className="p-1">Classification</th>
+                            <th className="p-1 text-right">Yield (Liters)</th>
+                            <th className="p-1">Observations</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {goatRecords.slice(0, 10).map((gt) => (
+                            <tr key={gt.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{gt.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{gt.tagId}</td>
+                              <td className="p-1.5 italic text-slate-500">{gt.breed}</td>
+                              <td className="p-1.5">{gt.purpose}</td>
+                              <td className="p-1.5 text-right font-mono font-bold text-slate-800">{gt.milkYieldLiters !== undefined ? `${gt.milkYieldLiters} L` : 'N/A'}</td>
+                              <td className="p-1.5 font-medium">{gt.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 12. Liquidfed Calves log */}
+                  {selectedSections.calves && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>12. Nursery young calf nutrition logs</span>
+                        <span className="text-[9px] font-mono text-slate-400">({calfRecords.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date Logged</th>
+                            <th className="p-1">Calf ID</th>
+                            <th className="p-1">Mother Cow ID</th>
+                            <th className="p-1 text-right">Liquid Milk Intake</th>
+                            <th className="p-1">Weaned Status</th>
+                            <th className="p-1">Clinical Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {calfRecords.slice(0, 10).map((cf) => (
+                            <tr key={cf.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{cf.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{cf.calfId}</td>
+                              <td className="p-1.5 italic text-slate-505">{cf.damId}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{cf.milkIntakeLiters} Liters</td>
+                              <td className="p-1.5 font-bold">{cf.weaned ? 'WEANED' : 'active Nursery'}</td>
+                              <td className="p-1.5 italic text-slate-500">{cf.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 13. Black Soldier Fly Cycles */}
+                  {selectedSections.bsf && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>13. organic black Soldier Fly (BSF) Larval cycles</span>
+                        <span className="text-[9px] font-mono text-slate-400">({bsfRecords.length} batches)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date</th>
+                            <th className="p-1">Batch ID</th>
+                            <th className="p-1">Substrate Type</th>
+                            <th className="p-1 text-center font-mono">Inoculated</th>
+                            <th className="p-1 text-right">larvae Harvested</th>
+                            <th className="p-1">Stage status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bsfRecords.map((batch) => (
+                            <tr key={batch.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{batch.date}</td>
+                              <td className="p-1.5 font-bold text-slate-850">{batch.batchId}</td>
+                              <td className="p-1.5 italic">{batch.substrateType}</td>
+                              <td className="p-1.5 text-center font-mono">{batch.inoculationDate}</td>
+                              <td className="p-1.5 text-right font-mono font-bold text-yellow-800">{batch.larvaeHarvestedKg} KG</td>
+                              <td className="p-1.5 font-mono font-semibold text-[10px] text-slate-550">{batch.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 14. Stock reserves */}
+                  {selectedSections.inventory && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>14. Storage Warehouse stocks reserves</span>
+                        <span className="text-[9px] font-mono text-slate-400">({inventory.length} items)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Item ID</th>
+                            <th className="p-1">Name</th>
+                            <th className="p-1">Category Classification</th>
+                            <th className="p-1 text-right">Available stock</th>
+                            <th className="p-1">Safety level</th>
+                            <th className="p-1 text-center">Alert status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {inventory.map((item) => {
+                            const isLow = item.quantity <= item.minStock;
+                            return (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.id}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
+                                <td className="p-1.5 italic text-slate-600">{item.category}</td>
+                                <td className="p-1.5 text-right font-mono font-bold">{item.quantity} {item.unit}</td>
+                                <td className="p-1.5 text-right font-mono text-slate-450">{item.minStock}</td>
+                                <td className="p-1.5 text-center text-[10px] font-black">
+                                  {isLow ? <span className="text-amber-705">RESTOCK</span> : <span className="text-emerald-705">SECURE</span>}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 15. vet clinicals */}
+                  {selectedSections.vet && (
+                    <div className="space-y-2">
+                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>15. Clinical veterinary treatments & diagnostics</span>
+                        <span className="text-[9px] font-mono text-slate-400">({vetRecords.length} entries)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Incident Date</th>
+                            <th className="p-1">Animal Cow Tag</th>
+                            <th className="p-1">Treatment Type</th>
+                            <th className="p-1">clinical Diagnosis / Intervention</th>
+                            <th className="p-1 text-right">Authorized Cost</th>
+                            <th className="p-1">Inoculator Vet</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vetRecords.map((vet) => (
+                            <tr key={vet.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{vet.date}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{vet.cowId}</td>
+                              <td className="p-1.5 italic text-slate-500">{vet.type}</td>
+                              <td className="p-1.5 font-mono">{vet.treatment} <span className="text-[10px] text-slate-500 block">{vet.notes}</span></td>
+                              <td className="p-1.5 text-right font-mono font-black">Ksh {vet.cost.toLocaleString()}</td>
+                              <td className="p-1.5">{vet.staff}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sign-off Stamps */}
+                <div className="pt-8 grid grid-cols-2 gap-8 text-xs shrink-0">
+                  <div className="border-t border-slate-400 pt-3 text-center space-y-1">
+                    <div className="h-10"></div>
+                    <span className="font-mono font-bold block">Mosoti (Senior Herdsman)</span>
+                    <span className="text-[10px] text-slate-450 block uppercase">Operations Inspector Sig</span>
+                  </div>
+                  <div className="border-t border-slate-400 pt-3 text-center space-y-1">
+                    <div className="h-10"></div>
+                    <span className="font-mono font-bold block">Dr. Devin Omwenga (Overall Farm Manager)</span>
+                    <span className="text-[10px] text-slate-450 block uppercase">Sovereign Superintendent Sig</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Action buttons footer */}
+            {/* Action Buttons Footer */}
             <div className="bg-slate-50 p-6 border-t border-slate-200 flex justify-end gap-3 shrink-0">
               <button
                 onClick={() => setShowReportModal(false)}
@@ -1295,13 +2002,25 @@ export default function App() {
                 onClick={handleExportCSV}
                 className="px-5 py-3 bg-emerald-100 border border-emerald-200 text-emerald-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 hover:bg-emerald-200 transition-all m-0 cursor-pointer"
               >
-                <Download size={14} /> Download spreadsheet (CSV)
+                <Download size={14} /> Download Selected (CSV)
+              </button>
+              <button
+                onClick={() => {
+                  setShowPdfGuide(true);
+                  const printArea = document.getElementById('printable-area');
+                  if (printArea) {
+                    printArea.scrollTop = 0;
+                  }
+                }}
+                className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 transition-all m-0 cursor-pointer shadow-sm border border-amber-600/15"
+              >
+                <FileDown size={14} /> Download Selected (PDF)
               </button>
               <button
                 onClick={() => window.print()}
                 className="px-6 py-3 bg-slate-900 text-white font-black rounded-xl text-xs uppercase flex items-center gap-2 hover:bg-slate-800 transition-all m-0 cursor-pointer"
               >
-                <Printer size={14} /> Print Master PDF
+                <Printer size={14} /> Print Selected Deck
               </button>
             </div>
           </div>
