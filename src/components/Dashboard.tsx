@@ -100,6 +100,53 @@ export function Dashboard({
 
   return (
     <div className="space-y-8">
+      {/* ESTATE BRANDED GREETING METADATA BANNER */}
+      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-[#0e3020] border border-emerald-900/40 p-6 md:p-8 rounded-3xl relative overflow-hidden shadow-xl text-left">
+        {/* Abstract design elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-emerald-400/5 rounded-full blur-2xl -z-0 pointer-events-none"></div>
+
+        <div className="relative z-10 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] uppercase font-black tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-3 py-1 rounded-full font-mono">
+              🛡️ Sovereign Compliance Registered
+            </span>
+            <span className="text-[10px] uppercase font-black tracking-widest bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-3 py-1 rounded-full font-mono">
+              GlobalGAP Plot: KT-205A
+            </span>
+          </div>
+
+          <div className="space-y-2 max-w-4xl">
+            <h1 className="text-xl md:text-3xl font-black text-white tracking-tight uppercase">
+              JR Farm Omni-Estate
+            </h1>
+            <p className="text-slate-250 text-slate-350 text-slate-300 font-medium text-xs md:text-sm leading-relaxed">
+              Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.
+            </p>
+          </div>
+
+          {/* Core high-level metadata telemetry status bars */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-emerald-800/40 max-w-3xl text-left">
+            <div>
+              <span className="text-[9px] uppercase font-black text-emerald-405 text-emerald-400 block tracking-wide mt-1">Management Core</span>
+              <span className="text-xs font-black text-white font-mono block mt-1">Sovereign Active</span>
+            </div>
+            <div>
+              <span className="text-[9px] uppercase font-black text-emerald-405 text-emerald-400 block tracking-wide mt-1">Audit Compliance</span>
+              <span className="text-xs font-black text-emerald-300 font-mono block mt-1">100% Certified</span>
+            </div>
+            <div>
+              <span className="text-[9px] uppercase font-black text-emerald-405 text-emerald-400 block tracking-wide mt-1">Traceback Records</span>
+              <span className="text-xs font-black text-yellow-500 font-mono block mt-1">Blockchain Latch</span>
+            </div>
+            <div>
+              <span className="text-[9px] uppercase font-black text-emerald-405 text-emerald-400 block tracking-wide mt-1">System Node</span>
+              <span className="text-xs font-black text-white font-mono block mt-1">Online & Synced</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Overview Stat Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden transition-all hover:scale-[1.01]">

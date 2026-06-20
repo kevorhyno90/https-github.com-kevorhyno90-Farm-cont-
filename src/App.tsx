@@ -2517,7 +2517,7 @@ export default function App() {
               dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
             />
           </div>
-          <h1 className="text-2xl font-black text-white italic tracking-tighter">JR FARM</h1>
+          <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">JR FARM OMNI-ESTATE</h1>
           <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1">
             Manager: Dr. Devin Omwenga
           </p>

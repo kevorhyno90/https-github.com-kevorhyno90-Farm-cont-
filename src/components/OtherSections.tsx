@@ -147,6 +147,10 @@ export function OtherSections({
   const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality'>('poultry_dogs');
   const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'crop_ops' | 'sales'>('blocks');
 
+  // Interactive Geospatial Farm Layout Map States
+  const [selectedMapFieldId, setSelectedMapFieldId] = useState<string | null>(null);
+  const [mapFilterActive, setMapFilterActive] = useState<boolean>(false);
+
   // Edit State Variables
   const [editingField, setEditingField] = useState<FieldRecord | null>(null);
   const [editingLivestock, setEditingLivestock] = useState<LivestockRecord | null>(null);
@@ -880,8 +884,251 @@ export function OtherSections({
                 </form>
               )}
 
+              {/* INTERACTIVE SPATIAL GRID MAP MODULE */}
+              {fields.length > 0 && (
+                <div className="bg-slate-900 border border-slate-950 text-slate-100 p-6 rounded-3xl shadow-xl space-y-6">
+                  {/* Map Header */}
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                        <Compass className="animate-spin-slow text-emerald-400 animate-pulse" size={18} />
+                      </div>
+                      <div className="text-left">
+                        <h5 className="text-xs font-black uppercase tracking-wider text-emerald-400">Map Layout & IoT Multi-Spectral Sensor Feed</h5>
+                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-wider mt-0.5">Real-time soil & vegetation indices from simulated IoT telemetry nodes</p>
+                      </div>
+                    </div>
+                    {/* Micro advisory pills */}
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 font-mono text-slate-300">
+                      <span className="flex items-center gap-1 text-amber-400">
+                        ☀️ 24°C Sunny
+                      </span>
+                      <span className="text-slate-600">|</span>
+                      <span className="text-teal-400 font-bold">💧 RH: 65%</span>
+                      <span className="text-slate-600">|</span>
+                      <span className="text-slate-400">Wind: 11 km/h</span>
+                    </div>
+                  </div>
+
+                  {/* Layout Grid columns */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    {/* The Visual Paddock Grid (Col-Span 7) */}
+                    <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+                      <div className="space-y-1 text-left">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#10b981] block">1. Farm Area Layout & Coordinates Map</span>
+                        <p className="text-[11px] text-slate-300">
+                          Select any grid coordinate paddock block to execute a multi-spectral sensor sweep. Move slider/filters below or isolate records using the interactive filter latch toggle.
+                        </p>
+                      </div>
+
+                      {/* Map Matrix Board */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {fields.map((f, idx) => {
+                          const isActive = selectedMapFieldId === f.id || (!selectedMapFieldId && idx === 0);
+                          
+                          // Determine color gradients by crop name key matches
+                          let colorGrad = 'from-emerald-800 to-teal-950 shadow-emerald-950/20'; // Default Tea
+                          if (f.cropType.toLowerCase().includes('tea')) {
+                            colorGrad = 'from-emerald-600 to-teal-900 border-emerald-500/20 shadow-emerald-950/30';
+                          } else if (f.cropType.toLowerCase().includes('napier') || f.cropType.toLowerCase().includes('grass') || f.cropType.toLowerCase().includes('pasture')) {
+                            colorGrad = 'from-lime-600 to-emerald-850 border-lime-600/20 shadow-lime-950/30';
+                          } else if (f.cropType.toLowerCase().includes('gum') || f.cropType.toLowerCase().includes('eucalyptus')) {
+                            colorGrad = 'from-slate-700 to-emerald-950 border-slate-600/20 shadow-slate-950/30';
+                          } else if (f.cropType.toLowerCase().includes('avocado')) {
+                            colorGrad = 'from-green-700 to-slate-900 border-green-600/20 shadow-green-950/30';
+                          } else if (f.cropType.toLowerCase().includes('maize') || f.cropType.toLowerCase().includes('sorghum') || f.cropType.toLowerCase().includes('corn')) {
+                            colorGrad = 'from-yellow-700 to-amber-950 border-amber-600/20 shadow-amber-950/30';
+                          }
+
+                          // Soil moisture warning pulse
+                          const isDry = f.irrigationMethod === 'None' || (!f.irrigationMethod && idx === 2);
+
+                          return (
+                            <button
+                              key={f.id}
+                              onClick={() => setSelectedMapFieldId(f.id)}
+                              type="button"
+                              className={`p-3.5 rounded-2xl border text-left transition-all overflow-hidden flex flex-col justify-between relative group shadow-lg m-0 ${
+                                isActive 
+                                  ? 'bg-gradient-to-br ring-2 ring-emerald-400 scale-[1.03] border-emerald-400' 
+                                  : 'bg-gradient-to-br hover:scale-[1.015] border-transparent hover:border-slate-600 cursor-pointer'
+                              } ${colorGrad}`}
+                              style={{ minHeight: '105px' }}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <span className="text-[9px] font-black bg-slate-950/40 text-slate-100 px-2 py-0.5 rounded font-mono uppercase">
+                                  {f.acreage} Ac
+                                </span>
+                                {/* Pulsing satellite beacon */}
+                                <span className="flex h-2 w-2 relative">
+                                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isDry ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+                                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isDry ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                                </span>
+                              </div>
+
+                              <div className="mt-4 z-10 text-left">
+                                <span className="text-[10px] font-black tracking-wide block uppercase text-slate-100 leading-tight">
+                                  {f.blockName}
+                                </span>
+                                <span className="text-[9px] font-semibold text-emerald-305 text-emerald-300 block mt-0.5 truncate uppercase">
+                                  {f.cropType}
+                                </span>
+                              </div>
+
+                              {/* Corner graphic grid coordinate identifier */}
+                              <span className="absolute -bottom-1 -right-1 text-slate-100/10 font-black text-2xl font-mono select-none group-hover:text-slate-100/20 transition-all pointer-events-none">
+                                G-{idx + 1}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Filter stats latch row */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-950 border border-slate-800 p-3 rounded-2xl gap-3">
+                        <div className="space-y-0.5 text-left">
+                          <span className="text-[9px] font-mono tracking-wider font-extrabold block text-slate-400 uppercase">Interactive Map Filtering Filter Loop</span>
+                          <p className="text-[10.5px] text-slate-300 font-medium">
+                            {mapFilterActive 
+                              ? "Isolate records mode active! The lists below are filtered to the selected block." 
+                              : "Map focus active. Filter loop disabled (showing all registry records below)."}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setMapFilterActive(!mapFilterActive)}
+                          className={`px-4 py-2 border rounded-xl text-[10px] uppercase tracking-wider font-back font-mono transition-all m-0 shadow-md ${
+                            mapFilterActive 
+                              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black border-emerald-400' 
+                              : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700 font-bold'
+                          }`}
+                        >
+                          {mapFilterActive ? "⚡ Filter Isolate On" : "🔌 Enable Isolation"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sensor stats telemetry board (Col-Span 5) */}
+                    <div className="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                      {(() => {
+                        const activeField = fields.find(f => f.id === selectedMapFieldId) || fields[0] || null;
+                        if (!activeField) return null;
+
+                        // Mock math derived from core fields to be robust and interactive
+                        const mockPH = activeField.soilPh || 6.2;
+                        const hasDrip = activeField.irrigationMethod === 'Drip' || activeField.irrigationMethod === 'Overhead';
+                        const mockMoisture = hasDrip ? 68 : (activeField.status === 'Prepared' ? 44 : 41);
+                        
+                        // Crop health NDVI coefficient
+                        let mockNdvi = 0.78;
+                        if (activeField.status === 'Harvested') mockNdvi = 0.24;
+                        else if (activeField.status === 'Prepared') mockNdvi = 0.16;
+                        else if (activeField.status === 'Sown') mockNdvi = 0.38;
+                        else if (activeField.cropType.toLowerCase().includes('tea')) mockNdvi = 0.82;
+                        else if (activeField.cropType.toLowerCase().includes('avocado')) mockNdvi = 0.84;
+                        
+                        const nitrogen = (mockPH * 16.5).toFixed(0);
+                        const phosphorus = (mockPH * 6.8).toFixed(0);
+                        const potassium = (mockPH * 28).toFixed(0);
+
+                        return (
+                          <>
+                            <div className="space-y-3">
+                              {/* Header Title active panel */}
+                              <div className="border-b border-slate-800 pb-3 text-left animate-fadeIn">
+                                <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase inline-block">
+                                  IoT Diagnostics Panel
+                                </span>
+                                <h6 className="font-extrabold text-sm text-slate-100 uppercase mt-1.5">{activeField.blockName}</h6>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 font-mono">NODE-ID: {activeField.id.toUpperCase()}</p>
+                              </div>
+
+                              {/* Gauges stats grid */}
+                              <div className="space-y-3.5 text-left">
+                                {/* NDVI Health meter slider bar */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[10px] font-mono">
+                                    <span className="text-slate-400 font-black uppercase">Multi-spectral (NDVI) index</span>
+                                    <span className={`font-black ${mockNdvi > 0.6 ? 'text-emerald-400' : 'text-amber-400'}`}>{mockNdvi.toFixed(2)}</span>
+                                  </div>
+                                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div 
+                                      className={`h-full rounded-full transition-all duration-500 ${mockNdvi > 0.6 ? 'bg-emerald-550 bg-emerald-500' : 'bg-amber-500'}`} 
+                                      style={{ width: `${mockNdvi * 100}%` }}
+                                    ></div>
+                                  </div>
+                                  <p className="text-[9px] text-slate-400 font-medium font-sans">
+                                    {mockNdvi > 0.6 
+                                      ? "🟢 Robust optical chlorophyll reflection. Crop canopy vegetative health excellent." 
+                                      : "🟡 Mid-range foliage canopy exposure. Routine agronomy inputs recommended."}
+                                  </p>
+                                </div>
+
+                                {/* Soil moisture telemetry bar slider */}
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[10px] font-mono">
+                                    <span className="text-slate-400 font-black uppercase">Soil moisture content</span>
+                                    <span className="font-black text-blue-400">{mockMoisture}% Vol</span>
+                                  </div>
+                                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden flex">
+                                    <div 
+                                      className="h-full bg-blue-500 rounded-full transition-all duration-500" 
+                                      style={{ width: `${mockMoisture}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="flex justify-between text-[8px] text-slate-400 uppercase font-bold tracking-wider pt-0.5">
+                                    <span>Dry (0%)</span>
+                                    <span>Optimal (50%-80%)</span>
+                                    <span>Saturated (100%)</span>
+                                  </div>
+                                </div>
+
+                                {/* Soil chemistry stats */}
+                                <div className="grid grid-cols-3 gap-2 py-1 pt-2 border-t border-slate-800">
+                                  <div className="bg-slate-900 border border-slate-800 p-2 rounded-xl text-center">
+                                    <span className="text-[7.5px] uppercase font-black text-slate-400 block tracking-wider">Nitrogen (N)</span>
+                                    <span className="text-xs font-black text-emerald-305 text-emerald-300 font-mono block mt-0.5">{nitrogen} ppm</span>
+                                  </div>
+                                  <div className="bg-slate-900 border border-slate-800 p-2 rounded-xl text-center">
+                                    <span className="text-[7.5px] uppercase font-black text-slate-400 block tracking-wider">Phosphorous (P)</span>
+                                    <span className="text-xs font-black text-lime-305 text-lime-300 font-mono block mt-0.5">{phosphorus} ppm</span>
+                                  </div>
+                                  <div className="bg-slate-900 border border-slate-800 p-2 rounded-xl text-center">
+                                    <span className="text-[7.5px] uppercase font-black text-slate-400 block tracking-wider">Potassium (K)</span>
+                                    <span className="text-xs font-black text-sky-305 text-sky-305 text-sky-300 font-mono block mt-0.5">{potassium} ppm</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Sensor state health summary cards footer */}
+                            <div className="bg-slate-900/50 p-3 rounded-xl border border-slate-800 text-[10.5px] leading-relaxed text-slate-300">
+                              <div className="flex justify-between items-center mb-1 text-[8.5px] uppercase font-black tracking-wider text-slate-400 font-mono">
+                                <span>Soil Temp</span>
+                                <span>Soil PH</span>
+                                <span>Projected Yield</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs font-black font-mono tracking-wider">
+                                <span className="text-amber-200">21.8 °C</span>
+                                <span className="text-emerald-300">{mockPH} pH</span>
+                                <span className="text-white truncate max-w-[100px]" title={activeField.projectedHarvestVolume || "N/A"}>
+                                  {activeField.projectedHarvestVolume || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {fields.map((fld) => (
+                {(mapFilterActive && selectedMapFieldId
+                  ? fields.filter(f => f.id === selectedMapFieldId)
+                  : fields
+                ).map((fld) => (
                   <div key={fld.id} className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
