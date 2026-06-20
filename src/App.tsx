@@ -27,7 +27,8 @@ import {
   ArrowLeft,
   Database,
   BookOpen,
-  CalendarDays
+  CalendarDays,
+  Settings
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -43,6 +44,7 @@ import { OtherSections } from './components/OtherSections';
 import { BackupCenter } from './components/BackupCenter';
 import FarmerAcademy from './components/FarmerAcademy';
 import OperationsSchedule from './components/OperationsSchedule';
+import { SettingsCenter } from './components/SettingsCenter';
 import { AiAdvisor } from './components/AiAdvisor';
 
 // Master Types
@@ -1911,7 +1913,9 @@ export default function App() {
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
 
     { id: 'education', label: "Farmer's Academy", icon: BookOpen, category: 'Academy' },
-    { id: 'timetable', label: "Operations Schedule", icon: CalendarDays, category: 'Academy' }
+    { id: 'timetable', label: "Operations Schedule", icon: CalendarDays, category: 'Academy' },
+
+    { id: 'settings', label: "Control Settings", icon: Settings, category: 'Operations' }
   ];
 
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
@@ -2910,6 +2914,18 @@ export default function App() {
 
           {activeTab === 'timetable' && (
             <OperationsSchedule />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsCenter 
+              onSaveConfig={(config) => {
+                console.log("Comptroller settings updated online", config);
+              }}
+              onResetAllData={() => {
+                handleResetToDefaults();
+                window.location.reload();
+              }}
+            />
           )}
         </main>
       </div>

@@ -90,7 +90,12 @@ export function DairyBreeding({
   onTriggerSectionReport
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
-  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger'>('lactation');
+  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger' | 'breeding_wheel'>('lactation');
+
+  // Breeding Wheel states
+  const [selectedWheelCow, setSelectedWheelCow] = useState<string>('');
+  const [simulatedDate, setSimulatedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [wheelHoveredMonth, setWheelHoveredMonth] = useState<number | null>(null);
 
   // Edit States for Milk, AI, Cow, Vet
   const [editingMilk, setEditingMilk] = useState<MilkingRecord | null>(null);
@@ -725,7 +730,7 @@ export function DairyBreeding({
       {/* Dairy Master Banner */}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3.5 bg-emerald-150 bg-emerald-100 text-emerald-950 rounded-2xl shrink-0">
+          <div className="p-3.5 bg-emerald-100 text-emerald-950 rounded-2xl shrink-0">
             <Activity size={24} className="text-emerald-800" />
           </div>
           <div>
@@ -737,10 +742,10 @@ export function DairyBreeding({
         </div>
 
         {/* Dynamic sub navigation tabs */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto">
+        <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
           <button
             onClick={() => setSubTab('lactation')}
-            className={`px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 ${
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
               subTab === 'lactation' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -748,30 +753,38 @@ export function DairyBreeding({
           </button>
           <button
             onClick={() => setSubTab('registry')}
-            className={`px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 flex items-center gap-1.5 ${
-              subTab === 'registry' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+              subTab === 'registry' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-805'
             }`}
           >
-            Cow Identity Directory
+            Cow Directory
+          </button>
+          <button
+            onClick={() => setSubTab('breeding_wheel')}
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+              subTab === 'breeding_wheel' ? 'bg-white text-slate-950 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
+            }`}
+          >
+            🎡 Breeding Wheel
           </button>
           <button
             onClick={() => setSubTab('veterinary')}
-            className={`px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 flex items-center gap-1.5 relative ${
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 relative ${
               subTab === 'veterinary' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Vet & Deworming Care
+            Vet & Deworming
             {activeRemindersCount > 0 && (
               <span className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping absolute -top-0.5 -right-0.5" />
             )}
           </button>
           <button
             onClick={() => setSubTab('life_ledger')}
-            className={`px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 flex items-center gap-1.5 ${
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
               subTab === 'life_ledger' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Sales & Mortality
+            Sales & Loss
           </button>
         </div>
       </div>
@@ -2343,6 +2356,574 @@ export function DairyBreeding({
           </div>
         </div>
       )}
+
+      {/* SUB-TAB: ANIMAL BREEDING & GESTATION WHEEL */}
+      {subTab === 'breeding_wheel' && (() => {
+        // 12 Months layout setup
+        const monthsList = [
+          { name: 'JAN', days: 31, offset: 0 },
+          { name: 'FEB', days: 28, offset: 31 },
+          { name: 'MAR', days: 31, offset: 59 },
+          { name: 'APR', days: 30, offset: 90 },
+          { name: 'MAY', days: 31, offset: 120 },
+          { name: 'JUN', days: 30, offset: 151 },
+          { name: 'JUL', days: 31, offset: 181 },
+          { name: 'AUG', days: 31, offset: 212 },
+          { name: 'SEP', days: 30, offset: 243 },
+          { name: 'OCT', days: 31, offset: 273 },
+          { name: 'NOV', days: 30, offset: 304 },
+          { name: 'DEC', days: 31, offset: 334 }
+        ];
+
+        // Maps YYYY-MM-DD to day of year index (1-365)
+        const getDayOfYear = (dateString: string) => {
+          const d = new Date(dateString);
+          if (isNaN(d.getTime())) return 1;
+          const start = new Date(d.getFullYear(), 0, 0);
+          const diff = d.getTime() - start.getTime();
+          const oneDay = 1000 * 60 * 60 * 24;
+          return Math.max(1, Math.min(365, Math.floor(diff / oneDay)));
+        };
+
+        // Format day of year (1-365) back to Month / Day string format
+        const formatDayOfYear = (dayNum: number) => {
+          let accumulated = 0;
+          for (let i = 0; i < monthsList.length; i++) {
+            if (dayNum <= accumulated + monthsList[i].days) {
+              const day = dayNum - accumulated;
+              return `${monthsList[i].name} ${day}`;
+            }
+            accumulated += monthsList[i].days;
+          }
+          return `DEC 31`;
+        };
+
+        // Trigonometry mapping for circular polar plots (radius, day) -> {x, y}
+        // Angles are rotated by -90 deg so day 1 (Jan 1) is at the strict top (12 o'clock)
+        const getPolarCoords = (radius: number, dayNum: number) => {
+          const angleDegrees = (dayNum / 365) * 360;
+          const angleRadians = ((angleDegrees - 90) * Math.PI) / 180;
+          return {
+            x: 250 + radius * Math.cos(angleRadians),
+            y: 250 + radius * Math.sin(angleRadians)
+          };
+        };
+
+        const todayDayIndex = getDayOfYear(simulatedDate);
+
+        // Gather and enrich cow reproduction cycle stages
+        const enrichedCows = cows.map(cow => {
+          // Latest service AI cycle
+          const cowAI = aiRecords
+            .filter(r => r.cowId.toLowerCase() === cow.id.toLowerCase())
+            .sort((a, b) => b.date.localeCompare(a.date))[0];
+
+          let serviceDay = 0;
+          let dryOffDay = 0;
+          let calvingDay = 0;
+          let lactationStartDay = 0;
+          let scoreText = 'No active breeding timeline detected';
+          let statusLabel: string = cow.status;
+          let forecastStatus: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf' = cow.status;
+
+          if (cow.status === 'In-Calf' || (cowAI && cowAI.status === 'Confirmed Pregnant')) {
+            statusLabel = 'In-Calf (Gestation)';
+            forecastStatus = 'In-Calf';
+            const sDate = cowAI ? cowAI.date : cow.dob; // fallback
+            const sDay = getDayOfYear(sDate);
+            serviceDay = sDay;
+            dryOffDay = (sDay + 220) % 365 || 365;
+            calvingDay = (sDay + 283) % 365 || 365;
+
+            // Progress tracking
+            const daysGestation = Math.max(0, Math.ceil((new Date(simulatedDate).getTime() - new Date(sDate).getTime()) / (1000 * 60 * 60 * 24)));
+            if (daysGestation > 220) {
+              forecastStatus = 'Dry';
+              scoreText = `Currently DRY (Dry-off on G220). Calving expected in ${Math.max(0, 283 - daysGestation)} days`;
+            } else {
+              scoreText = `Gestating (Day ${daysGestation} of 283). Dry-off due in ${Math.max(0, 220 - daysGestation)} days`;
+            }
+          } else if (cow.status === 'Lactating') {
+            lactationStartDay = (getDayOfYear(simulatedDate) - 60 + 365) % 365 || 365; // Estimated 60 days into lactation
+            scoreText = `Direct milk line active (Avg daily: ${getAverageYield(cow.id).toFixed(1)} L)`;
+          } else if (cow.status === 'Dry') {
+            scoreText = `Dry non-lactating phase. Standing by for insemination trigger`;
+          }
+
+          return {
+            ...cow,
+            serviceDay,
+            dryOffDay,
+            calvingDay,
+            lactationStartDay,
+            scoreText,
+            statusLabel,
+            forecastStatus,
+            latestAI: cowAI
+          };
+        });
+
+        // Click cow to focus
+        const focusedCowData = enrichedCows.find(c => c.id.toLowerCase() === selectedWheelCow.toLowerCase()) || enrichedCows[0];
+
+        // 30 days upcoming forecast list based on current simulation pointer
+        const forecastEvents = enrichedCows.flatMap(cow => {
+          const events = [];
+          
+          if (cow.statusLabel.includes('In-Calf') && cow.latestAI) {
+            const sDateObj = new Date(cow.latestAI.date);
+            
+            // Expected dry off (sDate + 220 days)
+            const dryOffDateObj = new Date(sDateObj);
+            dryOffDateObj.setDate(dryOffDateObj.getDate() + 220);
+            const dryOffStr = dryOffDateObj.toISOString().split('T')[0];
+
+            // Expected calving (sDate + 283 days)
+            const calvingDateObj = new Date(sDateObj);
+            calvingDateObj.setDate(calvingDateObj.getDate() + 283);
+            const calvingStr = calvingDateObj.toISOString().split('T')[0];
+
+            const curSimObj = new Date(simulatedDate);
+            
+            // Days difference from simulated date
+            const daysToDryOff = Math.ceil((dryOffDateObj.getTime() - curSimObj.getTime()) / (1000 * 60 * 60 * 24));
+            const daysToCalving = Math.ceil((calvingDateObj.getTime() - curSimObj.getTime()) / (1000 * 60 * 60 * 24));
+
+            if (daysToDryOff >= 0 && daysToDryOff <= 30) {
+              events.push({
+                cowId: cow.id,
+                name: cow.name,
+                type: 'Dry-off Trigger',
+                date: dryOffStr,
+                daysLeft: daysToDryOff,
+                severity: 'warning',
+                color: 'text-amber-600 bg-amber-50 border-amber-200'
+              });
+            }
+
+            if (daysToCalving >= 0 && daysToCalving <= 30) {
+              events.push({
+                cowId: cow.id,
+                name: cow.name,
+                type: 'Expected Calving',
+                date: calvingStr,
+                daysLeft: daysToCalving,
+                severity: 'danger',
+                color: 'text-rose-600 bg-rose-50 border-rose-200 animate-pulse'
+              });
+            }
+          }
+
+          // Cows in heat / ready to breed window: 50 - 75 days post calving (if we have calf dob logs)
+          // Look at calfRecords to find calving dates
+          return events;
+        }).sort((a,b) => a.daysLeft - b.daysLeft);
+
+        return (
+          <div className="space-y-6 animate-fadeIn" id="breeding-wheel-center">
+            {/* Context Header */}
+            <div className="bg-emerald-950 text-emerald-100 p-5 rounded-3xl border border-emerald-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm text-left">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Biological Gestation Dial</span>
+                <h4 className="text-base font-black text-white uppercase tracking-wider">Circular Herd Breeding & Reproduction Wheel</h4>
+                <p className="text-xs text-emerald-350 font-medium leading-relaxed max-w-2xl">
+                  Simulate gestation timelines clockwise. Plot services (12 o'clock starting sector), follow gestating development (blue), track mandatory dry-off dates (amber at 220 days), and countdown to calving due (red at 283 days).
+                </p>
+              </div>
+              <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-2xl">
+                <div className="text-right">
+                  <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider block">Currently Simulating</span>
+                  <span className="text-xs font-mono font-black text-white">{formatDayOfYear(todayDayIndex)}</span>
+                </div>
+                <input
+                  type="date"
+                  value={simulatedDate}
+                  onChange={(e) => setSimulatedDate(e.target.value)}
+                  className="bg-emerald-900 border border-emerald-800 rounded-lg p-1.5 text-xs text-white font-mono font-bold cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Main Interactive Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start text-left">
+              
+              {/* Left pane: The Circular SVG Wheel (col 6) */}
+              <div className="lg:col-span-6 bg-white border border-slate-150 p-6 rounded-3xl shadow-xs flex flex-col items-center justify-center space-y-4">
+                
+                {/* SVG Dial canvas */}
+                <div className="relative w-full max-w-[420px] aspect-square">
+                  <svg viewBox="0 0 500 500" className="w-full h-full select-none" id="breeding-wheel-svg">
+                    <defs>
+                      <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="90%" stopColor="#f8fafc" />
+                        <stop offset="100%" stopColor="#e2e8f0" />
+                      </radialGradient>
+                    </defs>
+
+                    {/* Concentric Grey Guide Lines */}
+                    <circle cx="250" cy="250" r="230" fill="none" stroke="#f1f5f9" strokeWidth="1" />
+                    <circle cx="250" cy="250" r="195" fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="3 3" />
+                    <circle cx="250" cy="250" r="160" fill="none" stroke="#cbd5e1" strokeWidth="3" />
+                    <circle cx="250" cy="250" r="125" fill="none" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 4" />
+                    <circle cx="250" cy="250" r="90" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
+
+                    {/* Draw month sector dividing spokes and labels */}
+                    {monthsList.map((m, idx) => {
+                      const deg = idx * 30;
+                      const rad = ((deg - 90) * Math.PI) / 180;
+                      const labelRad = ((deg + 15 - 90) * Math.PI) / 180;
+
+                      // Dividing spoke
+                      const spokeX = 250 + 230 * Math.cos(rad);
+                      const spokeY = 250 + 230 * Math.sin(rad);
+
+                      // Label coordinates
+                      const labelX = 250 + 212 * Math.cos(labelRad);
+                      const labelY = 250 + 212 * Math.sin(labelRad);
+
+                      const isHovered = wheelHoveredMonth === idx;
+
+                      return (
+                        <g key={m.name} className="transition-all">
+                          {/* Invisible month section wedge for hovering */}
+                          <path
+                            d={`M 250 250 L ${250 + 230 * Math.cos(rad)} ${250 + 230 * Math.sin(rad)} A 230 230 0 0 1 ${250 + 230 * Math.cos(((idx + 1) * 30 - 90) * Math.PI / 180)} ${250 + 230 * Math.sin(((idx + 1) * 30 - 90) * Math.PI / 180)} Z`}
+                            fill={isHovered ? 'rgba(16, 185, 129, 0.05)' : 'transparent'}
+                            className="cursor-pointer transition-all duration-150"
+                            onMouseEnter={() => setWheelHoveredMonth(idx)}
+                            onMouseLeave={() => setWheelHoveredMonth(null)}
+                          />
+
+                          {/* Spoke line */}
+                          <line x1="250" y1="250" x2={spokeX} y2={spokeY} stroke="#e2e8f0" strokeWidth={isHovered ? "2.5" : "1"} />
+                          
+                          {/* Text month label */}
+                          <text
+                            x={labelX}
+                            y={labelY + 4}
+                            textAnchor="middle"
+                            className={`font-mono text-[9px] font-extrabold ${isHovered ? 'fill-emerald-600 font-black' : 'fill-slate-400'}`}
+                          >
+                            {m.name}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Highlighting Focused Cow sectors */}
+                    {focusedCowData && focusedCowData.serviceDay > 0 && (() => {
+                      const sDay = focusedCowData.serviceDay;
+                      const dDay = focusedCowData.dryOffDay;
+                      const cDay = focusedCowData.calvingDay;
+
+                      const startAngle = (sDay / 365) * 360 - 90;
+                      const dryAngle = (dDay / 365) * 360 - 90;
+                      const calvingAngle = (cDay / 365) * 360 - 90;
+
+                      const makeArc = (r: number, start: number, end: number, color: string) => {
+                        const startRad = (start * Math.PI) / 180;
+                        const endRad = (end * Math.PI) / 180;
+                        const x1 = 250 + r * Math.cos(startRad);
+                        const y1 = 250 + r * Math.sin(startRad);
+                        const x2 = 250 + r * Math.cos(endRad);
+                        const y2 = 250 + r * Math.sin(endRad);
+                        const largeArc = (end - start + 360) % 360 > 180 ? 1 : 0;
+                        return (
+                          <path
+                            d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
+                            fill="none"
+                            stroke={color}
+                            strokeWidth="8"
+                            strokeLinecap="round"
+                            opacity="0.85"
+                          />
+                        );
+                      };
+
+                      return (
+                        <g>
+                          {/* Gestation sector arc: Service to Dry Off (cyan-blue) */}
+                          {makeArc(160, startAngle, dryAngle, '#3b82f6')}
+                          {/* Dry Period sector arc: Dry-off to Calving Expected (amber-orange) */}
+                          {makeArc(160, dryAngle, calvingAngle, '#f97316')}
+                          
+                          {/* Pinpoints line links */}
+                          <line x1="250" y1="250" x2={getPolarCoords(160, sDay).x} y2={getPolarCoords(160, sDay).y} stroke="#3b82f6" strokeWidth="1" strokeDasharray="2 2" />
+                        </g>
+                      );
+                    })()}
+
+                    {/* Render cows as pins around the circular track */}
+                    {enrichedCows.map(cow => {
+                      if (cow.serviceDay <= 0) return null;
+
+                      const isSelected = selectedWheelCow.toLowerCase() === cow.id.toLowerCase();
+                      const coords = getPolarCoords(160, cow.serviceDay);
+
+                      // Choose node color based on status
+                      const pinColor = 
+                        cow.forecastStatus === 'Dry' ? '#f97316' : 
+                        cow.forecastStatus === 'In-Calf' ? '#2563eb' : '#10b981';
+
+                      return (
+                        <g 
+                          key={`pin-${cow.id}`}
+                          className="cursor-pointer group"
+                          onClick={() => setSelectedWheelCow(cow.id)}
+                        >
+                          <circle
+                            cx={coords.x}
+                            cy={coords.y}
+                            r={isSelected ? "8" : "5.5"}
+                            fill={pinColor}
+                            stroke={isSelected ? "#ffffff" : "transparent"}
+                            strokeWidth="1.5"
+                            className="transition-all hover:scale-125"
+                          />
+                          <title>{`${cow.name} [${cow.id}] - Inseminated Jan/Dec Equivalent`}</title>
+                        </g>
+                      );
+                    })}
+
+                    {/* Golden Time Pointer Pointer Needle pointing to Simulated Date */}
+                    {(() => {
+                      const ptrCoords = getPolarCoords(195, todayDayIndex);
+                      return (
+                        <g>
+                          <line
+                            x1="250"
+                            y1="250"
+                            x2={ptrCoords.x}
+                            y2={ptrCoords.y}
+                            stroke="#eab308"
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            opacity="0.9"
+                          />
+                          <circle
+                            cx={ptrCoords.x}
+                            cy={ptrCoords.y}
+                            r="5"
+                            fill="#eab308"
+                            stroke="#ffffff"
+                            strokeWidth="1.5"
+                          />
+                        </g>
+                      );
+                    })()}
+
+                    {/* Center HUD Circle */}
+                    <circle cx="250" cy="250" r="48" fill="url(#hubGradient)" stroke="#cbd5e1" strokeWidth="2" />
+                    
+                    {/* Inner HUD metadata labels */}
+                    <g className="font-sans">
+                      <text x="250" y="238" fontSize="8" fontWeight="900" fill="#64748b" textAnchor="middle" className="uppercase tracking-widest text-center">ESTATE DIAL</text>
+                      <text x="250" y="253" fontSize="14" fontWeight="950" fill="#0f172a" textAnchor="middle" className="font-mono text-center">{cows.length}</text>
+                      <text x="250" y="265" fontSize="7" fontWeight="900" fill="#10b981" textAnchor="middle" className="uppercase tracking-wider text-center">HERD HEADS</text>
+                    </g>
+                  </svg>
+                </div>
+
+                {/* Subtitle Color Guides */}
+                <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] font-black uppercase text-slate-500 font-sans border-t pt-3 w-full">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-blue-600 rounded-full" />
+                    <span>Gestating In-Calf</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-orange-500 rounded-full" />
+                    <span>Dry Transition (G220+)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                    <span>Fresh & Milking</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-1 bg-yellow-400 h-0.5 rounded-sm" />
+                    <span>Simulated Pointer</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right pane: Breeding Intelligence Dashboard & Forecast Checklist (col 6) */}
+              <div className="lg:col-span-6 space-y-6">
+                
+                {/* 1. Selected cow focus card */}
+                {focusedCowData ? (
+                  <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                    <div className="flex justify-between items-start border-b pb-3">
+                      <div>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">Focus Cow Scorecard</span>
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                          {focusedCowData.name} ({focusedCowData.id})
+                        </h4>
+                        <span className="text-slate-450 text-[10px] font-semibold block mt-0.5 font-sans">
+                          Breed: {focusedCowData.breed} • Life Age: {getCowAge(focusedCowData.dob)}
+                        </span>
+                      </div>
+
+                      {/* Pill Badge */}
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                        focusedCowData.forecastStatus === 'In-Calf' ? 'bg-blue-100 text-blue-900' :
+                        focusedCowData.forecastStatus === 'Dry' ? 'bg-amber-100 text-amber-900 animate-pulse' :
+                        'bg-emerald-100 text-emerald-900'
+                      }`}>
+                        {focusedCowData.forecastStatus}
+                      </span>
+                    </div>
+
+                    {/* Timeline Scoreboard metrics list */}
+                    <div className="grid grid-cols-2 gap-3.5 text-xs">
+                      <div className="bg-slate-50 p-3 rounded-2xl border">
+                        <span className="text-[8.5px] uppercase font-bold text-slate-400 block mb-0.5">Lineage AI Straw</span>
+                        <span className="font-extrabold text-slate-800 block">
+                          {focusedCowData.latestAI ? focusedCowData.latestAI.bull : 'None Logged'}
+                        </span>
+                        <span className="text-[8.5px] font-semibold text-slate-450 block mt-1">
+                          Insemination: {focusedCowData.latestAI ? focusedCowData.latestAI.date : 'N/A'}
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-50 p-3 rounded-2xl border">
+                        <span className="text-[8.5px] uppercase font-bold text-slate-400 block mb-0.5">Calculated Calving due</span>
+                        <span className="font-extrabold text-rose-800 block">
+                          {focusedCowData.latestAI ? focusedCowData.latestAI.due : 'None Logged'}
+                        </span>
+                        <span className="text-[8.5px] font-semibold text-slate-450 block mt-1">
+                          Approx {focusedCowData.latestAI ? '283 days gestation' : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Gestation Proband Status Description bar */}
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-3.5 rounded-2xl">
+                      <p className="text-[9px] font-black uppercase text-emerald-800 tracking-wider">🗓️ Chronological Cycle Status</p>
+                      <p className="text-xs text-slate-700 font-semibold mt-1 leading-relaxed">
+                        {focusedCowData.scoreText}
+                      </p>
+                    </div>
+
+                    {/* Quick Reproduction Action buttons */}
+                    <div className="grid grid-cols-3 gap-2.5 pt-2">
+                      <button
+                        onClick={() => {
+                          setAiCowId(focusedCowData.id);
+                          setSubTab('lactation');
+                        }}
+                        className="py-2 px-1 bg-slate-900 hover:bg-slate-800 text-white font-extrabold uppercase text-[9px] tracking-wider rounded-lg transition-colors border-0 cursor-pointer text-center"
+                      >
+                        Inseminate 💉
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          onUpdateCowStatus(focusedCowData.id, 'Dry');
+                          alert(`Cow ${focusedCowData.name} has been set to DRY status for recovery.`);
+                        }}
+                        className="py-2 px-1 bg-amber-500 hover:bg-amber-600 text-white font-extrabold uppercase text-[9px] tracking-wider rounded-lg transition-colors border-0 cursor-pointer text-center"
+                      >
+                        Set to Dry 🏜️
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onUpdateCowStatus(focusedCowData.id, 'Lactating');
+                          alert(`Cow ${focusedCowData.name} status updated to Lactating / Fresh.`);
+                        }}
+                        className="py-2 px-1 bg-emerald-700 hover:bg-emerald-850 text-white font-extrabold uppercase text-[9px] tracking-wider rounded-lg transition-colors border-0 cursor-pointer text-center"
+                      >
+                        Set Lactating 🐄
+                      </button>
+                    </div>
+
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border p-6 rounded-3xl text-center text-slate-450 py-12">
+                    Select a cow node or name from the list to display interactive cycle statistics.
+                  </div>
+                )}
+
+                {/* 2. Urgent Events Forecasting Window */}
+                <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                  <div className="flex justify-between items-center border-b pb-3">
+                    <div className="text-left">
+                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">30-Day Gestation Forecast Planner</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Calculated countdowns from simulated clock date</p>
+                    </div>
+                    <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2.5 py-1 rounded font-mono">
+                      {forecastEvents.length} Events Pending
+                    </span>
+                  </div>
+
+                  <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
+                    {forecastEvents.length === 0 ? (
+                      <p className="text-center text-slate-450 py-8 text-xs font-bold leading-relaxed">
+                        🎉 No cows expected to Dry Off or Calve in the upcoming 30 days based on Simulated Date: <span className="text-emerald-700 underline">{formatDayOfYear(todayDayIndex)}</span>
+                      </p>
+                    ) : (
+                      forecastEvents.map((evt, idx) => (
+                        <div 
+                          key={`${evt.cowId}-${evt.type}-${idx}`} 
+                          className={`p-3.5 rounded-2xl border flex justify-between items-center text-xs font-sans ${evt.color}`}
+                        >
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-black uppercase tracking-wider block opacity-75">{evt.type}</span>
+                            <span className="font-extrabold text-slate-850">
+                              {evt.name} (Tag {evt.cowId})
+                            </span>
+                            <span className="text-[10px] block opacity-80 font-mono">
+                              Due: {evt.date} (Simulated countdown)
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-mono text-xs font-black px-2.5 py-1 bg-white/60 border rounded-lg inline-block">
+                              {evt.daysLeft === 0 ? 'DUE TODAY' : `In ${evt.daysLeft} days`}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Cow Directory Listing for quick wheel selection */}
+                <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                  <div className="border-b pb-3 flex justify-between items-center">
+                    <h5 className="text-xs font-black text-slate-900 uppercase tracking-wide">Herd Reproductive Directory</h5>
+                    <span className="text-[9px] text-slate-400 uppercase font-black">Quick Selector</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
+                    {enrichedCows.map(cow => {
+                      const isSelected = selectedWheelCow.toLowerCase() === cow.id.toLowerCase();
+                      return (
+                        <button
+                          key={`btn-dir-${cow.id}`}
+                          onClick={() => setSelectedWheelCow(cow.id)}
+                          className={`p-2.5 text-left rounded-xl border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer m-0 flex flex-col justify-between ${
+                            isSelected 
+                              ? 'bg-emerald-950 border-emerald-950 text-white shadow-sm ring-2 ring-emerald-500/20' 
+                              : 'bg-slate-50 border-slate-100 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <span className="text-[10px] font-black">{cow.id}</span>
+                          <span className={`${isSelected ? 'text-emerald-200' : 'text-slate-450'} text-[8.5px] truncate font-medium block mt-1`}>
+                            {cow.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+              
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Edit Milking Record Modal */}
       {editingMilk && (
