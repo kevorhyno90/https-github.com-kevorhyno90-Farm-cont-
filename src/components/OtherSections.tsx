@@ -144,7 +144,7 @@ export function OtherSections({
   aiRecords = []
 }: OtherSectionsProps) {
   // Toggle for livestock sub segments
-  const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality'>('poultry_dogs');
+  const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality' | 'biogas_optimizer'>('poultry_dogs');
   const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'crop_ops' | 'sales'>('blocks');
 
   // Interactive Geospatial Farm Layout Map States
@@ -160,6 +160,13 @@ export function OtherSections({
   const [editingBsf, setEditingBsf] = useState<BsfRecord | null>(null);
   const [editingCropOp, setEditingCropOp] = useState<CropOpRecord | null>(null);
   const [editingCropSale, setEditingCropSale] = useState<CropSaleRecord | null>(null);
+
+  // Sovereign Biogas Optimizer States
+  const [substrateType, setSubstrateType] = useState<'cattle_manure' | 'poultry_litter' | 'goat_droppings' | 'kitchen_waste'>('cattle_manure');
+  const [wasteInputKg, setWasteInputKg] = useState<number>(50);
+  const [waterRatio, setWaterRatio] = useState<number>(1); // e.g. 1:1, 1:2
+  const [hrtDays, setHrtDays] = useState<number>(30); // hydraulic retention time
+  const [digesterTemp, setDigesterTemp] = useState<number>(35); // mesophilic target Celsius
 
   // CSV Exporters for individual sub-sections
   const downloadFieldsCSV = () => {
@@ -1802,6 +1809,14 @@ export function OtherSections({
               >
                 Sales & Mortality Ledger
               </button>
+              <button
+                onClick={() => { setLivestockSubTab('biogas_optimizer'); setShowAddForm(false); }}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-indigo-950 ${
+                  livestockSubTab === 'biogas_optimizer' ? 'bg-amber-500/20 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'text-slate-505 hover:text-slate-850'
+                }`}
+              >
+                🔥 Biogas Digester Loader
+              </button>
             </div>
           </div>
 
@@ -3098,6 +3113,263 @@ export function OtherSections({
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {livestockSubTab === 'biogas_optimizer' && (
+            <div className="space-y-6">
+              {/* Educational banner */}
+              <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-3xl text-left space-y-2">
+                <div className="flex items-center gap-2 text-amber-955">
+                  <span className="text-base">💡</span>
+                  <h5 className="text-[11px] font-black tracking-widest uppercase text-amber-900">Sovereign Smallholder Biogas Digestibility Optimizer</h5>
+                </div>
+                <p className="text-xs text-slate-700 font-medium">
+                  Convert animal waste and crop residues into continuous methane fuel pressure and liquefied rich organic bio-slurry compost. Ideal for zero-grazing cattle setups and poultry houses.
+                </p>
+              </div>
+
+              {/* Grid 2 column layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-stretch">
+                
+                {/* Inputs Pane (col 5) */}
+                <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between space-y-6">
+                  <div className="space-y-4">
+                    <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider block border-b pb-1">
+                      1. Digestor Input Specifications
+                    </span>
+
+                    {/* Substrates type selection */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Manure Substrate Category</label>
+                      <select
+                        value={substrateType}
+                        onChange={(e) => setSubstrateType(e.target.value as any)}
+                        className="text-xs border border-slate-200 rounded-lg p-2.5 w-full bg-white font-extrabold text-slate-700 cursor-pointer"
+                      >
+                        <option value="cattle_manure">🐄 Cattle Cowdung Slurry (0.040 m³ biogas/kg)</option>
+                        <option value="poultry_litter">🐣 Poultry Avian Drops (0.080 m³ biogas/kg)</option>
+                        <option value="goat_droppings">🐐 Dairy Goat Pellets (0.055 m³ biogas/kg)</option>
+                        <option value="kitchen_waste">🌽 Kitchen Organic Scraps (0.120 m³ biogas/kg)</option>
+                      </select>
+                    </div>
+
+                    {/* Daily Input Manure Inflow (KG) */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] font-black text-slate-500 uppercase">Daily waste collected (Kg)</label>
+                        <span className="font-mono text-xs font-black text-slate-800">{wasteInputKg} KG / day</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="5"
+                        max="500"
+                        step="5"
+                        value={wasteInputKg}
+                        onChange={(e) => setWasteInputKg(parseInt(e.target.value))}
+                        className="w-full accent-amber-500 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        <span>Min (5 Kg)</span>
+                        <span>Med (250 Kg)</span>
+                        <span>Max (500 Kg)</span>
+                      </div>
+                    </div>
+
+                    {/* Water Dilution Ratio */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] font-black text-slate-550 uppercase">Water-to-Waste Dilution Ratio</label>
+                        <span className="font-mono text-xs font-black text-slate-800">1 : {waterRatio} Volumetric</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="4"
+                        step="1"
+                        value={waterRatio}
+                        onChange={(e) => setWaterRatio(parseInt(e.target.value))}
+                        className="w-full accent-amber-550 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        <span>1:1 Solid Slurry</span>
+                        <span>1:2 Medium</span>
+                        <span>1:3 High Dilution</span>
+                        <span>1:4 Fluid</span>
+                      </div>
+                    </div>
+
+                    {/* Hydraulic Retention Days */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] font-black text-slate-550 uppercase">Hydraulic Retention Period (HRT)</label>
+                        <span className="font-mono text-xs font-black text-slate-800">{hrtDays} Digestion Days</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="15"
+                        max="60"
+                        step="5"
+                        value={hrtDays}
+                        onChange={(e) => setHrtDays(parseInt(e.target.value))}
+                        className="w-full accent-amber-550 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        <span>15 Days (Fast)</span>
+                        <span>30 Days (Standard)</span>
+                        <span>60 Days (Complete)</span>
+                      </div>
+                    </div>
+
+                    {/* Digestation Celsius Temp */}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] font-black text-slate-550 uppercase">Target Slurry Temperature (°C)</label>
+                        <span className="font-mono text-xs font-black text-slate-850">{digesterTemp}°C (Mesophilic Range)</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="20"
+                        max="45"
+                        step="1"
+                        value={digesterTemp}
+                        onChange={(e) => setDigesterTemp(parseInt(e.target.value))}
+                        className="w-full accent-amber-550 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        <span>20°C (Slow action)</span>
+                        <span>35°C (Optimum digestion)</span>
+                        <span>45°C (High Thermophilic)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 border p-3.5 rounded-2xl space-y-1.5 text-xs text-slate-650">
+                    <p className="font-black text-slate-800 uppercase text-[9px] tracking-wide">🔬 Bio-Sludge Safety Warning</p>
+                    <p className="text-[10.5px] font-semibold leading-relaxed">
+                      Maintain balanced slurry load. pH should hover around 6.8 - 7.6. Acidification occurs if overloaded too quickly with sweet kitchen biomass. Adjust dilution water ratio if the crust thickens at top.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Analytical Yield Display (col 7) */}
+                <div className="lg:col-span-7 bg-slate-950 text-slate-150 p-6 rounded-3xl border border-slate-900 shadow-xl flex flex-col justify-between space-y-6">
+                  
+                  {/* Summary Metric Counters Row */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                      <div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 block pb-0.5">Yield Analytics Engine</span>
+                        <h4 className="text-sm font-black text-white uppercase tracking-wider">Estimated Constant Daily Outputs</h4>
+                      </div>
+                      <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-xl text-[10px] font-mono font-black uppercase tracking-wide">
+                        Simulated live
+                      </div>
+                    </div>
+
+                    {/* Main big numbers */}
+                    <div className="grid grid-cols-2 gap-4">
+                      
+                      {/* Biogas volume */}
+                      <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Est Continuous gas volume (CH₄)</span>
+                        <div className="flex items-baseline gap-1 mt-1.5">
+                          <span className="text-3xl font-black text-white font-mono leading-none">
+                            {(wasteInputKg * (
+                              substrateType === 'cattle_manure' ? 0.040 :
+                              substrateType === 'poultry_litter' ? 0.080 :
+                              substrateType === 'goat_droppings' ? 0.055 : 0.120
+                            ) * (digesterTemp / 35)).toFixed(2)}
+                          </span>
+                          <span className="text-xs font-black text-slate-400 font-mono">m³ / day</span>
+                        </div>
+                        <span className="text-[8.5px] font-semibold text-slate-500 block mt-2">Adjusted for mesophilic activity factor</span>
+                      </div>
+
+                      {/* Power potential cooking hours */}
+                      <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Bio-Stove Continuous cooking</span>
+                        <div className="flex items-baseline gap-1 mt-1.5">
+                          <span className="text-3xl font-black text-amber-400 font-mono leading-none">
+                            {Math.max(0.1, (
+                              (wasteInputKg * (
+                                substrateType === 'cattle_manure' ? 0.040 :
+                                substrateType === 'poultry_litter' ? 0.080 :
+                                substrateType === 'goat_droppings' ? 0.055 : 0.120
+                              ) * (digesterTemp / 35)) / 0.45
+                            )).toFixed(1)}
+                          </span>
+                          <span className="text-xs font-black text-slate-400 font-mono">Hours / day</span>
+                        </div>
+                        <span className="text-[8.5px] font-semibold text-slate-500 block mt-2">At 0.45 m³ active frame burner flow</span>
+                      </div>
+
+                    </div>
+
+                    {/* Additional physical metrics list */}
+                    <div className="space-y-3 bg-slate-900 p-4 rounded-2xl border border-slate-800/60 text-xs font-mono font-bold">
+                      
+                      <div className="flex justify-between border-b border-slate-800 pb-2">
+                        <span className="text-slate-400">Total Digester Slurry Load per day:</span>
+                        <span className="text-white">{(wasteInputKg + (wasteInputKg * waterRatio)).toFixed(0)} Litres / day</span>
+                      </div>
+
+                      <div className="flex justify-between border-b border-slate-800 pb-2">
+                        <span className="text-slate-400">Minimum Active Digester Tank Volume:</span>
+                        <span className="text-amber-400 font-black">
+                          {((wasteInputKg + (wasteInputKg * waterRatio)) * hrtDays).toLocaleString()} Litres ({(((wasteInputKg + (wasteInputKg * waterRatio)) * hrtDays) / 1000).toFixed(1)} m³)
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between border-b border-slate-800 pb-2">
+                        <span className="text-slate-400">Liquefied Bio-Slurry fertilizer output:</span>
+                        <span className="text-teal-400">
+                          {((wasteInputKg + (wasteInputKg * waterRatio)) * 0.90).toFixed(1)} Litres/day of pure nitrogen compost
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Sovereign Carbon Credit offset:</span>
+                        <span className="text-emerald-400">
+                          ~{(wasteInputKg * (
+                            substrateType === 'cattle_manure' ? 0.040 :
+                            substrateType === 'poultry_litter' ? 0.080 :
+                            substrateType === 'goat_droppings' ? 0.055 : 0.120
+                          ) * 2.1).toFixed(1)} Kg CO₂ Equiv. Offset / day
+                        </span>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* LPG Equivalent Graphic Indicator */}
+                  <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black uppercase tracking-widest inline-block">Fossil Fuel Saver</span>
+                      <h6 className="text-xs font-black text-white uppercase tracking-wider">LPG Equivalent Gas Generated</h6>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        Based on caloric combustion factors, this digestion rate substitutes standard liquefied petroleum cylinders.
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-[8px] uppercase tracking-wider text-slate-400 block font-bold">13Kg Cylinder equivalent</span>
+                      <span className="text-lg font-black text-white font-mono block mt-0.5 font-mono">
+                        {Math.max(0.1, (
+                          ((wasteInputKg * (
+                            substrateType === 'cattle_manure' ? 0.040 :
+                            substrateType === 'poultry_litter' ? 0.080 :
+                            substrateType === 'goat_droppings' ? 0.055 : 0.120
+                          ) * (digesterTemp / 35)) * 30) / 25
+                        )).toFixed(1)} Tanks / Month
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
             </div>
           )}
         </div>
