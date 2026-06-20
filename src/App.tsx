@@ -43,6 +43,7 @@ import { OtherSections } from './components/OtherSections';
 import { BackupCenter } from './components/BackupCenter';
 import FarmerAcademy from './components/FarmerAcademy';
 import OperationsSchedule from './components/OperationsSchedule';
+import { AiAdvisor } from './components/AiAdvisor';
 
 // Master Types
 import {
@@ -3606,8 +3607,17 @@ export default function App() {
         </div>
       )}
 
-
-
+      {/* Sovereign AI Advisor Bot overlay icon / panel */}
+      <AiAdvisor 
+        farmState={{
+          cowsCount: livestock ? livestock.length : 0,
+          milkTotal: milkRecords ? milkRecords.reduce((sum, r) => sum + r.morningYield + r.eveningYield, 0) : 0,
+          fieldsCount: fields ? fields.length : 0,
+          staffCount: staffList ? staffList.length : 0,
+          income: totalIncome,
+          expense: totalExpense
+        }} 
+      />
 
     </div>
   );
