@@ -12,8 +12,12 @@ import {
   ShieldCheck, 
   AlertTriangle,
   Upload,
-  Download
+  Download,
+  Smartphone,
+  DollarSign,
+  CheckCircle2
 } from 'lucide-react';
+import { getStoredSettings, DEFAULT_SETTINGS } from '../utils/settingsHelper';
 
 interface SettingsProps {
   onSaveConfig?: (config: any) => void;
@@ -21,33 +25,18 @@ interface SettingsProps {
 }
 
 export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) {
-  const [activeSubSection, setActiveSubSection] = useState<'estate' | 'crops' | 'dairy' | 'system'>('estate');
+  const [activeSubSection, setActiveSubSection] = useState<'estate' | 'crops' | 'dairy' | 'system' | 'playstore'>('estate');
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [checklistCompleted, setChecklistCompleted] = useState<Record<string, boolean>>({
+    manifest: true,
+    icons: false,
+    pwaBuilder: false,
+    playConsole: false,
+    admob: false,
+    paymentProfile: false
+  });
   
-  // Hardcoded standard defaults loaded from localStorage or fallback
-  const loadStoredSettings = () => {
-    try {
-      const stored = localStorage.getItem('jr_farm_estate_settings');
-      if (stored) return JSON.parse(stored);
-    } catch (e) {
-      console.error("Local storage load exception", e);
-    }
-    return {
-      estateName: 'NYARONDE COOPERATIVE ESTATE',
-      administrator: 'Dr. Devin Omwenga',
-      locationCode: 'KT-205A Nyamira',
-      currency: 'Ksh',
-      teaContractPrice: 58,
-      avocadoTargetVolume: 12000,
-      targetDailyMilk: 22.5,
-      dryOffGestationDay: 220,
-      gestationDuration: 283,
-      simulationSpeed: 'Normal',
-      autoSeedingEnabled: true
-    };
-  };
-
-  const [settings, setSettings] = useState(loadStoredSettings());
+  const [settings, setSettings] = useState(getStoredSettings());
 
   const handleUpdate = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -66,6 +55,10 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
     }
   };
 
+  const toggleChecklist = (task: string) => {
+    setChecklistCompleted(prev => ({ ...prev, [task]: !prev[task] }));
+  };
+
   const handleFactoryReset = () => {
     if (confirm("⚠️ WARNING: This will permanently wipe all local updates and reset to the estate standard baseline. This action is irreversible. Continue?")) {
       localStorage.removeItem('jr_farm_estate_settings');
@@ -82,7 +75,8 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
     { id: 'estate', label: 'Estate Identity', icon: Building, color: 'text-emerald-700 bg-emerald-50' },
     { id: 'crops', label: 'Crop Contracts', icon: Leaf, color: 'text-indigo-700 bg-indigo-50' },
     { id: 'dairy', label: 'Herd Parameters', icon: Activity, color: 'text-amber-700 bg-amber-50' },
-    { id: 'system', label: 'System Diagnostics', icon: Sliders, color: 'text-rose-700 bg-rose-50' }
+    { id: 'system', label: 'System Diagnostics', icon: Sliders, color: 'text-rose-700 bg-rose-50' },
+    { id: 'playstore', label: 'Play Store & Monetize', icon: Smartphone, color: 'text-blue-700 bg-blue-50' }
   ] as const;
 
   return (
@@ -207,12 +201,32 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50/50 font-mono"
                   />
                 </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1.5">Farm Latitude (Degree Decimal)</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={settings.latitude}
+                    onChange={(e) => handleUpdate('latitude', parseFloat(e.target.value) || 0)}
+                    className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50/50 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1.5">Farm Longitude (Degree Decimal)</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={settings.longitude}
+                    onChange={(e) => handleUpdate('longitude', parseFloat(e.target.value) || 0)}
+                    className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50/50 font-mono"
+                  />
+                </div>
               </div>
 
               <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-start gap-3 mt-4">
                 <ShieldCheck className="text-emerald-700 shrink-0 mt-0.5" size={16} />
                 <div className="text-[11px] text-emerald-800 leading-relaxed font-semibold">
-                  <span className="font-bold">Compliance Status: ISO Certified.</span> Identity criteria mapped directly matches certified tea production directives set by regional comptrollers.
+                  <span className="font-bold">Compliance Status: ISO Certified & Weather Connected.</span> Changing Latitude & Longitude dynamically recalibrates the live open-source open-meteo satellite feed to fetch local farm weather data.
                 </div>
               </div>
             </div>
@@ -371,6 +385,236 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                   Import Backup Configuration
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Tab 5: Play Store Prep & Monetization Hub */}
+          {activeSubSection === 'playstore' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="border-b pb-3.5">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="text-blue-600" size={18} />
+                  <h5 className="text-sm font-black uppercase text-slate-900">Google Play Store & Monetization Console</h5>
+                </div>
+                <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+                  Package this fully-certified farm management application into a production-ready Android Bundle (<span className="font-mono text-blue-700">.aab</span>) and configure live in-app monetization models.
+                </p>
+              </div>
+
+              {/* Step 1: Calibration Fields */}
+              <div className="bg-slate-50 border border-slate-150 p-5 rounded-2xl space-y-4">
+                <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
+                  <Sliders size={12} className="text-slate-500" />
+                  1. App Store Deployment Variables
+                </h6>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Android Package Name (Application ID)</label>
+                    <input
+                      type="text"
+                      value={settings.playstorePackageId}
+                      onChange={(e) => handleUpdate('playstorePackageId', e.target.value)}
+                      className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-blue-500 bg-white"
+                      placeholder="e.g. com.company.app"
+                    />
+                    <span className="text-[9px] text-slate-400 font-semibold block mt-1">Unique global ID for Play Store URL listing</span>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Store Listing App Title</label>
+                    <input
+                      type="text"
+                      value={settings.playstoreAppTitle}
+                      onChange={(e) => handleUpdate('playstoreAppTitle', e.target.value)}
+                      className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:ring-1 focus:ring-blue-500 bg-white"
+                      placeholder="e.g. JR Farm Omni-Estate Manager"
+                    />
+                    <span className="text-[9px] text-slate-400 font-semibold block mt-1">Official user-facing app name on Google Play</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200/65 pt-3.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-2 font-sans">App Monetization Model Strategy</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {[
+                      { id: 'Ad Supported (AdMob)', title: 'Ad-Supported (Free)', desc: 'Generate passive revenue via responsive banner or interstitial ads' },
+                      { id: 'Premium Paid', title: 'Premium Paid Tier', desc: 'Charge users a one-time fee before they download the app' },
+                      { id: 'Corporate License', title: 'Enterprise Contract', desc: 'Secure custom licensing terms directly with estates' }
+                    ].map(st => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => handleUpdate('monetizationStrategy', st.id)}
+                        className={`p-3 rounded-xl border text-left flex flex-col justify-between cursor-pointer transition-all m-0 ${
+                          settings.monetizationStrategy === st.id 
+                            ? 'bg-blue-50 border-blue-400 text-blue-900 ring-1 ring-blue-200' 
+                            : 'bg-white border-slate-200 hover:border-slate-350 text-slate-700'
+                        }`}
+                      >
+                        <span className="text-[10px] font-black block">{st.title}</span>
+                        <span className="text-[8.5px] font-medium leading-normal opacity-85 mt-1 block">{st.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {settings.monetizationStrategy === 'Ad Supported (AdMob)' && (
+                  <div className="bg-white border border-slate-200/80 p-4 rounded-xl space-y-3 animate-fadeIn">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 block font-sans">Google AdMob Placement Configurations</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 font-sans">
+                      <div>
+                        <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">AdMob Banner Unit ID</label>
+                        <input
+                          type="text"
+                          value={settings.admobBannerUnitId}
+                          onChange={(e) => handleUpdate('admobBannerUnitId', e.target.value)}
+                          className="border border-slate-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">AdMob Interstitial Unit ID</label>
+                        <input
+                          type="text"
+                          value={settings.admobInterstitialUnitId}
+                          onChange={(e) => handleUpdate('admobInterstitialUnitId', e.target.value)}
+                          className="border border-slate-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {settings.monetizationStrategy === 'Premium Paid' && (
+                  <div className="bg-white border border-slate-200/80 p-4 rounded-xl space-y-3 animate-fadeIn w-full sm:w-1/2 font-sans">
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Tier Target (USD)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-slate-400 font-bold">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={settings.premiumAppPrice}
+                        onChange={(e) => handleUpdate('premiumAppPrice', e.target.value)}
+                        className="border border-slate-200 rounded-lg p-2 pl-6 w-full text-xs font-mono font-bold text-slate-800"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Step 2: Ultimate Custom Go-To-Market Package Publishing Checklist */}
+              <div className="bg-white border border-slate-150 p-5 rounded-2xl space-y-4">
+                <div className="flex justify-between items-center border-b pb-2">
+                  <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-emerald-600" />
+                    2. Google Play Store Launch Action Sequence
+                  </h6>
+                  <span className="text-[9px] bg-slate-100 px-2.5 py-1 rounded font-mono font-bold text-slate-500">
+                    {Object.values(checklistCompleted).filter(Boolean).length} / 6 Verified
+                  </span>
+                </div>
+
+                <div className="space-y-3 font-sans">
+                  {[
+                    {
+                      id: 'manifest',
+                      title: 'Verify App Manifest Configuration',
+                      desc: 'Ensure manifest.json details, icons, and theme-color matches your Google Play description benchmarks (Writen successfully in public/manifest.json).'
+                    },
+                    {
+                      id: 'icons',
+                      title: 'Generate High-Resolution Launcher Icons',
+                      desc: 'Prepare mandatory Google Play assets: 512x512 PNG App Icon, and 1024x500 Feature Graphic (use vector logo.svg as base).'
+                    },
+                    {
+                      id: 'pwaBuilder',
+                      title: 'Bundle App Shell with PWABuilder (Recommended)',
+                      desc: 'Copy your shared application URL, paste into pwabuilder.com, select Google Play package option, set your App Package ID, and generate your compiled Android Package (.aab / .apk) instantly.'
+                    },
+                    {
+                      id: 'playConsole',
+                      title: 'Configure Google Play Developer Registry',
+                      desc: 'Register at play.google.com/console (requires a one-time $25 registration fee). Click "Create App", choose app category (Business/Productivity).'
+                    },
+                    {
+                      id: 'admob',
+                      title: 'Integrate Live AdMob Placements (Optional)',
+                      desc: 'If using Ad supported mode, create placements on ad.google.com/admob and paste generated production credentials here to run actual user-paid impressions.'
+                    },
+                    {
+                      id: 'paymentProfile',
+                      title: 'Establish Developer Wallet & Payments Profile',
+                      desc: 'Connect your local banking accounts or M-Pesa business numbers inside Google Play Console settings to receive payouts from app purchases or ad network cycles.'
+                    }
+                  ].map(task => (
+                    <div 
+                      key={task.id} 
+                      onClick={() => toggleChecklist(task.id)}
+                      className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-colors duration-200 select-none ${
+                        checklistCompleted[task.id] 
+                          ? 'bg-emerald-50/40 border-emerald-200' 
+                          : 'bg-white hover:bg-slate-50/50'
+                      }`}
+                    >
+                      <input 
+                        type="checkbox"
+                        checked={checklistCompleted[task.id]}
+                        onChange={() => {}} // toggled on container click
+                        className="mt-0.5 accent-emerald-600 cursor-pointer pointer-events-none"
+                      />
+                      <div className="text-left">
+                        <span className={`text-xs font-bold block ${checklistCompleted[task.id] ? 'text-slate-800 line-through' : 'text-slate-900'}`}>{task.title}</span>
+                        <span className="text-[10px] font-medium text-slate-450 mt-0.5 leading-normal block">{task.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 3: Fast Export assets anchor */}
+              <div className="bg-blue-50/30 border border-blue-200/60 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5">
+                <div className="text-left text-slate-700">
+                  <span className="text-[9px] font-black uppercase text-blue-800 tracking-wider block font-sans">Ready to Publish?</span>
+                  <h6 className="text-[11px] font-black uppercase text-slate-900 mt-0.5">Generate Play Store Configuration Asset Pack</h6>
+                  <p className="text-[10px] text-slate-450 leading-relaxed font-semibold mt-0.5">
+                    Click to download a certified deployment JSON manifest detailing system parameters, description scripts, and tags to paste directly into your Play Store Console console!
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const deployManifest = {
+                      app_title: settings.playstoreAppTitle,
+                      package_id: settings.playstorePackageId,
+                      short_description: "Premium global manager for agricultural crops, dairy reproduction schedules and operational inventory tracker.",
+                      long_description: "Optimize crop contracts, green tea yields, and avocado contract targets. Monitor dairy reproduction timelines on an interactive Breeding SVG Wheel with real-time gestations trackers, dry-off timers, and calving countdown alerts. Built for scale-ups and robust cooperatives.",
+                      target_categorization: "Business & Productivity",
+                      monetization_tier: settings.monetizationStrategy,
+                      target_payout_currency: settings.currency,
+                      configured_admob_slots: {
+                        banner_unit: settings.admobBannerUnitId,
+                        interstitial_unit: settings.admobInterstitialUnitId
+                      },
+                      version_tag: "1.0.0-PROD-NYARONDE",
+                      developer_credits: {
+                        lead_administrator: settings.administrator,
+                        estate: settings.estateName,
+                        registered_plot: settings.locationCode
+                      }
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(deployManifest, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", "google_playstore_deployment_manifest.json");
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                  }}
+                  className="px-4 py-2 bg-blue-900 hover:bg-blue-850 text-white text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2 m-0 shadow-sm shrink-0"
+                >
+                  <Download size={13} />
+                  Download Play Store Pack
+                </button>
+              </div>
+
             </div>
           )}
 

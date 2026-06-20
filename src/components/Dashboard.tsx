@@ -39,6 +39,7 @@ import {
 } from 'recharts';
 import { MilkingRecord, Todo, StaffOffRecord, StaffMember } from '../types';
 import { CalendarIcon, Bell, Users, Eye } from 'lucide-react';
+import { getStoredSettings } from '../utils/settingsHelper';
 
 interface DashboardProps {
   milkRecords: MilkingRecord[];
@@ -125,7 +126,10 @@ export function Dashboard({
     if (!isLiveWeather) return;
     setWeatherLoading(true);
     setWeatherError('');
-    fetch("https://api.open-meteo.com/v1/forecast?latitude=-0.5667&longitude=34.9333&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Africa%2FNairobi")
+    const userSettings = getStoredSettings();
+    const lat = userSettings?.latitude ?? -0.5667;
+    const lon = userSettings?.longitude ?? 34.9333;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`)
       .then(res => {
         if (!res.ok) throw new Error("Satellite Link Error");
         return res.json();
@@ -939,7 +943,7 @@ export function Dashboard({
           <div className="bg-white p-5 rounded-2xl border border-slate-200 md:col-span-2 flex flex-col justify-between">
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block leading-none mb-2">
-                {t("Dr. Devin Omwenga's Customized Agro Advisory")}
+                {`${(getStoredSettings()?.administrator || 'Dr. Devin Omwenga').toUpperCase()}'S CUSTOMIZED AGRO ADVISORY`}
               </span>
               <div className="flex gap-3">
                 <span className="text-lg text-emerald-800 mt-0.5">💡</span>

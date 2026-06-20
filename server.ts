@@ -39,23 +39,27 @@ async function startServer() {
   });
 
   app.post("/api/ai-chat", async (req, res) => {
-    const { message, history, farmState } = req.body;
+    const { message, history, farmState, settings } = req.body;
     if (!message) {
       return res.status(400).json({ error: "Missing message parameter" });
     }
 
+    const managerName = settings?.administrator || "Dr. Devin Omwenga";
+    const farmName = settings?.estateName || "JR Farm";
+    const locCode = settings?.locationCode || "KT-205A";
+
     if (!ai) {
       // Rule-based fallback if API key is not defined, ensuring smooth evaluation
       return res.json({
-        text: `Hello! I am Dr. Omwenga's Sovereign AI Advisor. (Note: To activate full live AI responses, please add your GEMINI_API_KEY in the Settings > Secrets menu in AI Studio!)\n\nBased on your local estate state:\n- Active Staff Roster: ${farmState?.staffCount || 5} members\n- Total Milking Cows: ${farmState?.cowsCount || 6} in herd\n- Total Acreage Records: ${farmState?.fieldsCount || 4} blocks\n\nI am currently running in Offline mode. Please provide the Gemini API key to query high-precision agricultural intelligence.`
+        text: `Hello! I am ${managerName}'s Sovereign AI Advisor. (Note: To activate full live AI responses, please add your GEMINI_API_KEY in the Settings > Secrets menu in AI Studio!)\n\nBased on the local dynamic state of ${farmName}:\n- Active Staff Roster: ${farmState?.staffCount || 5} members\n- Total Milking Cows: ${farmState?.cowsCount || 6} in herd\n- Total Acreage Records: ${farmState?.fieldsCount || 4} blocks\n\nI am currently running in Offline mode. Please provide the Gemini API key to query high-precision agricultural intelligence.`
       });
     }
 
     try {
-      let systemPrompt = "You are the JR Farm Omni-Estate Sovereign AI Advisor, a premier agricultural expert and clinical veterinary consultant. You speak with high precision, clear structure, and using elite agronomic terminology. You describe recommendations based on Dr. Devin Omwenga's sovereign farm compliance standards.";
+      let systemPrompt = `You are the ${farmName} Sovereign AI Advisor, a premier agricultural expert and clinical veterinary consultant. You speak with high precision, clear structure, and using elite agronomic terminology. You describe recommendations based on the sovereign compliance standards of ${managerName} at plot registered location ${locCode}.`;
       
       if (farmState) {
-        systemPrompt += `\nHere is the current real-time state of JR Farm:
+        systemPrompt += `\nHere is the current real-time state of ${farmName}:
 - Live Cows Count: ${farmState.cowsCount || 6}
 - Monthly Milk Production Volume: ${farmState.milkTotal || 1480} Liters
 - Number of active agronomy field blocks: ${farmState.fieldsCount || 4} blocks

@@ -45,6 +45,7 @@ import { BackupCenter } from './components/BackupCenter';
 import FarmerAcademy from './components/FarmerAcademy';
 import OperationsSchedule from './components/OperationsSchedule';
 import { SettingsCenter } from './components/SettingsCenter';
+import { getStoredSettings } from './utils/settingsHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 
 // Master Types
@@ -782,10 +783,10 @@ export default function App() {
       <div class="logo-container">
         ${LOGO_SVG_STRING}
       </div>
-      <h1>JR FARM COOPERATIVE ESTATE</h1>
-      <p>Sovereign Agricultural Compliance &bull; GlobalGAP Registered Plot No. KT-205A</p>
+      <h1>${getStoredSettings()?.estateName || "JR FARM COOPERATIVE ESTATE"}</h1>
+      <p>Sovereign Agricultural Compliance &bull; GlobalGAP Registered Plot No. ${getStoredSettings()?.locationCode || "KT-205A"}</p>
       <div class="meta-line">
-        <span>Authorized Comptroller: Dr. Devin Omwenga</span> &bull; <span>Generated: ${new Date().toLocaleString()}</span>
+        <span>Authorized Comptroller: ${getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> &bull; <span>Generated: ${new Date().toLocaleString()}</span>
       </div>
     </div>
 
@@ -816,7 +817,7 @@ export default function App() {
       </div>
       <div class="sign-box">
         <div style="height: 40px;"></div>
-        <div class="sign-line">Dr. Devin Omwenga (Overall Farm Manager)</div>
+        <div class="sign-line">${getStoredSettings()?.administrator || "Dr. Devin Omwenga"} (Overall Farm Manager)</div>
         <div style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sovereign Superintendent Sig</div>
       </div>
     </div>
@@ -1927,12 +1928,12 @@ export default function App() {
             className="w-16 h-16 mb-2 overflow-hidden opacity-95" 
             dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
           />
-          <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
+          <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">{getStoredSettings()?.estateName || "JR FARM COOPERATIVE ESTATE"}</h1>
           <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
-            Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
+            Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
           </p>
           <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-            <span>Authorized Comptroller: Dr. Devin Omwenga</span> • <span>Generated: {new Date().toLocaleString()}</span>
+            <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
           </div>
         </div>
 
@@ -2499,7 +2500,7 @@ export default function App() {
           </div>
           <div className="border-t border-slate-400 pt-3 text-center space-y-1">
             <div className="h-10"></div>
-            <span className="font-mono font-bold block text-slate-800 font-bold">Dr. Devin Omwenga (Overall Farm Manager)</span>
+            <span className="font-mono font-bold block text-slate-800">{getStoredSettings()?.administrator || "Dr. Devin Omwenga"} (Overall Farm Manager)</span>
             <span className="text-[10px] text-slate-450 block uppercase">Sovereign Superintendent Sig</span>
           </div>
         </div>
@@ -2522,9 +2523,9 @@ export default function App() {
               dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
             />
           </div>
-          <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">JR FARM OMNI-ESTATE</h1>
-          <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1">
-            Manager: Dr. Devin Omwenga
+          <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">{getStoredSettings()?.estateName || "JR FARM OMNI-ESTATE"}</h1>
+          <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1 font-mono">
+            Manager: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}
           </p>
         </div>
 
@@ -2631,8 +2632,8 @@ export default function App() {
                     dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
                   />
                   <div>
-                    <h1 className="text-base font-black text-white italic tracking-tighter leading-none">JR FARM</h1>
-                    <p className="text-[9px] text-green-400 font-bold uppercase mt-1 leading-none">Dr. Devin Omwenga</p>
+                    <h1 className="text-base font-black text-white italic tracking-tighter leading-none">{getStoredSettings()?.estateName ? getStoredSettings().estateName.split(" ")[0] : "JR FARM"}</h1>
+                    <p className="text-[9px] text-green-400 font-bold uppercase mt-1 leading-none">{getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</p>
                   </div>
                 </div>
                 <button
@@ -3011,12 +3012,12 @@ export default function App() {
                     className="w-16 h-16 mb-2 overflow-hidden opacity-95" 
                     dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
                   />
-                  <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">JR FARM COOPERATIVE ESTATE</h1>
+                  <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">{getStoredSettings()?.estateName || "JR FARM COOPERATIVE ESTATE"}</h1>
                   <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
-                    Sovereign Agricultural compliance. GlobalGAP Registered Plot No. KT-205A
+                    Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
                   </p>
                   <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-                    <span>Authorized Comptroller: Dr. Devin Omwenga</span> • <span>Generated: {new Date().toLocaleString()}</span>
+                    <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -3583,7 +3584,7 @@ export default function App() {
                   </div>
                   <div className="border-t border-slate-400 pt-3 text-center space-y-1">
                     <div className="h-10"></div>
-                    <span className="font-mono font-bold block">Dr. Devin Omwenga (Overall Farm Manager)</span>
+                    <span className="font-mono font-bold block">{getStoredSettings()?.administrator || "Dr. Devin Omwenga"} (Overall Farm Manager)</span>
                     <span className="text-[10px] text-slate-450 block uppercase">Sovereign Superintendent Sig</span>
                   </div>
                 </div>

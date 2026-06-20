@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Bot, X, Send, MessagesSquare, ChevronDown, RefreshCw } from 'lucide-react';
+import { getStoredSettings } from '../utils/settingsHelper';
 
 interface AiAdvisorProps {
   farmState: {
@@ -18,13 +19,23 @@ interface ChatMessage {
 }
 
 export function AiAdvisor({ farmState }: AiAdvisorProps) {
+  const settings = getStoredSettings();
+  const managerName = settings?.administrator || "Dr. Devin Omwenga";
+  const farmName = settings?.estateName || "JR Farm";
+  const locCode = settings?.locationCode || "KT-205A";
+
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'model',
-      text: "Greetings of peace! I am Dr. Omwenga's Sovereign AI Advisor. I have synchronized with JR Farm's live telemetry feed. How can I assist you with agronomy crop diagnostics, dairy yield genetic boosters, or Gumboro poultry scheduling today?"
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  useEffect(() => {
+    setMessages([
+      {
+        role: 'model',
+        text: `Greetings of peace! I am ${managerName}'s Sovereign AI Advisor. I have synchronized with ${farmName}'s live telemetry feed. How can I assist you with agronomy crop diagnostics, dairy yield genetic boosters, or Gumboro poultry scheduling today?`
+      }
+    ]);
+  }, [managerName, farmName]);
+
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -58,7 +69,8 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
         body: JSON.stringify({
           message: query,
           history: messages.slice(-10), // Send last 10 messages for context
-          farmState: farmState
+          farmState: farmState,
+          settings: settings
         })
       });
 
@@ -70,10 +82,10 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
       setMessages(prev => [...prev, { role: 'model', text: data.text || "No response received." }]);
     } catch (err: any) {
       console.error("AI Error:", err);
-      // Beautiful offline simulation backup
+      // Beautiful offline simulation backup based on current settings config
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: `⚠️ Offline Diagnostic fallback:\nBased on JR Farm plot KT-205A guidelines, ensure soil PH remains 5.8-6.4.\n\n(To activate real Gemini AI, make sure process.env.GEMINI_API_KEY is configured under Settings > Secrets).`
+        text: `⚠️ Offline Diagnostic fallback:\nBased on ${farmName} plot ${locCode} guidelines managed by ${managerName}, ensure soil PH remains 5.8-6.4.\n\n(To activate real Gemini AI, make sure process.env.GEMINI_API_KEY is configured under Settings > Secrets).`
       }]);
     } finally {
       setIsLoading(false);
@@ -110,7 +122,7 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
               </div>
               <div>
                 <h4 className="text-xs font-black text-white uppercase tracking-wide">Sovereign Expert Copilot</h4>
-                <p className="text-[9px] text-emerald-300 font-bold uppercase tracking-widest mt-0.5">Dr. Omwenga's Expert Suite</p>
+                <p className="text-[9px] text-emerald-300 font-bold uppercase tracking-widest mt-0.5">{managerName}'s Expert Suite</p>
               </div>
             </div>
             <button
