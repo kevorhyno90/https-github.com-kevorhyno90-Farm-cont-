@@ -24,6 +24,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
   const [teaRef, setTeaRef] = useState('');
   const [teaPrice, setTeaPrice] = useState<number | ''>(58); // default base rate Ksh
   const [teaBuyer, setTeaBuyer] = useState('Chinga KTDA Factory'); // default buyer
+  const [teaDate, setTeaDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Edit States
   const [editingTea, setEditingTea] = useState<TeaRecord | null>(null);
@@ -38,6 +39,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
   const [priceGradeB, setPriceGradeB] = useState<number | ''>(850);  // per box
   const [priceReject, setPriceReject] = useState<number | ''>(38);   // per KG
   const [avoBuyer, setAvoBuyer] = useState('Kakuzi Agribusiness Exporters');
+  const [avoDate, setAvoDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleTeaSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,13 +50,14 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
     onAddTea({
       qty: qtyVal,
       ref: teaRef.trim(),
-      date: new Date().toISOString().split('T')[0],
+      date: teaDate,
       pricePerKg: prVal,
       buyer: buyVal,
       totalSales: qtyVal * prVal
     });
     setTeaQty('');
     setTeaRef('');
+    setTeaDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleAvoSubmit = (e: React.FormEvent) => {
@@ -73,7 +76,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
       gradeB: gb,
       reject: rj,
       ref: avoRef.trim(),
-      date: new Date().toISOString().split('T')[0],
+      date: avoDate,
       priceGradeA: pA,
       priceGradeB: pB,
       priceReject: pR,
@@ -84,6 +87,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
     setGradeB('');
     setRejectKg('');
     setAvoRef('');
+    setAvoDate(new Date().toISOString().split('T')[0]);
   };
 
   // Compute total aggregates for Horticulture
@@ -202,6 +206,16 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                 onChange={(e) => setTeaBuyer(e.target.value)}
                 placeholder="E.g. Chinga KTDA Factory"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold text-slate-800"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Harvest Logging Date</label>
+              <input
+                type="date"
+                required
+                value={teaDate}
+                onChange={(e) => setTeaDate(e.target.value)}
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer bg-white"
               />
             </div>
             <button
@@ -390,6 +404,16 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                 onChange={(e) => setAvoBuyer(e.target.value)}
                 placeholder="E.g. Kakuzi Exporters"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Export Logging Date</label>
+              <input
+                type="date"
+                required
+                value={avoDate}
+                onChange={(e) => setAvoDate(e.target.value)}
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer bg-white"
               />
             </div>
             <button

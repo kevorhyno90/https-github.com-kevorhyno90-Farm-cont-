@@ -19,16 +19,17 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
   const [chemical, setChemical] = useState('');
   const [phi, setPhi] = useState<number | ''>('');
   const [target, setTarget] = useState('');
+  const [sprayDate, setSprayDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Editing state
   const [editingSpray, setEditingSpray] = useState<SprayRecord | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!block.trim() || !chemical.trim() || phi === '' || !target.trim()) return;
+    if (!block.trim() || !chemical.trim() || phi === '' || !target.trim() || !sprayDate) return;
 
-    const todayObj = new Date();
-    const safeDateObj = new Date(todayObj);
+    const baseDate = new Date(sprayDate);
+    const safeDateObj = new Date(baseDate);
     safeDateObj.setDate(safeDateObj.getDate() + Number(phi));
 
     onAddSpray({
@@ -37,7 +38,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
       chemical: chemical.trim(),
       phi: Number(phi),
       target: target.trim(),
-      date: todayObj.toISOString().split('T')[0],
+      date: sprayDate,
       safeDate: safeDateObj.toISOString().split('T')[0]
     });
 
@@ -45,6 +46,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
     setChemical('');
     setPhi('');
     setTarget('');
+    setSprayDate(new Date().toISOString().split('T')[0]);
   };
 
   const getQuarantineStatus = (safeDateStr: string) => {
@@ -123,6 +125,17 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 onChange={(e) => setChemical(e.target.value)}
                 placeholder="E.g. Copper Oxychloride"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Sprayed Execution Date</label>
+              <input
+                type="date"
+                required
+                value={sprayDate}
+                onChange={(e) => setSprayDate(e.target.value)}
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
               />
             </div>
 

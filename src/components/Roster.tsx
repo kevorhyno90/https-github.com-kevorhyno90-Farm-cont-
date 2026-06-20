@@ -46,8 +46,8 @@ export function Roster({
   // New off/leave scheduler form states
   const [offStaffId, setOffStaffId] = useState('');
   const [offType, setOffType] = useState<'Day Off' | 'Annual Leave' | 'Sick Leave' | 'Compassionate Leave'>('Day Off');
-  const [offStart, setOffStart] = useState('');
-  const [offEnd, setOffEnd] = useState('');
+  const [offStart, setOffStart] = useState(new Date().toISOString().split('T')[0]);
+  const [offEnd, setOffEnd] = useState(new Date().toISOString().split('T')[0]);
   const [offNotes, setOffNotes] = useState('');
   const [offStatus, setOffStatus] = useState<'Approved' | 'Pending' | 'Completed'>('Approved');
   const [showOffForm, setShowOffForm] = useState(false);
@@ -95,8 +95,8 @@ export function Roster({
       status: offStatus
     });
 
-    setOffStart('');
-    setOffEnd('');
+    setOffStart(new Date().toISOString().split('T')[0]);
+    setOffEnd(new Date().toISOString().split('T')[0]);
     setOffNotes('');
     setShowOffForm(false);
   };

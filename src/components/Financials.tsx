@@ -20,6 +20,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
   const [incAmt, setIncAmt] = useState<number | ''>('');
   const [incSrc, setIncSrc] = useState('');
   const [incDesc, setIncDesc] = useState('');
+  const [incDate, setIncDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Editing state
   const [editingFinancial, setEditingFinancial] = useState<FinancialRecord | null>(null);
@@ -28,6 +29,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
   const [expAmt, setExpAmt] = useState<number | ''>('');
   const [expSrc, setExpSrc] = useState('');
   const [expDesc, setExpDesc] = useState('');
+  const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Search/Filter state
   const [term, setTerm] = useState('');
@@ -42,11 +44,12 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
       amount: Number(incAmt),
       category: incSrc.trim(),
       description: incDesc.trim() || 'No description set',
-      date: new Date().toISOString().split('T')[0]
+      date: incDate
     });
     setIncAmt('');
     setIncSrc('');
     setIncDesc('');
+    setIncDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleExpenseSubmit = (e: React.FormEvent) => {
@@ -58,11 +61,12 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
       amount: Number(expAmt),
       category: expSrc.trim(),
       description: expDesc.trim() || 'No description set',
-      date: new Date().toISOString().split('T')[0]
+      date: expDate
     });
     setExpAmt('');
     setExpSrc('');
     setExpDesc('');
+    setExpDate(new Date().toISOString().split('T')[0]);
   };
 
   // Calculations
@@ -164,7 +168,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                 className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-emerald-700/10"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Source / Category</label>
                 <select
@@ -191,6 +195,16 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                   onChange={(e) => setIncDesc(e.target.value)}
                   placeholder="E.g. Rec ref #33989"
                   className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-medium bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Transaction Date</label>
+                <input
+                  type="date"
+                  required
+                  value={incDate}
+                  onChange={(e) => setIncDate(e.target.value)}
+                  className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer"
                 />
               </div>
             </div>
@@ -223,7 +237,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                 className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-rose-700/10"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Expense Category</label>
                 <select
@@ -250,6 +264,16 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                   onChange={(e) => setExpDesc(e.target.value)}
                   placeholder="E.g. Payee Victor advance wages"
                   className="text-xs border border-rose-200 rounded-lg p-3 w-full font-medium bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Transaction Date</label>
+                <input
+                  type="date"
+                  required
+                  value={expDate}
+                  onChange={(e) => setExpDate(e.target.value)}
+                  className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer"
                 />
               </div>
             </div>

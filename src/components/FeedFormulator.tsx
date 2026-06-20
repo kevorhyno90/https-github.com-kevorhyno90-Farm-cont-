@@ -55,14 +55,21 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
   const [libMe, setLibMe] = useState<number | ''>('');
   const [libCost, setLibCost] = useState<number | ''>('');
 
-  // Active batch ingredients formulation
-  const [batchItems, setBatchItems] = useState<{ id: string; name: string; amount: number }[]>([
-    { id: 'b-1', name: 'Maize Germ', amount: 50 },
-    { id: 'b-2', name: 'Wheat Pollard', amount: 25 },
-    { id: 'b-3', name: 'Cotton Seed Cake', amount: 15 },
-    { id: 'b-4', name: 'Soya Bean Meal', amount: 8 },
-    { id: 'b-5', name: 'DCP / Mineral Premix', amount: 2 }
-  ]);
+  // Active batch ingredients formulation with localStorage persistence
+  const [batchItems, setBatchItems] = useState<{ id: string; name: string; amount: number }[]>(() => {
+    const saved = localStorage.getItem('jr_farm_feed_formulator_batch');
+    return saved ? JSON.parse(saved) : [
+      { id: 'b-1', name: 'Maize Germ', amount: 50 },
+      { id: 'b-2', name: 'Wheat Pollard', amount: 25 },
+      { id: 'b-3', name: 'Cotton Seed Cake', amount: 15 },
+      { id: 'b-4', name: 'Soya Bean Meal', amount: 8 },
+      { id: 'b-5', name: 'DCP / Mineral Premix', amount: 2 }
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('jr_farm_feed_formulator_batch', JSON.stringify(batchItems));
+  }, [batchItems]);
 
   const handleAddLabIngredient = (e: React.FormEvent) => {
     e.preventDefault();

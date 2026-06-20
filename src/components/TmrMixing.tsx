@@ -20,10 +20,17 @@ export function TmrMixing() {
   const [loadedStep3, setLoadedStep3] = useState(false);
   const [loadedStep4, setLoadedStep4] = useState(false);
 
-  // Mix logs state
-  const [mixLogs, setMixLogs] = useState<{ id: string; date: string; cows: number; totalKg: number; moisture: number }[]>([
-    { id: 'tmr-1', date: new Date().toISOString().split('T')[0], cows: 12, totalKg: 504, moisture: 65 }
-  ]);
+  // Mix logs state with localStorage persistence
+  const [mixLogs, setMixLogs] = useState<{ id: string; date: string; cows: number; totalKg: number; moisture: number }[]>(() => {
+    const saved = localStorage.getItem('jr_farm_tmr_mix_logs');
+    return saved ? JSON.parse(saved) : [
+      { id: 'tmr-1', date: new Date().toISOString().split('T')[0], cows: 12, totalKg: 504, moisture: 65 }
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
+  }, [mixLogs]);
 
   // Math with moisture tuning (Sorghum is scaled to maintain constant Dry Matter intake)
   // Standard DM = 35% (corresponding to 65% moisture).

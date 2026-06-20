@@ -109,7 +109,7 @@ export function DairyBreeding({
 
   // AI record states
   const [aiCowId, setAiCowId] = useState('');
-  const [aiDate, setAiDate] = useState('');
+  const [aiDate, setAiDate] = useState(new Date().toISOString().split('T')[0]);
   const [aiBull, setAiBull] = useState('');
 
   // Cow Identity form states
@@ -206,7 +206,7 @@ export function DairyBreeding({
     });
 
     setAiCowId('');
-    setAiDate('');
+    setAiDate(new Date().toISOString().split('T')[0]);
     setAiBull('');
   };
 
