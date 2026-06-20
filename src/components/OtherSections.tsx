@@ -42,7 +42,11 @@ import {
   BadgePercent,
   TrendingUp as IconTrendingUp,
   PenSquare,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Skull,
+  Search,
+  DollarSign,
+  Users
 } from 'lucide-react';
 
 interface OtherSectionsProps {
@@ -89,6 +93,8 @@ interface OtherSectionsProps {
   onEditBsfRecord?: (id: string, updated: BsfRecord) => void;
   onEditCropOp?: (id: string, updated: CropOpRecord) => void;
   onEditCropSale?: (id: string, updated: CropSaleRecord) => void;
+  vetRecords?: any[];
+  aiRecords?: any[];
 }
 
 export function OtherSections({
@@ -133,10 +139,12 @@ export function OtherSections({
   onEditCalfRecord,
   onEditBsfRecord,
   onEditCropOp,
-  onEditCropSale
+  onEditCropSale,
+  vetRecords = [],
+  aiRecords = []
 }: OtherSectionsProps) {
   // Toggle for livestock sub segments
-  const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf'>('poultry_dogs');
+  const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality'>('poultry_dogs');
   const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'crop_ops' | 'sales'>('blocks');
 
   // Edit State Variables
@@ -305,13 +313,23 @@ export function OtherSections({
   const [fAcres, setFAcres] = useState<number | ''>('');
   const [fStatus, setFStatus] = useState('Growing');
   const [fNotes, setFNotes] = useState('');
+  const [fSoilPh, setFSoilPh] = useState<number | ''>('');
+  const [fLastFert, setFLastFert] = useState('');
+  const [fProjectedHarvest, setFProjectedHarvest] = useState('');
+  const [fIrrigation, setFIrrigation] = useState<FieldRecord['irrigationMethod']>('Rainfed');
+  const [fDatePlanted, setFDatePlanted] = useState('');
+  const [fDateLogged, setFDateLogged] = useState(new Date().toISOString().split('T')[0]);
 
   // Crop Operations Form
   const [coCrop, setCoCrop] = useState<CropOpRecord['crop']>('Tea');
   const [coOperationName, setCoOperationName] = useState('');
-  const [coDate, setCoDate] = useState('');
+  const [coDate, setCoDate] = useState(new Date().toISOString().split('T')[0]);
   const [coNotes, setCoNotes] = useState('');
   const [coStaff, setCoStaff] = useState(staffList[0]?.name || 'Charles');
+  const [coInputsUsed, setCoInputsUsed] = useState('');
+  const [coInputQuantityUsed, setCoInputQuantityUsed] = useState('');
+  const [coEquipmentUsed, setCoEquipmentUsed] = useState('');
+  const [coOperationCost, setCoOperationCost] = useState<number | ''>('');
 
   // Livestock/Poultry & Dogs Form
   const [lsType, setLsType] = useState<'Poultry' | 'Dogs'>('Poultry');
@@ -319,6 +337,7 @@ export function OtherSections({
   const [lsCount, setLsCount] = useState('');
   const [lsActivity, setLsActivity] = useState('');
   const [lsNotes, setLsNotes] = useState('');
+  const [lsDate, setLsDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Goat Form
   const [gtTag, setGtTag] = useState('');
@@ -327,15 +346,19 @@ export function OtherSections({
   const [gtMilk, setGtMilk] = useState<number | ''>('');
   const [gtActivity, setGtActivity] = useState('');
   const [gtNotes, setGtNotes] = useState('');
+  const [gtDate, setGtDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Calf Form
   const [cfId, setCfId] = useState('');
+  const [cfName, setCfName] = useState('');
+  const [cfSex, setCfSex] = useState<'Male' | 'Female'>('Female');
   const [cfDam, setCfDam] = useState('');
   const [cfDob, setCfDob] = useState('');
   const [cfMilk, setCfMilk] = useState<number | ''>(4);
   const [cfCreepDate, setCfCreepDate] = useState('');
   const [cfWeaned, setCfWeaned] = useState(false);
   const [cfNotes, setCfNotes] = useState('');
+  const [cfDate, setCfDate] = useState(new Date().toISOString().split('T')[0]);
 
   // BSF Form
   const [bsBatchId, setBsBatchId] = useState('');
@@ -344,6 +367,7 @@ export function OtherSections({
   const [bsLarvae, setBsLarvae] = useState<number | ''>(0);
   const [bsStatus, setBsStatus] = useState<BsfRecord['status']>('Inoculation');
   const [bsNotes, setBsNotes] = useState('');
+  const [bsDate, setBsDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Inventory Form
   const [invName, setInvName] = useState('');
@@ -351,6 +375,29 @@ export function OtherSections({
   const [invQty, setInvQty] = useState<number | ''>('');
   const [invUnit, setInvUnit] = useState('bags');
   const [invMin, setInvMin] = useState<number | ''>('');
+  const [invDateReceived, setInvDateReceived] = useState(new Date().toISOString().split('T')[0]);
+  const [invLocation, setInvLocation] = useState('');
+  const [invExpiryDate, setInvExpiryDate] = useState('');
+
+  // Animal Sales Form
+  const [asCategory, setAsCategory] = useState<'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other'>('Poultry');
+  const [asAnimalIdOrBatch, setAsAnimalIdOrBatch] = useState('');
+  const [asQty, setAsQty] = useState<number | ''>(1);
+  const [asPrice, setAsPrice] = useState<number | ''>('');
+  const [asBuyer, setAsBuyer] = useState('');
+  const [asRef, setAsRef] = useState('');
+  const [asDate, setAsDate] = useState(new Date().toISOString().split('T')[0]);
+  const [asWeightKg, setAsWeightKg] = useState<number | ''>('');
+  const [asNotes, setAsNotes] = useState('');
+
+  // Mortality Form
+  const [mCategory, setMCategory] = useState<'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other'>('Poultry');
+  const [mAnimalIdOrBatch, setMAnimalIdOrBatch] = useState('');
+  const [mCount, setMCount] = useState<number | ''>(1);
+  const [mDate, setMDate] = useState(new Date().toISOString().split('T')[0]);
+  const [mCauseOfDeath, setMCauseOfDeath] = useState('');
+  const [mVetConfirmed, setMVetConfirmed] = useState(false);
+  const [mNotes, setMNotes] = useState('');
 
   // Handlers
   const handleFieldSubmit = (e: React.FormEvent) => {
@@ -363,12 +410,23 @@ export function OtherSections({
       acreage: Number(fAcres),
       status: fStatus,
       notes: fNotes.trim() || 'No active notes',
-      date: new Date().toISOString().split('T')[0]
+      date: fDateLogged,
+      soilPh: fSoilPh === '' ? undefined : Number(fSoilPh),
+      lastFertilizerDate: fLastFert || undefined,
+      projectedHarvestVolume: fProjectedHarvest.trim() || undefined,
+      irrigationMethod: fIrrigation,
+      datePlanted: fDatePlanted || undefined
     });
     setFBlock('');
     setFCrop('');
     setFAcres('');
     setFNotes('');
+    setFSoilPh('');
+    setFLastFert('');
+    setFProjectedHarvest('');
+    setFIrrigation('Rainfed');
+    setFDatePlanted('');
+    setFDateLogged(new Date().toISOString().split('T')[0]);
     setShowAddForm(false);
   };
 
@@ -404,11 +462,19 @@ export function OtherSections({
       date: coDate,
       status: 'Pending',
       completedBy: coStaff,
-      notes: coNotes.trim() || 'Scheduled task'
+      notes: coNotes.trim() || 'Scheduled task',
+      inputsUsed: coInputsUsed.trim() || undefined,
+      inputQuantityUsed: coInputQuantityUsed.trim() || undefined,
+      equipmentUsed: coEquipmentUsed.trim() || undefined,
+      operationCost: coOperationCost === '' ? undefined : Number(coOperationCost)
     });
     setCoOperationName('');
-    setCoDate('');
+    setCoDate(new Date().toISOString().split('T')[0]);
     setCoNotes('');
+    setCoInputsUsed('');
+    setCoInputQuantityUsed('');
+    setCoEquipmentUsed('');
+    setCoOperationCost('');
     setShowAddForm(false);
   };
 
@@ -422,12 +488,13 @@ export function OtherSections({
       countOrBreed: lsCount.trim(),
       activity: lsActivity.trim(),
       notes: lsNotes.trim() || 'General healthy record',
-      date: new Date().toISOString().split('T')[0]
+      date: lsDate || new Date().toISOString().split('T')[0]
     });
     setLsName('');
     setLsCount('');
     setLsActivity('');
     setLsNotes('');
+    setLsDate(new Date().toISOString().split('T')[0]);
     setShowAddForm(false);
   };
 
@@ -442,12 +509,13 @@ export function OtherSections({
       milkYieldLiters: gtPurpose === 'Dairy' ? (gtMilk === '' ? 0 : Number(gtMilk)) : undefined,
       activity: gtActivity.trim(),
       notes: gtNotes.trim() || 'Active browse feeder',
-      date: new Date().toISOString().split('T')[0]
+      date: gtDate || new Date().toISOString().split('T')[0]
     });
     setGtTag('');
     setGtMilk('');
     setGtActivity('');
     setGtNotes('');
+    setGtDate(new Date().toISOString().split('T')[0]);
     setShowAddForm(false);
   };
 
@@ -463,15 +531,20 @@ export function OtherSections({
       creepFeedIntroDate: cfCreepDate || undefined,
       weaned: cfWeaned,
       notes: cfNotes.trim() || 'Healthy calf growth progress',
-      date: new Date().toISOString().split('T')[0]
+      date: cfDate || new Date().toISOString().split('T')[0],
+      calfName: cfName.trim() || undefined,
+      sex: cfSex
     });
     setCfId('');
+    setCfName('');
+    setCfSex('Female');
     setCfDam('');
     setCfDob('');
     setCfMilk(4);
     setCfCreepDate('');
     setCfWeaned(false);
     setCfNotes('');
+    setCfDate(new Date().toISOString().split('T')[0]);
     setShowAddForm(false);
   };
 
@@ -486,13 +559,14 @@ export function OtherSections({
       larvaeHarvestedKg: bsLarvae === '' ? 0 : Number(bsLarvae),
       status: bsStatus,
       notes: bsNotes.trim() || 'Active decomposition cycle',
-      date: new Date().toISOString().split('T')[0]
+      date: bsDate || new Date().toISOString().split('T')[0]
     });
     setBsBatchId('');
     setBsSubstrate('');
     setBsInoculation('');
     setBsLarvae('');
     setBsNotes('');
+    setBsDate(new Date().toISOString().split('T')[0]);
     setShowAddForm(false);
   };
 
@@ -505,12 +579,66 @@ export function OtherSections({
       category: invCat,
       quantity: Number(invQty),
       unit: invUnit.trim(),
-      minStock: Number(invMin)
+      minStock: Number(invMin),
+      dateReceived: invDateReceived || undefined,
+      location: invLocation.trim() || undefined,
+      expiryDate: invExpiryDate || undefined
     });
     setInvName('');
     setInvQty('');
     setInvUnit('bags');
     setInvMin('');
+    setInvDateReceived(new Date().toISOString().split('T')[0]);
+    setInvLocation('');
+    setInvExpiryDate('');
+    setShowAddForm(false);
+  };
+
+  const handleAnimalSaleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!asAnimalIdOrBatch.trim() || asQty === '' || asPrice === '') return;
+    onAddAnimalSale({
+      id: `sale-${Date.now()}`,
+      category: asCategory,
+      animalIdOrBatch: asAnimalIdOrBatch.trim(),
+      qty: Number(asQty),
+      price: Number(asPrice),
+      buyer: asBuyer.trim() || 'General Local Buyer',
+      ref: asRef.trim() || `SL-${Date.now().toString().slice(-4)}`,
+      date: asDate,
+      weightKg: asWeightKg === '' ? undefined : Number(asWeightKg),
+      notes: asNotes.trim() || 'Livestock sales ledger transaction'
+    });
+    setAsAnimalIdOrBatch('');
+    setAsQty(1);
+    setAsPrice('');
+    setAsBuyer('');
+    setAsRef('');
+    setAsDate(new Date().toISOString().split('T')[0]);
+    setAsWeightKg('');
+    setAsNotes('');
+    setShowAddForm(false);
+  };
+
+  const handleMortalitySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mAnimalIdOrBatch.trim() || mCount === '' || !mCauseOfDeath.trim()) return;
+    onAddMortality({
+      id: `mort-${Date.now()}`,
+      category: mCategory,
+      animalIdOrBatch: mAnimalIdOrBatch.trim(),
+      count: Number(mCount),
+      date: mDate,
+      causeOfDeath: mCauseOfDeath.trim(),
+      veterinaryConfirmed: mVetConfirmed,
+      notes: mNotes.trim() || 'No additional mortality observations logged.'
+    });
+    setMAnimalIdOrBatch('');
+    setMCount(1);
+    setMDate(new Date().toISOString().split('T')[0]);
+    setMCauseOfDeath('');
+    setMVetConfirmed(false);
+    setMNotes('');
     setShowAddForm(false);
   };
 
@@ -587,68 +715,157 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleFieldSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block / Section Name</label>
-                      <input
-                        type="text"
-                        required
-                        value={fBlock}
-                        onChange={(e) => setFBlock(e.target.value)}
-                        placeholder="E.g. Valley pasture E-2"
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Crop / Pasture Species</label>
-                      <input
-                        type="text"
-                        required
-                        value={fCrop}
-                        onChange={(e) => setFCrop(e.target.value)}
-                        placeholder="E.g. Rhodes Grass"
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Acreage (Acres)</label>
-                      <input
-                        type="number"
-                        required
-                        min="0.1"
-                        step="0.1"
-                        value={fAcres}
-                        onChange={(e) => setFAcres(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                        placeholder="Area size"
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Agronomy Status</label>
-                      <select
-                        value={fStatus}
-                        onChange={(e) => setFStatus(e.target.value)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-medium text-slate-705 cursor-pointer text-slate-600"
-                      >
-                        <option value="Prepared">Coarse Prepared</option>
-                        <option value="Sown">Sown / Planted</option>
-                        <option value="Growing">Vegetative Growing</option>
-                        <option value="Harvested">Culled / harvested</option>
-                      </select>
-                    </div>
-                    <div className="col-span-1 md:col-span-2 lg:col-span-4">
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Observation Log Details</label>
-                      <input
-                        type="text"
-                        value={fNotes}
-                        onChange={(e) => setFNotes(e.target.value)}
-                        placeholder="E.g. Superb leaf ratio, rain-fed responding..."
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
-                      />
+                <form onSubmit={handleFieldSubmit} className="bg-white p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h5 className="text-xs font-black text-emerald-900 uppercase">Register New Crop/Pasture Block</h5>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Define core agronomic properties and environmental variables</p>
+                  </div>
+
+                  {/* Section A: Core Metrics */}
+                  <div className="space-y-2">
+                    <h6 className="text-[9px] font-black tracking-wider text-slate-400 uppercase">1. Block Identity & Crop Speciation</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block / Section Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={fBlock}
+                          onChange={(e) => setFBlock(e.target.value)}
+                          placeholder="E.g. Valley pasture E-2"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Crop / Pasture Species</label>
+                        <input
+                          type="text"
+                          required
+                          value={fCrop}
+                          onChange={(e) => setFCrop(e.target.value)}
+                          placeholder="E.g. Rhodes Grass"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Acreage (Acres)</label>
+                        <input
+                          type="number"
+                          required
+                          min="0.1"
+                          step="0.1"
+                          value={fAcres}
+                          onChange={(e) => setFAcres(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          placeholder="Area size"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Agronomy Status</label>
+                        <select
+                          value={fStatus}
+                          onChange={(e) => setFStatus(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-medium text-slate-705 cursor-pointer text-slate-600 font-bold"
+                        >
+                          <option value="Prepared">Coarse Prepared</option>
+                          <option value="Sown">Sown / Planted</option>
+                          <option value="Growing">Vegetative Growing</option>
+                          <option value="Harvested">Culled / Harvested</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2">
+
+                  {/* Section B: Agronomic Parameters */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <h6 className="text-[9px] font-black tracking-wider text-slate-400 uppercase">2. Agronomic & Soil Vitals</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Soil pH value</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="1"
+                          max="14"
+                          value={fSoilPh}
+                          onChange={(e) => setFSoilPh(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          placeholder="E.g. 6.5"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Last Fertilizer Application</label>
+                        <input
+                          type="date"
+                          value={fLastFert}
+                          onChange={(e) => setFLastFert(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Projected Yield Volume</label>
+                        <input
+                          type="text"
+                          value={fProjectedHarvest}
+                          onChange={(e) => setFProjectedHarvest(e.target.value)}
+                          placeholder="E.g. 150 Bales, 2.5 Tons"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Irrigation Rig System</label>
+                        <select
+                          value={fIrrigation}
+                          onChange={(e) => setFIrrigation(e.target.value as any)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold text-slate-705 cursor-pointer"
+                        >
+                          <option value="Rainfed">Rain-Fed Only</option>
+                          <option value="Drip">Drip Irrigation</option>
+                          <option value="Overhead">Overhead Pivot/Sprinkler</option>
+                          <option value="Manual">Manual Hand Watering</option>
+                          <option value="None">None</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section C: Timeline Backdating */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <h6 className="text-[9px] font-black tracking-wider text-slate-400 uppercase">3. Timeline Settings & Backdating</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-indigo-755 uppercase block mb-1">Date Seed Sown / Planted</label>
+                        <input
+                          type="date"
+                          value={fDatePlanted}
+                          onChange={(e) => setFDatePlanted(e.target.value)}
+                          className="text-xs border border-indigo-205 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Record Registry Date (Historical log support)</label>
+                        <input
+                          type="date"
+                          value={fDateLogged}
+                          onChange={(e) => setFDateLogged(e.target.value)}
+                          className="text-xs border border-amber-205 bg-amber-50/10 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Observation Log Details</label>
+                    <textarea
+                      value={fNotes}
+                      onChange={(e) => setFNotes(e.target.value)}
+                      placeholder="E.g. Superb leaf ratio, rain-fed responding..."
+                      rows={2}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
@@ -656,8 +873,8 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 text-white font-black text-xs uppercase rounded-lg m-0">
-                      Commit Plot
+                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 hover:bg-emerald-900 transition-all text-white font-black text-xs uppercase rounded-lg m-0 shadow">
+                      Commit Plot Record
                     </button>
                   </div>
                 </form>
@@ -707,6 +924,30 @@ export function OtherSections({
                         <span className="font-semibold font-mono text-slate-405">{fld.date}</span>
                       </div>
                     </div>
+
+                    {/* New Agronomic Highlights */}
+                    {(fld.soilPh !== undefined || fld.lastFertilizerDate || fld.projectedHarvestVolume || fld.irrigationMethod || fld.datePlanted) && (
+                      <div className="p-2.5 bg-emerald-50/20 border border-emerald-100/60 rounded-xl space-y-1.5 text-[11px] font-bold text-slate-700 text-left">
+                        <div className="flex flex-wrap gap-x-3 gap-y-1">
+                          {fld.soilPh !== undefined && (
+                            <span className="text-emerald-900 block">
+                              🩸 Soil pH: <b className="font-mono bg-emerald-50 px-1 rounded">{fld.soilPh}</b>
+                            </span>
+                          )}
+                          {fld.irrigationMethod && (
+                            <span className="text-blue-900 block">
+                              💧 Irrigation: <b className="bg-blue-50 px-1 rounded">{fld.irrigationMethod}</b>
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-0.5 text-slate-500 font-semibold font-mono text-[10px]">
+                          {fld.datePlanted && <p>🌱 Sowing Date: {fld.datePlanted}</p>}
+                          {fld.lastFertilizerDate && <p>🪱 Fertilizer: {fld.lastFertilizerDate}</p>}
+                          {fld.projectedHarvestVolume && <p>🔮 Projected: <b className="text-slate-800 font-bold">{fld.projectedHarvestVolume}</b></p>}
+                        </div>
+                      </div>
+                    )}
+
                     <p className="border-t border-slate-50 pt-3 text-xs font-medium text-slate-500 italic">
                       "{fld.notes}"
                     </p>
@@ -780,7 +1021,7 @@ export function OtherSections({
                   </button>
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0"
+                    className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0 cursor-pointer"
                   >
                     <Plus size={14} /> Log Crop Operation
                   </button>
@@ -788,69 +1029,127 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleCropOpSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <h5 className="text-xs uppercase font-black tracking-widest text-teal-800 border-b border-slate-100 pb-2">Log Field Task</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Target Crop</label>
-                      <select
-                        value={coCrop}
-                        onChange={(e) => setCoCrop(e.target.value as any)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
-                      >
-                        <option value="Tea">Tea</option>
-                        <option value="Avocado">Avocado</option>
-                        <option value="Banana">Bananas</option>
-                        <option value="Vegetables">Vegetables (Kales/Tomato)</option>
-                        <option value="Sorghum">Sorghum</option>
-                        <option value="Maize">Maize (Seed/Corn)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Operation Title</label>
-                      <input
-                        type="text"
-                        required
-                        value={coOperationName}
-                        onChange={(e) => setCoOperationName(e.target.value)}
-                        placeholder="E.g. De-suckering secondary stems"
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Execution / Due Date</label>
-                      <input
-                        type="date"
-                        required
-                        value={coDate}
-                        onChange={(e) => setCoDate(e.target.value)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Execution Operator</label>
-                      <select
-                        value={coStaff}
-                        onChange={(e) => setCoStaff(e.target.value)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
-                      >
-                        {staffList.map(st => (
-                          <option key={st.id} value={st.name}>{st.name} ({st.unit})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-span-1 md:col-span-4">
-                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Agronomy details & instructions</label>
-                      <input
-                        type="text"
-                        value={coNotes}
-                        onChange={(e) => setCoNotes(e.target.value)}
-                        placeholder="E.g. Apply mulch around banana roots. Prop heavy stems with wooden forks."
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
-                      />
+                <form onSubmit={handleCropOpSubmit} className="bg-white p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-emerald-900">Task Scheduling & Crop Operations Register</h5>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Capture operational logistics, inputs, and cost centers</p>
+                  </div>
+
+                  {/* Section A: Core Task Info */}
+                  <div className="space-y-2">
+                    <h6 className="text-[9px] font-black tracking-wider text-slate-400 uppercase">1. Operational Parameters</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Target Crop</label>
+                        <select
+                          value={coCrop}
+                          onChange={(e) => setCoCrop(e.target.value as any)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                        >
+                          <option value="Tea">Tea</option>
+                          <option value="Avocado">Avocado</option>
+                          <option value="Banana">Bananas</option>
+                          <option value="Vegetables">Vegetables (Kales/Tomato)</option>
+                          <option value="Sorghum">Sorghum</option>
+                          <option value="Maize">Maize (Seed/Corn)</option>
+                          <option value="Beans">Beans 🫘</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Operation Title</label>
+                        <input
+                          type="text"
+                          required
+                          value={coOperationName}
+                          onChange={(e) => setCoOperationName(e.target.value)}
+                          placeholder="E.g. De-suckering secondary stems"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Logged / Schedule</label>
+                        <input
+                          type="date"
+                          required
+                          value={coDate}
+                          onChange={(e) => setCoDate(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Execution Operator</label>
+                        <select
+                          value={coStaff}
+                          onChange={(e) => setCoStaff(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                        >
+                          {staffList.map(st => (
+                            <option key={st.id} value={st.name}>{st.name} ({st.unit})</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 border-t pt-3">
+
+                  {/* Section B: Inputs & Costing */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <h6 className="text-[9px] font-black tracking-wider text-slate-400 uppercase">2. Resource Consumption & Material Inputs</h6>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Inputs Used / Sown</label>
+                        <input
+                          type="text"
+                          value={coInputsUsed}
+                          onChange={(e) => setCoInputsUsed(e.target.value)}
+                          placeholder="E.g. NPK 17:17:17, Bio-larvicide"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Input Quantity Consumed</label>
+                        <input
+                          type="text"
+                          value={coInputQuantityUsed}
+                          onChange={(e) => setCoInputQuantityUsed(e.target.value)}
+                          placeholder="E.g. 50 kg, 2.5 Litres"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Machinery / Equipment Used</label>
+                        <input
+                          type="text"
+                          value={coEquipmentUsed}
+                          onChange={(e) => setCoEquipmentUsed(e.target.value)}
+                          placeholder="E.g. Solo Spray Pump, Jembe, Tractor"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Operation Cost (Ksh)</label>
+                        <input
+                          type="number"
+                          value={coOperationCost}
+                          onChange={(e) => setCoOperationCost(e.target.value === '' ? '' : parseInt(e.target.value))}
+                          placeholder="E.g. 2500"
+                          className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Agronomy details & instructions</label>
+                    <textarea
+                      value={coNotes}
+                      onChange={(e) => setCoNotes(e.target.value)}
+                      placeholder="E.g. Apply mulch around banana roots. Prop heavy stems with wooden forks."
+                      rows={2}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
@@ -858,8 +1157,8 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 text-white font-black text-xs uppercase rounded-lg m-0">
-                      Commit Task
+                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 hover:bg-emerald-900 transition-all text-white font-black text-xs uppercase rounded-lg m-0 shadow">
+                      Commit Task Record
                     </button>
                   </div>
                 </form>
@@ -868,19 +1167,40 @@ export function OtherSections({
               {/* Grid of logged operations */}
               <div className="space-y-4">
                 {cropOps.map((op) => (
-                  <div key={op.id} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-200 transition-all">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-2">
+                  <div key={op.id} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-200 transition-all font-sans text-left">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-0.5 rounded-full uppercase">
                           {op.crop} Crop
                         </span>
                         <h6 className="font-extrabold text-sm text-[#0b251a] uppercase">{op.operationName}</h6>
                       </div>
+                      
                       <p className="text-xs text-slate-500 font-medium">Instructions & Diagnostics: <span className="font-semibold text-slate-700 italic">"{op.notes}"</span></p>
-                      <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400 font-mono">
-                        <span className="flex items-center gap-1"><User size={12} className="text-slate-405" /> Staff Assigned: {op.completedBy || 'Charles'}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1"><Calendar size={12} /> Scheduled Date: {op.date}</span>
+
+                      {/* Operations Expanded Parameters Metadata badge */}
+                      {(op.inputsUsed || op.equipmentUsed || op.operationCost !== undefined) && (
+                        <div className="p-2 bg-slate-50 border border-slate-100 rounded-xl space-y-1 text-[11px] font-bold text-slate-600">
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {op.inputsUsed && (
+                              <span>💊 Inputs: <b className="text-slate-800 font-black">{op.inputsUsed}</b> {op.inputQuantityUsed ? `(${op.inputQuantityUsed})` : ''}</span>
+                            )}
+                            {op.equipmentUsed && (
+                              <span>🛠️ Machine/Tools: <b className="text-slate-800 font-black">{op.equipmentUsed}</b></span>
+                            )}
+                          </div>
+                          {op.operationCost !== undefined && (
+                            <div className="text-red-700 text-[10px] font-mono tracking-wider font-extrabold uppercase pt-0.5 border-t border-slate-200/60 w-fit">
+                              💰 Cost Applied: Ksh {op.operationCost.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold text-slate-400 font-mono">
+                        <span className="flex items-center gap-1"><User size={11} className="text-slate-405" /> Caregiver Assigned: {op.completedBy || 'Charles'}</span>
+                        <span className="text-slate-200">•</span>
+                        <span className="flex items-center gap-1"><Calendar size={11} /> Scheduled Date: {op.date}</span>
                       </div>
                     </div>
 
@@ -1003,6 +1323,7 @@ export function OtherSections({
                         <option value="Sorghum">Sorghum 🌾</option>
                         <option value="Napier">Napier Grass 🌱</option>
                         <option value="Eucalyptus">Eucalyptus Logs 🌲</option>
+                        <option value="Beans">Beans 🫘</option>
                       </select>
                     </div>
 
@@ -1218,6 +1539,22 @@ export function OtherSections({
               >
                 BSF Protein
               </button>
+              <button
+                onClick={() => { setLivestockSubTab('operations'); setShowAddForm(false); }}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  livestockSubTab === 'operations' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                Animal Operations Log
+              </button>
+              <button
+                onClick={() => { setLivestockSubTab('sales_mortality'); setShowAddForm(false); }}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  livestockSubTab === 'sales_mortality' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                Sales & Mortality Ledger
+              </button>
             </div>
           </div>
 
@@ -1275,8 +1612,8 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleLivestockSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <form onSubmit={handleLivestockSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4 font-sans text-left">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Unit Type</label>
                       <select
@@ -1310,7 +1647,17 @@ export function OtherSections({
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                       />
                     </div>
-                    <div className="col-span-1 md:col-span-3">
+                    <div>
+                      <label className="text-[10px] font-black text-amber-800 uppercase block mb-1">Record Log Date (Historical)</label>
+                      <input
+                        type="date"
+                        required
+                        value={lsDate}
+                        onChange={(e) => setLsDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                      />
+                    </div>
+                    <div className="col-span-1 md:col-span-4">
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Logged Activity</label>
                       <input
                         type="text"
@@ -1321,7 +1668,7 @@ export function OtherSections({
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
                       />
                     </div>
-                    <div className="col-span-1 md:col-span-3">
+                    <div className="col-span-1 md:col-span-4">
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Additional Observations / Notes</label>
                       <input
                         type="text"
@@ -1332,7 +1679,7 @@ export function OtherSections({
                       />
                     </div>
                   </div>
-                  <div className="flex justify-end gap-2 text-right">
+                  <div className="flex justify-end gap-2 text-right border-t border-slate-100 pt-3">
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
@@ -1340,7 +1687,7 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-amber-900 text-white font-black text-xs uppercase rounded-lg m-0">
+                    <button type="submit" className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 text-white font-black text-xs uppercase rounded-lg m-0 shadow">
                       Save Activity
                     </button>
                   </div>
@@ -1411,7 +1758,7 @@ export function OtherSections({
                   </button>
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="bg-amber-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-900 flex items-center gap-1.5 m-0 font-sans font-bold"
+                    className="bg-amber-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-900 flex items-center gap-1.5 m-0 font-sans font-bold cursor-pointer"
                   >
                     <Plus size={14} /> Register Dairy Goat
                   </button>
@@ -1419,8 +1766,11 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleGoatSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <h5 className="text-xs uppercase font-black tracking-widest text-[#5d4037] border-b pb-2">Add Goat Record</h5>
+                <form onSubmit={handleGoatSubmit} className="bg-white p-6 rounded-3xl border border-amber-100 shadow-md space-y-4 font-sans text-left">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-amber-900">Add Goats Directory & Wellness Log</h5>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Integrate backdated indices and yield variables</p>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Tag ID / Collar Code</label>
@@ -1459,6 +1809,16 @@ export function OtherSections({
                         <option value="Meat">Meat / Breeding Sire</option>
                         <option value="Breeding">Rebreeding Doe</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-amber-800 uppercase block mb-1">Log Date (Historical)</label>
+                      <input
+                        type="date"
+                        required
+                        value={gtDate}
+                        onChange={(e) => setGtDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                      />
                     </div>
                     {gtPurpose === 'Dairy' && (
                       <div>
@@ -1503,8 +1863,8 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-amber-950 text-white font-black text-xs uppercase rounded-lg m-0 hover:bg-amber-900">
-                      Commit Goat Record
+                    <button type="submit" className="px-5 py-2.5 bg-amber-950 text-white font-black text-xs uppercase rounded-lg m-0 hover:bg-amber-900 shadow">
+                      Save Record
                     </button>
                   </div>
                 </form>
@@ -1594,8 +1954,11 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleCalfSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <h5 className="text-xs uppercase font-black tracking-widest text-[#2e7d32] border-b pb-2">Log Calf profile</h5>
+                <form onSubmit={handleCalfSubmit} className="bg-white p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-emerald-950">Log New Calf Profile & Pedigree</h5>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Capture birth data, feed metrics, and logs</p>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf ID Tag (Unique)</label>
@@ -1607,6 +1970,27 @@ export function OtherSections({
                         placeholder="E.g. Calf-903"
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                       />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Friendly Name</label>
+                      <input
+                        type="text"
+                        value={cfName}
+                        onChange={(e) => setCfName(e.target.value)}
+                        placeholder="E.g. Spot (Optional)"
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Biological Sex</label>
+                      <select
+                        value={cfSex}
+                        onChange={(e) => setCfSex(e.target.value as any)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                      >
+                        <option value="Female">Female (Heifer)</option>
+                        <option value="Male">Male (Bull)</option>
+                      </select>
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dam Mother Cow ID</label>
@@ -1628,9 +2012,19 @@ export function OtherSections({
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                       />
                     </div>
+                    <div>
+                      <label className="text-[10px] font-black text-emerald-800 uppercase block mb-1">Log Date (Historical)</label>
+                      <input
+                        type="date"
+                        required
+                        value={cfDate}
+                        onChange={(e) => setCfDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                      />
+                    </div>
                     {!cfWeaned && (
                       <div>
-                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Daily Milk Bucket volume (Liters)</label>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Daily Milk volume (Liters)</label>
                         <input
                           type="number"
                           required
@@ -1683,7 +2077,7 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 text-white font-black text-xs uppercase rounded-lg m-0">
+                    <button type="submit" className="px-5 py-2.5 bg-emerald-950 text-white font-black text-xs uppercase rounded-lg m-0 shadow hover:bg-emerald-900 cursor-pointer">
                       Commit Calf Profile
                     </button>
                   </div>
@@ -1701,7 +2095,16 @@ export function OtherSections({
                       <div>
                         <div className="flex justify-between items-start">
                           <div>
-                            <span className="font-extrabold text-[#2e7d32] text-sm uppercase tracking-wide block">{cf.calfId}</span>
+                            <span className="font-extrabold text-[#2e7d32] text-sm uppercase tracking-wide block">
+                              {cf.calfId} {cf.calfName ? `(${cf.calfName})` : ''}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className={`text-[9.5px] font-black uppercase px-2 py-0.2 rounded border ${
+                                cf.sex === 'Male' ? 'bg-blue-50 text-blue-805 border-blue-150' : 'bg-pink-50 text-pink-805 border-pink-150'
+                              }`}>
+                                👩‍👧 {cf.sex || 'Female'}
+                              </span>
+                            </div>
                             <span className="text-[9px] font-bold text-slate-450 block mt-1">Dam / Mother: <span className="text-slate-650 font-extrabold">{cf.damId}</span></span>
                           </div>
                           {onEditCalfRecord && (
@@ -1808,8 +2211,11 @@ export function OtherSections({
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleBsfSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-                  <h5 className="text-xs uppercase font-black tracking-widest text-slate-800 border-b pb-2">Log Insect grubs batch</h5>
+                <form onSubmit={handleBsfSubmit} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-md space-y-4 font-sans text-left">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-zinc-900">Log Insect Grubs Batch & Protein Cycle</h5>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Track eggs inoculation, larvae size harvested, and dates</p>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Batch ID Code</label>
@@ -1841,6 +2247,16 @@ export function OtherSections({
                         value={bsInoculation}
                         onChange={(e) => setBsInoculation(e.target.value)}
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-zinc-800 uppercase block mb-1">Log Date (Historical)</label>
+                      <input
+                        type="date"
+                        required
+                        value={bsDate}
+                        onChange={(e) => setBsDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
                       />
                     </div>
                     <div>
@@ -1885,7 +2301,7 @@ export function OtherSections({
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="px-5 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white font-black text-xs uppercase rounded-lg m-0 shadow-sm">
+                    <button type="submit" className="px-5 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white font-black text-xs uppercase rounded-lg m-0 shadow cursor-pointer">
                       Log Fly Batch
                     </button>
                   </div>
@@ -1938,6 +2354,502 @@ export function OtherSections({
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {livestockSubTab === 'operations' && (
+            <div className="space-y-6">
+              {/* Operations Banner */}
+              <div className="bg-amber-50 border border-amber-200 p-5 rounded-3xl space-y-2">
+                <div className="flex items-center gap-2 text-indigo-950">
+                  <ClipboardList size={18} className="text-amber-800" />
+                  <h5 className="text-[11px] font-black tracking-widest uppercase">ALL-ANIMAL OPERATIONS & SERVICES FEED</h5>
+                </div>
+                <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+                  This unified log lists all operations under Dairy Cows (AI breedings & Vet interventions), Goat milking/checks, young Calving rosters, BSF insect bins, and Poultry booster drops.
+                </p>
+              </div>
+
+              {/* Feed Display Container */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b">
+                  <h5 className="text-xs font-black uppercase tracking-wider text-slate-800">Operational Timeline Feed</h5>
+                  <div className="text-[11px] font-mono text-slate-400 font-bold">
+                    Showing operations across past, present, and future scheduled tasks.
+                  </div>
+                </div>
+
+                {/* Combined Operations Feed Item mapper */}
+                <div className="space-y-4">
+                  {(() => {
+                    const combinedOps: any[] = [];
+                    // 1. Vet records
+                    (vetRecords || []).forEach(v => {
+                      combinedOps.push({
+                        id: `v-${v.id || Math.random()}`,
+                        type: 'veterinary',
+                        category: 'Cow',
+                        title: `Medical Treatment | ${v.treatment || 'Treatment'}`,
+                        date: v.date || 'No Date',
+                        details: v.notes || 'Routine checkup/drug injection.',
+                        badgeColor: 'bg-red-50 text-red-800 border-red-150',
+                        cost: v.cost ? `Cost: Ksh ${v.cost}` : undefined,
+                        staff: v.recorder || 'On-Call Vet'
+                      });
+                    });
+
+                    // 2. AI records
+                    (aiRecords || []).forEach(ai => {
+                      combinedOps.push({
+                        id: `ai-${ai.cowId || Math.random()}-${ai.date}`,
+                        type: 'ai',
+                        category: 'Cow',
+                        title: `Artificial Insemination (AI Service) - Dam: ${ai.cowId}`,
+                        date: ai.date || 'No Date',
+                        details: `Bull Semen: ${ai.bull} • Status: ${ai.status} • Scheduled Due: ${ai.due}`,
+                        badgeColor: 'bg-purple-50 text-purple-800 border-purple-150',
+                        staff: 'AI Vet Tech'
+                      });
+                    });
+
+                    // 3. Goat records
+                    (goatRecords || []).forEach(gt => {
+                      combinedOps.push({
+                        id: `gt-${gt.id}`,
+                        type: 'milking/activity',
+                        category: 'Goat',
+                        title: `Dairy Goat record | Tag: ${gt.tagId}`,
+                        date: gt.date || 'No Date',
+                        details: `Yield: ${gt.milkYieldLiters || 0}L • Purpose: ${gt.purpose} • Activity: ${gt.activity} • ${gt.notes}`,
+                        badgeColor: 'bg-amber-50 text-amber-800 border-amber-150',
+                        staff: 'Goat Specialist'
+                      });
+                    });
+
+                    // 4. Calf records
+                    (calfRecords || []).forEach(cf => {
+                      combinedOps.push({
+                        id: `cf-${cf.id}`,
+                        type: 'calving/feed',
+                        category: 'Calf',
+                        title: `Young Calf Activity | Tag: ${cf.calfId} ${cf.calfName ? `(${cf.calfName})` : ''}`,
+                        date: cf.date || cf.dob || 'No Date',
+                        details: `Sex: ${cf.sex || 'Female'} • Milk intake: ${cf.milkIntakeLiters}L • Weaned: ${cf.weaned ? 'Yes' : 'No'} • ${cf.notes}`,
+                        badgeColor: 'bg-emerald-50 text-emerald-805 border-emerald-150',
+                        staff: 'Nursery Attendant'
+                      });
+                    });
+
+                    // 5. Poultry & canine records (livestock prop)
+                    (livestock || []).forEach(ls => {
+                      combinedOps.push({
+                        id: `ls-${ls.id}`,
+                        type: 'poultry_dog',
+                        category: ls.type === 'Poultry' ? 'Poultry' : 'Dog',
+                        title: `${ls.type} Log | Name/Breed: ${ls.name}`,
+                        date: ls.date || 'No Date',
+                        details: `Count/Breed Info: ${ls.countOrBreed} • Log Activity: ${ls.activity} • ${ls.notes || ''}`,
+                        badgeColor: 'bg-indigo-50 text-indigo-805 border-indigo-150',
+                        staff: 'Avian/K9 Warden'
+                      });
+                    });
+
+                    // 6. BSF batch records
+                    (bsfRecords || []).forEach(b => {
+                      combinedOps.push({
+                        id: `b-${b.id}`,
+                        type: 'bsf',
+                        category: 'BSF',
+                        title: `Black Soldier Fly Inoculation | Batch: ${b.batchId}`,
+                        date: b.inoculationDate || 'No Date',
+                        details: `Substrate Waste: ${b.substrateType} • Yield Target: ${b.larvaeHarvestedKg || 'Growing'} KG • Status: ${b.status} • ${b.notes}`,
+                        badgeColor: 'bg-zinc-150 text-zinc-900 border-zinc-200',
+                        staff: 'Biogas & Larvae Team'
+                      });
+                    });
+
+                    // Sort combined entries by date desc (future dates first, then past)
+                    combinedOps.sort((a,b) => b.date.localeCompare(a.date));
+
+                    if (combinedOps.length === 0) {
+                      return (
+                        <div className="p-8 text-center text-slate-400 font-bold">
+                          No operations logged across the farm directories. Log individual entries to populate feed timelines.
+                        </div>
+                      );
+                    }
+
+                    return combinedOps.map(op => (
+                      <div key={op.id} className="p-4 border border-slate-100 rounded-2xl bg-slate-50/50 hover:bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all">
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded border uppercase ${op.badgeColor}`}>
+                              {op.category}
+                            </span>
+                            <h6 className="text-[13px] font-extrabold text-[#2c3e50] uppercase">{op.title}</h6>
+                          </div>
+                          <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+                            {op.details}
+                          </p>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold font-mono">
+                            <span>Scheduled/Done Date: <span className="text-slate-700 font-extrabold">{op.date}</span></span>
+                            {op.cost && <span className="text-red-700 uppercase font-black">• {op.cost}</span>}
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-left md:text-right">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Operator assigned</span>
+                          <span className="text-[11px] font-black text-slate-705 block mt-0.5">{op.staff}</span>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {livestockSubTab === 'sales_mortality' && (
+            <div className="space-y-6">
+              {/* Sales & Mortality Stats */}
+              <div className="grid grid-cols-1 md:flex-row md:grid-cols-2 gap-4">
+                <div className="bg-emerald-50 border border-emerald-250 p-5 rounded-3xl flex items-center gap-4 w-full">
+                  <div className="p-3 bg-emerald-100 text-emerald-950 rounded-2xl shrink-0">
+                    <TrendingUp size={24} className="text-emerald-800" />
+                  </div>
+                  <div>
+                    <h5 className="text-[10px] font-black uppercase text-emerald-955 tracking-wider">Total Livestock Sales Revenues</h5>
+                    <p className="text-xl font-black text-emerald-900 font-mono mt-1">
+                      Ksh {(animalSales || []).reduce((acc, s) => acc + (s.price || 0) * (s.qty || 1), 0).toLocaleString()}
+                    </p>
+                    <span className="text-[9px] text-slate-455 font-bold block mt-0.5">Calculated across sales ledger lines</span>
+                  </div>
+                </div>
+
+                <div className="bg-rose-50 border border-rose-205 p-5 rounded-3xl flex items-center gap-4 w-full">
+                  <div className="p-3 bg-rose-100 text-rose-955 rounded-2xl shrink-0">
+                    <Skull size={24} className="text-rose-805" />
+                  </div>
+                  <div>
+                    <h5 className="text-[10px] font-black uppercase text-rose-955 tracking-wider">Total Mortalities recorded</h5>
+                    <p className="text-xl font-black text-rose-900 font-mono mt-1">
+                      {(mortalities || []).reduce((acc, m) => acc + (m.count || 1), 0)} Animals Deceased
+                    </p>
+                    <span className="text-[9px] text-slate-455 font-bold block mt-0.5">Loss minimization tracking active</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons to trigger Adding forms */}
+              <div className="flex bg-slate-100 p-1.5 rounded-2xl border justify-between items-center w-full">
+                <span className="text-[10px] font-black text-slate-405 uppercase tracking-widest block ml-2">Add Sales Event / Mortality drop</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowAddForm(!showAddForm); setAsCategory('Poultry'); }}
+                    className="bg-emerald-900 text-white font-black text-xs uppercase px-4 py-2.5 rounded-xl hover:bg-emerald-805 flex items-center gap-1.5 m-0"
+                  >
+                    <Plus size={14} /> Log Livestock Sale
+                  </button>
+                  <button
+                    onClick={() => { setShowAddForm(!showAddForm); setMCategory('Poultry'); }}
+                    className="bg-rose-900 text-white font-black text-xs uppercase px-4 py-2.5 rounded-xl hover:bg-rose-805 flex items-center gap-1.5 m-0"
+                  >
+                    <Plus size={14} /> Log Deceased Mortality
+                  </button>
+                </div>
+              </div>
+
+              {/* TWO SEPARATE ADD FORMS */}
+              {showAddForm && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-150 shadow-inner">
+                  {/* Form 1: Add Livestock Sale */}
+                  <form onSubmit={handleAnimalSaleSubmit} className="bg-white p-5 rounded-2xl border border-slate-150 shadow-md space-y-4">
+                    <h5 className="text-xs uppercase font-black tracking-widest text-emerald-800 border-b pb-2 flex items-center gap-1">💰 Add Animal Sale record</h5>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Class Type</label>
+                        <select
+                          value={asCategory}
+                          onChange={(e) => setAsCategory(e.target.value as any)}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full bg-white font-bold text-slate-705"
+                        >
+                          <option value="Poultry">Poultry / Layers</option>
+                          <option value="Dog">Security Canine / Puppy</option>
+                          <option value="Goat">Dairy Goat</option>
+                          <option value="Calf">Milk-fed Calf</option>
+                          <option value="Cow">Adult Dairy Cow</option>
+                          <option value="Other">Other Livestock</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Animal Tag ID / Flock ID</label>
+                        <input
+                          type="text"
+                          required
+                          value={asAnimalIdOrBatch}
+                          onChange={(e) => setAsAnimalIdOrBatch(e.target.value)}
+                          placeholder="e.g. Layers Flock 3 or Tag-51"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Head count / Bird Qty</label>
+                        <input
+                          type="number"
+                          required
+                          min="1"
+                          value={asQty}
+                          onChange={(e) => setAsQty(e.target.value === '' ? '' : parseInt(e.target.value))}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Sale price (Ksh / Head)</label>
+                        <input
+                          type="number"
+                          required
+                          min="50"
+                          value={asPrice}
+                          onChange={(e) => setAsPrice(e.target.value === '' ? '' : parseInt(e.target.value))}
+                          placeholder="Sale price amount"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono text-emerald-805"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Est Weight KG (Optional)</label>
+                        <input
+                          type="number"
+                          value={asWeightKg}
+                          onChange={(e) => setAsWeightKg(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          placeholder="Optional"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Buyer name / Market</label>
+                        <input
+                          type="text"
+                          value={asBuyer}
+                          onChange={(e) => setAsBuyer(e.target.value)}
+                          placeholder="E.g. Nairobi Agritrade"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Invoice / Receipt Reference</label>
+                        <input
+                          type="text"
+                          value={asRef}
+                          onChange={(e) => setAsRef(e.target.value)}
+                          placeholder="Optional invoice number"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Invoice Sales date (Allows Past / Future)</label>
+                        <input
+                          type="date"
+                          required
+                          value={asDate}
+                          onChange={(e) => setAsDate(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Sales Ledger Notes</label>
+                        <textarea
+                          value={asNotes}
+                          onChange={(e) => setAsNotes(e.target.value)}
+                          rows={2}
+                          className="text-xs border border-slate-200 rounded-lg p-2 text-slate-655 w-full"
+                          placeholder="Provide details about delivery contract, buyer terms..."
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button type="submit" className="px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-emerald-900 border hover:bg-emerald-805 text-white rounded-xl cursor-pointer">Confirm Sale Transaction</button>
+                    </div>
+                  </form>
+
+                  {/* Form 2: Add Mortality */}
+                  <form onSubmit={handleMortalitySubmit} className="bg-white p-5 rounded-2xl border border-slate-150 shadow-md space-y-4">
+                    <h5 className="text-xs uppercase font-black tracking-widest text-[#d32f2f] border-b pb-2 flex items-center gap-1">💀 Add Deceased Mortality Record</h5>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Class Type</label>
+                        <select
+                          value={mCategory}
+                          onChange={(e) => setMCategory(e.target.value as any)}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full bg-white font-bold text-slate-705"
+                        >
+                          <option value="Poultry">Poultry / Layers</option>
+                          <option value="Dog">Security Canine / Puppy</option>
+                          <option value="Goat">Dairy Goat</option>
+                          <option value="Calf">Milk-fed Calf</option>
+                          <option value="Cow">Adult Dairy Cow</option>
+                          <option value="Other">Other Livestock</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Animal Tag ID / Flock ID</label>
+                        <input
+                          type="text"
+                          required
+                          value={mAnimalIdOrBatch}
+                          onChange={(e) => setMAnimalIdOrBatch(e.target.value)}
+                          placeholder="e.g. Flock B (broilers) or Goat-35"
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Deceased Head count</label>
+                        <input
+                          type="number"
+                          required
+                          min="1"
+                          value={mCount}
+                          onChange={(e) => setMCount(e.target.value === '' ? '' : parseInt(e.target.value))}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Deceased (Allows Past / Future)</label>
+                        <input
+                          type="date"
+                          required
+                          value={mDate}
+                          onChange={(e) => setMDate(e.target.value)}
+                          className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Diagnosed Cause of Death</label>
+                      <input
+                        type="text"
+                        required
+                        value={mCauseOfDeath}
+                        onChange={(e) => setMCauseOfDeath(e.target.value)}
+                        placeholder="E.g. suspected Coccidiosis breakout, pneumonia"
+                        className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 py-1">
+                      <input
+                        type="checkbox"
+                        id="mVetConfirmed"
+                        checked={mVetConfirmed}
+                        onChange={(e) => setMVetConfirmed(e.target.checked)}
+                        className="rounded border-slate-300 w-4 h-4 cursor-pointer"
+                      />
+                      <label htmlFor="mVetConfirmed" className="text-xs font-bold text-slate-700 cursor-pointer select-none">Veterinary doctor autopsied / confirmed cause</label>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Observations & Biosecurity action</label>
+                      <textarea
+                        value={mNotes}
+                        onChange={(e) => setMNotes(e.target.value)}
+                        rows={2}
+                        className="text-xs border border-[#ddd] rounded-lg p-2 w-full text-slate-655"
+                        placeholder="Log disinfection protocols, biosecurity cleanup operations, disposal method..."
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button type="submit" className="px-5 py-2.5 text-xs font-black uppercase tracking-wider bg-rose-900 hover:bg-rose-805 text-white rounded-xl cursor-pointer">Log Loss Decease Event</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* TWIN LEDGERS TABULATION */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-6">
+                {/* Sale ledger list card */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <h5 className="text-xs font-black uppercase text-slate-800 tracking-wider">Active Livestock Sales Ledger</h5>
+                    <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{(animalSales || []).length} Transaction lines</span>
+                  </div>
+                  <div className="space-y-3 max-h-120 overflow-y-auto pr-1">
+                    {(animalSales || []).length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 font-bold">No animal sales transaction records logged.</div>
+                    ) : (
+                      (animalSales || []).map((sale) => (
+                        <div key={sale.id} className="p-3 border border-slate-50 bg-slate-50/45 rounded-xl flex justify-between items-center gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[8.5px] font-black uppercase bg-emerald-50 text-emerald-800 border border-emerald-150 px-1.5 py-0.2 rounded">{sale.category}</span>
+                              <span className="font-extrabold text-[#2c3e50] text-xs uppercase">{sale.animalIdOrBatch}</span>
+                            </div>
+                            <p className="text-xs font-semibold text-slate-605">Qty: <span className="font-extrabold text-slate-855">{sale.qty}</span> • Buyer: <span className="font-extrabold text-slate-855">{sale.buyer}</span> • Ref: <span className="font-mono text-indigo-900 font-bold">{sale.ref}</span></p>
+                            <p className="text-[10px] text-slate-400 font-bold font-mono">Sale Date: {sale.date} {sale.weightKg && `• Weight: ${sale.weightKg} KG`}</p>
+                            {sale.notes && <p className="text-[10.5px] font-medium text-slate-550 block italic">"{sale.notes}"</p>}
+                          </div>
+                          <div className="text-right shrink-0 flex items-center gap-2">
+                            <div>
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Total Yield</span>
+                              <span className="text-xs font-black text-emerald-805 font-mono">Ksh {((sale.price || 0) * (sale.qty || 1)).toLocaleString()}</span>
+                            </div>
+                            <button
+                              onClick={() => onDeleteAnimalSale(sale.id)}
+                              className="text-slate-300 hover:text-red-655 p-1.5 border border-transparent hover:border-red-105 rounded-lg hover:bg-white cursor-pointer m-0"
+                              title="Delete Ledger Line"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Mortality ledger list card */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <h5 className="text-xs font-black uppercase text-slate-805 tracking-wider">Historical Mortalities & Losses Registry</h5>
+                    <span className="text-[10px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{(mortalities || []).length} Recorded losses</span>
+                  </div>
+                  <div className="space-y-3 max-h-120 overflow-y-auto pr-1">
+                    {(mortalities || []).length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 font-bold">No mortality events recorded. Farm is biosecure.</div>
+                    ) : (
+                      (mortalities || []).map((m) => (
+                        <div key={m.id} className="p-3 border border-rose-55 bg-rose-50/20 rounded-xl flex justify-between items-center gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[8.5px] font-black uppercase bg-rose-50 text-rose-805 border border-rose-150 px-1.5 py-0.2 rounded">{m.category}</span>
+                              <span className="font-extrabold text-slate-855 text-xs uppercase">{m.animalIdOrBatch}</span>
+                              {m.veterinaryConfirmed && (
+                                <span className="text-[8px] bg-blue-50 text-blue-850 border border-blue-150 px-1 rounded uppercase font-bold">Autopsy ✓</span>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold text-slate-655">Deceased Count: <span className="font-extrabold text-rose-700">{m.count} head</span></p>
+                            <p className="text-xs font-black text-rose-855 bg-rose-50/50 px-1.5 py-0.5 rounded inline-block">Cause: {m.causeOfDeath}</p>
+                            <p className="text-[10px] text-slate-400 font-bold font-mono">Event Date: {m.date}</p>
+                            {m.notes && <p className="text-[10.5px] font-medium text-slate-550 block italic">"{m.notes}"</p>}
+                          </div>
+                          <div className="text-right shrink-0 flex items-center gap-2">
+                            <button
+                              onClick={() => onDeleteMortality(m.id)}
+                              className="text-slate-300 hover:text-red-655 p-1.5 border border-transparent hover:border-rose-105 rounded-lg hover:bg-white cursor-pointer m-0"
+                              title="Delete Defect record"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -2042,6 +2954,37 @@ export function OtherSections({
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Storage Location / Bin Name</label>
+                  <input
+                    type="text"
+                    value={invLocation}
+                    onChange={(e) => setInvLocation(e.target.value)}
+                    placeholder="E.g. Main Silo, Store Gamma"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Received (Backdate/Post-date Allowed)</label>
+                  <input
+                    type="date"
+                    required
+                    value={invDateReceived}
+                    onChange={(e) => setInvDateReceived(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Chemical / Feed Expiry Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={invExpiryDate}
+                    onChange={(e) => setInvExpiryDate(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+              </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
@@ -2086,6 +3029,19 @@ export function OtherSections({
                                 <AlertOctagon size={10} /> Low Stock alert
                               </span>
                             )}
+                            <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-1 text-[10px] text-slate-450 font-bold font-mono">
+                              {item.location && (
+                                <span className="text-slate-600 bg-amber-50 px-1 py-0.2 rounded text-[9.5px]">
+                                  📍 Loc: {item.location}
+                                </span>
+                              )}
+                              {item.dateReceived && (
+                                <span className="text-slate-500">📅 Recd: {item.dateReceived}</span>
+                              )}
+                              {item.expiryDate && (
+                                <span className="text-amber-700 bg-amber-50/50 px-1 py-0.2 rounded">⚠️ Exp: {item.expiryDate}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -2148,60 +3104,141 @@ export function OtherSections({
 
     {/* Edit Field Modal */}
     {editingField && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans text-left">
+        <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-            <h3 className="text-sm font-black uppercase text-slate-800">Edit Block / Field</h3>
+            <div>
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Block / Field</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Adjust agronomic variables and coordinates</p>
+            </div>
             <button onClick={() => setEditingField(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
           </div>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+          
+          <div className="space-y-4 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block Name</label>
                 <input
                   type="text"
                   value={editingField.blockName}
                   onChange={(e) => setEditingField({ ...editingField, blockName: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Crop Type</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Crop Type / Species</label>
                 <input
                   type="text"
                   value={editingField.cropType}
                   onChange={(e) => setEditingField({ ...editingField, cropType: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Acreage</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Acreage size</label>
                 <input
                   type="number"
                   step="0.1"
                   value={editingField.acreage}
                   onChange={(e) => setEditingField({ ...editingField, acreage: parseFloat(e.target.value) || 0 })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Status</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Agronomy Status</label>
                 <select
                   value={editingField.status}
                   onChange={(e) => setEditingField({ ...editingField, status: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
                 >
-                  <option value="Growing">Growing</option>
-                  <option value="Harvested">Harvested</option>
-                  <option value="Prepared">Prepared</option>
+                  <option value="Prepared">Coarse Prepared</option>
+                  <option value="Sown">Sown / Planted</option>
+                  <option value="Growing">Vegetative Growing</option>
+                  <option value="Harvested">Culled / Harvested</option>
                   <option value="Fallow">Fallow</option>
                 </select>
               </div>
             </div>
+
+            {/* Advanced Agronomics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Soil pH level</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  max="14"
+                  value={editingField.soilPh !== undefined ? editingField.soilPh : ''}
+                  onChange={(e) => setEditingField({ ...editingField, soilPh: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  placeholder="Not set"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Irrigation Rig System</label>
+                <select
+                  value={editingField.irrigationMethod || 'Rainfed'}
+                  onChange={(e) => setEditingField({ ...editingField, irrigationMethod: e.target.value as any })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                >
+                  <option value="Rainfed">Rain-Fed Only</option>
+                  <option value="Drip">Drip Irrigation</option>
+                  <option value="Overhead">Overhead Pivot/Sprinkler</option>
+                  <option value="Manual">Manual Hand Watering</option>
+                  <option value="None">None</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Last Fertilizer Application</label>
+                <input
+                  type="date"
+                  value={editingField.lastFertilizerDate || ''}
+                  onChange={(e) => setEditingField({ ...editingField, lastFertilizerDate: e.target.value || undefined })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Projected Harvest Yield Volume</label>
+                <input
+                  type="text"
+                  value={editingField.projectedHarvestVolume || ''}
+                  onChange={(e) => setEditingField({ ...editingField, projectedHarvestVolume: e.target.value || undefined })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                  placeholder="E.g. 150 Bales"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div>
+                <label className="text-[10px] font-black text-indigo-755 uppercase block mb-1">Sown / Planted Date</label>
+                <input
+                  type="date"
+                  value={editingField.datePlanted || ''}
+                  onChange={(e) => setEditingField({ ...editingField, datePlanted: e.target.value || undefined })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Log / Registration Date (Historical)</label>
+                <input
+                  type="date"
+                  value={editingField.date}
+                  onChange={(e) => setEditingField({ ...editingField, date: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block Notes</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Block Notes / Observations</label>
               <textarea
                 value={editingField.notes}
                 onChange={(e) => setEditingField({ ...editingField, notes: e.target.value })}
@@ -2210,6 +3247,7 @@ export function OtherSections({
               />
             </div>
           </div>
+          
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
             <button
               onClick={() => setEditingField(null)}
@@ -2372,14 +3410,46 @@ export function OtherSections({
                 />
               </div>
             </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Understock Reorder Alert Trigger (Min Quantity)</label>
-              <input
-                type="number"
-                value={editingInventoryItem.minStock}
-                onChange={(e) => setEditingInventoryItem({ ...editingInventoryItem, minStock: parseInt(e.target.value) || 0 })}
-                className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Understock Trigger (Min Quantity)</label>
+                <input
+                  type="number"
+                  value={editingInventoryItem.minStock}
+                  onChange={(e) => setEditingInventoryItem({ ...editingInventoryItem, minStock: parseInt(e.target.value) || 0 })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Storage Location / Bin Name </label>
+                <input
+                  type="text"
+                  value={editingInventoryItem.location || ''}
+                  onChange={(e) => setEditingInventoryItem({ ...editingInventoryItem, location: e.target.value || undefined })}
+                  placeholder="E.g. Barn Store A"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Received / Registered</label>
+                <input
+                  type="date"
+                  value={editingInventoryItem.dateReceived || ''}
+                  onChange={(e) => setEditingInventoryItem({ ...editingInventoryItem, dateReceived: e.target.value || undefined })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Chemical / Feed Expiry Date</label>
+                <input
+                  type="date"
+                  value={editingInventoryItem.expiryDate || ''}
+                  onChange={(e) => setEditingInventoryItem({ ...editingInventoryItem, expiryDate: e.target.value || undefined })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                />
+              </div>
             </div>
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
@@ -2524,6 +3594,29 @@ export function OtherSections({
                   onChange={(e) => setEditingCalf({ ...editingCalf, calfId: e.target.value })}
                   className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                 />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Friendly Name</label>
+                <input
+                  type="text"
+                  value={editingCalf.calfName || ''}
+                  onChange={(e) => setEditingCalf({ ...editingCalf, calfName: e.target.value })}
+                  placeholder="E.g. Spot"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Biological Sex</label>
+                <select
+                  value={editingCalf.sex || 'Female'}
+                  onChange={(e) => setEditingCalf({ ...editingCalf, sex: e.target.value as any })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
+                >
+                  <option value="Female">Female (Heifer Calf)</option>
+                  <option value="Male">Male (Bull Calf)</option>
+                </select>
               </div>
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Mother Cow Dam ID</label>
@@ -2709,20 +3802,24 @@ export function OtherSections({
 
     {/* Edit Crop Op Modal */}
     {editingCropOp && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans text-left">
+        <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-            <h3 className="text-sm font-black uppercase text-slate-800">Edit Agronomy Task</h3>
+            <div>
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Agronomy Task</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Adjust inputs, costs, timelines and staffing</p>
+            </div>
             <button onClick={() => setEditingCropOp(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
           </div>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Assigned Crop</label>
                 <select
                   value={editingCropOp.crop}
                   onChange={(e) => setEditingCropOp({ ...editingCropOp, crop: e.target.value as any })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
                 >
                   <option value="Tea">Tea</option>
                   <option value="Avocado">Avocado</option>
@@ -2730,6 +3827,7 @@ export function OtherSections({
                   <option value="Vegetables">Vegetables</option>
                   <option value="Sorghum">Sorghum</option>
                   <option value="Maize">Maize</option>
+                  <option value="Beans">Beans</option>
                 </select>
               </div>
               <div>
@@ -2738,18 +3836,19 @@ export function OtherSections({
                   type="text"
                   value={editingCropOp.operationName}
                   onChange={(e) => setEditingCropOp({ ...editingCropOp, operationName: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Execution Date</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Execution / Scheduled Date</label>
                 <input
                   type="date"
                   value={editingCropOp.date}
                   onChange={(e) => setEditingCropOp({ ...editingCropOp, date: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                 />
               </div>
               <div>
@@ -2757,7 +3856,7 @@ export function OtherSections({
                 <select
                   value={editingCropOp.status}
                   onChange={(e) => setEditingCropOp({ ...editingCropOp, status: e.target.value as any })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
                 >
                   <option value="Pending">Pending</option>
                   <option value="In-Progress">In-Progress</option>
@@ -2765,16 +3864,65 @@ export function OtherSections({
                 </select>
               </div>
             </div>
+
+            {/* Expanded Inputs & Costing section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Inputs Used</label>
+                <input
+                  type="text"
+                  value={editingCropOp.inputsUsed || ''}
+                  onChange={(e) => setEditingCropOp({ ...editingCropOp, inputsUsed: e.target.value || undefined })}
+                  placeholder="Not set"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Input Quantity</label>
+                <input
+                  type="text"
+                  value={editingCropOp.inputQuantityUsed || ''}
+                  onChange={(e) => setEditingCropOp({ ...editingCropOp, inputQuantityUsed: e.target.value || undefined })}
+                  placeholder="Not set"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Equipment Used</label>
+                <input
+                  type="text"
+                  value={editingCropOp.equipmentUsed || ''}
+                  onChange={(e) => setEditingCropOp({ ...editingCropOp, equipmentUsed: e.target.value || undefined })}
+                  placeholder="Not set"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Operation Cost (Ksh)</label>
+                <input
+                  type="number"
+                  value={editingCropOp.operationCost !== undefined ? editingCropOp.operationCost : ''}
+                  onChange={(e) => setEditingCropOp({ ...editingCropOp, operationCost: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                  placeholder="Not set"
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Completed / Assigned By Staff</label>
               <select
                 value={editingCropOp.completedBy || ''}
                 onChange={(e) => setEditingCropOp({ ...editingCropOp, completedBy: e.target.value })}
-                className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
               >
                 {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
               </select>
             </div>
+
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Diagnostics & Description Logs</label>
               <textarea
@@ -2785,6 +3933,7 @@ export function OtherSections({
               />
             </div>
           </div>
+          
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
             <button
               onClick={() => setEditingCropOp(null)}
@@ -2799,7 +3948,7 @@ export function OtherSections({
                 }
                 setEditingCropOp(null);
               }}
-              className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow"
+              className="px-5 py-2.5 bg-indigo-950 hover:bg-indigo-900 transition-all text-white rounded-lg text-xs font-black uppercase m-0 shadow cursor-pointer"
             >
               Save Changes
             </button>
@@ -2831,6 +3980,7 @@ export function OtherSections({
                   <option value="Maize">Maize</option>
                   <option value="Napier">Napier</option>
                   <option value="Eucalyptus">Eucalyptus</option>
+                  <option value="Beans">Beans</option>
                 </select>
               </div>
               <div>

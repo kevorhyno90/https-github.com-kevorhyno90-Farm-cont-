@@ -126,20 +126,37 @@ export function DairyBreeding({
   const [newCowGsm, setNewCowGsm] = useState('');
   const [newCowGdm, setNewCowGdm] = useState('');
   const [newCowReg, setNewCowReg] = useState('');
+  const [newCowPeakYield, setNewCowPeakYield] = useState<number | ''>('');
+  const [milkingDate, setMilkingDate] = useState(new Date().toISOString().split('T')[0]);
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [cowSearch, setCowSearch] = useState('');
 
   // Vet log form states
   const [vetCowId, setVetCowId] = useState('');
+  const [vetAnimalCategory, setVetAnimalCategory] = useState<VetRecord['animalCategory']>('Cow');
+  const [vetDate, setVetDate] = useState(new Date().toISOString().split('T')[0]);
   const [vetType, setVetType] = useState<VetRecord['type']>('Deworming');
   const [vetTreatment, setVetTreatment] = useState('');
   const [vetCost, setVetCost] = useState<number | ''>('');
-  const [vetStaff, setVetStaff] = useState(staffList[0]?.name || 'Dr. Devin Omwenga');
+  const [vetStaff, setVetStaff] = useState('Dr. Devin Omwenga (Vet)');
   const [vetNotes, setVetNotes] = useState('');
   const [vetNextDue, setVetNextDue] = useState('');
   const [showAddVetForm, setShowAddVetForm] = useState(false);
   const [vetSearch, setVetSearch] = useState('');
+  
+  // Clinical parameters
+  const [vetDiagnosis, setVetDiagnosis] = useState('');
+  const [vetTemp, setVetTemp] = useState<number | ''>('');
+  const [vetHeartRate, setVetHeartRate] = useState<number | ''>('');
+  const [vetRespRate, setVetRespRate] = useState<number | ''>('');
+  const [vetDrug, setVetDrug] = useState('');
+  const [vetDosage, setVetDosage] = useState('');
+  const [vetRoute, setVetRoute] = useState<VetRecord['administrationRoute']>('IM');
+  const [vetWithdrawalMilk, setVetWithdrawalMilk] = useState<number | ''>('');
+  const [vetWithdrawalMeat, setVetWithdrawalMeat] = useState<number | ''>('');
+  const [vetPrognosis, setVetPrognosis] = useState<VetRecord['prognosis']>('Good');
+  const [vetRetreatmentScheduled, setVetRetreatmentScheduled] = useState(false);
 
   // Filtering milking records
   const [filterCow, setFilterCow] = useState('');
@@ -159,7 +176,7 @@ export function DairyBreeding({
       am: amVal,
       pm: pmVal,
       staff: staffName,
-      date: new Date().toISOString().split('T')[0],
+      date: milkingDate,
       pricePerLiter: prVal,
       buyer: buyVal,
       totalSales: isMilkSold ? (totalVol * prVal) : 0
@@ -167,6 +184,7 @@ export function DairyBreeding({
     setCowTag('');
     setAmLiters('');
     setPmLiters('');
+    setMilkingDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleAISubmit = (e: React.FormEvent) => {
@@ -216,7 +234,8 @@ export function DairyBreeding({
       grandDamPaternal: newCowGdp.trim() || undefined,
       grandSireMaternal: newCowGsm.trim() || undefined,
       grandDamMaternal: newCowGdm.trim() || undefined,
-      registrationNo: newCowReg.trim() || undefined
+      registrationNo: newCowReg.trim() || undefined,
+      peakYieldTarget: newCowPeakYield === '' ? undefined : Number(newCowPeakYield)
     });
 
     setNewCowTag('');
@@ -230,6 +249,7 @@ export function DairyBreeding({
     setNewCowGsm('');
     setNewCowGdm('');
     setNewCowReg('');
+    setNewCowPeakYield('');
     setShowAddCowForm(false);
   };
 
@@ -240,19 +260,44 @@ export function DairyBreeding({
     onAddVetRecord({
       id: `vet-${Date.now()}`,
       cowId: vetCowId,
-      date: new Date().toISOString().split('T')[0],
+      animalCategory: vetAnimalCategory,
+      date: vetDate,
       type: vetType,
       treatment: vetTreatment.trim(),
       nextDueDate: vetType === 'Deworming' ? (vetNextDue || undefined) : undefined,
       cost: vetCost === '' ? 0 : Number(vetCost),
       staff: vetStaff,
-      notes: vetNotes.trim() || 'Administered successfully'
+      notes: vetNotes.trim() || 'Administered successfully',
+      
+      // Clinical params:
+      diagnosis: vetDiagnosis.trim() || undefined,
+      temperature: vetTemp === '' ? undefined : Number(vetTemp),
+      heartRate: vetHeartRate === '' ? undefined : Number(vetHeartRate),
+      respiratoryRate: vetRespRate === '' ? undefined : Number(vetRespRate),
+      drugAdministered: vetDrug.trim() || undefined,
+      dosage: vetDosage.trim() || undefined,
+      administrationRoute: vetRoute,
+      withdrawalMilkDays: vetWithdrawalMilk === '' ? undefined : Number(vetWithdrawalMilk),
+      withdrawalMeatDays: vetWithdrawalMeat === '' ? undefined : Number(vetWithdrawalMeat),
+      prognosis: vetPrognosis,
+      retreatmentScheduled: vetRetreatmentScheduled
     });
 
     setVetTreatment('');
     setVetCost('');
     setVetNotes('');
     setVetNextDue('');
+    setVetDiagnosis('');
+    setVetTemp('');
+    setVetHeartRate('');
+    setVetRespRate('');
+    setVetDrug('');
+    setVetDosage('');
+    setVetRoute('IM');
+    setVetWithdrawalMilk('');
+    setVetWithdrawalMeat('');
+    setVetPrognosis('Good');
+    setVetRetreatmentScheduled(false);
     setShowAddVetForm(false);
   };
 
@@ -333,8 +378,11 @@ export function DairyBreeding({
     .filter((r) => !filterCow || r.id.toLowerCase().includes(filterCow.toLowerCase()))
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  // High production cows warning highlight (e.g. >30L total per day)
-  const isHighProducer = (am: number, pm: number) => am + pm >= 30;
+  // High production cows warning highlight (dynamic based on Peak Yield Target)
+  const isHighProducer = (am: number, pm: number, cowId?: string) => {
+    const threshold = cowId ? (cows.find(c => c.id.toLowerCase() === cowId.toLowerCase())?.peakYieldTarget || 30) : 30;
+    return am + pm >= threshold;
+  };
 
   // Calculate Average daily yield for a cow
   const getAverageYield = (tag: string) => {
@@ -1094,6 +1142,17 @@ export function DairyBreeding({
                 />
               </div>
 
+              <div className="col-span-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milking Date (Supports Now, Past & Future Dates)</label>
+                <input
+                  type="date"
+                  required
+                  value={milkingDate}
+                  onChange={(e) => setMilkingDate(e.target.value)}
+                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                />
+              </div>
+
               <div className="col-span-2 flex items-center gap-2 py-1">
                 <input
                   type="checkbox"
@@ -1214,7 +1273,7 @@ export function DairyBreeding({
                           <td className="p-2">
                             <div className="flex items-center gap-1">
                               <span className="font-black text-slate-800">{m.id}</span>
-                              {isHighProducer(m.am, m.pm) && (
+                              {isHighProducer(m.am, m.pm, m.id) && (
                                 <span className="ml-1 inline-block text-[8px] bg-amber-100 text-amber-700 px-1 py-0.2 rounded font-black uppercase">
                                   Peak
                                 </span>
@@ -1544,6 +1603,16 @@ export function DairyBreeding({
                   </select>
                 </div>
                 <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Peak Yield Target (L/day)</label>
+                  <input
+                    type="number"
+                    value={newCowPeakYield}
+                    onChange={(e) => setNewCowPeakYield(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="E.g. 30 (Default)"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+                <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Studbook Reg # (Optional)</label>
                   <input
                     type="text"
@@ -1841,114 +1910,296 @@ export function DairyBreeding({
           </div>
 
           {showAddVetForm && (
-            <form onSubmit={handleVetSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
-              <h5 className="text-xs uppercase font-black tracking-widest text-[#1a237e] border-b border-slate-100 pb-2">Log Medical Action</h5>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <form onSubmit={handleVetSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-6">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center bg-slate-50 -m-6 mb-4 p-6 rounded-t-2xl">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Target Animal (Cow)</label>
-                  {cows.length > 0 ? (
-                    <select
-                      required
-                      value={vetCowId}
-                      onChange={(e) => setVetCowId(e.target.value)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
-                    >
-                      <option value="">-- Choose cow --</option>
-                      {cows.map(c => (
-                        <option key={c.id} value={c.id}>{c.id} ({c.name})</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={vetCowId}
-                      onChange={(e) => setVetCowId(e.target.value)}
-                      placeholder="E.g. Cow-101 (Daisy)"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                    />
-                  )}
+                  <h5 className="text-sm uppercase font-black tracking-widest text-[#1a237e]">Log Comprehensive Veterinary Clinical Intervention</h5>
+                  <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Professional clinical-grade chart for veterinarians & caregivers</p>
                 </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention Type</label>
-                  <select
-                    value={vetType}
-                    onChange={(e) => setVetType(e.target.value as any)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
-                  >
-                    <option value="Deworming">Deworming Bolus/Liquid</option>
-                    <option value="Treatment">Medical Treatment (Sick Animal)</option>
-                    <option value="Vaccination">Booster Vaccination (FMD, Anthrax, ECF)</option>
-                    <option value="General Practice">General Vet Audit / Checkup</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Treatment / Medication Administered</label>
-                  <input
-                    type="text"
-                    required
-                    value={vetTreatment}
-                    onChange={(e) => setVetTreatment(e.target.value)}
-                    placeholder="E.g. Albendazole 1500mg, Pen-Strep..."
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Financial Cost (Ksh)</label>
-                  <input
-                    type="number"
-                    value={vetCost}
-                    onChange={(e) => setVetCost(e.target.value === '' ? '' : parseInt(e.target.value))}
-                    placeholder="E.g. 1500"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
-                  />
-                </div>
-                {vetType === 'Deworming' && (
+                <span className="bg-[#1a237e]/10 text-[#1a237e] text-[9px] font-black uppercase px-2 py-1 rounded border border-[#1a237e]/20">Registered Practitioner Mode</span>
+              </div>
+
+              {/* SECTION A: PATIENT IDENTITY & ENTRY TIMING */}
+              <div className="space-y-3">
+                <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">1. Patient Identification & Timeline</h6>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Next Deworming Due Date</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Animal Category</label>
+                    <select
+                      value={vetAnimalCategory}
+                      onChange={(e) => setVetAnimalCategory(e.target.value as any)}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                    >
+                      <option value="Cow">Dairy Cow (Adult)</option>
+                      <option value="Goat">Dairy/Meat Goat</option>
+                      <option value="Calf">Young Calf</option>
+                      <option value="Poultry">Poultry Flock</option>
+                      <option value="Dog">K9/Guard Dog</option>
+                      <option value="Other">Other Livestock</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Patient Identifier / Tag ID</label>
+                    {vetAnimalCategory === 'Cow' && cows.length > 0 ? (
+                      <select
+                        required
+                        value={vetCowId}
+                        onChange={(e) => setVetCowId(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="">-- Choose cow --</option>
+                        {cows.map(c => (
+                          <option key={c.id} value={c.id}>{c.id} ({c.name})</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        required
+                        value={vetCowId}
+                        onChange={(e) => setVetCowId(e.target.value)}
+                        placeholder="E.g. Goat-04, Pen B, K9-Max..."
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention Date (Historical / Recent)</label>
                     <input
                       type="date"
                       required
-                      value={vetNextDue}
-                      onChange={(e) => setVetNextDue(e.target.value)}
+                      value={vetDate}
+                      onChange={(e) => setVetDate(e.target.value)}
                       className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
-                )}
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Supervising Officer / Vet</label>
-                  <select
-                    value={vetStaff}
-                    onChange={(e) => setVetStaff(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
-                  >
-                    <option value="Dr. Devin Omwenga">Dr. Devin Omwenga (Vet Manager)</option>
-                    {staffList.map(st => (
-                      <option key={st.id} value={st.name}>{st.name} ({st.unit})</option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention Class</label>
+                    <select
+                      value={vetType}
+                      onChange={(e) => setVetType(e.target.value as any)}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                    >
+                      <option value="Deworming">Deworming Bolus/Liquid</option>
+                      <option value="Treatment">Medical Treatment (Sick Animal)</option>
+                      <option value="Vaccination">Booster Vaccination (FMD, Anthrax, ECF)</option>
+                      <option value="General Practice">General Vet Audit / Checkup</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="col-span-1 md:col-span-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Diagnosis & Intervention Notes</label>
+              </div>
+
+              {/* SECTION B: CLINICAL VITALS & OBSERVATIONS */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">2. Clinical Vitals & Diagnosis</h6>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Body Temperature (°C)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={vetTemp}
+                      onChange={(e) => setVetTemp(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      placeholder="E.g. 38.5"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Heart Rate (bpm)</label>
+                    <input
+                      type="number"
+                      value={vetHeartRate}
+                      onChange={(e) => setVetHeartRate(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      placeholder="E.g. 60"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Respiratory Rate (breaths/min)</label>
+                    <input
+                      type="number"
+                      value={vetRespRate}
+                      onChange={(e) => setVetRespRate(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      placeholder="E.g. 24"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-505 uppercase block mb-1">Primary Diagnosis / Indication</label>
+                    <input
+                      type="text"
+                      value={vetDiagnosis}
+                      onChange={(e) => setVetDiagnosis(e.target.value)}
+                      placeholder="E.g. Sub-clinical Mastitis, Anaplasmosis"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION C: PHARMACOLOGY, ROUTE & COST */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">3. Pharmacological Treatment Plan</h6>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Medication / Treatment Description</label>
+                    <input
+                      type="text"
+                      required
+                      value={vetTreatment}
+                      onChange={(e) => setVetTreatment(e.target.value)}
+                      placeholder="E.g. Intramammary antibiotic infusion, Alben_bolus..."
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Active Drug Name</label>
+                    <input
+                      type="text"
+                      value={vetDrug}
+                      onChange={(e) => setVetDrug(e.target.value)}
+                      placeholder="E.g. Penicillin G, Albendazole"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dosage Administered</label>
+                    <input
+                      type="text"
+                      value={vetDosage}
+                      onChange={(e) => setVetDosage(e.target.value)}
+                      placeholder="E.g. 20ml IM, 1 bolus"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Administration Route</label>
+                    <select
+                      value={vetRoute}
+                      onChange={(e) => setVetRoute(e.target.value as any)}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                    >
+                      <option value="IM">IM (Intramuscular)</option>
+                      <option value="IV">IV (Intravenous)</option>
+                      <option value="SC">SC (Subcutaneous)</option>
+                      <option value="Oral">Oral (Drench/Bolus)</option>
+                      <option value="Topical">Topical (Wound Dressing)</option>
+                      <option value="Intramammary">Intramammary (Infusion)</option>
+                      <option value="Other">Other Routing</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION D: WITHDRAWALS, REMINDERS & FORECASTS */}
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">4. Withdrawal Regulations & Compliance Alerts</h6>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Milk Withdrawal (Days)</label>
+                    <input
+                      type="number"
+                      value={vetWithdrawalMilk}
+                      onChange={(e) => setVetWithdrawalMilk(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      placeholder="E.g. 3 (Milk discard)"
+                      className="text-xs border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Meat Withdrawal (Days)</label>
+                    <input
+                      type="number"
+                      value={vetWithdrawalMeat}
+                      onChange={(e) => setVetWithdrawalMeat(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      placeholder="E.g. 21 (No slaughter)"
+                      className="text-xs border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention Cost (Ksh)</label>
+                    <input
+                      type="number"
+                      value={vetCost}
+                      onChange={(e) => setVetCost(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      placeholder="E.g. 1500"
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Prognosis Evaluation</label>
+                    <select
+                      value={vetPrognosis}
+                      onChange={(e) => setVetPrognosis(e.target.value as any)}
+                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                    >
+                      <option value="Good">Good (Favorable recovery expected)</option>
+                      <option value="Fair">Fair (Moderate recovery chance)</option>
+                      <option value="Guarded">Guarded (Uncertain/Complex response)</option>
+                      <option value="Poor">Poor (High structural damage / warning)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Next Follow-up & Due Date</label>
+                    <input
+                      type="date"
+                      value={vetNextDue}
+                      onChange={(e) => setVetNextDue(e.target.value)}
+                      className="text-xs border border-slate-205 rounded-lg p-3 w-full font-mono font-bold"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
+                  <input
+                    type="checkbox"
+                    id="vetRetreatmentScheduled"
+                    checked={vetRetreatmentScheduled}
+                    onChange={(e) => setVetRetreatmentScheduled(e.target.checked)}
+                    className="w-4 h-4 text-indigo-900 border-slate-300 rounded"
+                  />
+                  <label htmlFor="vetRetreatmentScheduled" className="text-[11px] font-extrabold text-slate-705 uppercase selection:bg-transparent">
+                    Flag for scheduled Retreatment Visit (System-monitored follow-up)
+                  </label>
+                </div>
+              </div>
+
+              {/* NOTES & STAFF SECTION */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+                <div className="md:col-span-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Practitioner Notes & Observational Observations</label>
                   <input
                     type="text"
                     value={vetNotes}
                     onChange={(e) => setVetNotes(e.target.value)}
-                    placeholder="E.g. High worm load on fecal smear. Strict milk withdrawal for 3 days."
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
+                    placeholder="E.g. Normal rumination index, mild congestion of mucosal membrane. Advised owner to avoid damp stalls."
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
                   />
                 </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Supervising Veterinary Surgeon</label>
+                  <select
+                    value={vetStaff}
+                    onChange={(e) => setVetStaff(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold text-indigo-950"
+                  >
+                    <option value="Dr. Devin Omwenga (Vet)">Dr. Devin Omwenga (Vet Manager)</option>
+                    {staffList.map(st => (
+                      <option key={st.id} value={`${st.name} (${st.unit})`}>{st.name} ({st.unit})</option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <div className="flex justify-end gap-2 border-t border-slate-50 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowAddVetForm(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 m-0"
+                  className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 m-0 cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2.5 bg-slate-900 text-white font-black text-xs uppercase rounded-lg m-0 shadow-sm">
-                  Commit Intervention
+                <button type="submit" className="px-5 py-2.5 bg-[#1a237e] text-white font-black text-xs uppercase rounded-lg m-0 shadow-sm hover:bg-[#12185c] cursor-pointer">
+                  Save Clinical Entry
                 </button>
               </div>
             </form>
@@ -1962,38 +2213,104 @@ export function DairyBreeding({
                 .filter(r => r.treatment.toLowerCase().includes(vetSearch.toLowerCase()) || r.cowId.toLowerCase().includes(vetSearch.toLowerCase()) || r.notes.toLowerCase().includes(vetSearch.toLowerCase()))
                 .sort((a,b) => b.date.localeCompare(a.date))
                 .map((record) => (
-                  <div key={record.id} className="p-4 border border-slate-100 rounded-2xl bg-slate-55/60 bg-slate-50 hover:bg-slate-50/80 transition-all flex flex-col md:flex-row justify-between gap-4">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-2">
+                  <div key={record.id} className="p-4 border border-slate-100 rounded-2xl bg-white hover:bg-slate-50/50 shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
-                          record.type === 'Deworming' ? 'bg-[#e0f7fa] text-[#006064] border-[#b2ebf2]' :
-                          record.type === 'Treatment' ? 'bg-[#ffebee] text-[#b71c1c] border-[#ffcdd2]' :
-                          'bg-indigo-50 text-indigo-800 border-indigo-150'
+                          record.type === 'Deworming' ? 'bg-cyan-50 text-cyan-800 border-cyan-200' :
+                          record.type === 'Treatment' ? 'bg-rose-50 text-rose-800 border-rose-200' :
+                          record.type === 'Vaccination' ? 'bg-purple-50 text-purple-800 border-purple-200' :
+                          'bg-indigo-50 text-indigo-805 border-indigo-200'
                         }`}>
                           {record.type}
                         </span>
+                        
+                        <span className="bg-slate-100 text-slate-800 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-slate-200">
+                          {record.animalCategory || 'Cow'}
+                        </span>
+                        
                         <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wide">
-                          Cow Reference: <span className="text-emerald-900 font-black">{record.cowId}</span>
+                          Identifier / Tag: <span className="text-emerald-900 font-extrabold">{record.cowId}</span>
                         </h6>
+
+                        {record.prognosis && (
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ml-auto ${
+                            record.prognosis === 'Good' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                            record.prognosis === 'Fair' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                            record.prognosis === 'Guarded' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                            'bg-red-50 text-red-800 border-red-200'
+                          }`}>
+                            Prognosis: {record.prognosis}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs font-black text-slate-705 leading-relaxed bg-white/70 px-2 py-1.5 rounded border border-slate-100">
-                        Diagnostics & Treatment: <span className="font-extrabold text-[#111]">{record.treatment}</span>
+
+                      {/* Diagnosis & Treatment */}
+                      <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 space-y-1">
+                        {record.diagnosis && (
+                          <p className="text-xs font-bold text-indigo-950">
+                            Clinical Diagnosis: <span className="font-black text-slate-900">{record.diagnosis}</span>
+                          </p>
+                        )}
+                        <p className="text-xs font-medium text-slate-700 leading-relaxed">
+                          Medication / Intervention: <span className="font-extrabold text-slate-950">{record.treatment}</span>
+                        </p>
+                        {(record.drugAdministered || record.dosage) && (
+                          <div className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider flex flex-wrap gap-x-3 gap-y-1">
+                            {record.drugAdministered && <span>💊 Active Drug: <b className="text-slate-800">{record.drugAdministered}</b></span>}
+                            {record.dosage && <span>⚖️ Dosage: <b className="text-slate-800">{record.dosage}</b></span>}
+                            {record.administrationRoute && <span>💉 Route: <b className="text-slate-800">{record.administrationRoute}</b></span>}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Clinical Vitals */}
+                      {(record.temperature || record.heartRate || record.respiratoryRate) && (
+                        <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-600 bg-slate-50/30 p-2 rounded-lg border border-slate-100">
+                          {record.temperature && <span>🌡️ Temp: <b className="text-slate-950">{record.temperature}°C</b></span>}
+                          {record.heartRate && <span>❤️ Heart Rate: <b className="text-slate-950">{record.heartRate} bpm</b></span>}
+                          {record.respiratoryRate && <span>🫁 Resp Rate: <b className="text-slate-950">{record.respiratoryRate} bpm</b></span>}
+                        </div>
+                      )}
+
+                      {/* Withdrawal Periods Warnings */}
+                      {(record.withdrawalMilkDays || record.withdrawalMeatDays) && (
+                        <div className="flex flex-wrap gap-3 p-2 rounded-xl bg-amber-50/40 border border-amber-100">
+                          {record.withdrawalMilkDays ? (
+                            <span className="text-[10px] font-black text-amber-850 uppercase">
+                              ⚠️ Milk Withdrawal: <b className="font-bold underline text-amber-950">{record.withdrawalMilkDays} Days</b> (Discard yield)
+                            </span>
+                          ) : null}
+                          {record.withdrawalMeatDays ? (
+                            <span className="text-[10px] font-black text-amber-850 uppercase">
+                              🍖 Meat Withdrawal: <b className="font-bold underline text-amber-950">{record.withdrawalMeatDays} Days</b> (No slaughter)
+                            </span>
+                          ) : null}
+                        </div>
+                      )}
+
+                      <p className="text-xs font-semibold text-slate-500 italic">
+                        Observations: "{record.notes}"
                       </p>
-                      <p className="text-xs font-medium text-slate-505 italic">
-                        Observational Details: "{record.notes}"
-                      </p>
+
                       {record.nextDueDate && (
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#b71c1c]">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-900 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 w-fit">
                           <Timer size={12} />
-                          <span>Deworming Calendar Deadline: {record.nextDueDate}</span>
+                          <span>Deadline reminder / Follow-up due: <b className="font-black underline">{record.nextDueDate}</b></span>
+                        </div>
+                      )}
+
+                      {record.retreatmentScheduled && (
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-red-900 bg-red-50 p-1.5 px-2.5 rounded-lg border border-red-100 w-fit uppercase">
+                          <span>🔔 Critical: Retreatment Scheduled</span>
                         </div>
                       )}
                     </div>
 
                     <div className="flex flex-row md:flex-col items-start md:items-end justify-between md:justify-start gap-4 text-left md:text-right shrink-0 border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
                       <div>
-                        <span className="text-[9px] uppercase font-black text-slate-400 block">Logged / Caregiver</span>
-                        <span className="text-xs font-black font-semibold text-slate-705 block mt-0.5 font-mono">{record.date}</span>
+                        <span className="text-[9px] uppercase font-black text-slate-400 block font-bold">Intervention Timestamp</span>
+                        <span className="text-xs font-black font-semibold text-indigo-950 block mt-0.5 font-mono">{record.date}</span>
                         <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{record.staff}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
@@ -2247,7 +2564,7 @@ export function DairyBreeding({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Milking/Production Status</label>
                   <select
@@ -2260,6 +2577,16 @@ export function DairyBreeding({
                     <option value="Heifer">Heifer</option>
                     <option value="In-Calf">In-Calf</option>
                   </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Peak Yield Target (L/day)</label>
+                  <input
+                    type="number"
+                    value={editingCow.peakYieldTarget || ''}
+                    onChange={(e) => setEditingCow({ ...editingCow, peakYieldTarget: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    placeholder="E.g. 30"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Studbook Reg # (Optional)</label>
@@ -2374,86 +2701,237 @@ export function DairyBreeding({
       {/* Edit Veterinary Record Modal */}
       {editingVet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Veterinary Log</h3>
+              <div>
+                <h3 className="text-sm font-black uppercase text-slate-800">Edit Clinical Veterinary Log</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Adjust clinical parameters and medical records</p>
+              </div>
               <button onClick={() => setEditingVet(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
             </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+            
+            <div className="space-y-4 text-left">
+              {/* Patient and Timeline */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cow TAG ID</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Animal Category</label>
                   <select
-                    value={editingVet.cowId}
-                    onChange={(e) => setEditingVet({ ...editingVet, cowId: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    value={editingVet.animalCategory || 'Cow'}
+                    onChange={(e) => setEditingVet({ ...editingVet, animalCategory: e.target.value as any })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
                   >
-                    {cows.map(c => <option key={c.id} value={c.id}>{c.id} ({c.name})</option>)}
+                    <option value="Cow">Cow</option>
+                    <option value="Goat">Goat</option>
+                    <option value="Calf">Calf</option>
+                    <option value="Poultry">Poultry</option>
+                    <option value="Dog">Dog</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Type of Intervention</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Tag ID / Cow Ref</label>
+                  <input
+                    type="text"
+                    value={editingVet.cowId}
+                    onChange={(e) => setEditingVet({ ...editingVet, cowId: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Type</label>
                   <select
                     value={editingVet.type}
                     onChange={(e) => setEditingVet({ ...editingVet, type: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
                   >
-                    <option value="Treatment">Treatment</option>
                     <option value="Deworming">Deworming</option>
+                    <option value="Treatment">Treatment</option>
                     <option value="Vaccination">Vaccination</option>
+                    <option value="General Practice">General Practice</option>
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Treatment Description</label>
-                <input
-                  type="text"
-                  value={editingVet.treatment}
-                  onChange={(e) => setEditingVet({ ...editingVet, treatment: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
-                />
+
+              {/* Vitals and Diagnosis */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Temp (°C)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editingVet.temperature || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, temperature: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Heart (bpm)</label>
+                  <input
+                    type="number"
+                    value={editingVet.heartRate || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, heartRate: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Resp (bpm)</label>
+                  <input
+                    type="number"
+                    value={editingVet.respiratoryRate || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, respiratoryRate: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Diagnosis</label>
+                  <input
+                    type="text"
+                    value={editingVet.diagnosis || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, diagnosis: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              {/* Treatment and Pharmacology */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVet.treatment}
+                    onChange={(e) => setEditingVet({ ...editingVet, treatment: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Drug Name</label>
+                  <input
+                    type="text"
+                    value={editingVet.drugAdministered || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, drugAdministered: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dosage</label>
+                  <input
+                    type="text"
+                    value={editingVet.dosage || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, dosage: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* Routing, Cost, and Timeline */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Route</label>
+                  <select
+                    value={editingVet.administrationRoute || 'IM'}
+                    onChange={(e) => setEditingVet({ ...editingVet, administrationRoute: e.target.value as any })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                  >
+                    <option value="IM">IM</option>
+                    <option value="IV">IV</option>
+                    <option value="SC">SC</option>
+                    <option value="Oral">Oral</option>
+                    <option value="Topical">Topical</option>
+                    <option value="Intramammary">Intramammary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cost (Ksh)</label>
                   <input
                     type="number"
                     value={editingVet.cost}
                     onChange={(e) => setEditingVet({ ...editingVet, cost: parseInt(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention Date</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Log Date</label>
                   <input
                     type="date"
                     value={editingVet.date}
                     onChange={(e) => setEditingVet({ ...editingVet, date: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Deadline / Next Due</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Prognosis</label>
+                  <select
+                    value={editingVet.prognosis || 'Good'}
+                    onChange={(e) => setEditingVet({ ...editingVet, prognosis: e.target.value as any })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                  >
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Guarded">Guarded</option>
+                    <option value="Poor">Poor</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Withdrawals and Follow-ups */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Milk Withdrawal (Days)</label>
+                  <input
+                    type="number"
+                    value={editingVet.withdrawalMilkDays || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, withdrawalMilkDays: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                    className="border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Meat Withdrawal (Days)</label>
+                  <input
+                    type="number"
+                    value={editingVet.withdrawalMeatDays || ''}
+                    onChange={(e) => setEditingVet({ ...editingVet, withdrawalMeatDays: e.target.value === '' ? undefined : parseInt(e.target.value) })}
+                    className="border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Next Follow-up Due</label>
                   <input
                     type="date"
                     value={editingVet.nextDueDate || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, nextDueDate: e.target.value || undefined })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Retreatment alert and Staff */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-2 bg-rose-50/50 p-2 rounded-xl border border-rose-100">
+                  <input
+                    type="checkbox"
+                    id="editVetRetreatment"
+                    checked={editingVet.retreatmentScheduled || false}
+                    onChange={(e) => setEditingVet({ ...editingVet, retreatmentScheduled: e.target.checked })}
+                    className="w-4 h-4 text-indigo-900 border-slate-300 rounded"
+                  />
+                  <label htmlFor="editVetRetreatment" className="text-[10px] font-black text-rose-950 uppercase selection:bg-transparent">
+                    Retreatment Scheduled visit
+                  </label>
+                </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Caregiver Staff</label>
-                  <select
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Supervising Officer</label>
+                  <input
+                    type="text"
                     value={editingVet.staff}
                     onChange={(e) => setEditingVet({ ...editingVet, staff: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
-                  >
-                    {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
-                  </select>
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold text-indigo-950"
+                  />
                 </div>
               </div>
+
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Notes / Observations</label>
                 <textarea
@@ -2464,6 +2942,7 @@ export function DairyBreeding({
                 />
               </div>
             </div>
+            
             <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
               <button
                 onClick={() => setEditingVet(null)}
@@ -2478,7 +2957,7 @@ export function DairyBreeding({
                   }
                   setEditingVet(null);
                 }}
-                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+                className="px-5 py-2.5 bg-indigo-955 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
               >
                 Save Changes
               </button>

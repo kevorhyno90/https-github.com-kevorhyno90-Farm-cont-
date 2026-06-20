@@ -115,6 +115,13 @@ export interface FieldRecord {
   status: string; // "Growing", "Harvested", "Prepared"
   notes: string;
   date: string;
+  
+  // High-fidelity agricultural fields
+  soilPh?: number;
+  lastFertilizerDate?: string;
+  projectedHarvestVolume?: string;
+  irrigationMethod?: 'Drip' | 'Overhead' | 'Rainfed' | 'Manual' | 'None';
+  datePlanted?: string;
 }
 
 export interface InventoryItem {
@@ -124,6 +131,9 @@ export interface InventoryItem {
   quantity: number;
   unit: string; // "bags", "liters", "KG", "units"
   minStock: number;
+  dateReceived?: string; // YYYY-MM-DD
+  location?: string; // e.g. "Store Alpha", "Workshop A", etc.
+  expiryDate?: string; // optional YYYY-MM-DD
 }
 
 export interface StaffOffRecord {
@@ -151,11 +161,13 @@ export interface Cow {
   grandSireMaternal?: string;
   grandDamMaternal?: string;
   registrationNo?: string;
+  peakYieldTarget?: number; // Custom target for Peak Dairy status (defaults to 30)
 }
 
 export interface VetRecord {
   id: string;
-  cowId: string; // Cow tag or Cow name
+  cowId: string; // Cow tag or general livestock ID
+  animalCategory?: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
   date: string; // YYYY-MM-DD
   type: 'Deworming' | 'Treatment' | 'Vaccination' | 'General Practice';
   treatment: string; // e.g. "Safeguard deworming bolus", "Mastitis antibiotic syringe"
@@ -163,6 +175,19 @@ export interface VetRecord {
   cost: number; // Ksh
   staff: string;
   notes: string;
+  
+  // Veterinary Clinical Parameters
+  diagnosis?: string;
+  temperature?: number; // °C
+  heartRate?: number; // bpm
+  respiratoryRate?: number; // breaths/min
+  drugAdministered?: string;
+  dosage?: string;
+  administrationRoute?: 'IM' | 'IV' | 'SC' | 'Oral' | 'Topical' | 'Intramammary' | 'Other';
+  withdrawalMilkDays?: number;
+  withdrawalMeatDays?: number;
+  prognosis?: 'Good' | 'Fair' | 'Guarded' | 'Poor';
+  retreatmentScheduled?: boolean;
 }
 
 export interface GoatRecord {
@@ -186,6 +211,8 @@ export interface CalfRecord {
   weaned: boolean;
   notes: string;
   date: string;
+  calfName?: string;
+  sex?: 'Male' | 'Female';
 }
 
 export interface BsfRecord {
@@ -201,12 +228,18 @@ export interface BsfRecord {
 
 export interface CropOpRecord {
   id: string;
-  crop: 'Tea' | 'Avocado' | 'Banana' | 'Vegetables' | 'Sorghum' | 'Maize';
+  crop: 'Tea' | 'Avocado' | 'Banana' | 'Vegetables' | 'Sorghum' | 'Maize' | 'Beans' | string;
   operationName: string; // E.g., "De-suckering", "Foliar spray", "Thinning"
   date: string; // YYYY-MM-DD
   status: 'Pending' | 'Completed' | 'In-Progress';
   completedBy?: string; // Staff member assigned
   notes: string;
+  
+  // Comprehensive crop operation details
+  inputsUsed?: string; // e.g. "DAP Fertilizer", "Foliar feed", "Actara pesticide"
+  inputQuantityUsed?: string; // e.g., "50 kg", "200 ml"
+  equipmentUsed?: string; // e.g., "Tractor, Knapsack Sprayer, Handtools"
+  operationCost?: number; // Ksh
 }
 
 export interface CropSaleRecord {

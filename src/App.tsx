@@ -2891,6 +2891,8 @@ export default function App() {
               onEditBsfRecord={handleEditBsfRecord}
               onEditCropOp={handleEditCropOpRecord}
               onEditCropSale={handleEditCropSale}
+              vetRecords={vetRecords}
+              aiRecords={aiRecords}
             />
           )}
 
