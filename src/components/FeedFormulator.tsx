@@ -803,6 +803,17 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
                   <p className="mt-0.5 font-semibold text-slate-700">{categoryLabel}</p>
                 </div>
               </div>
+
+              {/* Dynamic TMR sync cross-link banner */}
+              <div className="p-4 rounded-xl border border-[#0d3621]/20 bg-[#0d3621]/5 text-xs flex items-center gap-3">
+                <Sparkles size={20} className="shrink-0 text-emerald-800 animate-pulse" />
+                <div className="text-left">
+                  <span className="font-extrabold uppercase tracking-wide block text-[#0d3621]">✨ Cross-Module Wagon Sync Active:</span>
+                  <p className="mt-0.5 font-semibold text-slate-650">
+                    Your active recipe is automatically saved. Jump over to the **TMR Mixing** tab and toggle **"Use Lab formulation ratios"** to dynamically load these exact proportions into your daily mixer bucket feed seq!
+                  </p>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-100 p-8 rounded-2xl text-center">

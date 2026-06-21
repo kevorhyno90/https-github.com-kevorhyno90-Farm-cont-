@@ -24,7 +24,9 @@ import {
   Thermometer,
   Calculator,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Database,
+  DollarSign
 } from 'lucide-react';
 import {
   LineChart,
@@ -53,6 +55,7 @@ interface DashboardProps {
   totalTeaQty: number;
   staffOffRecords: StaffOffRecord[];
   staffList: StaffMember[];
+  onNavigateToTab?: (tabId: string) => void;
 }
 
 export function Dashboard({
@@ -66,7 +69,8 @@ export function Dashboard({
   onDeleteTodo,
   totalTeaQty,
   staffOffRecords = [],
-  staffList = []
+  staffList = [],
+  onNavigateToTab
 }: DashboardProps) {
   const [newTodo, setNewTodo] = useState('');
   const [todoAssignee, setTodoAssignee] = useState('');
@@ -1005,7 +1009,7 @@ export function Dashboard({
             </div>
 
             {/* Calculated Output box */}
-            <div className="bg-emerald-900/40 border border-emerald-800/80 p-2.5 rounded-lg mt-2.5 text-[10px] space-y-1">
+            <div className="bg-emerald-990/40 border border-emerald-800/80 p-2.5 rounded-lg mt-2.5 text-[10px] space-y-1">
               <span className="text-[9px] font-mono tracking-widest uppercase font-black text-yellow-500 block">
                 Recommended Action:
               </span>
@@ -1018,6 +1022,121 @@ export function Dashboard({
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Precision agricultural calculators & troubleshooting features suite launcher */}
+      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-4 text-left">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2 uppercase">
+              <Sparkles className="text-yellow-500 animate-pulse" size={20} />
+              {isSwahili ? "Mtaaluma wa Maendeleo na Utafiti" : "Precision & Diagnostics Suite"}
+            </h3>
+            <p className="text-xs text-slate-500 font-semibold leading-normal">
+              {isSwahili
+                ? "Bofya zana yoyote hapa chini ili kufungua mifumo yetu mipya ya kisasa ya uchunguzi na usimamizi wa shamba."
+                : "Launch agricultural modules, interactive solvers, and real-time smart troubleshooting tools designed for JR Farm."}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Diagnostics Troubleshooting Wizard */}
+          <div
+            onClick={() => onNavigateToTab && onNavigateToTab('diagnostics_sub')}
+            className="group cursor-pointer bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/20 p-5 rounded-2xl transition-all space-y-3 relative overflow-hidden"
+            id="launch-diagnostics-wizard"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 group-hover:bg-blue-500/10 rounded-bl-full transition-all"></div>
+            <div className="p-2.5 bg-blue-100 text-blue-700 rounded-xl w-fit">
+              <Activity size={18} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide group-hover:text-blue-700 transition-colors">
+                {isSwahili ? "Mtaaluma wa Magonjwa" : "Diagnostics Wizard"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mt-1">
+                Instant symptoms scanner for tomatoes, maize, avocados, cattle, & poultry with treatment SOPs.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-blue-600 font-black uppercase tracking-wider pt-2">
+              <span>{isSwahili ? "Fungua Sasa" : "Launch Checker"}</span>
+              <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 2: Smart Inventory Auto Deduct */}
+          <div
+            onClick={() => onNavigateToTab && onNavigateToTab('inventory_deduct_sub')}
+            className="group cursor-pointer bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 p-5 rounded-2xl transition-all space-y-3 relative overflow-hidden"
+            id="launch-inventory-deduct"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/5 group-hover:bg-indigo-500/10 rounded-bl-full transition-all"></div>
+            <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-xl w-fit">
+              <Database size={18} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide group-hover:text-indigo-700 transition-colors">
+                {isSwahili ? "Upunguzaji wa Stoo" : "Stock Auto-Deduct"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mt-1">
+                Run feed mixing & chemical spraying protocols with automatic warehouse stock deductions.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 font-black uppercase tracking-wider pt-2">
+              <span>{isSwahili ? "Tekeleza SOP" : "Simulate SOP"}</span>
+              <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 3: PHI & Breeding Timeline */}
+          <div
+            onClick={() => onNavigateToTab && onNavigateToTab('timelines_sub')}
+            className="group cursor-pointer bg-slate-50 border border-slate-200 hover:border-purple-300 hover:bg-purple-50/20 p-5 rounded-2xl transition-all space-y-3 relative overflow-hidden"
+            id="launch-gestation-timelines"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-purple-500/5 group-hover:bg-purple-500/10 rounded-bl-full transition-all"></div>
+            <div className="p-2.5 bg-purple-100 text-purple-700 rounded-xl w-fit">
+              <Calendar size={18} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide group-hover:text-purple-700 transition-colors">
+                {isSwahili ? "Muda wa Ngojea / Mimba" : "Gestation & PHI"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mt-1">
+                Visual countdown trackers for chemical spray harvest delays & artificial insemination calendars.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-purple-600 font-black uppercase tracking-wider pt-2">
+              <span>{isSwahili ? "Ubao wa Muda" : "View Timelines"}</span>
+              <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 4: Milk-to-Feed Profit Margin Analyser */}
+          <div
+            onClick={() => onNavigateToTab && onNavigateToTab('analyzer_sub')}
+            className="group cursor-pointer bg-slate-50 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/20 p-5 rounded-2xl transition-all space-y-3 relative overflow-hidden"
+            id="launch-margin-analyser"
+          >
+            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-bl-full transition-all"></div>
+            <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl w-fit">
+              <DollarSign size={18} />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide group-hover:text-emerald-700 transition-colors">
+                {isSwahili ? "Uchambuzi wa Faida" : "Milk-to-Feed Margin"}
+              </h4>
+              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mt-1">
+                Recalculate exact feed-to-milk yield ratios with bio-slurry credits to boost operating P&L.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 font-black uppercase tracking-wider pt-2">
+              <span>{isSwahili ? "Chambua Faida" : "Analyse Margins"}</span>
+              <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
         </div>
       </div>
 

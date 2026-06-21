@@ -41,6 +41,22 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
   const [isSyncLoading, setIsSyncLoading] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string>(() => localStorage.getItem('jr_farm_cloud_last_synced_at') || '');
 
+  const [isForcedOffline, setIsForcedOffline] = useState<boolean>(() => {
+    return localStorage.getItem('jr_farm_forced_offline') === 'true';
+  });
+
+  const toggleOfflineSimulation = () => {
+    const nextVal = !isForcedOffline;
+    setIsForcedOffline(nextVal);
+    localStorage.setItem('jr_farm_forced_offline', String(nextVal));
+    setStatusMsg({
+      type: 'success',
+      text: nextVal 
+        ? '🔌 Offline Mode Simulation Engaged. Interactive AI Diagnostics and sync logs will now run on client heuristic fail-safes.'
+        : '📡 System restored online. Direct secure cloud tunnels activated.'
+    });
+  };
+
   // Retrieve storage statistics
   const getStats = () => {
     const keys = [
@@ -543,6 +559,56 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Online/Offline Network Simulator Control Dashboard (Improvement 4) */}
+          <div className="bg-slate-50 border border-slate-200/80 p-5 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="text-emerald-700 animate-spin-slow" size={16} />
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none">
+                  Live Synchronization & Connectivity Control
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 font-bold">Heuristic Sync Enforcer</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-white rounded-xl border border-slate-150 space-y-1">
+                <span className="text-[9px] font-black uppercase text-slate-400 block pb-0.5">Network Simulation Status</span>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${isForcedOffline ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                  <span className="text-xs font-black uppercase tracking-tight text-slate-800">
+                    {isForcedOffline ? 'Forced Offline Simulation' : 'Active Online Cloud Tunnel'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-slate-150 space-y-1">
+                <span className="text-[9px] font-black uppercase text-slate-400 block pb-0.5">Database Sync Latency</span>
+                <span className="font-mono text-xs font-black text-slate-800 block">
+                  {isForcedOffline ? '∞ infinite (Simulation)' : '42ms (Secure Socket Tunnel)'}
+                </span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-slate-150 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-black uppercase text-amber-800 block">Simulate Offline Mode</span>
+                  <p className="text-[10px] text-slate-500 leading-none">Simulates telemetry disconnected</p>
+                </div>
+                <button
+                  onClick={toggleOfflineSimulation}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-0 cursor-pointer ${
+                    isForcedOffline 
+                      ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs' 
+                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                  }`}
+                >
+                  {isForcedOffline ? 'Go Online' : 'Go Offline'}
+                </button>
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-500 italic leading-normal font-medium max-w-xl">
+              💡 <strong>HINTS:</strong> Going Offline automatically instructs the dynamic diagnostics scanner, feed formulations, and GlobalGAP spraying recorders to run on our custom local browser core-heuristics, bypassing API routes.
+            </p>
           </div>
 
           {/* Preset default rebuild */}

@@ -28,7 +28,8 @@ import {
   Database,
   BookOpen,
   CalendarDays,
-  Settings
+  Settings,
+  DollarSign
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -173,6 +174,14 @@ export default function App() {
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermission>('default');
   const [failSafeNotificationModal, setFailSafeNotificationModal] = useState<{ title: string; body: string } | null>(null);
   const [appToastMessage, setAppToastMessage] = useState<string | null>(null);
+
+  const [selectedRingtone, setSelectedRingtone] = useState<string>(() => {
+    return localStorage.getItem('jr_farm_notification_ringtone') || 'chime';
+  });
+  const [continuousLoop, setContinuousLoop] = useState<boolean>(() => {
+    return localStorage.getItem('jr_farm_notification_loop') === 'true';
+  });
+  const [activeAudioSource, setActiveAudioSource] = useState<any>(null);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -1519,23 +1528,223 @@ export default function App() {
     }
   };
 
-  const playSyntheticBellChime = () => {
+  const stopAlarmSound = () => {
+    if (activeAudioSource) {
+      try {
+        activeAudioSource.stop();
+      } catch (_) {}
+      setActiveAudioSource(null);
+    }
+  };
+
+  const playSyntheticBellChime = (ringtoneId?: string, overrideLoop?: boolean) => {
     try {
+      const targetId = ringtoneId || selectedRingtone;
+      const isLoop = overrideLoop !== undefined ? overrideLoop : continuousLoop;
+
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
       const ctx = new AudioContextClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
       
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime); 
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      
-      osc.start();
-      osc.stop(ctx.currentTime + 0.3);
+      // Stop any existing playing audio source
+      if (activeAudioSource) {
+        try {
+          activeAudioSource.stop();
+        } catch (_) {}
+      }
+
+      let stopFn = () => {};
+
+      if (targetId === 'chime') {
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const oscs: OscillatorNode[] = [];
+
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          
+          const startTime = ctx.currentTime + idx * 0.15;
+          const duration = 0.5;
+          
+          gain.gain.setValueAtTime(0, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+          
+          osc.start(startTime);
+          osc.stop(startTime + duration + 0.1);
+          oscs.push(osc);
+        });
+
+        stopFn = () => {
+          oscs.forEach(o => { try { o.stop(); } catch (_) {} });
+        };
+      } 
+      else if (targetId === 'telephone') {
+        const playRingSequence = (time: number) => {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const ringerGain = ctx.createGain();
+          const mainGain = ctx.createGain();
+          
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.value = 440;
+          osc2.frequency.value = 480;
+          
+          osc1.connect(ringerGain);
+          osc2.connect(ringerGain);
+          ringerGain.connect(mainGain);
+          mainGain.connect(ctx.destination);
+          
+          mainGain.gain.setValueAtTime(0, time);
+          mainGain.gain.linearRampToValueAtTime(0.18, time + 0.05);
+          mainGain.gain.setValueAtTime(0.18, time + 0.4);
+          mainGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.45);
+          
+          osc1.start(time);
+          osc2.start(time);
+          osc1.stop(time + 0.5);
+          osc2.stop(time + 0.5);
+          
+          // Second ring
+          const osc1b = ctx.createOscillator();
+          const osc2b = ctx.createOscillator();
+          const mainGainB = ctx.createGain();
+          
+          osc1b.type = 'sine';
+          osc2b.type = 'sine';
+          osc1b.frequency.value = 440;
+          osc2b.frequency.value = 480;
+          
+          osc1b.connect(mainGainB);
+          osc2b.connect(mainGainB);
+          mainGainB.connect(ctx.destination);
+          
+          const time2 = time + 0.6;
+          mainGainB.gain.setValueAtTime(0, time2);
+          mainGainB.gain.linearRampToValueAtTime(0.18, time2 + 0.05);
+          mainGainB.gain.setValueAtTime(0.18, time2 + 0.4);
+          mainGainB.gain.exponentialRampToValueAtTime(0.0001, time2 + 0.45);
+          
+          osc1b.start(time2);
+          osc2b.start(time2);
+          osc1b.stop(time2 + 0.5);
+          osc2b.stop(time2 + 0.5);
+
+          return {
+            stop: () => {
+              try { osc1.stop(); osc2.stop(); osc1b.stop(); osc2b.stop(); } catch (_) {}
+            }
+          };
+        };
+
+        let result = playRingSequence(ctx.currentTime);
+        let interval: any = null;
+        if (isLoop) {
+          interval = setInterval(() => {
+            result = playRingSequence(ctx.currentTime);
+          }, 3000);
+        }
+        stopFn = () => {
+          if (interval) clearInterval(interval);
+          try { result.stop(); } catch (_) {}
+        };
+      } 
+      else if (targetId === 'siren') {
+        const playSirenSequence = (time: number, len: number) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(600, time);
+          osc.frequency.linearRampToValueAtTime(1100, time + len * 0.45);
+          osc.frequency.linearRampToValueAtTime(600, time + len * 0.9);
+          
+          gain.gain.setValueAtTime(0, time);
+          gain.gain.linearRampToValueAtTime(0.12, time + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.0001, time + len);
+          
+          osc.start(time);
+          osc.stop(time + len + 0.1);
+
+          return osc;
+        };
+
+        const duration = 2.0;
+        let activeOsc = playSirenSequence(ctx.currentTime, duration);
+        let interval: any = null;
+        if (isLoop) {
+          interval = setInterval(() => {
+            activeOsc = playSirenSequence(ctx.currentTime, duration);
+          }, duration * 1000 + 200);
+        }
+        
+        stopFn = () => {
+          if (interval) clearInterval(interval);
+          try { activeOsc.stop(); } catch (_) {}
+        };
+      } 
+      else if (targetId === 'melody') {
+        const notes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+        const playTune = (baseTime: number) => {
+          const playNote = (freq: number, start: number, duration: number) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + duration - 0.02);
+            
+            osc.start(start);
+            osc.stop(start + duration);
+            return osc;
+          };
+
+          const oscList: OscillatorNode[] = [];
+          oscList.push(playNote(notes[0], baseTime + 0.0, 0.2));
+          oscList.push(playNote(notes[2], baseTime + 0.2, 0.2));
+          oscList.push(playNote(notes[4], baseTime + 0.4, 0.2));
+          oscList.push(playNote(notes[3], baseTime + 0.6, 0.2));
+          oscList.push(playNote(notes[5], baseTime + 0.8, 0.4));
+
+          return {
+            stop: () => {
+              oscList.forEach(o => { try { o.stop(); } catch (_) {} });
+            }
+          };
+        };
+
+        let activeTune = playTune(ctx.currentTime);
+        let interval: any = null;
+        if (isLoop) {
+          interval = setInterval(() => {
+            activeTune = playTune(ctx.currentTime);
+          }, 2000);
+        }
+
+        stopFn = () => {
+          if (interval) clearInterval(interval);
+          try { activeTune.stop(); } catch (_) {}
+        };
+      }
+
+      setActiveAudioSource({ stop: stopFn });
+
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 300]);
+      }
     } catch (_) {}
   };
 
@@ -2214,6 +2423,10 @@ export default function App() {
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
 
     { id: 'education', label: "Farmer's Academy", icon: BookOpen, category: 'Academy' },
+    { id: 'diagnostics_sub', label: "🔍 Diagnostics Wizard", icon: Activity, category: 'Academy' },
+    { id: 'inventory_deduct_sub', label: "📦 Stock Auto-Deduct", icon: Database, category: 'Academy' },
+    { id: 'timelines_sub', label: "⏳ Gestation & PHI", icon: CalendarDays, category: 'Academy' },
+    { id: 'analyzer_sub', label: "📊 Milk-to-Feed Analyser", icon: DollarSign, category: 'Academy' },
     { id: 'timetable', label: "Operations Schedule", icon: CalendarDays, category: 'Academy' },
 
     { id: 'settings', label: "Control Settings", icon: Settings, category: 'Operations' }
@@ -2979,6 +3192,77 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Alarm Ringtone Sound Customizer */}
+                  <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-3">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-bold">🎶</span>
+                      <span className="text-[10px] uppercase font-black text-slate-600 tracking-wider">
+                        Ringtone Sound Customization
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Select Sound Track</label>
+                        <select
+                          value={selectedRingtone}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSelectedRingtone(val);
+                            localStorage.setItem('jr_farm_notification_ringtone', val);
+                            playSyntheticBellChime(val, false); // Quick preview
+                          }}
+                          className="w-full bg-white border border-slate-200 text-[10px] p-2.5 rounded-lg font-black cursor-pointer"
+                        >
+                          <option value="chime">Country Chime 🔔</option>
+                          <option value="telephone">Classic Ringer 📞</option>
+                          <option value="siren">Emergency Siren 🚨</option>
+                          <option value="melody">Happy Barn ⛅</option>
+                        </select>
+                      </div>
+                      
+                      <div className="flex flex-col justify-end">
+                        <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Ringtone Loop Mode</label>
+                        <button
+                          onClick={() => {
+                            const next = !continuousLoop;
+                            setContinuousLoop(next);
+                            localStorage.setItem('jr_farm_notification_loop', next ? 'true' : 'false');
+                            triggerAppToastMessage(next ? "✓ Ringtone continuous looping is now active!" : "Ringtone single play activated.");
+                          }}
+                          className={`w-full text-[10px] font-black uppercase p-2.5 border rounded-lg text-center transition-colors cursor-pointer ${
+                            continuousLoop 
+                              ? 'bg-amber-100 border-amber-300 text-amber-900 font-black' 
+                              : 'bg-white border-slate-200 text-slate-600 font-bold'
+                          }`}
+                        >
+                          {continuousLoop ? "🔄 Loop Mode" : "⚡ Single Play"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          playSyntheticBellChime(selectedRingtone, continuousLoop);
+                          triggerAppToastMessage("🔊 Playing alarm ringtone preview...");
+                        }}
+                        className="flex-1 bg-slate-905 hover:bg-slate-800 text-slate-900 border border-slate-350 bg-slate-100 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        🔊 Play Preview
+                      </button>
+                      <button
+                        onClick={() => {
+                          stopAlarmSound();
+                          triggerAppToastMessage("🔇 Alarm muted.");
+                        }}
+                        className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        🔇 Stop Ringtone
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Alarm stream list */}
                   <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
                     {getSensitiveSectionAlarms().length === 0 ? (
@@ -3185,7 +3469,7 @@ export default function App() {
                     activeTab === 'fields' ? 'Agronomy Fields' :
                     activeTab === 'livestock' ? 'Livestock & Canines' :
                     activeTab === 'inventory' ? 'Warehouse Stock' :
-                    activeTab === 'education' ? "Farmer's Academy Guide" :
+                    (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') ? "Farmer's Academy Guide" :
                     activeTab === 'timetable' ? "Operations Calendar" : 'Section'
                   } (HTML)
                 </button>
@@ -3206,6 +3490,7 @@ export default function App() {
               totalTeaQty={totalTeaQty}
               staffOffRecords={staffOffRecords}
               staffList={staffList}
+              onNavigateToTab={(tabId) => setActiveTab(tabId)}
             />
           )}
 
@@ -3357,8 +3642,25 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'education' && (
-            <FarmerAcademy />
+          {(activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') && (
+            <FarmerAcademy 
+              inventory={inventory}
+              setInventory={setInventory}
+              sprayRecords={sprayRecords}
+              setSprayRecords={setSprayRecords}
+              vetRecords={vetRecords}
+              setVetRecords={setVetRecords}
+              cows={cows}
+              financials={financials}
+              setFinancials={setFinancials}
+              initialTab={
+                activeTab === 'diagnostics_sub' ? 'diagnostics' :
+                activeTab === 'inventory_deduct_sub' ? 'inventory_deduct' :
+                activeTab === 'timelines_sub' ? 'timelines' :
+                activeTab === 'analyzer_sub' ? 'calculators' :
+                undefined
+              }
+            />
           )}
 
           {activeTab === 'timetable' && (
@@ -4094,7 +4396,10 @@ export default function App() {
                 <h4 className="text-xs font-black uppercase font-mono tracking-wider">CRITICAL FARM ALARM CHIME</h4>
               </div>
               <button
-                onClick={() => setFailSafeNotificationModal(null)}
+                onClick={() => {
+                  stopAlarmSound();
+                  setFailSafeNotificationModal(null);
+                }}
                 className="text-white opacity-80 hover:opacity-100 font-extrabold text-sm border-0 bg-transparent cursor-pointer"
               >
                 ✕
@@ -4102,7 +4407,7 @@ export default function App() {
             </div>
             
             <div className="p-6 space-y-4 text-center">
-              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-600 font-bold border border-red-100 text-xl">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-600 font-bold border border-red-100 text-xl animate-bounce">
                 ⚠️
               </div>
               
@@ -4113,9 +4418,32 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed font-semibold">
                 {failSafeNotificationModal.body}
               </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    stopAlarmSound();
+                    triggerAppToastMessage("Alarm ringtone muted.");
+                  }}
+                  className="flex-1 bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-200 font-black text-[10px] uppercase py-2.5 rounded-lg cursor-pointer"
+                >
+                  🔇 Mute Alert Tone
+                </button>
+                <button
+                  onClick={() => {
+                    playSyntheticBellChime();
+                    triggerAppToastMessage("Playing test...");
+                  }}
+                  className="bg-slate-100 hover:bg-slate-250 text-slate-700 border border-slate-200 font-bold text-[10px] uppercase px-3 rounded-lg cursor-pointer"
+                  title="Replay notification alarm chime"
+                >
+                  🔊 Replay
+                </button>
+              </div>
               
               <button
                 onClick={() => {
+                  stopAlarmSound();
                   setFailSafeNotificationModal(null);
                   setBellNotificationTrayOpen(true);
                 }}

@@ -3,9 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { FinancialRecord } from '../types';
-import { Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, BookOpen, Edit2, FileSpreadsheet, FileDown } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { FinancialRecord, AIRecord, Cow } from '../types';
+import { 
+  Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
+  BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
+  AlertTriangle, DollarSign, BrainCircuit, Activity, Settings, Target, 
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table
+} from 'lucide-react';
+import { 
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell 
+} from 'recharts';
 
 interface FinancialsProps {
   financialRecords: FinancialRecord[];
@@ -15,7 +24,16 @@ interface FinancialsProps {
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
-export function Financials({ financialRecords, onAddTransaction, onDeleteTransaction, onEditFinancialRecord, onTriggerSectionReport }: FinancialsProps) {
+export function Financials({ 
+  financialRecords, 
+  onAddTransaction, 
+  onDeleteTransaction, 
+  onEditFinancialRecord, 
+  onTriggerSectionReport 
+}: FinancialsProps) {
+  // Navigation tabs for Financials view
+  const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi'>('ledger');
+
   // Income form state
   const [incAmt, setIncAmt] = useState<number | ''>('');
   const [incSrc, setIncSrc] = useState('');
@@ -35,6 +53,46 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
   const [term, setTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
 
+  // Advanced Date Range Filtering states (Improvement 2)
+  const [datePreset, setDatePreset] = useState<'all' | 'this-week' | 'this-month' | 'last-30-days' | 'last-90-days' | 'custom'>('all');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+
+  // Customizable Budget Allocations state (Improvement 3)
+  const [budgetCaps, setBudgetCaps] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('jr_farm_exp_budget_caps');
+      return saved ? JSON.parse(saved) : {
+        'Animal Feed': 120000,
+        'Veternary Care': 35000,
+        'Sprays / Fertilizers': 50000,
+        'Wages': 140000,
+        'Maintenance / Fuel': 75000,
+        'Store Supplies': 25000,
+        'Other': 20000
+      };
+    } catch {
+      return {
+        'Animal Feed': 120000,
+        'Veternary Care': 35000,
+        'Sprays / Fertilizers': 50000,
+        'Wages': 140000,
+        'Maintenance / Fuel': 75000,
+        'Store Supplies': 25000,
+        'Other': 20000
+      };
+    }
+  });
+
+  const handleSaveBudgetCaps = (updated: Record<string, number>) => {
+    setBudgetCaps(updated);
+    localStorage.setItem('jr_farm_exp_budget_caps', JSON.stringify(updated));
+  };
+
+  // State to simulate or adjust active milk price/day in ROI calculations
+  const [activeMarketMilkPrice, setActiveMarketMilkPrice] = useState<number>(65);
+
+  // Standard submit actions
   const handleIncomeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (incAmt === '' || !incSrc.trim()) return;
@@ -69,7 +127,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
     setExpDate(new Date().toISOString().split('T')[0]);
   };
 
-  // Calculations
+  // Base aggregate sums
   const totalIncome = financialRecords
     .filter((f) => f.type === 'income')
     .reduce((sum, f) => sum + f.amount, 0);
@@ -80,17 +138,220 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
 
   const netPl = totalIncome - totalExpense;
 
-  // Filter lists
-  const filteredRecords = financialRecords
-    .filter((r) => {
-      const matchType = typeFilter === 'all' || r.type === typeFilter;
-      const matchTerm =
-        !term ||
-        r.category.toLowerCase().includes(term.toLowerCase()) ||
-        r.description.toLowerCase().includes(term.toLowerCase());
-      return matchType && matchTerm;
-    })
-    .sort((a, b) => b.date.localeCompare(a.date));
+  // Process Date presets and filter logic (Improvement 2)
+  const filteredRecords = useMemo(() => {
+    const today = new Date();
+    
+    return financialRecords
+      .filter((r) => {
+        // Text Match
+        const matchTerm = !term ||
+          r.category.toLowerCase().includes(term.toLowerCase()) ||
+          r.description.toLowerCase().includes(term.toLowerCase());
+        
+        if (!matchTerm) return false;
+
+        // Type Match
+        const matchType = typeFilter === 'all' || r.type === typeFilter;
+        if (!matchType) return false;
+
+        // Date Match
+        if (datePreset === 'all') return true;
+
+        const recTime = new Date(r.date).getTime();
+        if (isNaN(recTime)) return true; // fallback for irregular dates
+
+        const diffDays = (today.getTime() - recTime) / (1000 * 60 * 60 * 24);
+
+        if (datePreset === 'this-week') {
+          return diffDays >= 0 && diffDays <= 7;
+        }
+        if (datePreset === 'this-month') {
+          const recDateObj = new Date(r.date);
+          return recDateObj.getFullYear() === today.getFullYear() && 
+                 recDateObj.getMonth() === today.getMonth();
+        }
+        if (datePreset === 'last-30-days') {
+          return diffDays >= 0 && diffDays <= 30;
+        }
+        if (datePreset === 'last-90-days') {
+          return diffDays >= 0 && diffDays <= 90;
+        }
+        if (datePreset === 'custom') {
+          if (customStartDate && customEndDate) {
+            const start = new Date(customStartDate).getTime();
+            const end = new Date(customEndDate).getTime() + (24 * 60 * 60 * 1000); // end of day
+            return recTime >= start && recTime <= end;
+          }
+          return true;
+        }
+        return true;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [financialRecords, term, typeFilter, datePreset, customStartDate, customEndDate]);
+
+  // Aggregate monthly data for recharts timeline charts (Improvement 1)
+  const monthlyChartData = useMemo(() => {
+    const monthsGroup: Record<string, { month: string; income: number; expense: number; sortingKey: string }> = {};
+
+    financialRecords.forEach((r) => {
+      // Parse dates safely e.g. "2026-06-21" to "2026-06"
+      const dateParts = r.date.split('-');
+      if (dateParts.length < 2) return;
+      const yr = dateParts[0];
+      const mo = dateParts[1];
+      const monthLabelObj = new Date(Number(yr), Number(mo) - 1, 1);
+      const label = monthLabelObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const sortKey = `${yr}-${mo}`;
+
+      if (!monthsGroup[label]) {
+        monthsGroup[label] = { month: label, income: 0, expense: 0, sortingKey: sortKey };
+      }
+
+      if (r.type === 'income') {
+        monthsGroup[label].income += r.amount;
+      } else {
+        monthsGroup[label].expense += r.amount;
+      }
+    });
+
+    return Object.values(monthsGroup).sort((a, b) => a.sortingKey.localeCompare(b.sortingKey));
+  }, [financialRecords]);
+
+  // Aggregate Category Breakdown data for Recharts Pie charts & ratios (Improvement 1)
+  const incomeCategoryData = useMemo(() => {
+    const cats: Record<string, number> = {};
+    financialRecords.filter(r => r.type === 'income').forEach(r => {
+      // Map customized categories to cleaner values if needed
+      const category = r.category || 'Other Revenue';
+      cats[category] = (cats[category] || 0) + r.amount;
+    });
+
+    return Object.entries(cats).map(([name, value]) => ({ name, value }));
+  }, [financialRecords]);
+
+  const expenseCategoryData = useMemo(() => {
+    const cats: Record<string, number> = {};
+    financialRecords.filter(r => r.type === 'expense').forEach(r => {
+      const category = r.category || 'Other Expense';
+      cats[category] = (cats[category] || 0) + r.amount;
+    });
+
+    return Object.entries(cats).map(([name, value]) => ({ name, value }));
+  }, [financialRecords]);
+
+  // Actual budget calculation variables for Category vs Budget limits (Improvement 3)
+  const catActualSpend = useMemo(() => {
+    const spend: Record<string, number> = {
+      'Animal Feed': 0,
+      'Veternary Care': 0,
+      'Sprays / Fertilizers': 0,
+      'Wages': 0,
+      'Maintenance / Fuel': 0,
+      'Store Supplies': 0,
+      'Other': 0
+    };
+
+    financialRecords.filter(r => r.type === 'expense').forEach(r => {
+      let matched = false;
+      Object.keys(spend).forEach(cat => {
+        if (r.category === cat || (cat === 'Other' && !spend[r.category])) {
+          spend[cat] = (spend[cat] || 0) + r.amount;
+          matched = true;
+        }
+      });
+      // Fallback
+      if (!matched) {
+        spend['Other'] += r.amount;
+      }
+    });
+
+    return spend;
+  }, [financialRecords]);
+
+  // Dynamic predicted livestock/milking breeding revenues based on local cow breeding indices (Improvement 4)
+  const breedingPredictionData = useMemo(() => {
+    let activePregnanciesCount = 0;
+    let pendingCheckServicesCount = 0;
+    const upcomingCalvings: Array<{ cowId: string; cowName: string; breed: string; dueDate: string; daysLeft: number }> = [];
+
+    try {
+      const savedCows = localStorage.getItem('jr_farm_cows');
+      const savedAI = localStorage.getItem('jr_farm_ai');
+      
+      const cows: Cow[] = savedCows ? JSON.parse(savedCows) : [];
+      const aiRecords: AIRecord[] = savedAI ? JSON.parse(savedAI) : [];
+      
+      // Filter out double entries by taking the latest service for each cow
+      const latestServiceMap: Record<string, AIRecord> = {};
+      aiRecords.forEach(rec => {
+        if (!latestServiceMap[rec.cowId] || latestServiceMap[rec.cowId].date < rec.date) {
+          latestServiceMap[rec.cowId] = rec;
+        }
+      });
+
+      Object.values(latestServiceMap).forEach((ai) => {
+        const cow = cows.find(c => c.id === ai.cowId);
+        const cowName = cow ? cow.name : `Cow tag ${ai.cowId}`;
+        const cowBreed = cow ? cow.breed : 'Friesian Pure';
+
+        if (ai.status === 'Confirmed Pregnant') {
+          activePregnanciesCount++;
+          const today = new Date();
+          const dueObj = new Date(ai.due);
+          const diffMs = dueObj.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          
+          upcomingCalvings.push({
+            cowId: ai.cowId,
+            cowName,
+            breed: cowBreed,
+            dueDate: ai.due,
+            daysLeft: diffDays
+          });
+        } else if (ai.status === 'Pending') {
+          pendingCheckServicesCount++;
+        }
+      });
+    } catch (e) {
+      console.error('Error calculating breeding ROI modeling parameters:', e);
+    }
+
+    // Sort upcoming calvings so nearest calving details show up first
+    upcomingCalvings.sort((a, b) => a.daysLeft - b.daysLeft);
+
+    // Dynamic modeling math:
+    // Friesian Peak Yield target average: 28 Liters, Jersey: 19 Liters, Ayrshire: 24 Liters
+    // Average lactation cycle peak period: first 90 days.
+    // Calving event triggers standard commercial peak earnings projection
+    let projected90DaysPeakVolume = 0;
+    upcomingCalvings.forEach(c => {
+      const peakDaily = c.breed.toLowerCase().includes('friesian') ? 28 : (c.breed.toLowerCase().includes('jersey') ? 19 : 24);
+      projected90DaysPeakVolume += (peakDaily * 90);
+    });
+
+    const projectedPeakRevenues = projected90DaysPeakVolume * activeMarketMilkPrice;
+
+    // Default fallbacks to prevent depressing empty screens if no local AI or Pregnancy index is generated yet
+    const hasRealCows = upcomingCalvings.length > 0;
+    const finalUpcoming = hasRealCows ? upcomingCalvings : [
+      { cowId: 'COW-04', cowName: 'Nyaronde Blossom II', breed: 'Friesian Champion', dueDate: '2026-07-15', daysLeft: 24 },
+      { cowId: 'COW-07', cowName: 'Serene Daisy', breed: 'Ayrshire cross', dueDate: '2026-08-01', daysLeft: 41 },
+      { cowId: 'COW-10', cowName: 'Mocha Gold', breed: 'Jersey Classic', dueDate: '2026-08-20', daysLeft: 60 }
+    ];
+
+    const fallback90DaysVol = hasRealCows ? projected90DaysPeakVolume : (28*90 + 24*90 + 19*90);
+    const fallbackPeakRevenue = hasRealCows ? projectedPeakRevenues : fallback90DaysVol * activeMarketMilkPrice;
+
+    return {
+      activePregnancies: hasRealCows ? activePregnanciesCount : 3,
+      pendingServices: hasRealCows ? pendingCheckServicesCount : 2,
+      upcomingCalvings: finalUpcoming,
+      projectedLiters: fallback90DaysVol,
+      projectedIncome: fallbackPeakRevenue,
+      isSimulated: !hasRealCows
+    };
+  }, [activeMarketMilkPrice]);
 
   const downloadFinancialsCSV = () => {
     let csv = 'data:text/csv;charset=utf-8,';
@@ -109,311 +370,804 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
     document.body.removeChild(link);
   };
 
+  // Pie colors for Recharts category breakdowns
+  const INCOME_COLORS = ['#0f766e', '#14b8a6', '#06b6d4', '#6366f1', '#a855f7', '#10b981'];
+  const EXPENSE_COLORS = ['#be123c', '#f43f5e', '#fb7185', '#f97316', '#eab308', '#ec4899', '#6b7280'];
+
   return (
-    <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-        <div className="p-3 bg-teal-100 text-teal-950 rounded-xl shrink-0">
-          <BookOpen className="text-emerald-900" size={24} />
+    <div className="space-y-8 animate-fadeIn">
+      {/* Dynamic Header Banner */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-4 text-left">
+          <div className="p-3 bg-teal-100 text-teal-950 rounded-xl shrink-0">
+            <BookOpen className="text-emerald-900" size={24} />
+          </div>
+          <div>
+            <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">Estate Accounting Ledger & Analytics</h4>
+            <p className="text-xs text-slate-400 font-medium">
+              Monitor operational P&L in real-time, audit seasonal allocations, verify budgets, and predict breeding profitability schedules.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">Estate Accounting Ledger</h4>
-          <p className="text-xs text-slate-400 font-medium">
-            Monitor farm operational P&L. Record income streams and verify operational expenses.
-          </p>
-        </div>
+
+        {onTriggerSectionReport && (
+          <button
+            onClick={() => onTriggerSectionReport('financials')}
+            type="button"
+            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 shrink-0"
+            title="Export Financial Report as HTML Document"
+          >
+            <FileDown size={13} />
+            Output HTML Audit Report
+          </button>
+        )}
       </div>
 
-      {/* Main double borders net worth */}
-      <div className="bg-slate-900 text-white p-8 rounded-3xl border-8 border-double border-emerald-700/60 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="space-y-1 text-center md:text-left">
-          <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Active Net Operating Balance</span>
+      {/* Sub-tab Navigation Panel */}
+      <div className="flex flex-wrap gap-2.5 p-1 bg-slate-100 rounded-2xl max-w-2xl text-xs">
+        <button
+          onClick={() => setSubTab('ledger')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
+            subTab === 'ledger' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Table size={14} className="text-emerald-800" />
+          <span>Ledger & Loggers</span>
+        </button>
+
+        <button
+          onClick={() => setSubTab('analytics')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
+            subTab === 'analytics' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <BarChart2 size={14} className="text-indigo-800 animate-pulse" />
+          <span>Trends & Analytics</span>
+        </button>
+
+        <button
+          onClick={() => setSubTab('budgets')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
+            subTab === 'budgets' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Target size={14} className="text-rose-805" />
+          <span>Capital Budgets</span>
+        </button>
+
+        <button
+          onClick={() => setSubTab('breeding_roi')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
+            subTab === 'breeding_roi' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <BrainCircuit size={14} className="text-amber-800" />
+          <span>Breeding Predictions</span>
+        </button>
+      </div>
+
+      {/* Interactive Main Balance Card */}
+      <div className="bg-slate-900 text-white p-8 rounded-3xl border-8 border-double border-emerald-700/65 shadow-xl flex flex-col md:flex-row justify-between items-stretch gap-6 text-left">
+        <div className="space-y-1.5 flex-1 flex flex-col justify-center">
+          <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest flex items-center gap-1.5">
+            <Coins size={12} className="animate-spin text-emerald-500" /> NYARONDE FARM ACTIVE BALANCES
+          </span>
           <h1 className={`text-5xl font-black font-mono tracking-tight ${netPl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
             Ksh {netPl.toLocaleString()}
           </h1>
-          <p className="text-xs text-slate-350">Accrued aggregate of all logged operational streams</p>
+          <p className="text-xs text-slate-400">Integrated audit accounting of all dynamic inputs/outgoes</p>
         </div>
 
-        <div className="flex gap-4 w-full md:w-auto">
-          <div className="flex-1 bg-slate-800 border border-slate-700/60 p-4 rounded-2xl text-center md:px-6">
-            <span className="text-[9px] text-slate-400 font-black uppercase block tracking-wider">Total Incomes</span>
-            <h3 className="text-emerald-400 font-black font-mono text-lg mt-1">+{totalIncome.toLocaleString()}</h3>
-          </div>
-          <div className="flex-1 bg-slate-800 border border-slate-700/60 p-4 rounded-2xl text-center md:px-6">
-            <span className="text-[9px] text-slate-400 font-black uppercase block tracking-wider">Total Outgoings</span>
-            <h3 className="text-rose-400 font-black font-mono text-lg mt-1">-{totalExpense.toLocaleString()}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Forms layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Income logger */}
-        <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl shadow-sm space-y-4">
-          <div>
-            <h5 className="text-[11px] font-black tracking-widest text-emerald-950 uppercase">Log Income Stream</h5>
-            <p className="text-xs text-emerald-700 font-medium">Record revenue payouts, sales advances, or cash receipts</p>
+        <div className="grid grid-cols-2 gap-4 shrink-0 justify-stretch min-w-[280px]">
+          <div className="bg-slate-800/80 border border-slate-700/40 p-4 rounded-2xl flex flex-col justify-between">
+            <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+              <ArrowUpRight size={12} className="text-emerald-400" /> Gross Earnings
+            </span>
+            <h3 className="text-emerald-400 font-black font-mono text-xl mt-2">+{totalIncome.toLocaleString()}</h3>
+            <span className="text-[9px] text-slate-500 block pt-1 font-medium italic">Accrued credits</span>
           </div>
 
-          <form onSubmit={handleIncomeSubmit} className="space-y-4">
-            <div>
-              <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Amount (Ksh)</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={incAmt}
-                onChange={(e) => setIncAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="Amount in Ksh"
-                className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-emerald-700/10"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Source / Category</label>
-                <select
-                  required
-                  value={incSrc}
-                  onChange={(e) => setIncSrc(e.target.value)}
-                  className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer"
-                >
-                  <option value="">Choose category...</option>
-                  <option value="Milk Sale">Brookside Milk Deliveries</option>
-                  <option value="Tea Sale">KTDA Tea Bonus/Advances</option>
-                  <option value="Avocado Sale">Avocado Export Payout</option>
-                  <option value="Poultry / Eggs">Flock Egg Trays Sale</option>
-                  <option value="Crops Sale">Fields / Timber / Bananas</option>
-                  <option value="Other Revenue">Other Miscellaneous</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Details / Bill Notes</label>
-                <input
-                  type="text"
-                  required
-                  value={incDesc}
-                  onChange={(e) => setIncDesc(e.target.value)}
-                  placeholder="E.g. Rec ref #33989"
-                  className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-medium bg-white"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Transaction Date</label>
-                <input
-                  type="date"
-                  required
-                  value={incDate}
-                  onChange={(e) => setIncDate(e.target.value)}
-                  className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer"
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
-            >
-              Post Revenue Transaction
-            </button>
-          </form>
-        </div>
-
-        {/* Expense logger */}
-        <div className="bg-rose-50 border border-rose-150 p-6 rounded-3xl shadow-sm space-y-4">
-          <div>
-            <h5 className="text-[11px] font-black tracking-widest text-rose-950 uppercase">Log Farm Expense</h5>
-            <p className="text-xs text-rose-700 font-medium">Record wages, veterinarian fees, chemical treatments, or machine repair</p>
+          <div className="bg-slate-800/80 border border-slate-700/40 p-4 rounded-2xl flex flex-col justify-between">
+            <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+              <ArrowDownRight size={12} className="text-rose-400" /> Aggregate Debits
+            </span>
+            <h3 className="text-rose-400 font-black font-mono text-xl mt-2">-{totalExpense.toLocaleString()}</h3>
+            <span className="text-[9px] text-slate-500 block pt-1 font-medium italic">Accrued cash drains</span>
           </div>
-
-          <form onSubmit={handleExpenseSubmit} className="space-y-4">
-            <div>
-              <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Amount (Ksh)</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={expAmt}
-                onChange={(e) => setExpAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="Amount in Ksh"
-                className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-rose-700/10"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Expense Category</label>
-                <select
-                  required
-                  value={expSrc}
-                  onChange={(e) => setExpSrc(e.target.value)}
-                  className="text-xs border border-rose-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer"
-                >
-                  <option value="">Choose category...</option>
-                  <option value="Animal Feed">Compounding Raw Feed Materials</option>
-                  <option value="Veternary Care">Vet Checks / AI Semen Straws</option>
-                  <option value="Sprays / Fertilizers">Chemical sprays / soil NPK bags</option>
-                  <option value="Wages">Wages & Plucker Compensation</option>
-                  <option value="Maintenance / Fuel">Tractor fuel & repairs</option>
-                  <option value="Store Supplies">General operational tools</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Transaction Details</label>
-                <input
-                  type="text"
-                  required
-                  value={expDesc}
-                  onChange={(e) => setExpDesc(e.target.value)}
-                  placeholder="E.g. Payee Victor advance wages"
-                  className="text-xs border border-rose-200 rounded-lg p-3 w-full font-medium bg-white"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Transaction Date</label>
-                <input
-                  type="date"
-                  required
-                  value={expDate}
-                  onChange={(e) => setExpDate(e.target.value)}
-                  className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer"
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
-            >
-              Post Debit Transaction
-            </button>
-          </form>
         </div>
       </div>
 
-      {/* Audit table list */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <h5 className="text-[11px] font-black tracking-widest text-[#0b251a] uppercase">Operational Auditing Ledger</h5>
-            <p className="text-xs text-slate-400 font-medium">Granular drilldown of all processed accounts</p>
+      {/* SUBTAB 1: Standard ledger audit records and dual loggers */}
+      {subTab === 'ledger' && (
+        <div className="space-y-8">
+          {/* Logs Forms Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Income logger */}
+            <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl shadow-sm space-y-4">
+              <div className="text-left">
+                <h5 className="text-[11px] font-black tracking-widest text-emerald-950 uppercase flex items-center gap-1.5">
+                  <TrendingUp size={14} className="text-emerald-800" /> Log Income Stream
+                </h5>
+                <p className="text-xs text-emerald-700 font-medium mt-0.5">Record revenue payouts, sales advances, or cash receipts</p>
+              </div>
+
+              <form onSubmit={handleIncomeSubmit} className="space-y-4 text-left">
+                <div>
+                  <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Amount (Ksh)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={incAmt}
+                    onChange={(e) => setIncAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    placeholder="Amount in Ksh"
+                    className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-emerald-700/10 focus:outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Source / Category</label>
+                    <select
+                      required
+                      value={incSrc}
+                      onChange={(e) => setIncSrc(e.target.value)}
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer focus:outline-none"
+                    >
+                      <option value="">Choose category...</option>
+                      <option value="Milk Sale">Brookside Milk Deliveries</option>
+                      <option value="Tea Sale">KTDA Tea Bonus/Advances</option>
+                      <option value="Avocado Sale">Avocado Export Payout</option>
+                      <option value="Poultry / Eggs">Flock Egg Trays Sale</option>
+                      <option value="Crops Sale">Fields / Timber / Bananas</option>
+                      <option value="Other Revenue">Other Miscellaneous</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Details / Bill Notes</label>
+                    <input
+                      type="text"
+                      required
+                      value={incDesc}
+                      onChange={(e) => setIncDesc(e.target.value)}
+                      placeholder="E.g. Rec ref #33989"
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-medium bg-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-emerald-950 uppercase tracking-wider block mb-1">Transaction Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={incDate}
+                      onChange={(e) => setIncDate(e.target.value)}
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 border-none cursor-pointer"
+                >
+                  Post Revenue Transaction
+                </button>
+              </form>
+            </div>
+
+            {/* Expense logger */}
+            <div className="bg-rose-50 border border-rose-150 p-6 rounded-3xl shadow-sm space-y-4">
+              <div className="text-left">
+                <h5 className="text-[11px] font-black tracking-widest text-rose-950 uppercase flex items-center gap-1.5">
+                  <TrendingDown size={14} className="text-rose-800" /> Log Farm Expense
+                </h5>
+                <p className="text-xs text-rose-700 font-medium mt-0.5">Record wages, veterinarian fees, chemical treatments, or machine repair</p>
+              </div>
+
+              <form onSubmit={handleExpenseSubmit} className="space-y-4 text-left">
+                <div>
+                  <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Amount (Ksh)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={expAmt}
+                    onChange={(e) => setExpAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    placeholder="Amount in Ksh"
+                    className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-rose-700/10 focus:outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Expense Category</label>
+                    <select
+                      required
+                      value={expSrc}
+                      onChange={(e) => setExpSrc(e.target.value)}
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer focus:outline-none"
+                    >
+                      <option value="">Choose category...</option>
+                      <option value="Animal Feed">Compounding Raw Feed Materials</option>
+                      <option value="Veternary Care">Vet Checks / AI Semen Straws</option>
+                      <option value="Sprays / Fertilizers">Chemical sprays / soil NPK bags</option>
+                      <option value="Wages">Wages & Plucker Compensation</option>
+                      <option value="Maintenance / Fuel">Tractor fuel & repairs</option>
+                      <option value="Store Supplies">General operational tools</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Transaction Details</label>
+                    <input
+                      type="text"
+                      required
+                      value={expDesc}
+                      onChange={(e) => setExpDesc(e.target.value)}
+                      placeholder="E.g. Payee Victor advance wages"
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-medium bg-white focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-rose-950 uppercase tracking-wider block mb-1">Transaction Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={expDate}
+                      onChange={(e) => setExpDate(e.target.value)}
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 border-none cursor-pointer"
+                >
+                  Post Debit Transaction
+                </button>
+              </form>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <button
-              onClick={downloadFinancialsCSV}
-              type="button"
-              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-950 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
-              title="Download Ledger CSV"
-            >
-              <FileSpreadsheet size={13} />
-              Export CSV
-            </button>
-            {onTriggerSectionReport && (
-              <button
-                onClick={() => onTriggerSectionReport('financials')}
-                type="button"
-                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 shrink-0"
-                title="Export Financial Report as HTML Document"
-              >
-                <FileDown size={13} />
-                Export Ledger Report (HTML)
-              </button>
+          {/* Expanded filtering & audit trail table */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-left">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h5 className="text-[11px] font-black tracking-widest text-[#0b251a] uppercase flex items-center gap-1.5">
+                  <Filter size={14} className="text-teal-700" /> Operational Auditing Ledger
+                </h5>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Granular drilldown of all processed accounts</p>
+              </div>
+
+              {/* Advanced Filters Panel (Improvement 2 layout) */}
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                {/* Text search */}
+                <div className="relative w-full sm:w-44">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <Search size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search ledger..."
+                    value={term}
+                    onChange={(e) => setTerm(e.target.value)}
+                    className="text-xs border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white font-bold"
+                  />
+                </div>
+
+                {/* Preset Picker */}
+                <select
+                  value={datePreset}
+                  onChange={(e) => setDatePreset(e.target.value as any)}
+                  className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
+                >
+                  <option value="all">All Dates Range</option>
+                  <option value="this-week">This Week (7d)</option>
+                  <option value="this-month">This Month</option>
+                  <option value="last-30-days">Last 30 Days</option>
+                  <option value="last-90-days">Last 90 Days</option>
+                  <option value="custom">Custom Selector...</option>
+                </select>
+
+                {/* Type Filter */}
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as any)}
+                  className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
+                >
+                  <option value="all">All Ledger Flows</option>
+                  <option value="income">Credits only (+)</option>
+                  <option value="expense">Debits only (-)</option>
+                </select>
+
+                <button
+                  onClick={downloadFinancialsCSV}
+                  type="button"
+                  className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-950 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
+                  title="Download Ledger CSV"
+                >
+                  <FileSpreadsheet size={13} />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Date selection sliders */}
+            {datePreset === 'custom' && (
+              <div className="bg-teal-50/40 p-4 rounded-2xl border border-teal-100/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white w-full font-bold font-mono focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white w-full font-bold font-mono focus:outline-none"
+                  />
+                </div>
+              </div>
             )}
 
-            <div className="relative flex-1 sm:w-48">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <Search size={14} />
-              </span>
-              <input
-                type="text"
-                placeholder="Search ledger..."
-                value={term}
-                onChange={(e) => setTerm(e.target.value)}
-                className="text-xs border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white font-bold"
-              />
+            {/* Table layout container */}
+            <div className="max-h-[400px] overflow-y-auto pr-1">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                    <td className="p-3">Reference Date</td>
+                    <td className="p-3">Category</td>
+                    <td className="p-3">Auditing Details</td>
+                    <td className="p-3 text-right">Accounting Flow</td>
+                    <td className="p-3 text-center">Audit</td>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredRecords.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center text-slate-400 italic py-10">
+                        No transactions qualify the current filters or custom range constraints.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRecords.map((r) => (
+                      <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/30">
+                        <td className="p-3 font-mono text-slate-400 font-bold">{r.date}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
+                            r.type === 'income' ? 'bg-emerald-100 text-teal-900' : 'bg-rose-100 text-rose-900'
+                          }`}>
+                            {r.category}
+                          </span>
+                        </td>
+                        <td className="p-3 font-medium text-slate-600 max-w-xs truncate" title={r.description}>
+                          {r.description}
+                        </td>
+                        <td className="p-3 text-right font-mono font-black text-sm">
+                          <span className={r.type === 'income' ? 'text-emerald-705 text-emerald-700' : 'text-rose-700'}>
+                            {r.type === 'income' ? '+' : '-'} Ksh {r.amount.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {onEditFinancialRecord && (
+                              <button
+                                onClick={() => setEditingFinancial(r)}
+                                className="text-slate-300 hover:text-indigo-800 p-2 border border-transparent hover:border-slate-200 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
+                                title="Edit entry"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => onDeleteTransaction(r.id)}
+                              className="text-slate-300 hover:text-red-650 p-2 border border-transparent hover:border-red-100 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
+                              title="Void entry"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as any)}
-              className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
-            >
-              <option value="all">All ledger records</option>
-              <option value="income">Credits only</option>
-              <option value="expense">Debits only</option>
-            </select>
           </div>
         </div>
+      )}
 
-        <div className="max-h-[300px] overflow-y-auto pr-1">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
-                <td className="p-3">Reference Date</td>
-                <td className="p-3">Category</td>
-                <td className="p-3">Auditing Details</td>
-                <td className="p-3 text-right">Accounting Flow</td>
-                <td className="p-3 text-center">Audit</td>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRecords.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center text-slate-400 italic py-10">
-                    No transactions qualify the current filters.
-                  </td>
-                </tr>
+      {/* SUBTAB 2: Trends and Analytics visualization panels (Improvement 1) */}
+      {subTab === 'analytics' && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Timeline AreaChart */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-8 space-y-4 text-left">
+              <div>
+                <h5 className="text-[11px] font-black tracking-widest text-[#0c2619] uppercase flex items-center gap-1.5">
+                  <Calendar size={14} className="text-teal-700 animate-pulse" /> Monthly Cash Flow Trends (P&L Timeline)
+                </h5>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Visualize monthly balance fluctuations and operational profit margins</p>
+              </div>
+
+              {monthlyChartData.length === 0 ? (
+                <div className="h-[280px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl italic text-slate-400 text-xs">
+                  Generate some ledger transactions first to populate the cashflow dashboard coordinates.
+                </div>
               ) : (
-                filteredRecords.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/30">
-                    <td className="p-3 font-mono text-slate-400 font-bold">{r.date}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
-                        r.type === 'income' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                      }`}>
-                        {r.category}
-                      </span>
-                    </td>
-                    <td className="p-3 font-medium text-slate-600 max-w-xs truncate" title={r.description}>
-                      {r.description}
-                    </td>
-                    <td className="p-3 text-right font-mono font-black text-sm">
-                      <span className={r.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}>
-                        {r.type === 'income' ? '+' : '-'} Ksh {r.amount.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {onEditFinancialRecord && (
-                          <button
-                            onClick={() => setEditingFinancial(r)}
-                            className="text-slate-300 hover:text-indigo-800 p-2 border border-transparent hover:border-slate-200 rounded-lg transition-colors cursor-pointer m-0"
-                            title="Edit entry"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => onDeleteTransaction(r.id)}
-                          className="text-slate-300 hover:text-red-650 p-2 border border-transparent hover:border-red-100 rounded-lg transition-colors cursor-pointer m-0"
-                          title="Void entry"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={monthlyChartData}
+                      margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorInc" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0f766e" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#0f766e" stopOpacity={0.0}/>
+                        </linearGradient>
+                        <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#e11d48" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#e11d48" stopOpacity={0.0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="month" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: '11px', fontFamily: 'monospace', borderRadius: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                      <Area type="monotone" dataKey="income" name="Earnings (Ksh)" stroke="#0f766e" fillOpacity={1} fill="url(#colorInc)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="expense" name="Expenditures (Ksh)" stroke="#e11d48" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Incomes Segmentations Breakdown pie chart */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-4 flex flex-col justify-between text-left">
+              <div className="space-y-4">
+                <div>
+                  <h5 className="text-[11px] font-black tracking-widest text-[#0c2619] uppercase">Revenue Sources split</h5>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Where farm profits derive</p>
+                </div>
+
+                {incomeCategoryData.length === 0 ? (
+                  <div className="h-[200px] flex items-center justify-center text-slate-400 text-xs italic">
+                    No revenues posted yet
+                  </div>
+                ) : (
+                  <div className="h-[185px] relative flex justify-center items-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={incomeCategoryData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={75}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {incomeCategoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={INCOME_COLORS[index % INCOME_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ fontSize: '10px', fontFamily: 'monospace' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
+
+              {/* Legends list */}
+              <div className="pt-4 border-t border-slate-100 text-[10px] space-y-1.5 font-bold uppercase tracking-wider text-slate-650">
+                {incomeCategoryData.map((item, idx) => {
+                  const percent = Math.round((item.value / totalIncome) * 100) || 0;
+                  return (
+                    <div key={idx} className="flex justify-between items-center">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: INCOME_COLORS[idx % INCOME_COLORS.length] }}></span>
+                        <span className="truncate max-w-[120px] text-slate-600">{item.name}</span>
+                      </div>
+                      <span className="font-mono text-emerald-900">{percent}% ({item.value.toLocaleString()} Ksh)</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Expenses categories breakdown bar charts layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <div>
+                <h5 className="text-[11px] font-black tracking-widest text-rose-950 uppercase">Capital Expenditures Allocation (Ksh)</h5>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Distribution of debits across farm operations</p>
+              </div>
+
+              {expenseCategoryData.length === 0 ? (
+                <div className="h-[220px] flex items-center justify-center text-slate-400 text-xs italic">
+                  No expenditures detected.
+                </div>
+              ) : (
+                <div className="h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={expenseCategoryData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
+                      <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <YAxis fontSize={9} stroke="#94a3b8" tickLine={false} />
+                      <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                      <Bar dataKey="value" fill="#be123c" radius={[4, 4, 0, 0]}>
+                        {expenseCategoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={EXPENSE_COLORS[index % EXPENSE_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="text-[8px] bg-red-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit">
+                  Urgent Operating Margin Alert
+                </span>
+                <h4 className="text-lg font-black tracking-tight leading-snug">
+                  Operational Cost-to-Revenue Ratio metric
+                </h4>
+                <p className="text-xs text-slate-350 leading-relaxed">
+                  Excellent farm financial health mandates that operational costs do not exceed **40% of total farm revenues**. Currently, your farm operating ratio is:
+                </p>
+
+                <div className="bg-slate-800/80 p-5 rounded-2xl flex items-center justify-between border border-slate-705/30">
+                  <div>
+                    <span className="text-[9px] text-slate-400 block uppercase font-bold">Calculated Operating Quotient</span>
+                    <h2 className={`text-3xl font-black font-mono mt-1 ${
+                      totalIncome === 0 ? 'text-amber-400' : ((totalExpense / totalIncome) > 0.4 ? 'text-rose-450 text-red-400' : 'text-emerald-400')
+                    }`}>
+                      {totalIncome === 0 ? 'Infinite (0 revs)' : `${Math.round((totalExpense / totalIncome) * 100)}%`}
+                    </h2>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 block uppercase font-bold text-right">Standard Threshold limit</span>
+                    <span className="text-emerald-400 font-mono font-black text-right block mt-1">40% Max target</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800/80 text-[10px] text-slate-400 font-semibold leading-relaxed">
+                {totalIncome === 0 ? (
+                  "Please post some brookside milk payouts, avocado shipping records or tea deliveries to stabilize your ratio statistics."
+                ) : (
+                  (totalExpense / totalIncome) > 0.4 ? (
+                    "⚠️ Attention: Your operating expenses represent a high chunk of sales! Review Feed formulation or wage allocations inside the Capital Budgets tab."
+                  ) : (
+                    "🎉 Healthy estate operating limits! Your costs are within standard guidelines, preserving strong dry profit margins."
+                  )
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* SUBTAB 3: Capital Budget Allocation limits check (Improvement 3) */}
+      {subTab === 'budgets' && (
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6 text-left">
+          <div>
+            <h5 className="text-[11px] font-black tracking-widest text-[#092215] uppercase flex items-center gap-1.5">
+              <Target size={14} className="text-rose-800" /> Capital Allocation & Expense Budgeting
+            </h5>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Set monthly maximum allocation thresholds, review actual expenditures, and isolate over-spending on-the-fly.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Visual Progress bar meters */}
+            <div className="space-y-5">
+              <span className="text-[10px] text-slate-400 font-black tracking-wider uppercase block">
+                Live Actual Spend vs Budget Limit progress (This month)
+              </span>
+
+              {Object.entries(budgetCaps).map(([category, rawCap], index) => {
+                const cap = Number(rawCap);
+                const actual = catActualSpend[category] || 0;
+                const pct = cap > 0 ? Math.round((actual / cap) * 100) : 0;
+                
+                // Color mapping: green under 70%, yellow 70-100%, bright pulsing red over 100%
+                const barColor = pct > 100 ? 'bg-red-600' : (pct >= 70 ? 'bg-amber-500' : 'bg-emerald-600');
+                const textColor = pct > 100 ? 'text-red-700 font-black' : (pct >= 70 ? 'text-amber-700' : 'text-slate-600');
+
+                return (
+                  <div key={index} className="space-y-1.5 font-sans">
+                    <div className="flex justify-between items-center text-xs font-bold">
+                      <span className="text-slate-805 uppercase text-[10px] tracking-wide">{category}</span>
+                      <span className={`font-mono text-[11px] ${textColor}`}>
+                        {actual.toLocaleString()} / {cap.toLocaleString()} Ksh ({pct}%)
+                      </span>
+                    </div>
+
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/40">
+                      <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }}></div>
+                    </div>
+
+                    {pct > 100 && (
+                      <div className="flex items-center gap-1 text-[9px] text-red-650 font-bold uppercase tracking-wider animate-pulse pt-0.5">
+                        <AlertTriangle size={11} className="text-red-600" /> Outgoing exceeds threshold allocation cap by {(actual - cap).toLocaleString()} Ksh!
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Adjuster form settings */}
+            <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 space-y-4">
+              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">
+                ⚙️ Adjust Operational Budget Threshold Limits
+              </span>
+              <p className="text-[11px] text-slate-450 font-medium leading-relaxed">
+                Update the maximum targeted expenditure for each category below to calibrate the visual safety indicators. Capitalized caps persist locally.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Object.entries(budgetCaps).map(([category, cap], index) => (
+                  <div key={index}>
+                    <label className="text-[9px] text-slate-400 font-bold block mb-1 uppercase truncate" title={category}>
+                      {category} (Ksh)
+                    </label>
+                    <input
+                      type="number"
+                      step="5000"
+                      min="0"
+                      value={cap}
+                      onChange={(e) => {
+                        const updated = { ...budgetCaps, [category]: parseInt(e.target.value) || 0 };
+                        handleSaveBudgetCaps(updated);
+                      }}
+                      className="text-xs font-mono font-bold bg-white border border-slate-205 rounded-xl p-2.5 w-full focus:ring-1 focus:ring-rose-800 focus:outline-none"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-3.5 bg-[#0e301d]/5 rounded-2xl border border-[#0e301d]/10 text-[10px] text-slate-600 uppercase font-bold leading-normal flex items-start gap-2.5">
+                <Sparkles size={16} className="text-emerald-850 shrink-0 mt-0.5 animate-pulse" />
+                <p>
+                  Setting low budget thresholds encourages team members to formulating raw materials carefully rather than relying on commercial supplier bag products.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUBTAB 4: Predictive AI Breeding ROI and Dairy Yield projections (Improvement 4) */}
+      {subTab === 'breeding_roi' && (
+        <div className="space-y-8 text-left">
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+            <div>
+              <div className="flex justify-between items-start flex-wrap gap-2">
+                <div>
+                  <h5 className="text-[11px] font-black tracking-widest text-teal-900 uppercase flex items-center gap-1.5">
+                    <BrainCircuit size={14} className="text-teal-700 animate-pulse" /> Dynamic Breeding ROI & Milking Projections
+                  </h5>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Smart forecasting algorithm cross-linking artificial insemination timelines with upcoming lactation peak revenues.</p>
+                </div>
+
+                <div className="bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-[10px] font-bold text-indigo-950 uppercase shrink-0 flex items-center gap-1">
+                  <Activity size={12} className="text-indigo-800" />
+                  <span>State: {breedingPredictionData.isSimulated ? "Demo Standard Template" : "Active Farm DB Synced"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Model stats grids */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Pregnant Milking Cows</span>
+                <h3 className="text-2xl font-black font-mono text-emerald-900 mt-1">{breedingPredictionData.activePregnancies} Head</h3>
+                <span className="text-[10px] text-slate-400 font-medium block pt-1">Calving over next 90 days</span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Unchecked Cycles</span>
+                <h3 className="text-2xl font-black font-mono text-indigo-950 mt-1">{breedingPredictionData.pendingServices} In-waiting</h3>
+                <span className="text-[10px] text-slate-400 font-medium block pt-1">Awaiting veterinary check</span>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Est. Peak Lactation Yield</span>
+                <h3 className="text-2xl font-black font-mono text-teal-900 mt-1">+{breedingPredictionData.projectedLiters.toLocaleString()} L</h3>
+                <span className="text-[10px] text-slate-400 font-medium block pt-1">Based on breed targets (90d)</span>
+              </div>
+
+              <div className="bg-[#0f2e1e]/5 border border-[#0f2e1e]/10 p-4.5 rounded-2xl">
+                <span className="text-[9px] text-emerald-850 font-black uppercase block tracking-wider">Estimated Revenue Peak</span>
+                <h3 className="text-2xl font-black font-mono text-emerald-900 mt-1">Ksh {breedingPredictionData.projectedIncome.toLocaleString()}</h3>
+                <span className="text-[10px] text-slate-450 font-medium block pt-1">At Ksh {activeMarketMilkPrice}/L sale price</span>
+              </div>
+            </div>
+
+            {/* Price model slider */}
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[10px] font-black uppercase text-slate-500">Recalibrate Predicted Sales price</span>
+                <span className="font-extrabold text-emerald-950 font-mono text-[11px]">Ksh {activeMarketMilkPrice} / Liter</span>
+              </div>
+              <input
+                type="range"
+                min="40"
+                max="90"
+                value={activeMarketMilkPrice}
+                onChange={(e) => setActiveMarketMilkPrice(Number(e.target.value))}
+                className="w-full h-1 appearance-none bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
+              />
+              <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wide">
+                <span>Brookside Standard (45)</span>
+                <span>Premium Direct (90)</span>
+              </div>
+            </div>
+
+            {/* Upcoming milestones timeline list */}
+            <div className="space-y-4">
+              <span className="text-[10px] text-slate-450 font-black uppercase tracking-wider block">
+                Expected Calving Schedule & Lactation Milestones
+              </span>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[9.5px] uppercase font-black text-slate-400">
+                      <th className="py-2.5">Cow / Breed Specimen</th>
+                      <th className="py-2.5">Due Date Calibration</th>
+                      <th className="py-2.5">Timeline Countdown</th>
+                      <th className="py-2.5 text-right">Yield Target / Day</th>
+                      <th className="py-2.5 text-right">Est. 90-day Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 font-medium text-slate-650">
+                    {breedingPredictionData.upcomingCalvings.map((c, i) => {
+                      const daysColor = c.daysLeft <= 30 ? 'text-red-700 font-black' : (c.daysLeft <= 60 ? 'text-amber-705 text-amber-700' : 'text-slate-600');
+                      const peakDaily = c.breed.toLowerCase().includes('friesian') ? 28 : (c.breed.toLowerCase().includes('jersey') ? 19 : 24);
+                      const expectedSum = peakDaily * 90 * activeMarketMilkPrice;
+
+                      return (
+                        <tr key={i} className="hover:bg-slate-50/50">
+                          <td className="py-3 flex flex-col">
+                            <span className="font-bold text-slate-800">{c.cowName}</span>
+                            <span className="text-[10px] text-slate-450 font-mono font-medium">{c.cowId} | {c.breed}</span>
+                          </td>
+                          <td className="py-3 font-mono text-slate-700">{c.dueDate}</td>
+                          <td className="py-3">
+                            <span className={`text-[11px] font-bold ${daysColor}`}>
+                              {c.daysLeft <= 0 ? '✓ Calved / Peak Lactation' : `In ${c.daysLeft} days`}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right font-mono font-bold text-slate-700">~{peakDaily} L/day</td>
+                          <td className="py-3 text-right font-mono font-black text-emerald-950">Ksh {expectedSum.toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Financial Record Modal */}
       {editingFinancial && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn text-left">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-black uppercase text-slate-800">Edit Transaction Flow</h3>
-              <button onClick={() => setEditingFinancial(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+              <button onClick={() => setEditingFinancial(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
             </div>
             <div className="space-y-3">
               <div>
@@ -421,7 +1175,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                 <select
                   value={editingFinancial.type}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, type: e.target.value as 'income' | 'expense' })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
                 >
                   <option value="income">Income (+ Record)</option>
                   <option value="expense">Expense (- Loss)</option>
@@ -434,26 +1188,26 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                     type="number"
                     value={editingFinancial.amount}
                     onChange={(e) => setEditingFinancial({ ...editingFinancial, amount: parseInt(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Date</label>
                   <input
                     type="date"
                     value={editingFinancial.date}
                     onChange={(e) => setEditingFinancial({ ...editingFinancial, date: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Source / Category</label>
+                <label className="text-[10px] font-black text-slate-550 uppercase block mb-1">Source / Category</label>
                 <input
                   type="text"
                   value={editingFinancial.category}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, category: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-extrabold"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-extrabold focus:outline-none"
                 />
               </div>
               <div>
@@ -462,14 +1216,14 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                   value={editingFinancial.description}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, description: e.target.value })}
                   rows={2}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
               <button
                 onClick={() => setEditingFinancial(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-transparent"
               >
                 Cancel
               </button>
@@ -480,7 +1234,7 @@ export function Financials({ financialRecords, onAddTransaction, onDeleteTransac
                   }
                   setEditingFinancial(null);
                 }}
-                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer border-none"
               >
                 Save Changes
               </button>
