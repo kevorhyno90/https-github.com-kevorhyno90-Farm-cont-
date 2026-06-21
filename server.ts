@@ -3,8 +3,33 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
+
+const SYNC_FILE_PATH = path.join(process.cwd(), "farm_sync_database.json");
+
+// Helper to read sync database
+function readSyncDatabase(): Record<string, { database: any; updatedAt: string }> {
+  try {
+    if (fs.existsSync(SYNC_FILE_PATH)) {
+      const data = fs.readFileSync(SYNC_FILE_PATH, "utf-8");
+      return JSON.parse(data) || {};
+    }
+  } catch (err) {
+    console.error("Error reading sync database file:", err);
+  }
+  return {};
+}
+
+// Helper to write sync database
+function writeSyncDatabase(data: Record<string, any>) {
+  try {
+    fs.writeFileSync(SYNC_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error writing sync database file:", err);
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -36,6 +61,63 @@ async function startServer() {
   // API endpoints
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", aiInitialized: !!ai });
+  });
+
+  // Cloud Sync: Save database state for cross-device syncing
+  app.post("/api/sync/save", (req, res) => {
+    try {
+      const { syncKey, database } = req.body;
+      if (!syncKey || typeof syncKey !== "string") {
+        return res.status(400).json({ error: "Missing or invalid syncKey parameter." });
+      }
+      if (!database || typeof database !== "object") {
+        return res.status(400).json({ error: "Missing or invalid database state object." });
+      }
+
+      const cleanKey = syncKey.trim().toLowerCase();
+      if (cleanKey.length < 3) {
+        return res.status(400).json({ error: "Sync key must be at least 3 characters long." });
+      }
+
+      const syncDb = readSyncDatabase();
+      syncDb[cleanKey] = {
+        database,
+        updatedAt: new Date().toISOString()
+      };
+      writeSyncDatabase(syncDb);
+
+      res.json({ success: true, message: `State synced successfully under key "${cleanKey}".` });
+    } catch (err: any) {
+      console.error("Sync save failed:", err);
+      res.status(500).json({ error: err.message || "Failed to save sync state." });
+    }
+  });
+
+  // Cloud Sync: Load database state for cross-device syncing
+  app.get("/api/sync/load/:syncKey", (req, res) => {
+    try {
+      const { syncKey } = req.params;
+      if (!syncKey) {
+        return res.status(400).json({ error: "Sync key is required." });
+      }
+
+      const cleanKey = syncKey.trim().toLowerCase();
+      const syncDb = readSyncDatabase();
+      const syncRecord = syncDb[cleanKey];
+
+      if (!syncRecord) {
+        return res.status(444).status(404).json({ error: `No sync room found under key "${cleanKey}". Check spelling and retry.` });
+      }
+
+      res.json({
+        success: true,
+        database: syncRecord.database,
+        updatedAt: syncRecord.updatedAt
+      });
+    } catch (err: any) {
+      console.error("Sync load failed:", err);
+      res.status(500).json({ error: err.message || "Failed to load sync state." });
+    }
   });
 
   app.post("/api/ai-chat", async (req, res) => {

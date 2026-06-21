@@ -35,6 +35,12 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
   const [isResetting, setIsResetting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Cloud Sync States
+  const [syncKey, setSyncKey] = useState<string>(() => localStorage.getItem('jr_farm_cloud_sync_key') || '');
+  const [isSyncSaving, setIsSyncSaving] = useState(false);
+  const [isSyncLoading, setIsSyncLoading] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string>(() => localStorage.getItem('jr_farm_cloud_last_synced_at') || '');
+
   // Retrieve storage statistics
   const getStats = () => {
     const keys = [
@@ -42,7 +48,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
       'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
       'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
-      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales'
+      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+      'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs'
     ];
 
     let totalKeysFound = 0;
@@ -79,6 +86,126 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
   };
 
   const stats = getStats();
+
+  // Cloud Sync Room Saved Handler (Upload)
+  const handleCloudSyncSave = async () => {
+    if (!syncKey.trim()) {
+      setStatusMsg({ type: 'error', text: 'Please enter a valid Cloud Sync Key (e.g. your name or farm prefix).' });
+      return;
+    }
+    const cleanKey = syncKey.trim().toLowerCase();
+    if (cleanKey.length < 3) {
+      setStatusMsg({ type: 'error', text: 'Cloud Sync Key must be at least 3 characters long.' });
+      return;
+    }
+
+    setIsSyncSaving(true);
+    setStatusMsg({ type: null, text: '' });
+
+    try {
+      const keys = [
+        'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+        'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+        'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+        'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+        'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+        'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
+        'jr_farm_estate_settings'
+      ];
+
+      const databasePayload: Record<string, any> = {};
+      keys.forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            databasePayload[k] = JSON.parse(raw);
+          } catch {
+            databasePayload[k] = raw;
+          }
+        }
+      });
+
+      const res = await fetch('/api/sync/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ syncKey: cleanKey, database: databasePayload })
+      });
+
+      const reply = await res.json();
+      if (!res.ok) {
+        throw new Error(reply.error || 'Server rejected synchronization request.');
+      }
+
+      // Save sync key & time
+      const nowStr = new Date().toLocaleString();
+      localStorage.setItem('jr_farm_cloud_sync_key', cleanKey);
+      localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
+      setLastSyncedAt(nowStr);
+
+      setStatusMsg({
+        type: 'success',
+        text: `📡 Success: Database synced to cloud sync room "${cleanKey}"! You can now load this database state on any page or device (e.g., PC) using the same code.`
+      });
+    } catch (err: any) {
+      setStatusMsg({
+        type: 'error',
+        text: `Cloud Sync Upload Failed: ${err.message || 'Check connection'}`
+      });
+    } finally {
+      setIsSyncSaving(false);
+    }
+  };
+
+  // Cloud Sync Room Pull Handler (Download)
+  const handleCloudSyncLoad = async () => {
+    if (!syncKey.trim()) {
+      setStatusMsg({ type: 'error', text: 'Please enter a valid Cloud Sync Key to search for and import.' });
+      return;
+    }
+    const cleanKey = syncKey.trim().toLowerCase();
+    setIsSyncLoading(true);
+    setStatusMsg({ type: null, text: '' });
+
+    try {
+      const res = await fetch(`/api/sync/load/${cleanKey}`);
+      const reply = await res.json();
+
+      if (!res.ok) {
+        throw new Error(reply.error || 'Room not found.');
+      }
+
+      if (!reply.database || typeof reply.database !== 'object') {
+        throw new Error('Retrieved sync room contains corrupted databases.');
+      }
+
+      // Import the retrieved database state
+      const success = onImportFullBackup(reply.database);
+      if (success) {
+        const nowStr = new Date().toLocaleString();
+        localStorage.setItem('jr_farm_cloud_sync_key', cleanKey);
+        localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
+        setLastSyncedAt(nowStr);
+
+        setStatusMsg({
+          type: 'success',
+          text: `📡 Success: State pulled from Cloud Sync Room "${cleanKey}" successfully! Re-binding system engine...`
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        throw new Error('Database injection refused by system validator.');
+      }
+    } catch (err: any) {
+      setStatusMsg({
+        type: 'error',
+        text: `Cloud Sync Pull Failed: ${err.message || 'Ensure room key spelling is correct.'}`
+      });
+    } finally {
+      setIsSyncLoading(false);
+    }
+  };
 
   // Export Full JSON Snapshot
   const handleExportBackup = () => {
@@ -302,6 +429,64 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
               <span className="font-semibold">{statusMsg.text}</span>
             </div>
           )}
+
+          {/* New Cloud Sync Room Feature */}
+          <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 rounded-2xl border border-emerald-800 text-white space-y-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
+            <div className="space-y-1 relative">
+              <div className="inline-flex items-center gap-1 bg-amber-500 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                <RefreshCw size={10} className="animate-spin" /> Cross-Device Cloud Sync
+              </div>
+              <h3 className="text-base font-extrabold font-mono uppercase italic">📡 Instant PC & Mobile Transfer</h3>
+              <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium">
+                Want to access your farm registry on your PC or another phone? Enter a custom Sync Key below to upload your data from this device, then use the same key to pull it on your other browser!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:items-end relative">
+              <div className="md:col-span-1 space-y-1">
+                <label className="text-[10px] font-black uppercase text-emerald-300 block tracking-wider">
+                  Create / Load Key Room
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. MyKevFarm"
+                  value={syncKey}
+                  onChange={(e) => setSyncKey(e.target.value)}
+                  className="w-full bg-emerald-1100 bg-emerald-900 border border-emerald-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 font-bold text-xs text-white placeholder-emerald-555"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={handleCloudSyncSave}
+                  disabled={isSyncSaving || isSyncLoading}
+                  className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 test-white text-white font-black hover:text-yellow-400 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {isSyncSaving ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
+                  📡 Push State to Cloud
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloudSyncLoad}
+                  disabled={isSyncSaving || isSyncLoading}
+                  className="flex-1 bg-amber-505 bg-yellow-405 bg-amber-500 hover:bg-amber-400 text-emerald-955 text-emerald-950 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {isSyncLoading ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
+                  📥 Pull State from Cloud
+                </button>
+              </div>
+            </div>
+
+            {lastSyncedAt && (
+              <p className="text-[10px] text-emerald-300 font-semibold italic flex items-center gap-1.5 pt-1">
+                <span>● Registered Room Key: <strong className="font-mono text-yellow-400 uppercase">{syncKey}</strong></span>
+                <span>|</span>
+                <span>Last Synced: <strong>{lastSyncedAt}</strong></span>
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Export */}

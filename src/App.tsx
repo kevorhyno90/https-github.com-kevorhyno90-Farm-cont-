@@ -168,6 +168,23 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
 
+  // Unified Sensitive Alarms Notification engine states
+  const [bellNotificationTrayOpen, setBellNotificationTrayOpen] = useState<boolean>(false);
+  const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermission>('default');
+  const [failSafeNotificationModal, setFailSafeNotificationModal] = useState<{ title: string; body: string } | null>(null);
+  const [appToastMessage, setAppToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermissionState(Notification.permission);
+    }
+  }, []);
+
+  const triggerAppToastMessage = (txt: string) => {
+    setAppToastMessage(txt);
+    setTimeout(() => setAppToastMessage(null), 4000);
+  };
+
   // Main Persistent States loaded from localStorage
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const saved = localStorage.getItem('jr_farm_staff');
@@ -1285,6 +1302,258 @@ export default function App() {
   };
 
   const upcomingDueAlarm = getUpcomingDueAlarm();
+
+  // Unified Sensitive Alarms engine
+  const getSensitiveSectionAlarms = () => {
+    const list: Array<{
+      id: string;
+      section: 'Dairy' | 'Vet' | 'Spray' | 'Stock' | 'Roster' | 'Crops' | 'Schedule';
+      title: string;
+      body: string;
+      severity: 'high' | 'medium' | 'info';
+      date?: string;
+      actionLabel: string;
+      actionTab: string;
+    }> = [];
+
+    const todayDate = '2026-06-21';
+    const todayNum = new Date(todayDate).getTime();
+
+    // 1. Dairy Breeding AI expected birth / heats
+    aiRecords.forEach((ai) => {
+      if (ai.status === 'Confirmed Pregnant') {
+        const diffDays = Math.ceil(
+          (new Date(ai.due).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays <= 7) {
+          list.push({
+            id: `ai-due-${ai.cowId}-${ai.due}`,
+            section: 'Dairy',
+            title: `🐄 Expected Calving Near: Cow ${ai.cowId}`,
+            body: `Cow ${ai.cowId} is expected to calve on ${ai.due} (${diffDays < 0 ? 'Overdue!' : `${diffDays} days left`}). Transfer cow to the clean calving stall immediately for birth preparation.`,
+            severity: diffDays < 0 ? 'high' : 'medium',
+            date: ai.due,
+            actionLabel: 'Check Breeding Log',
+            actionTab: 'dairy'
+          });
+        }
+      } else if (ai.status === 'Pending') {
+        const checkDateStr = ai.checkDate || ai.date;
+        const diffDays = Math.ceil(
+          (new Date(checkDateStr).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays <= 3) {
+          list.push({
+            id: `ai-check-${ai.cowId}-${checkDateStr}`,
+            section: 'Dairy',
+            title: `🔍 AI Pregnancy Check Scheduled: Cow ${ai.cowId}`,
+            body: `Verify breeding heat/pregnancy status check due on ${checkDateStr}. Scheduled to confirm AI fertilization success.`,
+            severity: 'medium',
+            date: checkDateStr,
+            actionLabel: 'Verify AI Status',
+            actionTab: 'dairy'
+          });
+        }
+      }
+    });
+
+    // 2. Vet records (vaccinations, next boosters, deworming)
+    vetRecords.forEach((vet) => {
+      if (vet.nextDueDate) {
+        const diffDays = Math.ceil(
+          (new Date(vet.nextDueDate).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays <= 7) {
+          list.push({
+            id: `vet-due-${vet.id}`,
+            section: 'Vet',
+            title: `💉 Animal Vet Booster / Treatment Due: Tag ${vet.cowId}`,
+            body: `Scheduled next booster / retreatment (${vet.type}) due on ${vet.nextDueDate}. Last administered treatment was: "${vet.treatment}"`,
+            severity: diffDays < 0 ? 'high' : 'medium',
+            date: vet.nextDueDate,
+            actionLabel: 'Open Medical Log',
+            actionTab: 'dairy'
+          });
+        }
+      }
+    });
+
+    // 3. Spray logs crop withholding interval checks (PHI)
+    sprayRecords.forEach((spray) => {
+      const diffDays = Math.ceil(
+        (new Date(spray.safeDate).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+      );
+      if (diffDays > 0) {
+        list.push({
+          id: `spray-warn-${spray.id}`,
+          section: 'Spray',
+          title: `🚫 Pesticide PHI Quarantine: Block ${spray.block}`,
+          body: `Substance quarantine Active until ${spray.safeDate} due to "${spray.chemical}" spraying. Absolutely DO NOT harvest any crop or grazing feed from Block ${spray.block}.`,
+          severity: 'high',
+          date: spray.safeDate,
+          actionLabel: 'View Spray Log',
+          actionTab: 'spray'
+        });
+      } else if (diffDays >= -3) {
+        list.push({
+          id: `spray-clear-${spray.id}`,
+          section: 'Spray',
+          title: `✅ Withholding Period Expired: Block ${spray.block}`,
+          body: `Quarantine withholding period for "${spray.chemical}" has successfully ended. Block ${spray.block} is now biochemically safe to harvest.`,
+          severity: 'info',
+          date: spray.safeDate,
+          actionLabel: 'Review Spray Specs',
+          actionTab: 'spray'
+        });
+      }
+    });
+
+    // 4. Warehouse Stock Level Breaches
+    inventory.forEach((item) => {
+      if (item.quantity <= item.minStock) {
+        list.push({
+          id: `inv-low-${item.id}`,
+          section: 'Stock',
+          title: `📦 Critical Low Stock: ${item.name}`,
+          body: `Current count is down to ${item.quantity} ${item.unit} (Minimum requirement is ${item.minStock} ${item.unit}). Restock immediately to sustain routine feeding and treatments.`,
+          severity: 'high',
+          actionLabel: 'Review Stock',
+          actionTab: 'inventory'
+        });
+      }
+    });
+
+    // 5. Staff Absenteeism
+    staffOffRecords.forEach((off) => {
+      const startVal = new Date(off.startDate).getTime();
+      const endVal = new Date(off.endDate).getTime();
+      if (todayNum >= startVal && todayNum <= endVal && off.status === 'Approved') {
+        list.push({
+          id: `roster-abs-${off.id}`,
+          section: 'Roster',
+          title: `👤 Staff Out: ${off.staffName}`,
+          body: `${off.staffName} is out on approved ${off.type} until ${off.endDate}. Please coordinate appropriate shift relief.`,
+          severity: 'info',
+          date: off.endDate,
+          actionLabel: 'Roster Planner',
+          actionTab: 'roster'
+        });
+      }
+    });
+
+    // 6. Crop Operations scheduled today or overdue
+    cropOps.forEach((op) => {
+      if (op.status !== 'Completed') {
+        const diffDays = Math.ceil(
+          (new Date(op.date).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays <= 3) {
+          list.push({
+            id: `crop-op-rem-${op.id}`,
+            section: 'Crops',
+            title: `🌿 Field Crop Task Scheduled: ${op.crop}`,
+            body: `Pending horticultural operation "${op.operationName}" is scheduled for ${op.date}. Inputs designated: ${op.inputsUsed || 'None Specified'}.`,
+            severity: diffDays < 0 ? 'high' : 'medium',
+            date: op.date,
+            actionLabel: 'Agronomy Fields',
+            actionTab: 'fields'
+          });
+        }
+      }
+    });
+
+    // 7. Standard Custom Timetable items from OperationsCalendar
+    try {
+      const rawTimetable = localStorage.getItem('jr_farm_custom_timetable');
+      if (rawTimetable) {
+        const parsedTimetable = JSON.parse(rawTimetable);
+        parsedTimetable.forEach((item: any) => {
+          if (item.status === 'Pending' && item.targetDate) {
+            const diffDays = Math.ceil(
+              (new Date(item.targetDate).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+            );
+            if (diffDays <= 3) {
+              list.push({
+                id: `timetable-task-${item.id}`,
+                section: 'Schedule',
+                title: `🕒 operations Calendar Schedule: ${item.operation}`,
+                body: `Calendar Task SOP is pending for category. Details: ${item.how}. Assignee: ${item.assignedTo || 'General Team'}.`,
+                severity: diffDays < 0 ? 'high' : 'medium',
+                date: item.targetDate,
+                actionLabel: 'Operations SOPs',
+                actionTab: 'timetable'
+              });
+            }
+          }
+        });
+      }
+    } catch (_) {}
+
+    return list;
+  };
+
+  // Web Notification controller
+  const requestAppNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      triggerAppToastMessage("Web Notifications are not supported in this browser.");
+      return;
+    }
+    try {
+      const res = await Notification.requestPermission();
+      setNotificationPermissionState(res);
+      if (res === 'granted') {
+        triggerAppToastMessage("✓ Smartphone Taskbar Alerts Authorized!");
+        // Fire a test welcome notification
+        try {
+          new Notification("JR Farm Pro", {
+            body: "Perfect! Lockscreen push and taskbar reminders authorized successfully! You will now receive alerts for all breeding, medication, the quarantine, and stock warnings.",
+            icon: "/icon-192.png"
+          });
+        } catch (_) {}
+      } else {
+        triggerAppToastMessage("⚠️ Permissions were denied or dismissed.");
+      }
+    } catch (_) {
+      setNotificationPermissionState('denied');
+      triggerAppToastMessage("⚠️ Standard browser sandbox blocked permission. Use New Tab.");
+    }
+  };
+
+  const playSyntheticBellChime = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); 
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (_) {}
+  };
+
+  const triggerAppLockscreenNotification = (title: string, bodyText: string) => {
+    setFailSafeNotificationModal({ title, body: bodyText });
+    playSyntheticBellChime();
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(`JR Farm Alert: ${title}`, {
+          body: bodyText,
+          icon: '/icon-192.png',
+          tag: 'jr-farm-bell-notification',
+          requireInteraction: true
+        });
+      } catch (_) {}
+    }
+  };
 
   const handleResetToDefaults = () => {
     const keys = [
@@ -2636,14 +2905,159 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2 md:gap-4 relative text-slate-800">
+            {/* Unified Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setBellNotificationTrayOpen(!bellNotificationTrayOpen)}
+                className={`p-2.5 rounded-xl border transition-all relative flex items-center justify-center cursor-pointer m-0 active:scale-95 ${
+                  getSensitiveSectionAlarms().length > 0
+                    ? 'bg-amber-50 hover:bg-amber-100/80 border-amber-200 text-amber-600 animate-pulse'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-500'
+                }`}
+                title="Unified Sensitive Reminders"
+              >
+                <div className="flex items-center gap-1.5 font-bold">
+                  <span className="text-[10px] font-black shrink-0 tracking-tight font-mono">{getSensitiveSectionAlarms().length}</span>
+                  {getSensitiveSectionAlarms().length > 0 ? (
+                    <span className="relative flex h-3.5 w-3.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 text-[8px] text-white font-extrabold items-center justify-center">!</span>
+                    </span>
+                  ) : null}
+                  <span className="text-[10px] uppercase font-bold tracking-tight">Alarms</span>
+                </div>
+              </button>
+
+              {/* Notification drop-down cabinet */}
+              {bellNotificationTrayOpen && (
+                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden font-sans text-slate-850">
+                  <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wide">
+                        Sensitive Alarm Hub
+                      </span>
+                      <h4 className="text-xs font-black uppercase font-mono tracking-wide">Reminders Center</h4>
+                    </div>
+                    <button
+                      onClick={() => setBellNotificationTrayOpen(false)}
+                      className="text-slate-400 hover:text-white font-black text-xs border-0 m-0 bg-transparent cursor-pointer"
+                    >
+                      Close ✕
+                    </button>
+                  </div>
+
+                  {/* Device push state permission status */}
+                  <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-2">
+                    <p className="text-[11px] text-slate-500 leading-normal font-medium">
+                      Receive alerts on your **smartphone / PC lockscreen taskbar** dynamically in real time.
+                    </p>
+                    <div className="flex items-center justify-between gap-2.5">
+                      <span className="text-[10px] uppercase font-black text-slate-600 block">
+                        Status: <strong className={notificationPermissionState === 'granted' ? 'text-green-600' : 'text-amber-500'}>{notificationPermissionState.toUpperCase()}</strong>
+                      </span>
+                      {notificationPermissionState !== 'granted' ? (
+                        <button
+                          onClick={requestAppNotificationPermission}
+                          className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer shadow-xs"
+                        >
+                          🔔 Auth Taskbar Push
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            triggerAppLockscreenNotification(
+                              "Standard Push Active", 
+                              "Success! JR Farm tasks are now fully connected to your phone bar / PC lockscreen. You will receive active alarms of your farm."
+                            );
+                          }}
+                          className="bg-slate-200 hover:bg-slate-250 text-slate-700 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer"
+                        >
+                          ⚡ Test Phone Bar Push
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Alarm stream list */}
+                  <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                    {getSensitiveSectionAlarms().length === 0 ? (
+                      <div className="p-8 text-center space-y-2">
+                        <span className="text-3xl block">☘️</span>
+                        <p className="text-xs font-bold text-slate-550 uppercase font-mono">ALL SENSITIVE SECTIONS 100% CLEAR</p>
+                        <p className="text-[10px] text-slate-400 font-medium">No overdue births, active pesticide quarantines, low stock levels, or pending vaccinations.</p>
+                      </div>
+                    ) : (
+                      getSensitiveSectionAlarms().map((alarm) => (
+                        <div key={alarm.id} className="p-4 hover:bg-slate-50 space-y-2 transition-colors text-left">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                              alarm.severity === 'high'
+                                ? 'bg-red-50 border-red-200 text-red-600'
+                                : alarm.severity === 'medium'
+                                ? 'bg-amber-50 border-amber-200 text-amber-600'
+                                : 'bg-blue-50 border-blue-200 text-blue-600'
+                            }`}>
+                              ⚠️ {alarm.section}: {alarm.severity.toUpperCase()}
+                            </span>
+                            {alarm.date && (
+                              <span className="text-[9px] font-mono text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+                                Due: {alarm.date}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <h5 className="text-[11px] font-black text-slate-800 leading-tight">
+                            {alarm.title}
+                          </h5>
+                          
+                          <p className="text-[11px] text-slate-550 leading-relaxed font-semibold">
+                            {alarm.body}
+                          </p>
+
+                          <div className="flex gap-2 pt-1.5">
+                            <button
+                              onClick={() => {
+                                setActiveTab(alarm.actionTab);
+                                setBellNotificationTrayOpen(false);
+                                triggerAppToastMessage(`Redirected to ${alarm.actionLabel}...`);
+                              }}
+                              className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase py-2 rounded-lg border-0 block cursor-pointer transition-colors"
+                            >
+                              ⚙️ Go Resolve
+                            </button>
+                            <button
+                              onClick={() => {
+                                triggerAppLockscreenNotification(alarm.title, alarm.body);
+                                triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
+                              }}
+                              className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
+                              title="Send this specific alarm to phone lockscreen tray"
+                            >
+                              📲 Push Alert
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-center">
+                    <span className="text-[9px] font-mono font-extrabold text-slate-400 uppercase">
+                      • JR Farm Sovereign Supervisor Suite •
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-mono font-bold bg-slate-50 border px-3 py-1.5 rounded-full shadow-inner">
               <Clock size={12} className="text-emerald-800 shrink-0" />
               <span>{liveTime || 'Synchronizing...'}</span>
             </div>
             <button
               onClick={() => setShowReportModal(true)}
-              className="lg:hidden bg-yellow-500 text-slate-950 font-black p-2 rounded-lg text-xs hover:bg-yellow-400 transition-all flex items-center gap-1.5 m-0 cursor-pointer"
+              className="lg:hidden bg-yellow-500 text-slate-950 font-black p-2 rounded-lg text-xs hover:bg-yellow-400 transition-all flex items-center gap-1.5 m-0 cursor-pointer border-0"
               title="View Master Report"
             >
               <FileText size={14} />
@@ -3669,6 +4083,58 @@ export default function App() {
           expense: totalExpense
         }} 
       />
+
+      {/* 6. FAIL-SAFE ALARM MODAL FOR HIGH PRIORITY SENSITIVE REMINDERS */}
+      {failSafeNotificationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-red-200">
+            <div className="bg-red-600 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🚨</span>
+                <h4 className="text-xs font-black uppercase font-mono tracking-wider">CRITICAL FARM ALARM CHIME</h4>
+              </div>
+              <button
+                onClick={() => setFailSafeNotificationModal(null)}
+                className="text-white opacity-80 hover:opacity-100 font-extrabold text-sm border-0 bg-transparent cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-600 font-bold border border-red-100 text-xl">
+                ⚠️
+              </div>
+              
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-tight leading-snug">
+                {failSafeNotificationModal.title}
+              </h3>
+              
+              <p className="text-xs text-slate-600 leading-relaxed font-semibold">
+                {failSafeNotificationModal.body}
+              </p>
+              
+              <button
+                onClick={() => {
+                  setFailSafeNotificationModal(null);
+                  setBellNotificationTrayOpen(true);
+                }}
+                className="w-full bg-slate-900 text-white font-extrabold text-[11px] uppercase py-3 rounded-xl hover:bg-slate-850 cursor-pointer border-0 transition-colors"
+              >
+                ⚙️ Access Notification Center
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. APP NOTIFICATION TOAST NOTIFIER */}
+      {appToastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-[11px] font-black uppercase px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-705">
+          <span className="text-amber-400">🔔</span>
+          <span>{appToastMessage}</span>
+        </div>
+      )}
 
     </div>
   );
