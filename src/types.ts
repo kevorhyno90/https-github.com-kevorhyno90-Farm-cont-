@@ -20,6 +20,7 @@ export interface AIRecord {
   bull: string; // Semen / Bull details
   due: string; // Expected due date YYYY-MM-DD
   status: 'Pending' | 'Confirmed Pregnant' | 'Calved' | 'Failed';
+  checkDate?: string; // Verification check date YYYY-MM-DD
 }
 
 export interface TeaRecord {
@@ -76,6 +77,7 @@ export interface Ingredient {
   cp: number; // Crude Protein %
   me: number; // Metabolizable Energy (MJ/kg DM)
   cost?: number; // Cost per KG Ksh
+  category?: string; // Material category (e.g., Fodder, Concentrate, Mineral)
 }
 
 export interface BatchIngredient {
@@ -277,5 +279,18 @@ export interface MortalityRecord {
   veterinaryConfirmed: boolean;
   notes: string;
 }
+
+export interface MilkOutflowRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  totalMilkedOverride?: number; // Total milked per day
+  milkUsedAtHome: number; // Liters used/reserved at home
+  milkUsedByWorkers: number; // Liters given/sold to workers
+  milkSpoiled: number; // Liters spoiled or discarded
+  debtsKsh: number; // Value of milk sold on credit (debts) Ksh or Outstanding debt quantity description
+  debtCustomer?: string; // Debtor Name / Account
+  notes?: string;
+}
+
 
 

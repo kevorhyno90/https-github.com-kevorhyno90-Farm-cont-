@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord } from '../types';
+import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord } from '../types';
 import {
   Plus,
   Calendar,
@@ -35,6 +35,9 @@ import {
 interface DairyBreedingProps {
   milkRecords: MilkingRecord[];
   aiRecords: AIRecord[];
+  milkOutflows: MilkOutflowRecord[];
+  onAddMilkOutflow: (rec: MilkOutflowRecord) => void;
+  onDeleteMilkOutflow: (id: string) => void;
   staffList: StaffMember[];
   onAddMilkRecord: (rec: MilkingRecord) => void;
   onAddAIRecord: (rec: AIRecord) => void;
@@ -64,6 +67,9 @@ interface DairyBreedingProps {
 export function DairyBreeding({
   milkRecords,
   aiRecords,
+  milkOutflows = [],
+  onAddMilkOutflow,
+  onDeleteMilkOutflow,
   staffList,
   onAddMilkRecord,
   onAddAIRecord,
@@ -116,6 +122,7 @@ export function DairyBreeding({
   const [aiCowId, setAiCowId] = useState('');
   const [aiDate, setAiDate] = useState(new Date().toISOString().split('T')[0]);
   const [aiBull, setAiBull] = useState('');
+  const [aiCheckDate, setAiCheckDate] = useState('');
 
   // Cow Identity form states
   const [newCowTag, setNewCowTag] = useState('');
@@ -166,6 +173,36 @@ export function DairyBreeding({
   // Filtering milking records
   const [filterCow, setFilterCow] = useState('');
 
+  // Daily Outflow states
+  const [outflowDate, setOutflowDate] = useState(new Date().toISOString().split('T')[0]);
+  const [outflowHome, setOutflowHome] = useState<number | ''>('');
+  const [outflowWorkers, setOutflowWorkers] = useState<number | ''>('');
+  const [outflowSpoiled, setOutflowSpoiled] = useState<number | ''>('');
+  const [outflowDebts, setOutflowDebts] = useState<number | ''>('');
+  const [outflowCustomer, setOutflowCustomer] = useState('');
+  const [outflowNotes, setOutflowNotes] = useState('');
+
+  const handleOutflowSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!outflowDate) return;
+    onAddMilkOutflow({
+      id: `mo-${Date.now()}`,
+      date: outflowDate,
+      milkUsedAtHome: outflowHome === '' ? 0 : Number(outflowHome),
+      milkUsedByWorkers: outflowWorkers === '' ? 0 : Number(outflowWorkers),
+      milkSpoiled: outflowSpoiled === '' ? 0 : Number(outflowSpoiled),
+      debtsKsh: outflowDebts === '' ? 0 : Number(outflowDebts),
+      debtCustomer: outflowCustomer.trim() || undefined,
+      notes: outflowNotes.trim() || undefined
+    });
+    setOutflowHome('');
+    setOutflowWorkers('');
+    setOutflowSpoiled('');
+    setOutflowDebts('');
+    setOutflowCustomer('');
+    setOutflowNotes('');
+  };
+
   const handleMilkingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!cowTag.trim() || amLiters === '' || pmLiters === '') return;
@@ -207,12 +244,14 @@ export function DairyBreeding({
       date: aiDate,
       bull: aiBull.trim(),
       due: estimatedDue,
-      status: 'Pending'
+      status: 'Pending',
+      checkDate: aiCheckDate || undefined
     });
 
     setAiCowId('');
     setAiDate(new Date().toISOString().split('T')[0]);
     setAiBull('');
+    setAiCheckDate('');
   };
 
   const handleCowSubmit = (e: React.FormEvent) => {
@@ -1387,6 +1426,16 @@ export function DairyBreeding({
                 />
               </div>
 
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Check Date (Optional Repeat/Confirm date)</label>
+                <input
+                  type="date"
+                  value={aiCheckDate}
+                  onChange={(e) => setAiCheckDate(e.target.value)}
+                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                />
+              </div>
+
               <div className="col-span-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Bull Name / Semen straw reference</label>
                 <input
@@ -1447,6 +1496,11 @@ export function DairyBreeding({
                         <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">
                           Semen: {cycle.bull} • Service: {cycle.date}
                         </p>
+                        {cycle.checkDate && (
+                          <p className="text-[10px] text-teal-700 bg-teal-50 border border-teal-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                            🔍 CONFIRM CHECK DATE: {new Date(cycle.checkDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        )}
                         <div className="flex items-center gap-1.5 text-xs font-bold text-rose-950">
                           <Calendar size={12} className="text-rose-700 font-bold shrink-0" />
                           <span>Expected Due: {new Date(cycle.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
@@ -1492,6 +1546,207 @@ export function DairyBreeding({
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Milk Distribution / Outflows, Spoils & Debts Ledger */}
+          <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 p-6 md:p-8 rounded-3xl border border-slate-800 text-white space-y-6 mt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-805 pb-4">
+              <div>
+                <span className="bg-emerald-500/10 text-emerald-400 font-black tracking-widest text-[10px] uppercase px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  🥛 Outflow & Credit Ledger
+                </span>
+                <h3 className="text-xl font-black text-white mt-1">Daily Milk Dispatch, Spoils & Debts</h3>
+                <p className="text-slate-400 text-xs mt-1 font-medium">Record and track domestic consumption, staff allocations, spoiled volumes, and informal milk credit balances.</p>
+              </div>
+              
+              {/* Analytics Summary Badges */}
+              <div className="flex flex-wrap gap-2">
+                <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">Home Consumed</span>
+                  <span className="text-xs font-black text-blue-400">{milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0).toFixed(1)} L</span>
+                </div>
+                <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block font-bold">Staff Portions</span>
+                  <span className="text-xs font-black text-amber-550 text-amber-400">{milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0).toFixed(1)} L</span>
+                </div>
+                <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">Total Spoilt</span>
+                  <span className="text-xs font-black text-red-400">{milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0).toFixed(1)} L</span>
+                </div>
+                <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block font-bold">Unpaid Debts</span>
+                  <span className="text-xs font-black text-lime-400">Ksh {milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Entry Form */}
+              <form onSubmit={handleOutflowSubmit} className="md:col-span-1 bg-slate-900/50 p-5 rounded-2xl border border-slate-850/85 space-y-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block border-b border-slate-800 pb-1.5 mb-2">
+                  ✍️ Log Daily Outflow
+                </span>
+                
+                <div>
+                  <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1">Dispatch Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={outflowDate}
+                    onChange={(e) => setOutflowDate(e.target.value)}
+                    className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2.5 w-full font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Used at Home">Home (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowHome}
+                      onChange={(e) => setOutflowHome(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Used by Workers">Workers (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowWorkers}
+                      onChange={(e) => setOutflowWorkers(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Spoiled Milk">Spoilt (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowSpoiled}
+                      onChange={(e) => setOutflowSpoiled(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Unpaid bills from local sales">Debt (Ksh)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={outflowDebts}
+                      onChange={(e) => setOutflowDebts(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="E.g. 150"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1">Debtor</label>
+                    <input
+                      type="text"
+                      value={outflowCustomer}
+                      onChange={(e) => setOutflowCustomer(e.target.value)}
+                      placeholder="Customer"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1">Notes / Remarks</label>
+                  <input
+                    type="text"
+                    value={outflowNotes}
+                    onChange={(e) => setOutflowNotes(e.target.value)}
+                    placeholder="Home use details, credit logs"
+                    className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2.5 w-full font-medium text-white outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase p-3 rounded-lg transition-all shadow-md m-0 cursor-pointer"
+                >
+                  Log Outflow & Credits
+                </button>
+              </form>
+
+              {/* History Table List */}
+              <div className="md:col-span-2 overflow-x-auto">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block border-b border-slate-800 pb-1.5 mb-2">
+                  📊 Outflows & Credits Dispatch Ledger Logs
+                </span>
+                <table className="w-full text-xs text-slate-200">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-slate-400 text-[10px] font-black uppercase text-left opacity-80">
+                      <th className="py-2.5 px-2">Date</th>
+                      <th className="py-2.5 px-2 text-center text-blue-300">Home Use</th>
+                      <th className="py-2.5 px-2 text-center text-amber-300">Workers</th>
+                      <th className="py-2.5 px-2 text-center text-red-300">Spoiled</th>
+                      <th className="py-2.5 px-2 text-slate-300 font-bold">Debt & Customer</th>
+                      <th className="py-2.5 px-2">Notes</th>
+                      <th className="py-2.5 px-2 text-right">Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {milkOutflows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-xs text-slate-500 font-bold">
+                          No daily outflow records logged yet. Use the form to record home use, worker portions, and debts.
+                        </td>
+                      </tr>
+                    ) : (
+                      milkOutflows.map((item, index) => (
+                        <tr key={index} className="border-b border-slate-800/60 hover:bg-slate-900/30">
+                          <td className="py-2.5 px-2 font-black font-mono text-slate-300">
+                            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </td>
+                          <td className="py-2.5 px-2 text-center text-blue-400 font-bold">{item.milkUsedAtHome} L</td>
+                          <td className="py-2.5 px-2 text-center text-amber-500 font-bold">{item.milkUsedByWorkers} L</td>
+                          <td className="py-2.5 px-2 text-center font-bold text-red-400">
+                            {item.milkSpoiled > 0 ? `${item.milkSpoiled} L` : '—'}
+                          </td>
+                          <td className="py-2.5 px-2 font-semibold">
+                            {item.debtsKsh > 0 ? (
+                              <div className="flex flex-col">
+                                <span className="text-lime-400 font-black">Ksh {item.debtsKsh}</span>
+                                {item.debtCustomer && (
+                                  <span className="text-[10px] text-slate-400">({item.debtCustomer})</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-500 font-bold">No Debts</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-2 text-slate-450 text-slate-400 font-medium max-w-[150px] truncate" title={item.notes}>
+                            {item.notes || '—'}
+                          </td>
+                          <td className="py-2.5 px-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => onDeleteMilkOutflow(item.id)}
+                              className="text-slate-500 hover:text-red-400 p-1 rounded-md transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-800"
+                              title="Delete outflow log"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

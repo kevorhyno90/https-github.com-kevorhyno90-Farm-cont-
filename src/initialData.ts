@@ -25,7 +25,8 @@ import {
   CropOpRecord,
   CropSaleRecord,
   AnimalSaleRecord,
-  MortalityRecord
+  MortalityRecord,
+  MilkOutflowRecord
 } from './types';
 
 // Helper to get formatted dates relative to today
@@ -597,5 +598,29 @@ export const INITIAL_MORTALITY_RECORDS: MortalityRecord[] = [
     notes: 'Dam had slight fall near slippery drinking trough. Rest of herd screened and cleared.'
   }
 ];
+
+export const INITIAL_MILK_OUTFLOW_RECORDS: MilkOutflowRecord[] = [
+  {
+    id: 'mo-1',
+    date: getRelativeDate(-2),
+    milkUsedAtHome: 4.5,
+    milkUsedByWorkers: 6.0,
+    milkSpoiled: 1.5,
+    debtsKsh: 250,
+    debtCustomer: 'Alice Kemunto (Worker credits)',
+    notes: 'Home milk for guests; Kemunto dry period credits.'
+  },
+  {
+    id: 'mo-2',
+    date: getRelativeDate(-1),
+    milkUsedAtHome: 3.5,
+    milkUsedByWorkers: 5.0,
+    milkSpoiled: 0.0,
+    debtsKsh: 420,
+    debtCustomer: 'Bob Nyabuto (Local shop)',
+    notes: 'Local shop purchased on credit, 8 liters at Ksh 52.5.'
+  }
+];
+
 
 

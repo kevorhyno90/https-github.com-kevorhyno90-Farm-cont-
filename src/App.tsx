@@ -71,7 +71,8 @@ import {
   CropOpRecord,
   CropSaleRecord,
   AnimalSaleRecord,
-  MortalityRecord
+  MortalityRecord,
+  MilkOutflowRecord
 } from './types';
 
 // Mock Primers
@@ -97,7 +98,8 @@ import {
   INITIAL_CROP_OP_RECORDS,
   INITIAL_CROP_SALES,
   INITIAL_ANIMAL_SALES,
-  INITIAL_MORTALITY_RECORDS
+  INITIAL_MORTALITY_RECORDS,
+  INITIAL_MILK_OUTFLOW_RECORDS
 } from './initialData';
 
 export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
@@ -228,6 +230,15 @@ export default function App() {
     const saved = localStorage.getItem('jr_farm_sprays');
     return saved ? JSON.parse(saved) : INITIAL_SPRAY_RECORDS;
   });
+
+  const [milkOutflows, setMilkOutflows] = useState<MilkOutflowRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_milk_outflows');
+    return saved ? JSON.parse(saved) : INITIAL_MILK_OUTFLOW_RECORDS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_milk_outflows', JSON.stringify(milkOutflows));
+  }, [milkOutflows]);
 
   const [todos, setTodos] = useState<Todo[]>(() => {
     const saved = localStorage.getItem('jr_farm_todos');
@@ -1359,6 +1370,26 @@ export default function App() {
       };
       setFinancials((prev) => [autoIncome, ...prev]);
     }
+  };
+
+  const handleAddMilkOutflow = (rec: MilkOutflowRecord) => {
+    setMilkOutflows([rec, ...milkOutflows]);
+    if (rec.debtsKsh > 0) {
+      const debtor = rec.debtCustomer || 'Informal Debtor';
+      const autoDebtIncome: FinancialRecord = {
+        id: `f-debt-${Date.now()}`,
+        type: 'income',
+        amount: rec.debtsKsh,
+        category: 'Milk Sale',
+        description: `Informal Milk Credit (Debt) - ${debtor}. Liters: worker=${rec.milkUsedByWorkers}L, home=${rec.milkUsedAtHome}L, spoiled=${rec.milkSpoiled}L`,
+        date: rec.date
+      };
+      setFinancials((prev) => [autoDebtIncome, ...prev]);
+    }
+  };
+
+  const handleDeleteMilkOutflow = (id: string) => {
+    setMilkOutflows(milkOutflows.filter(m => m.id !== id));
   };
 
   const handleAddAIRecord = (rec: AIRecord) => {
@@ -2793,6 +2824,9 @@ export default function App() {
             <DairyBreeding
               milkRecords={milkRecords}
               aiRecords={aiRecords}
+              milkOutflows={milkOutflows}
+              onAddMilkOutflow={handleAddMilkOutflow}
+              onDeleteMilkOutflow={handleDeleteMilkOutflow}
               staffList={staffList}
               onAddMilkRecord={handleAddMilkRecord}
               onAddAIRecord={handleAddAIRecord}
