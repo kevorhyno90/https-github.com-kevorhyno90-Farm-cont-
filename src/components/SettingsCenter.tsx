@@ -15,7 +15,9 @@ import {
   Download,
   Smartphone,
   DollarSign,
-  CheckCircle2
+  CheckCircle2,
+  Wifi,
+  RefreshCw
 } from 'lucide-react';
 import { getStoredSettings, DEFAULT_SETTINGS } from '../utils/settingsHelper';
 
@@ -37,6 +39,56 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
   });
   
   const [settings, setSettings] = useState(getStoredSettings());
+
+  // Real-time PWA and Cloud server diagnostics
+  const [connState, setConnState] = useState<'idle' | 'checking' | 'online' | 'error'>('idle');
+  const [aiInitialized, setAiInitialized] = useState<boolean | null>(null);
+  const [serverError, setServerError] = useState<string>('');
+  const [isPurging, setIsPurging] = useState<boolean>(false);
+
+  const handleTestConnection = async () => {
+    setConnState('checking');
+    setServerError('');
+    setAiInitialized(null);
+    try {
+      const res = await fetch('/api/health');
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setConnState('online');
+      setAiInitialized(!!data.aiInitialized);
+    } catch (err: any) {
+      console.error("Diagnostic Connection Error:", err);
+      setConnState('error');
+      setServerError(err?.message || "Could not reach back-end server.");
+    }
+  };
+
+  const handlePwaPurgeAndForceUpdate = async () => {
+    if (!confirm("This will fully purge the mobile browser's assets cache, unregister the old service worker, and force-reload the latest app code from the live cloud. Continue?")) {
+      return;
+    }
+    setIsPurging(true);
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+      }
+      setIsPurging(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Purge Error:", err);
+      setIsPurging(false);
+      alert("Purge failed. Try refreshing manually.");
+    }
+  };
 
   const handleUpdate = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -355,6 +407,96 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     <option value="true">Active (Pre-populate default templates)</option>
                     <option value="false">Inactive (Start entirely with empty state)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Cloud Server & PWA Cache Diagnostics Module */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
+                <div>
+                  <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
+                    <Wifi size={13} className="text-emerald-700 font-bold" />
+                    Cloud Server & Mobile App Sync Diagnostics
+                  </h6>
+                  <p className="text-[10px] text-slate-500 leading-normal font-semibold mt-0.5">
+                    Verify connection to the live cloud server hosting Gemini AI and clear persistent PWA caches from your device if they are outdated.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Connection Status box */}
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left">
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Cloud API Signal</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {connState === 'idle' && (
+                          <span className="text-[11px] font-bold text-slate-500">Not Tested</span>
+                        )}
+                        {connState === 'checking' && (
+                          <div className="flex items-center gap-1.5">
+                            <RefreshCw size={11} className="animate-spin text-slate-600" />
+                            <span className="text-[11px] font-bold text-slate-600">Querying Server Status...</span>
+                          </div>
+                        )}
+                        {connState === 'online' && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            <span className="text-[11px] font-black text-emerald-800">Connected (Live)</span>
+                          </div>
+                        )}
+                        {connState === 'error' && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                            <span className="text-[11px] font-black text-rose-800">Network Failure</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {connState === 'online' && (
+                        <div className="mt-2 text-[10px] leading-relaxed bg-emerald-50 border border-emerald-100 p-1.5 rounded-lg text-emerald-850 font-medium">
+                          {aiInitialized ? (
+                            <span className="text-emerald-900 font-bold">✓ Live Gemini AI is Fully Configured and Ready!</span>
+                          ) : (
+                            <span className="text-amber-850 font-semibold">⚠️ Back-end ready, but process.env.GEMINI_API_KEY is not configured yet. (Using robust local rules).</span>
+                          )}
+                        </div>
+                      )}
+
+                      {connState === 'error' && (
+                        <div className="mt-2 text-[10px] leading-normal bg-rose-50 border border-rose-100 p-1.5 rounded-lg text-rose-800 font-semibold">
+                          Error: {serverError}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTestConnection}
+                      disabled={connState === 'checking'}
+                      className="mt-3 w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-[10px] uppercase font-black tracking-wider rounded-lg transition-all border-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {connState === 'checking' ? 'Testing...' : 'Test Connection Status'}
+                    </button>
+                  </div>
+
+                  {/* Cache Purge box */}
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left">
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Mobile PWA Cache Status</span>
+                      <p className="text-[9.5px] text-slate-500 leading-normal font-semibold mt-1">
+                        If you installed this application on your phone, changes and code updates might not show up immediately because mobile browsers cache bundles heavily.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handlePwaPurgeAndForceUpdate}
+                      disabled={isPurging}
+                      className="mt-3 w-full py-1.5 px-3 bg-rose-50/55 hover:bg-rose-55 border border-rose-200 hover:border-rose-300 text-rose-800 text-[10px] uppercase font-black tracking-wider rounded-lg transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 m-0"
+                    >
+                      <RefreshCw size={11} className={isPurging ? "animate-spin" : ""} />
+                      {isPurging ? 'Purging Cache...' : 'Purge Cache & Force Update'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
