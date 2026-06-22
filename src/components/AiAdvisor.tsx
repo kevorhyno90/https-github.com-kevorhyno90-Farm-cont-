@@ -82,10 +82,26 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
       setMessages(prev => [...prev, { role: 'model', text: data.text || "No response received." }]);
     } catch (err: any) {
       console.error("AI Error:", err);
-      // Beautiful offline simulation backup based on current settings config
+      const isDeviceOffline = !navigator.onLine;
+      const errorMsg = err?.message || err || "Unknown connection error";
+      
+      let responseText = `⚠️ AI Advisor Offline Fallback (Active Heuristics Mode):\n`;
+      if (isDeviceOffline) {
+        responseText += `Your mobile device is currently offline (no internet connection). Utilizing stored local estate rules for **${farmName}** at Plot **${locCode}**:\n`;
+      } else {
+        responseText += `Could not connect to the cloud AI service (Error: ${errorMsg}). Utilizing server-side fallback rules for **${farmName}** at Plot **${locCode}**:\n`;
+      }
+      
+      responseText += `\n**Core Compliance Guidelines for ${managerName}:**\n`;
+      responseText += `- **Soil Standards**: Keep soil pH strictly between 5.8 and 6.4 for Solanaceae fields.\n`;
+      responseText += `- **Milking Routine**: Ensure strict pre/post-milking hygiene (0.5% Iodine teat-dips) to prevent clinical mastitis.\n`;
+      responseText += `- **Bovine Nutrition**: Balance daily feeding formulas to hit 18-20% Crude Protein (CP) using dry hay fibers to prevent ruminal acidosis.\n`;
+      responseText += `- **Biosecurity**: Enforce quarantine periods for all treated livestock and withhold milk for clinical safety.\n\n`;
+      responseText += `*(If your phone is online, make sure your app server is active and that GEMINI_API_KEY is configured in AI Studio's Secrets).*`;
+
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: `⚠️ Offline Diagnostic fallback:\nBased on ${farmName} plot ${locCode} guidelines managed by ${managerName}, ensure soil PH remains 5.8-6.4.\n\n(To activate real Gemini AI, make sure process.env.GEMINI_API_KEY is configured under Settings > Secrets).`
+        text: responseText
       }]);
     } finally {
       setIsLoading(false);

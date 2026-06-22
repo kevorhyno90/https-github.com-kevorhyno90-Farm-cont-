@@ -271,7 +271,14 @@ export default function FarmerAcademy({
         isOffline: true
       };
       setCustomDiagResult(diagObj);
-      setDiagnoseError("Offline analysis engine engaged.");
+      
+      const isDeviceOffline = !navigator.onLine;
+      const errorMsg = err?.message || err || "Connection timeout";
+      if (isDeviceOffline) {
+        setDiagnoseError("Offline analysis engine engaged (Your phone is currently offline, utilizing locally-saved rules).");
+      } else {
+        setDiagnoseError(`Offline analysis engine engaged (Could not contact server: ${errorMsg}. Using robust local rules).`);
+      }
 
       // Save to case history
       const newCase = {
