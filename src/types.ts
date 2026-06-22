@@ -62,6 +62,8 @@ export interface SprayRecord {
   target: string; // Pest / Disease
   date: string; // Spray Date YYYY-MM-DD
   safeDate: string; // Date after PHI YYYY-MM-DD
+  nextSprayDate?: string; // Next spraying date YYYY-MM-DD
+  intervalDays?: number; // Days before next spraying
 }
 
 export interface Todo {

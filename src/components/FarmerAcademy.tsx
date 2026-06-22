@@ -30,7 +30,9 @@ import {
   DollarSign,
   Sliders,
   Gauge,
-  Clipboard
+  Clipboard,
+  Trash2,
+  Printer
 } from 'lucide-react';
 import { InventoryItem } from '../types';
 
@@ -45,6 +47,7 @@ interface FarmerAcademyProps {
   cows?: any[];
   financials?: any[];
   setFinancials?: React.Dispatch<React.SetStateAction<any[]>>;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 export default function FarmerAcademy({ 
@@ -57,7 +60,8 @@ export default function FarmerAcademy({
   setVetRecords,
   cows,
   financials,
-  setFinancials
+  setFinancials,
+  onTriggerSectionReport
 }: FarmerAcademyProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines'>('science');
@@ -802,13 +806,24 @@ export default function FarmerAcademy({
             </p>
           </div>
           <div className="shrink-0 flex items-center gap-3">
-            <div className="bg-slate-900/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-emerald-800 text-center shadow-md">
-              <span className="text-2xl font-black text-yellow-500 block font-mono">15+</span>
-              <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-widest block mt-0.5">App Crops & Beasts</span>
+            {onTriggerSectionReport && (
+              <button
+                onClick={() => onTriggerSectionReport('academy')}
+                type="button"
+                className="bg-emerald-900/80 hover:bg-emerald-800 text-white font-black text-xs uppercase p-4 rounded-2xl border border-emerald-700/60 transition-all flex flex-col items-center justify-center shadow-lg cursor-pointer h-[66px] min-w-[85px] m-0"
+                title="Download Expert Diagnostics & SOP Audit Report"
+              >
+                <Printer size={16} className="text-emerald-350 text-emerald-300 mb-1" />
+                <span className="text-[9px] font-bold tracking-wider">SOP Report</span>
+              </button>
+            )}
+            <div className="bg-slate-900/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-emerald-800 text-center shadow-md h-[66px] flex flex-col justify-center">
+              <span className="text-2xl font-black text-yellow-500 block font-mono leading-none">15+</span>
+              <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-widest block mt-0.5 whitespace-nowrap">App Crops & Beasts</span>
             </div>
-            <div className="bg-slate-900/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-emerald-800 text-center shadow-md">
-              <span className="text-2xl font-black text-emerald-300 block font-mono">4</span>
-              <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-widest block mt-0.5">Smart Simulators</span>
+            <div className="bg-slate-900/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-emerald-800 text-center shadow-md h-[66px] flex flex-col justify-center">
+              <span className="text-2xl font-black text-emerald-300 block font-mono leading-none">4</span>
+              <span className="text-[9px] text-emerald-100 font-bold uppercase tracking-widest block mt-0.5 whitespace-nowrap">Smart Simulators</span>
             </div>
           </div>
         </div>
@@ -2537,31 +2552,48 @@ export default function FarmerAcademy({
                                 </span>
                               </td>
                               <td className="py-2 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (historyItem.id.startsWith('diag-init-1')) {
-                                      setDiagSelectedSymptom(historyItem.symptom);
-                                      setCustomDiagResult(null);
-                                    } else {
-                                      setDiagSelectedSymptom('');
-                                      setCustomDiagResult({
-                                        symptom: historyItem.symptom,
-                                        conditionName: historyItem.conditionName,
-                                        pathogen: "Retrieved Case History Record",
-                                        likelihood: 'High',
-                                        description: "Re-queried case diagnostic artifact. Open the original database record files for active medication details.",
-                                        treatment: "Refer to original clinical dossiers or query the Gemini live AI for updated schedules.",
-                                        quarantine: "Standard quarantine withholding periods apply.",
-                                        prevention: "Execute long-term biosecurity protocols.",
-                                        isOffline: historyItem.isOffline
+                                <div className="flex items-center justify-end gap-2 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (historyItem.id.startsWith('diag-init-1')) {
+                                        setDiagSelectedSymptom(historyItem.symptom);
+                                        setCustomDiagResult(null);
+                                      } else {
+                                        setDiagSelectedSymptom('');
+                                        setCustomDiagResult({
+                                          symptom: historyItem.symptom,
+                                          conditionName: historyItem.conditionName,
+                                          pathogen: "Retrieved Case History Record",
+                                          likelihood: 'High',
+                                          description: "Re-queried case diagnostic artifact. Open the original database record files for active medication details.",
+                                          treatment: "Refer to original clinical dossiers or query the Gemini live AI for updated schedules.",
+                                          quarantine: "Standard quarantine withholding periods apply.",
+                                          prevention: "Execute long-term biosecurity protocols.",
+                                          isOffline: historyItem.isOffline
+                                        });
+                                      }
+                                    }}
+                                    className="text-[10px] font-black text-blue-600 hover:text-blue-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase"
+                                  >
+                                    Load Case File
+                                  </button>
+                                  <span className="text-slate-350">|</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDiagnosticHistory(prev => {
+                                        const updated = prev.filter(item => item.id !== historyItem.id);
+                                        localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+                                        return updated;
                                       });
-                                    }
-                                  }}
-                                  className="text-[10px] font-black text-blue-600 hover:text-blue-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase"
-                                >
-                                  Load Case File
-                                </button>
+                                    }}
+                                    className="text-[10px] font-black text-rose-600 hover:text-rose-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase flex items-center gap-0.5"
+                                    title="Delete case log"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}

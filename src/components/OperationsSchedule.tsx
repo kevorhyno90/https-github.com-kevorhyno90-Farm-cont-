@@ -17,7 +17,8 @@ import {
   BellRing,
   PenSquare,
   Sparkles,
-  Info
+  Info,
+  Printer
 } from 'lucide-react';
 
 interface TimetableItem {
@@ -165,7 +166,11 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
   }
 ];
 
-export default function OperationsSchedule() {
+interface OperationsScheduleProps {
+  onTriggerSectionReport?: (sectionKey: string) => void;
+}
+
+export default function OperationsSchedule({ onTriggerSectionReport }: OperationsScheduleProps = {}) {
   const [items, setItems] = useState<TimetableItem[]>(() => {
     const saved = localStorage.getItem('jr_farm_custom_timetable');
     if (saved) {
@@ -435,20 +440,33 @@ export default function OperationsSchedule() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setEditingItem(null);
-            setOperation('');
-            setWhen('');
-            setHow('');
-            setWhy('');
-            setShowAddModal(true);
-          }}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-emerald-950 hover:bg-emerald-900 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer border-0 m-0"
-        >
-          <Plus size={15} />
-          Create Custom SOP Task
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto self-center md:self-auto uppercase">
+          {onTriggerSectionReport && (
+            <button
+              onClick={() => onTriggerSectionReport('schedule')}
+              type="button"
+              className="flex items-center justify-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0 h-10"
+              title="Download Operations & Schedules Report"
+            >
+              <Printer size={13} />
+              Report
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setEditingItem(null);
+              setOperation('');
+              setWhen('');
+              setHow('');
+              setWhy('');
+              setShowAddModal(true);
+            }}
+            className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-950 hover:bg-emerald-900 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer border-0 m-0 shrink-0"
+          >
+            <Plus size={15} />
+            Create Custom SOP Task
+          </button>
+        </div>
       </div>
 
       {/* Browser to Phone-Taskbar push control center */}

@@ -16,6 +16,7 @@ interface HorticultureProps {
   onDeleteAvo: (ref: string) => void;
   onEditTea?: (oldRef: string, updated: TeaRecord) => void;
   onEditAvo?: (oldRef: string, updated: AvocadoRecord) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 // Pure SVG Real-Time Finder Block QR Generator matching Version 1 standard
@@ -81,7 +82,7 @@ function QRGenerator({ value }: { value: string }) {
   );
 }
 
-export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDeleteTea, onDeleteAvo, onEditTea, onEditAvo }: HorticultureProps) {
+export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDeleteTea, onDeleteAvo, onEditTea, onEditAvo, onTriggerSectionReport }: HorticultureProps) {
   // Tea state
   const [teaQty, setTeaQty] = useState<number | ''>('');
   const [teaRef, setTeaRef] = useState('');
@@ -308,12 +309,23 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                 <button
                   onClick={downloadTeaCSV}
                   type="button"
-                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-905 text-emerald-900 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
                   title="Export Tea Harvests CSV"
                 >
                   <FileSpreadsheet size={10} />
                   Export CSV
                 </button>
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('tea')}
+                    type="button"
+                    className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                    title="Download Tea Report"
+                  >
+                    <Printer size={10} />
+                    Report
+                  </button>
+                )}
                 <span className="font-bold text-emerald-900">Total: {totalTeaAllTime.toLocaleString()} KG</span>
               </div>
             </div>
@@ -512,6 +524,17 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                   <FileSpreadsheet size={10} />
                   Export CSV
                 </button>
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('avo')}
+                    type="button"
+                    className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                    title="Download Avocado Report"
+                  >
+                    <Printer size={10} />
+                    Report
+                  </button>
+                )}
                 <span className="font-bold text-indigo-950">Total Boxes: {totalAvoBoxes} Bags/Crates</span>
               </div>
             </div>

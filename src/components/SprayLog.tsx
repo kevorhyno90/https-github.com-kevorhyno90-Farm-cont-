@@ -5,24 +5,62 @@
 
 import React, { useState } from 'react';
 import { SprayRecord } from '../types';
-import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet } from 'lucide-react';
+import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet, Printer } from 'lucide-react';
 
 interface SprayLogProps {
   sprayRecords: SprayRecord[];
   onAddSpray: (rec: SprayRecord) => void;
   onDeleteSpray: (id: string) => void;
   onEditSprayRecord?: (id: string, updated: SprayRecord) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
-export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayRecord }: SprayLogProps) {
+export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayRecord, onTriggerSectionReport }: SprayLogProps) {
   const [block, setBlock] = useState('');
   const [chemical, setChemical] = useState('');
   const [phi, setPhi] = useState<number | ''>('');
   const [target, setTarget] = useState('');
   const [sprayDate, setSprayDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Next spray date scheduling
+  const [intervalDays, setIntervalDays] = useState<number | ''>(14);
+  const [nextSprayDate, setNextSprayDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().split('T')[0];
+  });
+
   // Editing state
   const [editingSpray, setEditingSpray] = useState<SprayRecord | null>(null);
+
+  const handleSprayDateChange = (val: string) => {
+    setSprayDate(val);
+    if (typeof intervalDays === 'number' && val) {
+      const base = new Date(val);
+      base.setDate(base.getDate() + intervalDays);
+      setNextSprayDate(base.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleIntervalDaysChange = (val: number | '') => {
+    setIntervalDays(val);
+    if (typeof val === 'number' && sprayDate) {
+      const base = new Date(sprayDate);
+      base.setDate(base.getDate() + val);
+      setNextSprayDate(base.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleNextSprayDateChange = (val: string) => {
+    setNextSprayDate(val);
+    if (sprayDate && val) {
+      const t1 = new Date(sprayDate).getTime();
+      const t2 = new Date(val).getTime();
+      const diffTime = t2 - t1;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setIntervalDays(diffDays >= 0 ? diffDays : 0);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,14 +77,22 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
       phi: Number(phi),
       target: target.trim(),
       date: sprayDate,
-      safeDate: safeDateObj.toISOString().split('T')[0]
+      safeDate: safeDateObj.toISOString().split('T')[0],
+      nextSprayDate: nextSprayDate || undefined,
+      intervalDays: typeof intervalDays === 'number' ? intervalDays : undefined
     });
 
     setBlock('');
     setChemical('');
     setPhi('');
     setTarget('');
-    setSprayDate(new Date().toISOString().split('T')[0]);
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    setSprayDate(todayStr);
+    setIntervalDays(14);
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 14);
+    setNextSprayDate(futureDate.toISOString().split('T')[0]);
   };
 
   const getQuarantineStatus = (safeDateStr: string) => {
@@ -67,9 +113,9 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'GLOBALGAP SPRAY COMPLIANCE PROTOCOLS & LOGS\n';
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-    csv += 'Date Sprayed,Plot/Section,Chemical Brand,PHI Days,Pest Target,Authorized Harvest Date\n';
+    csv += 'Date Sprayed,Plot/Section,Chemical Brand,PHI Days,Pest Target,Authorized Harvest Date,Next Spray Date,Repeat Interval Days\n';
     sprayRecords.forEach((s) => {
-      csv += `${s.date},"${s.block}","${s.chemical}",${s.phi},"${s.target}",${s.safeDate}\n`;
+      csv += `${s.date},"${s.block}","${s.chemical}",${s.phi},"${s.target}",${s.safeDate},"${s.nextSprayDate || ''}",${s.intervalDays ?? ''}\n`;
     });
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
@@ -134,7 +180,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 type="date"
                 required
                 value={sprayDate}
-                onChange={(e) => setSprayDate(e.target.value)}
+                onChange={(e) => handleSprayDateChange(e.target.value)}
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
               />
             </div>
@@ -166,6 +212,33 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
               </div>
             </div>
 
+            <div className="border-t border-dashed border-slate-200 pt-4 space-y-3">
+              <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest block">📅 Next Treatment Schedule</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-550 uppercase tracking-wider block mb-1">Interval Days</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={intervalDays}
+                    onChange={(e) => handleIntervalDaysChange(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    placeholder="E.g. 14"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-550 uppercase tracking-wider block mb-1">Next Spray Date</label>
+                  <input
+                    type="date"
+                    value={nextSprayDate}
+                    onChange={(e) => handleNextSprayDateChange(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+
             <button
               type="submit"
               className="w-full bg-red-950 hover:bg-red-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
@@ -183,15 +256,28 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 <h5 className="text-[11px] font-black tracking-widest text-slate-805 uppercase">Active Quarantine Controls & Safe Dates</h5>
                 <p className="text-xs text-slate-400 font-medium">Real-time Safety Checkpoints for Plucking Managers</p>
               </div>
-              <button
-                onClick={downloadSprayCSV}
-                type="button"
-                className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
-                title="Download Spray Records CSV"
-              >
-                <FileSpreadsheet size={12} />
-                Export Spray Logs
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadSprayCSV}
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                  title="Download Spray Records CSV"
+                >
+                  <FileSpreadsheet size={12} />
+                  Export CSV
+                </button>
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('spray')}
+                    type="button"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                    title="Download Spray Report"
+                  >
+                    <Printer size={12} />
+                    Report
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -230,6 +316,25 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
                             <Clock size={12} className="text-slate-450" />
                             <span>Sprayed: {rec.date} • Pre-Harvest Interval (PHI): {rec.phi} days</span>
+                          </div>
+
+                          <div className="flex items-center gap-4 mt-2 bg-[#ffffff]/60 p-2 rounded-xl border border-slate-100/80 max-w-sm">
+                            <div>
+                              <span className="text-[8px] uppercase font-black text-slate-400 block tracking-wider leading-none">
+                                Interval
+                              </span>
+                              <span className="text-[11px] font-black text-slate-700 block mt-0.5">
+                                {rec.intervalDays ?? 14} Days
+                              </span>
+                            </div>
+                            <div className="border-l border-slate-200 pl-3">
+                              <span className="text-[8px] uppercase font-black text-slate-400 block tracking-wider leading-none">
+                                Next Spraying Date
+                              </span>
+                              <span className="text-[11px] font-black text-slate-800 block mt-0.5 font-mono">
+                                {rec.nextSprayDate ? new Date(rec.nextSprayDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not scheduled'}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -345,10 +450,56 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                       const sDate = e.target.value;
                       const dateObj = new Date(sDate);
                       dateObj.setDate(dateObj.getDate() + editingSpray.phi);
+                      
+                      const repeatDays = editingSpray.intervalDays ?? 14;
+                      const nextObj = new Date(sDate);
+                      nextObj.setDate(nextObj.getDate() + repeatDays);
+
                       setEditingSpray({
                         ...editingSpray,
                         date: sDate,
-                        safeDate: dateObj.toISOString().split('T')[0]
+                        safeDate: dateObj.toISOString().split('T')[0],
+                        nextSprayDate: nextObj.toISOString().split('T')[0]
+                      });
+                    }}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 border-t border-dashed border-slate-200 pt-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Interval Days</label>
+                  <input
+                    type="number"
+                    value={editingSpray.intervalDays ?? 14}
+                    onChange={(e) => {
+                      const repeatDays = parseInt(e.target.value) || 0;
+                      const baseDate = new Date(editingSpray.date);
+                      baseDate.setDate(baseDate.getDate() + repeatDays);
+                      setEditingSpray({
+                        ...editingSpray,
+                        intervalDays: repeatDays,
+                        nextSprayDate: baseDate.toISOString().split('T')[0]
+                      });
+                    }}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Next Spray Date</label>
+                  <input
+                    type="date"
+                    value={editingSpray.nextSprayDate || ''}
+                    onChange={(e) => {
+                      const nSprayDate = e.target.value;
+                      const t1 = new Date(editingSpray.date).getTime();
+                      const t2 = new Date(nSprayDate).getTime();
+                      const diffDays = Math.ceil((t2 - t1) / (1000 * 60 * 60 * 24));
+                      setEditingSpray({
+                        ...editingSpray,
+                        nextSprayDate: nSprayDate,
+                        intervalDays: diffDays >= 0 ? diffDays : 0
                       });
                     }}
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"

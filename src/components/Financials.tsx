@@ -9,7 +9,7 @@ import {
   Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
   BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
   AlertTriangle, DollarSign, BrainCircuit, Activity, Settings, Target, 
-  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table, Printer
 } from 'lucide-react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -685,6 +685,17 @@ export function Financials({
                   <FileSpreadsheet size={13} />
                   Export CSV
                 </button>
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('financials')}
+                    type="button"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
+                    title="Download Financial Report"
+                  >
+                    <Printer size={13} />
+                    Report
+                  </button>
+                )}
               </div>
             </div>
 

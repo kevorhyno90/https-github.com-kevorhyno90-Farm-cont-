@@ -46,7 +46,8 @@ import {
   Skull,
   Search,
   DollarSign,
-  Users
+  Users,
+  Printer
 } from 'lucide-react';
 
 interface OtherSectionsProps {
@@ -95,6 +96,7 @@ interface OtherSectionsProps {
   onEditCropSale?: (id: string, updated: CropSaleRecord) => void;
   vetRecords?: any[];
   aiRecords?: any[];
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 export function OtherSections({
@@ -141,7 +143,8 @@ export function OtherSections({
   onEditCropOp,
   onEditCropSale,
   vetRecords = [],
-  aiRecords = []
+  aiRecords = [],
+  onTriggerSectionReport
 }: OtherSectionsProps) {
   // Toggle for livestock sub segments
   const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality' | 'biogas_optimizer'>('poultry_dogs');
@@ -714,8 +717,19 @@ export function OtherSections({
                     title="Export Fields Directory CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Fields
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('fields')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Fields Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 active:scale-95 transition-all flex items-center gap-1.5 m-0"
@@ -1271,8 +1285,19 @@ export function OtherSections({
                     title="Export Crop Operations CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Operations
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('fields')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Agronomy Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0 cursor-pointer"
@@ -1306,6 +1331,7 @@ export function OtherSections({
                           <option value="Vegetables">Vegetables (Kales/Tomato)</option>
                           <option value="Sorghum">Sorghum</option>
                           <option value="Maize">Maize (Seed/Corn)</option>
+                          <option value="Boma Rhodes">Boma Rhodes🌾</option>
                           <option value="Beans">Beans 🫘</option>
                         </select>
                       </div>
@@ -1549,8 +1575,19 @@ export function OtherSections({
                     title="Export Cash Crop Sales CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Sales
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('cropSales')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Crop Sales Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0 font-bold font-sans"
@@ -1576,6 +1613,7 @@ export function OtherSections({
                         <option value="Maize">Maize (Seed/Corn) 🌽</option>
                         <option value="Sorghum">Sorghum 🌾</option>
                         <option value="Napier">Napier Grass 🌱</option>
+                        <option value="Boma Rhodes">Boma Rhodes 🌾</option>
                         <option value="Eucalyptus">Eucalyptus Logs 🌲</option>
                         <option value="Beans">Beans 🫘</option>
                       </select>
@@ -1862,8 +1900,19 @@ export function OtherSections({
                     title="Export Poultry & Canine Records CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Records
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('livestock')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Livestock Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-amber-900 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0"
@@ -2016,8 +2065,19 @@ export function OtherSections({
                     title="Export Goat Directory CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Goats
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('goats')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Goats Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-amber-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-900 flex items-center gap-1.5 m-0 font-sans font-bold cursor-pointer"
@@ -2204,8 +2264,19 @@ export function OtherSections({
                     title="Export Calves Directory CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export Calves
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('calves')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Calves Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-amber-955 bg-amber-900 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 font-sans font-bold"
@@ -2461,8 +2532,19 @@ export function OtherSections({
                     title="Export BSF Batches CSV"
                   >
                     <FileSpreadsheet size={13} />
-                    Export BSF Logs
+                    Export CSV
                   </button>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('bsf')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download BSF Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddForm(!showAddForm)}
                     className="bg-zinc-900 hover:bg-zinc-850 text-white font-black text-xs uppercase px-5 py-3 rounded-xl flex items-center gap-1.5 m-0 font-sans font-bold"
@@ -3396,8 +3478,19 @@ export function OtherSections({
                 title="Export Store Inventory CSV"
               >
                 <FileSpreadsheet size={13} />
-                Export Stores
+                Export CSV
               </button>
+              {onTriggerSectionReport && (
+                <button
+                  onClick={() => onTriggerSectionReport('inventory')}
+                  type="button"
+                  className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
+                  title="Download Inventory Report"
+                >
+                  <Printer size={13} />
+                  Report
+                </button>
+              )}
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-zinc-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-zinc-805 active:scale-95 transition-all flex items-center justify-center gap-1.5 m-0 w-full md:w-auto shrink-0"
@@ -4346,6 +4439,7 @@ export function OtherSections({
                   <option value="Vegetables">Vegetables</option>
                   <option value="Sorghum">Sorghum</option>
                   <option value="Maize">Maize</option>
+                  <option value="Boma Rhodes">Boma Rhodes</option>
                   <option value="Beans">Beans</option>
                 </select>
               </div>
@@ -4498,6 +4592,7 @@ export function OtherSections({
                   <option value="Sorghum">Sorghum</option>
                   <option value="Maize">Maize</option>
                   <option value="Napier">Napier</option>
+                  <option value="Boma Rhodes">Boma Rhodes</option>
                   <option value="Eucalyptus">Eucalyptus</option>
                   <option value="Beans">Beans</option>
                 </select>

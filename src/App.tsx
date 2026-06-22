@@ -339,6 +339,143 @@ export default function App() {
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
+  const getStoredDiagHistory = () => {
+    try {
+      const saved = localStorage.getItem('jr_farm_diagnostic_history');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'diag-init-1',
+          timestamp: '2026-06-21 08:30',
+          specimen: 'cow',
+          symptom: 'udder quarters inflamed, milk clotted',
+          conditionName: 'Clinical Mastitis',
+          likelihood: 'High',
+          isOffline: true
+        },
+        {
+          id: 'diag-init-2',
+          timestamp: '2026-06-21 08:45',
+          specimen: 'chicken',
+          symptom: 'coughing, sneezing, gasping, green liquid faeces',
+          conditionName: 'Newcastle Disease',
+          likelihood: 'High',
+          isOffline: true
+        }
+      ];
+    } catch {
+      return [];
+    }
+  };
+
+  const getStoredDeductLogs = () => {
+    try {
+      const saved = localStorage.getItem('jr_farm_academy_auto_deduct_logs');
+      return saved ? JSON.parse(saved) : [
+        { id: 'log-init', timestamp: '2026-06-21 08:00', taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
+      ];
+    } catch {
+      return [];
+    }
+  };
+
+  const getStoredTimetable = () => {
+    try {
+      const saved = localStorage.getItem('jr_farm_custom_timetable');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: 'tt-1',
+          category: 'Cows & Calves',
+          operation: 'Teat Dipping & Hygiene Routine',
+          when: 'Daily (Milking session)',
+          how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
+          why: 'Prevents mastitis infections and seals teat sphincter.',
+          status: 'Completed',
+          targetDate: '2026-06-21',
+          assignedTo: 'Milking Crew'
+        },
+        {
+          id: 'tt-2',
+          category: 'Cows & Calves',
+          operation: 'Calf Decorn/Dehorning',
+          when: 'At 2 to 6 Weeks of age',
+          how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
+          why: 'Safe management, prevents horn-gouging injuries.',
+          status: 'Pending',
+          targetDate: '2026-06-24',
+          assignedTo: 'Veterinary Officer (Dr. Peter)'
+        },
+        {
+          id: 'tt-3',
+          category: 'Cows & Calves',
+          operation: 'Postpartum Selenium Boost',
+          when: '4 Weeks before calving',
+          how: 'Inject cow with Vitamin E and Selenium booster mixture.',
+          why: 'Prevents placental complications, lifts calf immunity markers.',
+          status: 'Completed',
+          targetDate: '2026-06-18',
+          assignedTo: 'Livestock Manager'
+        },
+        {
+          id: 'tt-4',
+          category: 'Goats & Pigs',
+          operation: 'Hoof Trimming and Copper Dip',
+          when: 'Every 4 to 6 Weeks',
+          how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
+          why: 'Prevents foot rot lameness on moist concrete.',
+          status: 'Pending',
+          targetDate: '2026-06-28',
+          assignedTo: 'Small Ruminants Team'
+        },
+        {
+          id: 'tt-5',
+          category: 'Crops & Orchards',
+          operation: 'Avocado Pre-Harvest Copper Spray',
+          when: '21 to 30 Days before Hass maturity',
+          how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
+          why: 'Prevents anthracnose spots and secures export quality standards.',
+          status: 'Completed',
+          targetDate: '2026-06-20',
+          assignedTo: 'Agronomy Handler'
+        },
+        {
+          id: 'tt-6',
+          category: 'Crops & Orchards',
+          operation: 'Tea Triennial Hard Pruning',
+          when: 'Every 3 Years',
+          how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
+          why: 'Resets plucking table width, triggers young plucking shoots.',
+          status: 'Pending',
+          targetDate: '2026-07-15',
+          assignedTo: 'Field Operations'
+        },
+        {
+          id: 'tt-7',
+          category: 'Poultry & Dogs',
+          operation: 'Newcastle & Gumboro Vaccine',
+          when: 'Newcastle Week 1 & 3, Gumboro week 2',
+          how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
+          why: 'Creates immune defence against poultry virus epidemics.',
+          status: 'Completed',
+          targetDate: '2026-06-19',
+          assignedTo: 'Poultry Team'
+        },
+        {
+          id: 'tt-8',
+          category: 'Poultry & Dogs',
+          operation: 'DHLPP + Rabies Vaccine',
+          when: 'DHLPP weeks 8, 12, 16; Rabies week 12',
+          how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
+          why: 'Rabies protection and puppy immunisation.',
+          status: 'Pending',
+          targetDate: '2026-06-25',
+          assignedTo: 'Canine Care Specialist'
+        }
+      ];
+    } catch {
+      return [];
+    }
+  };
+
   const generateHtmlReportContent = (sections: Record<string, boolean>): string => {
     let sectionsHtml = '';
     
@@ -360,6 +497,27 @@ export default function App() {
         st.shiftAfternoon,
         `<strong>${st.status}</strong>`
       ]);
+      
+      let stOffHtml = '';
+      if (staffOffRecords && staffOffRecords.length > 0) {
+        const offRows = staffOffRecords.map(o => {
+          const stName = staffList.find(s => s.id === o.staffId)?.name || o.staffId;
+          return [
+            `<strong>${stName}</strong>`,
+            `<span style="font-family: monospace;">${o.startDate}</span>`,
+            `<span style="font-family: monospace;">${o.endDate}</span>`,
+            `<em>${o.reason}</em>`,
+            `<strong>${o.dutyReliefCover || 'None'}</strong>`
+          ];
+        });
+        stOffHtml = `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
+            Allocated Shift Off & Duty Leaves Log
+          </h4>
+          ${buildTableHtml(['Employee on Leave', 'Start Date', 'Resume Date', 'Sovereign Leave Reason', 'Relief Partner Cover'], offRows)}
+        `;
+      }
+
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
@@ -367,6 +525,7 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${staffList.length} staff)</span>
           </h3>
           ${buildTableHtml(['Name', 'Section', 'Morning Shift', 'Afternoon Shift', 'Duty Status'], rows)}
+          ${stOffHtml}
         </div>
       `;
     }
@@ -500,7 +659,9 @@ export default function App() {
         `<em>${s.chemical}</em>`,
         `<span style="font-weight: bold; color: #9a3412; font-family: monospace;">${s.phi} Days</span>`,
         s.target,
-        `<span style="font-weight: bold; color: #166534; font-family: monospace;">${s.safeDate}</span>`
+        `<span style="font-weight: bold; color: #166534; font-family: monospace;">${s.safeDate}</span>`,
+        `<span style="font-weight: bold; font-family: monospace;">${s.nextSprayDate || 'N/A'}</span>`,
+        `<strong>${s.intervalDays ?? 14} Days</strong>`
       ]);
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
@@ -508,7 +669,7 @@ export default function App() {
             <span>8. Agrochemical Spray Compliance & Quarantines</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${sprayRecords.length} treatments)</span>
           </h3>
-          ${buildTableHtml(['Plot Section', 'Chemical Brand', 'PHI Quarantine', 'Target Pest', 'Safe Pick Date'], rows)}
+          ${buildTableHtml(['Plot Section', 'Chemical Brand', 'PHI Quarantine', 'Target Pest', 'Safe Pick Date', 'Next Spray Date', 'Repeat Interval'], rows)}
         </div>
       `;
     }
@@ -522,6 +683,28 @@ export default function App() {
         `<strong>${f.acreage} Acres</strong>`,
         `<strong>${f.status}</strong>`
       ]);
+
+      let opsHtml = '';
+      if (cropOps && cropOps.length > 0) {
+        const opRows = cropOps.map(op => {
+          const bName = fields.find(f => f.id === op.fieldId)?.blockName || op.fieldId;
+          return [
+            `<span style="font-family: monospace;">${op.date}</span>`,
+            `<strong>${bName}</strong>`,
+            `<em>${op.opType}</em>`,
+            op.details,
+            `<strong>${op.status}</strong>`,
+            op.completedBy || 'N/A'
+          ];
+        });
+        opsHtml = `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
+            Silage & Field Agronomy Checklist Tasks
+          </h4>
+          ${buildTableHtml(['Operation Date', 'Field Plot Block', 'Operation Type', 'Agronomy Instructions', 'Status', 'Assigned Handler'], opRows)}
+        `;
+      }
+
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 850;">
@@ -529,6 +712,7 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${fields.length} plots)</span>
           </h3>
           ${buildTableHtml(['Plot ID', 'Block Name', 'Primary Feed Crop', 'Size', 'Audit Status'], rows)}
+          ${opsHtml}
         </div>
       `;
     }
@@ -542,6 +726,40 @@ export default function App() {
         `<strong>${item.activity}</strong>`,
         `<span style="font-style: italic; color: #64748b;">${item.notes}</span>`
       ]);
+
+      let livestockExtraHtml = '';
+      if (animalSales && animalSales.length > 0) {
+        const salesRows = animalSales.map(as => [
+          `<span style="font-family: monospace;">${as.date}</span>`,
+          `<strong>${as.animalId}</strong> (${as.animalType})`,
+          `${as.weightKg || 'N/A'} kg`,
+          `<strong>Ksh ${as.price.toLocaleString()}</strong>`,
+          as.buyerName,
+          as.notes || 'No notes'
+        ]);
+        livestockExtraHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
+            Livestock Animal Disposals & Sales Ledger
+          </h4>
+          ${buildTableHtml(['Date', 'Animal Tag ID (Type)', 'Weight (KG)', 'Revenue', 'Customer / Buyer', 'Authorized Note'], salesRows)}
+        `;
+      }
+      if (mortalities && mortalities.length > 0) {
+        const mortRows = mortalities.map(m => [
+          `<span style="font-family: monospace;">${m.date}</span>`,
+          `<strong>${m.animalId}</strong> (${m.animalType})`,
+          `<em style="color: #b91c1c;">${m.causeDescription}</em>`,
+          m.disposalSop,
+          m.managerSignOffBy
+        ]);
+        livestockExtraHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
+            Mortalities, Stillbirths & Loss Registers
+          </h4>
+          ${buildTableHtml(['Mortality Date', 'Animal Tag ID (Type)', 'Primary Cause of Death / Diagnosis', 'Disposal SOP Routine', 'Authorized Sign-off Officer'], mortRows)}
+        `;
+      }
+
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
@@ -549,6 +767,7 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.length} records)</span>
           </h3>
           ${buildTableHtml(['Date Logged', 'Asset Group', 'Details Classification', 'Activity', 'Notes'], rows)}
+          ${livestockExtraHtml}
         </div>
       `;
     }
@@ -657,6 +876,199 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${vetRecords.length} entries)</span>
           </h3>
           ${buildTableHtml(['Incident Date', 'Animal Cow Tag', 'Treatment Type', 'Clinical Diagnosis', 'Authorized Cost', 'Vet'], rows)}
+        </div>
+      `;
+    }
+
+    // 16. Academy
+    if (sections.academy) {
+      let diagHistList: any[] = [];
+      try {
+        const saved = localStorage.getItem('jr_farm_diagnostic_history');
+        diagHistList = saved ? JSON.parse(saved) : [
+          {
+            id: 'diag-init-1',
+            timestamp: '2026-06-21 08:30',
+            specimen: 'cow',
+            symptom: 'udder quarters inflamed, milk clotted',
+            conditionName: 'Clinical Mastitis',
+            likelihood: 'High',
+            isOffline: true
+          },
+          {
+            id: 'diag-init-2',
+            timestamp: '2026-06-21 08:45',
+            specimen: 'chicken',
+            symptom: 'coughing, sneezing, gasping, green liquid faeces',
+            conditionName: 'Newcastle Disease',
+            likelihood: 'High',
+            isOffline: true
+          }
+        ];
+      } catch {
+        diagHistList = [];
+      }
+
+      let deductLogs: any[] = [];
+      try {
+        const saved = localStorage.getItem('jr_farm_academy_auto_deduct_logs');
+        deductLogs = saved ? JSON.parse(saved) : [
+          { id: 'log-init', timestamp: '2026-06-21 08:00', taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
+        ];
+      } catch {
+        deductLogs = [];
+      }
+
+      const rowsDiag = diagHistList.map(h => [
+        `<span style="font-family: monospace;">${h.timestamp}</span>`,
+        `<span style="text-transform: uppercase; font-weight: bold;">${h.specimen}</span>`,
+        `<em>${h.symptom}</em>`,
+        `<strong>${h.conditionName}</strong>`,
+        `<strong>${h.likelihood}</strong>`,
+        h.isOffline ? 'Offline Heuristic' : 'Gemini AI Pro'
+      ]);
+
+      const rowsDeduct = deductLogs.map(l => [
+        `<span style="font-family: monospace;">${l.timestamp}</span>`,
+        `<strong>${l.taskTitle}</strong>`,
+        `<span style="font-size: 11px; color: #475569;">${l.deductionText}</span>`,
+        l.success ? `<span style="color: #166534; font-weight: bold;">PASSED</span>` : `<span style="color: #b91c1c; font-weight: bold;">FAILED</span>`
+      ]);
+
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>16. Farmer's Academy Clinical Cases History Archive</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${diagHistList.length} cases)</span>
+          </h3>
+          ${buildTableHtml(['Timestamp', 'Specimen Type', 'Active Symptoms', 'Clinical Condition Name', 'Confidence', 'Diagnostic Method'], rowsDiag)}
+        </div>
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>16b. Auto-Deduct SOP Actions Audit Ledger</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${deductLogs.length} events)</span>
+          </h3>
+          ${buildTableHtml(['Timestamp', 'SOP Task Action', 'Automated Inventory & Financial Deduction Text', 'Ledger Integrity'], rowsDeduct)}
+        </div>
+      `;
+    }
+
+    // 17. Timetable (Operations Schedule Calendar Tasks)
+    if (sections.timetable) {
+      let timetableList: any[] = [];
+      try {
+        const saved = localStorage.getItem('jr_farm_custom_timetable');
+        timetableList = saved ? JSON.parse(saved) : [
+          {
+            id: 'tt-1',
+            category: 'Cows & Calves',
+            operation: 'Teat Dipping & Hygiene Routine',
+            when: 'Daily (Milking session)',
+            how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
+            why: 'Prevents mastitis infections and seals teat sphincter.',
+            status: 'Completed',
+            targetDate: '2026-06-21',
+            assignedTo: 'Milking Crew'
+          },
+          {
+            id: 'tt-2',
+            category: 'Cows & Calves',
+            operation: 'Calf Decorn/Dehorning',
+            when: 'At 2 to 6 Weeks of age',
+            how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
+            why: 'Safe management, prevents horn-gouging injuries.',
+            status: 'Pending',
+            targetDate: '2026-06-24',
+            assignedTo: 'Veterinary Officer (Dr. Peter)'
+          },
+          {
+            id: 'tt-3',
+            category: 'Cows & Calves',
+            operation: 'Postpartum Selenium Boost',
+            when: '4 Weeks before calving',
+            how: 'Inject cow with Vitamin E and Selenium booster mixture.',
+            why: 'Prevents placental complications, lifts calf immunity markers.',
+            status: 'Completed',
+            targetDate: '2026-06-18',
+            assignedTo: 'Livestock Manager'
+          },
+          {
+            id: 'tt-4',
+            category: 'Goats & Pigs',
+            operation: 'Hoof Trimming and Copper Dip',
+            when: 'Every 4 to 6 Weeks',
+            how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
+            why: 'Prevents foot rot lameness on moist concrete.',
+            status: 'Pending',
+            targetDate: '2026-06-28',
+            assignedTo: 'Small Ruminants Team'
+          },
+          {
+            id: 'tt-5',
+            category: 'Crops & Orchards',
+            operation: 'Avocado Pre-Harvest Copper Spray',
+            when: '21 to 30 Days before Hass maturity',
+            how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
+            why: 'Prevents anthracnose spots and secures export quality standards.',
+            status: 'Completed',
+            targetDate: '2026-06-20',
+            assignedTo: 'Agronomy Handler'
+          },
+          {
+            id: 'tt-6',
+            category: 'Crops & Orchards',
+            operation: 'Tea Triennial Hard Pruning',
+            when: 'Every 3 Years',
+            how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
+            why: 'Resets plucking table width, triggers young plucking shoots.',
+            status: 'Pending',
+            targetDate: '2026-07-15',
+            assignedTo: 'Field Operations'
+          },
+          {
+            id: 'tt-7',
+            category: 'Poultry & Dogs',
+            operation: 'Newcastle & Gumboro Vaccine',
+            when: 'Newcastle Week 1 & 3, Gumboro week 2',
+            how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
+            why: 'Creates immune defence against poultry virus epidemics.',
+            status: 'Completed',
+            targetDate: '2026-06-19',
+            assignedTo: 'Poultry Team'
+          },
+          {
+            id: 'tt-8',
+            category: 'Poultry & Dogs',
+            operation: 'DHLPP + Rabies Vaccine',
+            when: 'DHLPP weeks 8, 12, 16; Rabies week 12',
+            how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
+            why: 'Rabies protection and puppy immunisation.',
+            status: 'Pending',
+            targetDate: '2026-06-25',
+            assignedTo: 'Canine Care Specialist'
+          }
+        ];
+      } catch {
+        timetableList = [];
+      }
+
+      const rows = timetableList.map(t => [
+        `<span style="font-family: monospace;">${t.targetDate}</span>`,
+        `<span style="font-weight: bold;">${t.category}</span>`,
+        `<strong>${t.operation}</strong>`,
+        `<em>${t.when}</em>`,
+        `<span style="font-size: 11px; color: #475569;">SOP: ${t.how} (${t.why})</span>`,
+        `<strong>${t.status}</strong>`,
+        `<em>${t.assignedTo || 'Unassigned'}</em>`
+      ]);
+
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>17. Operations & Timetable Schedule Calendar</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${timetableList.length} tasks)</span>
+          </h3>
+          ${buildTableHtml(['Target Date', 'Category/Group', 'Task Operation', 'Interval/Intervals', 'SOP Directions & Objective', 'Status', 'Assigned Specialist'], rows)}
         </div>
       `;
     }
@@ -873,10 +1285,11 @@ export default function App() {
         staff: false, milk: false, ai: false, tea: false, avo: false,
         cropSales: false, financials: false, spray: false, fields: false,
         livestock: false, goats: false, calves: false, bsf: false,
-        inventory: false, vet: false
+        inventory: false, vet: false, academy: false, timetable: false
       } as Record<string, boolean>;
       customKeys.forEach(k => {
-        tempSections[k] = true;
+        const mappedKey = k === 'schedule' ? 'timetable' : k;
+        tempSections[mappedKey] = true;
       });
     } else {
       tempSections = { ...selectedSections };
@@ -890,7 +1303,7 @@ export default function App() {
       const key = activeKeys[0];
       const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
       filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.html`;
-    } else if (activeKeys.length < 15) {
+    } else if (activeKeys.length < 17) {
       filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.html`;
     } else {
       filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.html`;
@@ -1142,12 +1555,14 @@ export default function App() {
     calves: true,
     bsf: true,
     inventory: true,
-    vet: true
+    vet: true,
+    academy: true,
+    timetable: true
   });
 
 
 
-  // Always reset and enable all 15 sections when Master Report is opened
+  // Always reset and enable all 17 sections when Master Report is opened
   useEffect(() => {
     if (showReportModal) {
       setSelectedSections({
@@ -1165,7 +1580,9 @@ export default function App() {
         calves: true,
         bsf: true,
         inventory: true,
-        vet: true
+        vet: true,
+        academy: true,
+        timetable: true
       });
     }
   }, [showReportModal]);
@@ -3450,6 +3867,8 @@ export default function App() {
                     else if (activeTab === 'fields') keys = ['fields'];
                     else if (activeTab === 'livestock') keys = ['livestock', 'goats'];
                     else if (activeTab === 'inventory') keys = ['inventory'];
+                    else if (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'analyzer_sub' || activeTab === 'clinical_archive') keys = ['academy'];
+                    else if (activeTab === 'timetable' || activeTab === 'timelines_sub') keys = ['timetable'];
                     
                     if (keys.length > 0) {
                       handleDownloadHtmlReport(keys);
@@ -3653,6 +4072,7 @@ export default function App() {
               cows={cows}
               financials={financials}
               setFinancials={setFinancials}
+              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
               initialTab={
                 activeTab === 'diagnostics_sub' ? 'diagnostics' :
                 activeTab === 'inventory_deduct_sub' ? 'inventory_deduct' :
@@ -3664,7 +4084,7 @@ export default function App() {
           )}
 
           {activeTab === 'timetable' && (
-            <OperationsSchedule />
+            <OperationsSchedule onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])} />
           )}
 
           {activeTab === 'settings' && (
@@ -3709,7 +4129,7 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">Master Volume Index</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All 15 estate sections are auto-included</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All 17 estate sections are auto-included</p>
                   </div>
 
                   {/* Section list with record counts as unselectable badges */}
@@ -3729,7 +4149,9 @@ export default function App() {
                       { key: 'calves', label: '12. Liquidfed Calves log', count: calfRecords.length },
                       { key: 'bsf', label: '13. Organic BSF Batches', count: bsfRecords.length },
                       { key: 'inventory', label: '14. Storage Stocks reserves', count: inventory.length },
-                      { key: 'vet', label: '15. Clinical Treatments', count: vetRecords.length }
+                      { key: 'vet', label: '15. Clinical Treatments', count: vetRecords.length },
+                      { key: 'academy', label: "16. Farmer's Academy Clinical Archive", count: getStoredDiagHistory().length },
+                      { key: 'timetable', label: '17. Operations Calendar Tasks', count: getStoredTimetable().length }
                     ].map((sec) => (
                       <div
                         key={sec.key}
@@ -3748,7 +4170,7 @@ export default function App() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-widest hidden lg:block">
-                  Master Book: 15 Consolidated Modules
+                  Master Book: 17 Consolidated Modules
                 </div>
               </div>
 
@@ -4068,6 +4490,8 @@ export default function App() {
                             <th className="p-1 text-center font-mono">PHI Quarantine</th>
                             <th className="p-1">Target pest</th>
                             <th className="p-1">Safe pick date</th>
+                            <th className="p-1">Next Spray Date</th>
+                            <th className="p-1 text-center">Interval</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -4075,9 +4499,11 @@ export default function App() {
                             <tr key={s.id} className="border-b border-slate-100">
                               <td className="p-1.5 font-bold text-slate-800">{s.block}</td>
                               <td className="p-1.5 italic">{s.chemical}</td>
-                              <td className="p-1.5 text-center font-mono font-bold">{s.phi} Days</td>
+                              <td className="p-1.5 text-center font-mono font-bold text-red-700">{s.phi} Days</td>
                               <td className="p-1.5">{s.target}</td>
                               <td className="p-1.5 font-mono font-bold text-green-700">{s.safeDate}</td>
+                              <td className="p-1.5 font-mono font-bold text-slate-600">{s.nextSprayDate || 'N/A'}</td>
+                              <td className="p-1.5 text-center font-bold text-indigo-900">{s.intervalDays ?? 14} Days</td>
                             </tr>
                           ))}
                         </tbody>
@@ -4317,6 +4743,107 @@ export default function App() {
                               <td className="p-1.5 font-mono">{vet.treatment} <span className="text-[10px] text-slate-500 block">{vet.notes}</span></td>
                               <td className="p-1.5 text-right font-mono font-black">Ksh {vet.cost.toLocaleString()}</td>
                               <td className="p-1.5">{vet.staff}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 16. Farmer's Academy Clinical Cases Archive & SOP Audit */}
+                  {selectedSections.academy && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>16. Farmer's Academy Clinical Cases History Archive</span>
+                          <span className="text-[9px] font-mono text-slate-400">({getStoredDiagHistory().length} cases)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                              <th className="p-1">Timestamp</th>
+                              <th className="p-1">Specimen</th>
+                              <th className="p-1">Active Symptoms</th>
+                              <th className="p-1">Clinical Diagnosis</th>
+                              <th className="p-1">Likelihood</th>
+                              <th className="p-1">Method</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getStoredDiagHistory().map((item: any) => (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.timestamp}</td>
+                                <td className="p-1.5 font-bold uppercase text-slate-700">{item.specimen}</td>
+                                <td className="p-1.5 italic text-slate-500">{item.symptom}</td>
+                                <td className="p-1.5 font-semibold text-slate-800">{item.conditionName}</td>
+                                <td className="p-1.5 font-bold">{item.likelihood}</td>
+                                <td className="p-1.5 font-mono text-[10px]">{item.isOffline ? 'Offline Heuristic' : 'Gemini AI Pro'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>16b. Auto-Deduct SOP Actions Audit Ledger</span>
+                          <span className="text-[9px] font-mono text-slate-400">({getStoredDeductLogs().length} events)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                              <th className="p-1">Timestamp</th>
+                              <th className="p-1">SOP Task Action</th>
+                              <th className="p-1">Inventory & Finance Adjustment</th>
+                              <th className="p-1 text-center">Status Check</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getStoredDeductLogs().map((log: any) => (
+                              <tr key={log.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{log.timestamp}</td>
+                                <td className="p-1.5 font-bold text-slate-700">{log.taskTitle}</td>
+                                <td className="p-1.5 text-slate-600">{log.deductionText}</td>
+                                <td className="p-1.5 text-center font-bold">
+                                  {log.success ? <span className="text-emerald-700">PASSED</span> : <span className="text-rose-700">FAILED</span>}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 17. Operations & Timetable Calendar Tasks */}
+                  {selectedSections.timetable && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>17. Operations & Timetable Schedule Calendar</span>
+                        <span className="text-[9px] font-mono text-slate-400">({getStoredTimetable().length} tasks)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Target Date</th>
+                            <th className="p-1">Group</th>
+                            <th className="p-1">Operation Task</th>
+                            <th className="p-1">Schedule Interval</th>
+                            <th className="p-1">SOP Directions & Objective</th>
+                            <th className="p-1">Status</th>
+                            <th className="p-1">Assigned Specialist</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getStoredTimetable().map((t: any) => (
+                            <tr key={t.id} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{t.targetDate}</td>
+                              <td className="p-1.5 font-bold text-slate-700">{t.category}</td>
+                              <td className="p-1.5 font-semibold text-slate-800">{t.operation}</td>
+                              <td className="p-1.5 italic text-slate-500">{t.when}</td>
+                              <td className="p-1.5 text-slate-600">SOP: {t.how} ({t.why})</td>
+                              <td className="p-1.5 font-mono font-bold text-[10px]">{t.status}</td>
+                              <td className="p-1.5 italic text-slate-500">{t.assignedTo || 'Unassigned'}</td>
                             </tr>
                           ))}
                         </tbody>

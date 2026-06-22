@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StaffMember, StaffOffRecord } from '../types';
-import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList } from 'lucide-react';
+import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList, Printer } from 'lucide-react';
 
 interface RosterProps {
   staffList: StaffMember[];
@@ -13,6 +13,7 @@ interface RosterProps {
   onDeleteOffRecord: (id: string) => void;
   onUpdateOffRecordStatus: (id: string, status: 'Approved' | 'Pending' | 'Completed') => void;
   onEditStaffOffRecord?: (id: string, updated: StaffOffRecord) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 export function Roster({
@@ -25,7 +26,8 @@ export function Roster({
   onAddOffRecord,
   onDeleteOffRecord,
   onUpdateOffRecordStatus,
-  onEditStaffOffRecord
+  onEditStaffOffRecord,
+  onTriggerSectionReport
 }: RosterProps) {
   // Navigation tabs of roster page
   const [rosterSubTab, setRosterSubTab] = useState<'roster' | 'leaves'>('roster');
@@ -145,7 +147,18 @@ export function Roster({
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {onTriggerSectionReport && (
+            <button
+              onClick={() => onTriggerSectionReport('staff')}
+              type="button"
+              className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl font-black text-xs uppercase transition-all shadow-sm cursor-pointer m-0"
+              title="Download Staff & Leaves Report"
+            >
+              <Printer size={14} />
+              Report
+            </button>
+          )}
           {rosterSubTab === 'roster' ? (
             <button
               onClick={() => setShowAddForm(!showAddForm)}
