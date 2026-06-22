@@ -13,7 +13,11 @@ import {
   BsfRecord,
   CropOpRecord,
   StaffMember,
-  CropSaleRecord
+  CropSaleRecord,
+  SilageRecord,
+  HeiferRecord,
+  PoultryRecord,
+  QuarantineRecord
 } from '../types';
 import {
   TreePine,
@@ -96,6 +100,18 @@ interface OtherSectionsProps {
   onEditCropSale?: (id: string, updated: CropSaleRecord) => void;
   vetRecords?: any[];
   aiRecords?: any[];
+  silageRecords?: SilageRecord[];
+  onAddSilage?: (rec: SilageRecord) => void;
+  onDeleteSilage?: (id: string) => void;
+  heiferRecords?: HeiferRecord[];
+  onAddHeifer?: (rec: HeiferRecord) => void;
+  onDeleteHeifer?: (id: string) => void;
+  poultryRecords?: PoultryRecord[];
+  onAddPoultry?: (rec: PoultryRecord) => void;
+  onDeletePoultry?: (id: string) => void;
+  quarantineRecords?: QuarantineRecord[];
+  onAddQuarantine?: (rec: QuarantineRecord) => void;
+  onDeleteQuarantine?: (id: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
@@ -144,11 +160,23 @@ export function OtherSections({
   onEditCropSale,
   vetRecords = [],
   aiRecords = [],
+  silageRecords = [],
+  onAddSilage,
+  onDeleteSilage,
+  heiferRecords = [],
+  onAddHeifer,
+  onDeleteHeifer,
+  poultryRecords = [],
+  onAddPoultry,
+  onDeletePoultry,
+  quarantineRecords = [],
+  onAddQuarantine,
+  onDeleteQuarantine,
   onTriggerSectionReport
 }: OtherSectionsProps) {
   // Toggle for livestock sub segments
-  const [livestockSubTab, setLivestockSubTab] = useState<'poultry_dogs' | 'goats' | 'calves' | 'bsf' | 'operations' | 'sales_mortality' | 'biogas_optimizer'>('poultry_dogs');
-  const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'crop_ops' | 'sales'>('blocks');
+  const [livestockSubTab, setLivestockSubTab] = useState<'poultry' | 'poultry_dogs' | 'goats' | 'calves' | 'heifers' | 'quarantine' | 'bsf' | 'operations' | 'sales_mortality' | 'biogas_optimizer'>('poultry');
+  const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'silage' | 'crop_ops' | 'sales'>('blocks');
 
   // Interactive Geospatial Farm Layout Map States
   const [selectedMapFieldId, setSelectedMapFieldId] = useState<string | null>(null);
@@ -170,6 +198,62 @@ export function OtherSections({
   const [waterRatio, setWaterRatio] = useState<number>(1); // e.g. 1:1, 1:2
   const [hrtDays, setHrtDays] = useState<number>(30); // hydraulic retention time
   const [digesterTemp, setDigesterTemp] = useState<number>(35); // mesophilic target Celsius
+
+  // Silage and Rhodes Pasture Calculator local states
+  const [silRaw, setSilRaw] = useState<string>('Maize');
+  const [silAcres, setSilAcres] = useState<number>(1.5);
+  const [silWeight, setSilWeight] = useState<number>(27000); // 1.5 * 18000
+  const [silShowAdd, setSilShowAdd] = useState<boolean>(false);
+  const [silDateMade, setSilDateMade] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [silDateOpened, setSilDateOpened] = useState<string>('');
+  const [silQuality, setSilQuality] = useState<string>('Excellent (Golden yellow, lactic acid smell)');
+  const [silNotes, setSilNotes] = useState<string>('');
+  const [silAnimalsCount, setSilAnimalsCount] = useState<number>(10);
+  const [silAverageWeight, setSilAverageWeight] = useState<number>(450);
+  const [silDailyIntake, setSilDailyIntake] = useState<number>(13.5); // 3% of body weight as-fed
+
+  // Boma Rhodes Calculator local states
+  const [rhodesAcres, setRhodesAcres] = useState<number>(2.5);
+  const [rhodesAnimalsCount, setRhodesAnimalsCount] = useState<number>(8);
+  const [rhodesCustomDailyIntake, setRhodesCustomDailyIntake] = useState<number>(10); // 10kg DM per animal
+
+  // Poultry Hub states
+  const [pouShowAdd, setPouShowAdd] = useState<boolean>(false);
+  const [pouStage, setPouStage] = useState<'Chick' | 'Grower' | 'Layer'>('Chick');
+  const [pouBatchName, setPouBatchName] = useState<string>('');
+  const [pouCount, setPouCount] = useState<number>(100);
+  const [pouDate, setPouDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [pouFeedGiven, setPouFeedGiven] = useState<number>(12);
+  const [pouFeedType, setPouFeedType] = useState<string>('Chick Start Crumble');
+  const [pouMortality, setPouMortality] = useState<number>(0);
+  const [pouEggCrates, setPouEggCrates] = useState<number>(0);
+  const [pouCrackedEggs, setPouCrackedEggs] = useState<number>(0);
+  const [pouWater, setPouWater] = useState<number>(20);
+  const [pouVaccines, setPouVaccines] = useState<string>('');
+  const [pouNotes, setPouNotes] = useState<string>('');
+
+  // Heifer Management states
+  const [hefShowAdd, setHefShowAdd] = useState<boolean>(false);
+  const [hefCowId, setHefCowId] = useState<string>('');
+  const [hefDate, setHefDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [hefWeight, setHefWeight] = useState<number>(220);
+  const [hefGirth, setHefGirth] = useState<number>(135);
+  const [hefRation, setHefRation] = useState<string>('Rhodes hay + Grower meal');
+  const [hefAdg, setHefAdg] = useState<number>(650);
+  const [hefBreedingReady, setHefBreedingReady] = useState<boolean>(false);
+  const [hefNotes, setHefNotes] = useState<string>('');
+
+  // Quarantine states
+  const [quaShowAdd, setQuaShowAdd] = useState<boolean>(false);
+  const [quaType, setQuaType] = useState<'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other'>('Cow');
+  const [quaTag, setQuaTag] = useState<string>('');
+  const [quaDateStart, setQuaDateStart] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [quaDateEnd, setQuaDateEnd] = useState<string>('');
+  const [quaReason, setQuaReason] = useState<string>('New purchase quarantine');
+  const [quaSymptoms, setQuaSymptoms] = useState<string>('None');
+  const [quaStatus, setQuaStatus] = useState<'Strict Isolation' | 'Under Observation' | 'Cleared & Released' | 'Failed & Culled'>('Under Observation');
+  const [quaVet, setQuaVet] = useState<string>('');
+  const [quaNotes, setQuaNotes] = useState<string>('');
 
   // CSV Exporters for individual sub-sections
   const downloadFieldsCSV = () => {
@@ -320,6 +404,23 @@ export function OtherSections({
 
   // Forms Visibility
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Interactive Calf Weaning parameters
+  const [calfBirthWeight, setCalfBirthWeight] = useState<number>(35);
+  const [calfTargetAgeWeeks, setCalfTargetAgeWeeks] = useState<number>(10);
+
+  // Improvement 1 & 3: Interactive Vet Diagnostics & Drug Withdrawal Safety Wizard states
+  const [diagSpecies, setDiagSpecies] = useState<'Cattle' | 'Poultry' | 'Goat'>('Cattle');
+  const [diagSymptom, setDiagSymptom] = useState<string>('fever_milk_drop');
+  const [withMedType, setWithMedType] = useState<string>('antibiotic_pen');
+  const [withTreatDate, setWithTreatDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Improvement 2: Interactive Poultry Performance Targeter states
+  const [calcPouCount, setCalcPouCount] = useState<number>(500);
+  const [calcPouEggCrates, setCalcPouEggCrates] = useState<number>(14);
+  const [calcPouFeedBags, setCalcPouFeedBags] = useState<number>(1.5);
+  const [calcPouFeedCostBag, setCalcPouFeedCostBag] = useState<number>(3250);
+  const [calcPouCratePrice, setCalcPouCratePrice] = useState<number>(450);
 
   // Fields Form
   const [fBlock, setFBlock] = useState('');
@@ -676,9 +777,9 @@ export function OtherSections({
             </div>
 
             {/* View Sub tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto">
+            <div className="flex flex-wrap bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto gap-0.5">
               <button
-                onClick={() => { setAgronomySubTab('blocks'); setShowAddForm(false); }}
+                onClick={() => { setAgronomySubTab('blocks'); }}
                 className={`flex-1 md:flex-none px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 ${
                   agronomySubTab === 'blocks' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
                 }`}
@@ -686,7 +787,15 @@ export function OtherSections({
                 Agronomy Blocks
               </button>
               <button
-                onClick={() => { setAgronomySubTab('crop_ops'); setShowAddForm(false); }}
+                onClick={() => { setAgronomySubTab('silage'); }}
+                className={`flex-1 md:flex-none px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 ${
+                  agronomySubTab === 'silage' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                🌾 Silage & Boma Rhodes
+              </button>
+              <button
+                onClick={() => { setAgronomySubTab('crop_ops'); }}
                 className={`flex-1 md:flex-none px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 ${
                   agronomySubTab === 'crop_ops' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
                 }`}
@@ -694,7 +803,7 @@ export function OtherSections({
                 Routine Crop Guides
               </button>
               <button
-                onClick={() => { setAgronomySubTab('sales'); setShowAddForm(false); }}
+                onClick={() => { setAgronomySubTab('sales'); }}
                 className={`flex-1 md:flex-none px-4 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 ${
                   agronomySubTab === 'sales' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
                 }`}
@@ -768,7 +877,7 @@ export function OtherSections({
                           required
                           value={fCrop}
                           onChange={(e) => setFCrop(e.target.value)}
-                          placeholder="E.g. Rhodes Grass"
+                          placeholder="E.g. Boma Rhodes"
                           className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                         />
                       </div>
@@ -1225,7 +1334,440 @@ export function OtherSections({
             </>
           )}
 
-          {/* CROPS SCHEDULER & DISCOVERY GUIDELINE MODULE */}
+          {/* SILAGE PRESERVATION & PASTURE CARRY CAPACITY ENGINE */}
+          {agronomySubTab === 'silage' && (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Introduction Banner */}
+              <div className="bg-slate-900 text-slate-100 p-6 rounded-3xl space-y-2 border border-slate-800">
+                <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded uppercase">Agronomy Hub</span>
+                <h4 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                  <span>🌾 Forage Conservation & Grazing Allocator</span>
+                </h4>
+                <p className="text-xs text-slate-300 leading-relaxed max-w-2xl font-medium">
+                  Establish food reserves for dry dry-seasons. Conserve raw green biomass through anaerobic fermentation (silage making) and calculate sustainable paddocking periods for Boma Rhodes hay.
+                </p>
+              </div>
+
+              {/* BOMA RHODES CALCULATOR & EXPEDIENT */}
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 p-6 rounded-3xl border border-amber-200/60 shadow-xs space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                      <span>👑 BOMA RHODES CARRY CAPACITY CALCULATOR</span>
+                    </h5>
+                    <p className="text-slate-500 text-[11px] font-bold uppercase mt-1">Acres to sustain herd days equivalent</p>
+                  </div>
+                  <div className="bg-amber-100 text-amber-950 px-3 py-1.5 rounded-xl text-[10.5px] font-extrabold tracking-tight uppercase">
+                    Pasture dry matter standard yield
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Left: Inputs */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 space-y-4">
+                    <h6 className="text-[11px] font-black text-slate-800 uppercase tracking-widest border-b pb-2">Calculator parameters</h6>
+                    
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Rhodes Pasture Area: <span className="font-mono text-slate-900 font-extrabold">{rhodesAcres} Acres</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="25"
+                        step="0.5"
+                        value={rhodesAcres}
+                        onChange={(e) => setRhodesAcres(parseFloat(e.target.value))}
+                        className="w-full accent-amber-700 h-2 bg-slate-100 rounded-lg cursor-pointer"
+                      />
+                      <span className="text-[9.5px] text-slate-400 font-medium">1 Acre yields ~250 bales (4,500kg Dry Matter) per season.</span>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Animals count: <span className="font-mono text-slate-900 font-extrabold">{rhodesAnimalsCount} Head</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="80"
+                        step="1"
+                        value={rhodesAnimalsCount}
+                        onChange={(e) => setRhodesAnimalsCount(parseInt(e.target.value))}
+                        className="w-full accent-amber-700 h-2 bg-slate-100 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Daily Forage Intake per head: <span className="font-mono text-slate-900 font-extrabold">{rhodesCustomDailyIntake} KG Dry Matter</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="5"
+                        max="20"
+                        step="1"
+                        value={rhodesCustomDailyIntake}
+                        onChange={(e) => setRhodesCustomDailyIntake(parseInt(e.target.value))}
+                        className="w-full accent-amber-700 h-2 bg-slate-100 rounded-lg cursor-pointer"
+                      />
+                      <span className="text-[9px] text-slate-400 font-medium italic block mt-1">Cows consume ~2.5% of body weight in dry matter Daily.</span>
+                    </div>
+                  </div>
+
+                  {/* Middle & Right: Outputs */}
+                  <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] font-black text-amber-800 uppercase block mb-1">Projected Pasture Yield</span>
+                        <div className="text-3xl font-black text-slate-900 font-mono tracking-tight">
+                          {Math.round(rhodesAcres * 250).toLocaleString()} <span className="text-xs text-slate-400 font-bold">bales</span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-500 mt-2 font-medium">
+                          Equal to approximately <strong>{Math.round(rhodesAcres * 4500).toLocaleString()} KG</strong> of premium Boma Rhodes digestible Dry Matter forage biomass per season.
+                        </p>
+                      </div>
+                      <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                        <span className="text-[9.5px] uppercase font-black text-amber-900 block mb-0.5">Value Equivalent</span>
+                        <span className="text-xs font-mono font-bold text-slate-800">
+                          Ksh {Math.round(rhodesAcres * 250 * 350).toLocaleString()} <span className="text-[9px] text-slate-400 font-bold font-sans uppercase">(@ Ksh 350/bale)</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-900 text-white p-5 rounded-2xl flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                          <span className="text-[9.5px] font-black text-amber-400 uppercase">HERD FEED LIFE-SPAN</span>
+                          <span className="text-[9px] bg-emerald-950 text-emerald-300 font-bold px-2 py-0.5 rounded-full uppercase">Computed</span>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <span className="text-[10.5px] text-slate-300 font-medium block">Will feed {rhodesAnimalsCount} animal(s) for:</span>
+                          <div className="text-4xl font-black text-amber-400 font-mono tracking-tight my-1">
+                            {Math.round((rhodesAcres * 4500) / (rhodesAnimalsCount * rhodesCustomDailyIntake))} <span className="text-sm font-bold text-slate-300">Days</span>
+                          </div>
+                          <span className="text-[10.5px] text-slate-400 mt-0.5 inline-block font-bold">
+                            (~ {((rhodesAcres * 4500) / (rhodesAnimalsCount * rhodesCustomDailyIntake) / 30.4).toFixed(1)} Months)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 bg-slate-850 rounded-xl border border-slate-800 text-[10.5px] text-slate-300 leading-tight">
+                        <strong>Rhodes Guideline:</strong> Ensure harvesting at early bloom stage (10% flowering) for peak crude protein levels (~8-10% CP). Delay reduces protein content severely!
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SILAGE TRACKING SYSTEM */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🌽 ACTIVE SILAGE PRESERVATION REGISTER</span>
+                    </h5>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase mt-0.5">Fermentation logs, opening dates, and quality notes</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSilShowAdd(!silShowAdd)}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 cursor-pointer shadow"
+                    >
+                      <Plus size={14} />
+                      Log Silage Batch
+                    </button>
+                    {onTriggerSectionReport && (
+                      <button
+                        onClick={() => onTriggerSectionReport('silage')}
+                        className="flex items-center gap-1 px-3 py-2 bg-slate-150 border border-slate-200 text-slate-700 hover:bg-slate-200 rounded-xl font-bold text-xs uppercase cursor-pointer m-0"
+                      >
+                        <Printer size={13} />
+                        Print Report
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* ADD SILAGE FORM */}
+                {silShowAdd && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const weight = silAcres * 18000;
+                      const dailyRate = silAverageWeight * 0.03; // as-fed 3% weight daily silage
+                      const lifespan = dailyRate > 0 && silAnimalsCount > 0 ? weight / (silAnimalsCount * dailyRate) : 0;
+
+                      const newRec: SilageRecord = {
+                        id: `sil-${Math.floor(1000 + Math.random() * 9000).toString()}`,
+                        rawMaterial: silRaw,
+                        acres: silAcres,
+                        calculatedWeightKg: weight,
+                        dateMade: silDateMade,
+                        dateOpened: silDateOpened || undefined,
+                        quality: silQuality,
+                        notes: silNotes,
+                        animalsFedCount: silAnimalsCount,
+                        averageAnimalWeightKg: silAverageWeight,
+                        recommendedDailyIntakePerAnimal: parseFloat(dailyRate.toFixed(1)),
+                        daysOfFeedAvailable: Math.round(lifespan)
+                      };
+
+                      if (onAddSilage) {
+                        onAddSilage(newRec);
+                        setSilShowAdd(false);
+                        setSilNotes('');
+                        setSilDateOpened('');
+                      }
+                    }}
+                    className="p-6 bg-slate-50 rounded-2xl border border-slate-200/60 grid grid-cols-1 md:grid-cols-3 gap-4"
+                  >
+                    <div className="md:col-span-3">
+                      <span className="text-[10px] uppercase font-black text-emerald-800 tracking-wider">🌽 PRE-FILL ESTIMATION ENGINE</span>
+                      <p className="text-slate-400 text-[10px] font-bold uppercase mt-0.5">Define inputs to calculate yield weight autonomously</p>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Raw Material Crop Type</label>
+                      <select
+                        value={silRaw}
+                        onChange={(e) => setSilRaw(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Maize">Maize Crop (Grain dent stage)</option>
+                        <option value="Sorghum">High-Energy Sugar Sorghum</option>
+                        <option value="Napier Grass">Napier Grass (pre-headed)</option>
+                        <option value="Boma Rhodes">Boma Rhodes green-harvest</option>
+                        <option value="Other">Other Mixed Legumes/Vines</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Harvested Land Area (Acres): <strong className="font-mono text-slate-800 font-extrabold">{silAcres}</strong>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        required
+                        value={silAcres}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setSilAcres(val);
+                          setSilWeight(val * 18000);
+                        }}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Autocalculated Silage Weight (KG)
+                      </label>
+                      <input
+                        type="number"
+                        disabled
+                        value={silAcres * 18000}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-slate-100 text-slate-500 cursor-not-allowed"
+                      />
+                      <span className="text-[9px] text-slate-400 font-mono mt-0.5 block">Estimated @ standard 18,000 KG (18 Tons) per Acre</span>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Ensiled (Date Made)</label>
+                      <input
+                        type="date"
+                        required
+                        value={silDateMade}
+                        onChange={(e) => setSilDateMade(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Opened (Optional)</label>
+                      <input
+                        type="date"
+                        value={silDateOpened}
+                        onChange={(e) => setSilDateOpened(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Anaerobic Quality Assessment</label>
+                      <select
+                        value={silQuality}
+                        onChange={(e) => setSilQuality(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Excellent (Golden yellow, lactic acid smell)">Excellent (Sweet lactic scent, pH ~3.8-4.2)</option>
+                        <option value="Good (Slightly acidic brown)">Good (Acidic scent, minor run-off loss)</option>
+                        <option value="Fair (Slight butyric content)">Fair (Strong pungent odour, usable)</option>
+                        <option value="Spoiled (Mouldy, rancid smell)">Spoiled (Toxic yeast growths, toxic for herd)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Target Feeding Animals Count</label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={silAnimalsCount}
+                        onChange={(e) => setSilAnimalsCount(parseInt(e.target.value) || 0)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Average Animal Weight (KG): <strong className="font-mono text-emerald-800">{silAverageWeight} kg</strong>
+                      </label>
+                      <input
+                        type="range"
+                        min="100"
+                        max="800"
+                        step="10"
+                        value={silAverageWeight}
+                        onChange={(e) => setSilAverageWeight(parseInt(e.target.value))}
+                        className="w-full accent-emerald-800 h-2 bg-slate-200 rounded-lg cursor-pointer mt-3"
+                      />
+                    </div>
+
+                    <div className="bg-emerald-100/65 border border-emerald-200/80 p-3.5 rounded-xl flex flex-col justify-between">
+                      <span className="text-[9px] font-black text-emerald-950 uppercase">Veterinary Recommendation</span>
+                      <p className="text-[10.5px] text-slate-700 leading-tight">
+                        Cattle weight requires approx <strong>{(silAverageWeight * 0.03).toFixed(1)} KG</strong> fresh silage per head daily to support lactating maintenance.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Compaction, Seal details & Quality notes</label>
+                      <textarea
+                        rows={2}
+                        value={silNotes}
+                        onChange={(e) => setSilNotes(e.target.value)}
+                        placeholder="E.g. Compaction was rigorous using tractor. Ensilage film of 1.2 mil and sandbags on top."
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3 flex justify-end gap-2 border-t pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setSilShowAdd(false)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-bold uppercase transition-all shadow-xs cursor-pointer m-0"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-slate-900 hover:bg-slate-850 text-white rounded-lg text-xs font-bold uppercase transition-all shadow cursor-pointer m-0"
+                      >
+                        Save Conservation Log
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* SILAGE LOGS RENDERED */}
+                <div className="grid grid-cols-1 gap-4">
+                  {silageRecords.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                      No conserved silage batches recorded yet.
+                    </div>
+                  ) : (
+                    silageRecords.map((item, idx) => {
+                      const computedDays = Math.round(item.calculatedWeightKg / (item.animalsFedCount * item.recommendedDailyIntakePerAnimal));
+                      const isDanger = computedDays < 30;
+
+                      return (
+                        <div key={item.id} className="p-5 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-slate-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono bg-indigo-900 text-white text-[10px] px-2.5 py-0.5 rounded font-black uppercase">
+                                {item.id}
+                              </span>
+                              <span className="text-sm font-black text-slate-900">
+                                {item.rawMaterial} Conserved Silage ({item.acres} Acres)
+                              </span>
+                              <span className="text-[9px] bg-slate-200/95 font-mono text-slate-600 px-2 py-0.5 rounded font-bold uppercase">
+                                Made: {item.dateMade}
+                              </span>
+                              {item.dateOpened && (
+                                <span className="text-[9px] bg-green-100 font-mono text-green-950 px-2 py-0.5 rounded font-bold uppercase">
+                                  Opened: {item.dateOpened}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Conserved Forage</span>
+                                <span className="text-sm font-mono font-extrabold text-slate-800">
+                                  {item.calculatedWeightKg.toLocaleString()} KG
+                                </span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Feeding Animals</span>
+                                <span className="text-sm font-mono font-extrabold text-[#111]">
+                                  {item.animalsFedCount} Cows
+                                </span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Rec. Daily Intake</span>
+                                <span className="text-sm font-mono font-extrabold text-[#111]">
+                                  {item.recommendedDailyIntakePerAnimal} KG
+                                </span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Assessed Quality</span>
+                                <span className="text-[10px] font-bold text-emerald-800 block truncate">
+                                  {item.quality}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 font-medium italic pt-1 leading-snug">
+                              " {item.notes} "
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-4 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200/60 shrink-0">
+                            <div className="text-left md:text-right">
+                              <span className="text-[9.5px] font-black text-slate-400 block uppercase">FEED LIFESPAN LEFT</span>
+                              <div className={`text-2xl font-black font-mono tracking-tight ${isDanger ? 'text-rose-600' : 'text-slate-900'}`}>
+                                {computedDays} <span className="text-xs font-bold text-slate-500">Days</span>
+                              </div>
+                              <span className="text-[8.5px] uppercase font-bold text-slate-400">
+                                (~ {(computedDays / 30.4).toFixed(1)} months ration)
+                              </span>
+                            </div>
+
+                            <div className="flex gap-1">
+                              {onDeleteSilage && (
+                                <button
+                                  onClick={() => onDeleteSilage(item.id)}
+                                  className="text-slate-300 hover:text-red-700 p-2.5 rounded-lg border hover:border-red-100/80 bg-white shadow-xs cursor-pointer m-0 transition-colors"
+                                  title="Delete batch"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {agronomySubTab === 'crop_ops' && (
             <div className="space-y-6">
               {/* Static Crop agronomy guidelines container */}
@@ -1798,14 +2340,38 @@ export function OtherSections({
             </div>
 
             {/* Sub segments selector tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto">
+            <div className="flex bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto gap-0.5">
+              <button
+                onClick={() => { setLivestockSubTab('poultry'); setShowAddForm(false); }}
+                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  livestockSubTab === 'poultry' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                🐔 Poultry Hub (Chicks/Layers)
+              </button>
+              <button
+                onClick={() => { setLivestockSubTab('heifers'); setShowAddForm(false); }}
+                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  livestockSubTab === 'heifers' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                🐄 Heifers Board
+              </button>
+              <button
+                onClick={() => { setLivestockSubTab('quarantine'); setShowAddForm(false); }}
+                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  livestockSubTab === 'quarantine' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                }`}
+              >
+                🩺 Quarantine Isolation
+              </button>
               <button
                 onClick={() => { setLivestockSubTab('poultry_dogs'); setShowAddForm(false); }}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'poultry_dogs' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  livestockSubTab === 'poultry_dogs' ? 'bg-slate-200/50 text-slate-700' : 'text-slate-500 hover:text-slate-850'
                 }`}
               >
-                Poultry & Canines
+                Dogs & Other
               </button>
               <button
                 onClick={() => { setLivestockSubTab('goats'); setShowAddForm(false); }}
@@ -1857,6 +2423,1462 @@ export function OtherSections({
               </button>
             </div>
           </div>
+
+          {/* NEW SUBTAB: ADVANCED POULTRY LIFECYCLE HUB & ADVISORY SYSTEM */}
+          {livestockSubTab === 'poultry' && (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Educational Advisory Carousel / Tabs */}
+              <div className="bg-slate-900 text-slate-100 p-6 rounded-3xl space-y-4 border border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-sm uppercase">Veterinary Advisory</span>
+                  <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-1 rounded uppercase font-bold">Comprehensive Poultry Guide</span>
+                </div>
+                <h4 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                  <span>🐔 Nyaronde Poultry Cooperative & Layer Advisor</span>
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                  <div className="bg-slate-850 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-[10px] bg-emerald-900 text-emerald-100 px-2 py-0.5 rounded font-black uppercase">Cohort 1: Chicks (Day 1 - Week 8)</span>
+                    <h5 className="text-sm font-bold text-white">Chops & Thermal Rearing</h5>
+                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                      Maintain brooder temperatures at 30-32°C during Week 1, decreasing 2°C weekly. Feed <strong>Chick Starter Crumble</strong> (high-protein ~20% CP) up to 35-40g daily per chick. Vaccinate strictly: 
+                      Day 7 (Newcastle), Day 14 (Gumboro/IBD), Day 24 (Gumboro booster).
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-850 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-[10px] bg-amber-900 text-amber-100 px-2 py-0.5 rounded font-black uppercase">Cohort 2: Growers (Week 9 - Week 18)</span>
+                    <h5 className="text-sm font-bold text-white">Weight Management & Deworming</h5>
+                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                      Transition birds to <strong>Growers Mash</strong>. Aim for uniform weights of 1.3 - 1.6 KG by week 18. Overfeeding causes pelvic fat pads resulting in future prolapses; underfeeding retards egg laying start. Deworm at Week 14. Give Fowl Pox vaccine at Week 18.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-850 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <span className="text-[10px] bg-indigo-900 text-indigo-100 px-2 py-0.5 rounded font-black uppercase">Cohort 3: Layers (Week 19+)</span>
+                    <h5 className="text-sm font-bold text-white">Calcium Fortification & Grits</h5>
+                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                      Feed <strong>Layers Mash</strong> containing at least 3.5% Calcium. Add free-choice oyster shell grits to reinforce shell thickness and egg size, especially for older layers. Maintain 16 hours of daily photo-stimulation (lighting) to sustain over 85% Hen-Day lay output.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* BRAND NEW: INTERACTIVE POULTRY PERFORMANCE & MARGIN OPTIMIZER CARD */}
+              <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white p-6 rounded-3xl space-y-6 shadow-xl border border-slate-800">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9.5px] bg-[#eab308] font-extrabold text-slate-950 px-2.5 py-0.5 rounded uppercase tracking-wider">Avian Feed Metric Evaluator</span>
+                      <span className="text-[9.5px] bg-slate-800 text-slate-350 border border-slate-700 px-2 py-0.5 rounded uppercase font-bold">Interactive Hen-Day Performance Matrix</span>
+                    </div>
+                    <h4 className="text-lg font-black text-white flex items-center gap-2">
+                      <span>🐣 Interactive Layer Flock Performance & Profit Targeter</span>
+                    </h4>
+                    <p className="text-xs text-slate-305 text-slate-300 leading-relaxed max-w-2xl font-bold">
+                      Optimize daily egg crates, track Feed Conversion Ratios (FCR), and model feed costs vs. egg wholesale revenues to maximize cash reserves.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* Left: Interactive Input Sliders */}
+                  <div className="md:col-span-2 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-4">
+                    <span className="text-[10px] uppercase font-black text-yellow-400 tracking-wider">Input Parameter Model</span>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">
+                          Laying Hens: <span className="font-mono text-yellow-400 font-extrabold">{calcPouCount} birds</span>
+                        </label>
+                        <input
+                          type="range"
+                          min="50"
+                          max="2000"
+                          step="25"
+                          value={calcPouCount}
+                          onChange={(e) => setCalcPouCount(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-yellow-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">
+                          Egg Crates/Day: <span className="font-mono text-yellow-400 font-extrabold">{calcPouEggCrates} Crates</span>
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="60"
+                          step="1"
+                          value={calcPouEggCrates}
+                          onChange={(e) => setCalcPouEggCrates(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-yellow-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 pt-1">
+                      <div>
+                        <label className="text-[9.5px] font-black text-slate-400 uppercase block mb-0.5">Feed Bags/Day (50kg)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={calcPouFeedBags}
+                          onChange={(e) => setCalcPouFeedBags(parseFloat(e.target.value) || 0)}
+                          className="w-full text-xs bg-slate-950 border border-slate-800 p-2 rounded-lg font-bold text-white font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9.5px] font-black text-slate-400 uppercase block mb-0.5">Feed Cost / Bag</label>
+                        <input
+                          type="number"
+                          value={calcPouFeedCostBag}
+                          onChange={(e) => setCalcPouFeedCostBag(parseInt(e.target.value) || 0)}
+                          className="text-xs w-full bg-slate-950 border border-slate-800 p-2 rounded-lg font-bold text-white font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9.5px] font-black text-slate-400 uppercase block mb-0.5">Crate Price (Ksh)</label>
+                        <input
+                          type="number"
+                          value={calcPouCratePrice}
+                          onChange={(e) => setCalcPouCratePrice(parseInt(e.target.value) || 0)}
+                          className="text-xs w-full bg-slate-950 border border-slate-800 p-2 rounded-lg font-bold text-white font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[9.5px] text-slate-400 leading-snug">
+                      💡 <em>Calculated dynamic feed allocation per bird is <strong>{((calcPouFeedBags * 50 * 1000) / calcPouCount).toFixed(0)} grams</strong> daily. (Target recommended: 110g - 120g).</em>
+                    </p>
+                  </div>
+
+                  {/* Middle: Calculated Productivity Metrics */}
+                  <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">Avian Health & Productivity KPIs</span>
+                      
+                      <div className="mt-4 space-y-3.5">
+                        <div>
+                          <span className="text-[9.5px] text-slate-450 text-slate-400 block uppercase font-bold">Hen-Day Laying Production</span>
+                          <div className="flex items-baseline gap-1.5 mt-0.5">
+                            <span className="text-2xl font-mono font-black text-white">
+                              {((calcPouEggCrates * 30 / calcPouCount) * 100).toFixed(1)}%
+                            </span>
+                            <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                              (calcPouEggCrates * 30 / calcPouCount) * 100 >= 80 ? 'bg-emerald-500/10 text-emerald-355 text-emerald-450 font-bold' : 'bg-red-500/10 text-red-300'
+                            }`}>
+                              {((calcPouEggCrates * 30 / calcPouCount) * 100) >= 80 ? 'Peak Output' : 'Needs Review'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[9.5px] text-slate-400 block uppercase font-bold">Flock Feed Conversion Ratio (FCR)</span>
+                          <span className="text-base font-mono font-black text-white block mt-0.5">
+                            {((calcPouFeedBags * 50) / (calcPouEggCrates * 1.5)).toFixed(2)} <span className="text-[10.5px] text-slate-400 font-sans uppercase">kg feed/kg eggs</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800">
+                      <span className="text-[9px] font-black text-indigo-300 block uppercase mb-1">Total Daily Feed Intakes</span>
+                      <span className="text-sm font-black text-slate-300 font-mono">
+                        {calcPouFeedBags * 50} KG <span className="text-[10px] text-slate-405 font-bold">Total Feed Weight</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: Cashflow Predictions & Real-time advisory */}
+                  <div className="bg-slate-850 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between text-xs leading-relaxed font-semibold">
+                    <div>
+                      <span className="text-[10px] uppercase font-black text-yellow-400 block mb-2">💸 MODEL BUDGETING FORECAST</span>
+                      
+                      <div className="space-y-1 text-[11.5px] leading-snug border-b border-slate-800 pb-2 mb-2 font-mono">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-sans font-bold">Daily Income:</span>
+                          <span className="text-white font-extrabold">Ksh {(calcPouEggCrates * calcPouCratePrice).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-sans font-bold">Daily Feed Cost:</span>
+                          <span className="text-red-400 font-extrabold">- Ksh {(calcPouFeedBags * calcPouFeedCostBag).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between pt-1 border-t border-slate-800/60 font-bold">
+                          <span className="text-slate-205 text-slate-300 font-sans font-bold">Net Profit/Day:</span>
+                          <span className={`font-extrabold ${(calcPouEggCrates * calcPouCratePrice) - (calcPouFeedBags * calcPouFeedCostBag) >= 0 ? 'text-emerald-450 text-emerald-400' : 'text-rose-455 text-rose-400'}`}>
+                            Ksh {((calcPouEggCrates * calcPouCratePrice) - (calcPouFeedBags * calcPouFeedCostBag)).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {(() => {
+                        const rate = (calcPouEggCrates * 30 / calcPouCount) * 100;
+                        if (rate >= 80) {
+                          return (
+                            <p className="text-slate-305 text-slate-350 text-[11px] leading-snug">
+                              🎯 <strong>Excellent Productivity:</strong> Your flock is in peak lay cycle. Keep light duration at strictly <strong>16 hours</strong> daily and ensure fine limestone chips are added to layers mash to sustain thick egg shells.
+                            </p>
+                          );
+                        } else if (rate >= 65) {
+                          return (
+                            <p className="text-slate-305 text-slate-350 text-[11px] leading-snug">
+                              ⚠️ <strong>Moderate Productivity:</strong> Review temperature controls in the coop and scan for external mites. Ensure continuous access to water with adequate minerals to prompt laying.
+                            </p>
+                          );
+                        } else {
+                          return (
+                            <p className="text-slate-305 text-slate-340 text-[11px] leading-snug text-yellow-400">
+                              🚨 <strong>Critical Lay Rate Drop:</strong> Laying is below standard. Immediate check: Are feeds expired or moldy? Have you vaccinated against Infectious Bronchitis (IB)? Add vitamin packs to water immediately.
+                            </p>
+                          );
+                        }
+                      })()}
+                    </div>
+
+                    <div className="text-[10px] bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-yellow-300 mt-2 font-bold flex items-center gap-1.5">
+                      <span>💡</span>
+                      <span>Target egg-laying benchmark is 1 crate/day for every 32-35 active feeding birds.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Poultry Logs list with Add Form */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🐔 DAILY POULTRY MANAGEMENT LEDGER</span>
+                    </h5>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase mt-0.5">Track feed intake, mortality rates, and laying metrics</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPouShowAdd(!pouShowAdd)}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-850 hover:bg-indigo-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      Log Poultry Entry
+                    </button>
+                    {onTriggerSectionReport && (
+                      <button
+                        onClick={() => onTriggerSectionReport('poultry')}
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                      >
+                        <Printer size={13} />
+                        Print Report
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {pouShowAdd && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const id = `pou-${Math.floor(1000 + Math.random() * 9000).toString()}`;
+                      const henDayLayRate = pouStage === 'Layer' ? parseFloat(((pouEggCrates * 30 - pouCrackedEggs) / (pouCount || 1) * 100).toFixed(1)) : undefined;
+
+                      const newRec: PoultryRecord = {
+                        id,
+                        stage: pouStage,
+                        batchName: pouBatchName || `${pouStage} flock`,
+                        count: pouCount,
+                        dateLogged: pouDate,
+                        feedGivenKg: pouFeedGiven,
+                        feedType: pouFeedType,
+                        mortalityCount: pouMortality,
+                        eggCratesHarvested: pouStage === 'Layer' ? pouEggCrates : undefined,
+                        crackedEggsCount: pouStage === 'Layer' ? pouCrackedEggs : undefined,
+                        waterIntakeLiters: pouWater,
+                        vaccinesAdministered: pouVaccines || undefined,
+                        percentageProduction: henDayLayRate,
+                        notes: pouNotes
+                      };
+
+                      if (onAddPoultry) {
+                        onAddPoultry(newRec);
+                        setPouShowAdd(false);
+                        setPouBatchName('');
+                        setPouNotes('');
+                        setPouVaccines('');
+                      }
+                    }}
+                    className="p-6 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+                  >
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Batch / Cohort Name</label>
+                      <input
+                        type="text"
+                        placeholder="E.g. Kenbrow Batch #4"
+                        required
+                        value={pouBatchName}
+                        onChange={(e) => setPouBatchName(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Lifecycle Stage</label>
+                      <select
+                        value={pouStage}
+                        onChange={(e) => {
+                          setPouStage(e.target.value as any);
+                          if (e.target.value === 'Chick') setPouFeedType('Chick Start Crumble');
+                          else if (e.target.value === 'Grower') setPouFeedType('Growers Mash');
+                          else setPouFeedType('Layers Mash Premium');
+                        }}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Chick">Chick stage (Day 1 - Wk 8)</option>
+                        <option value="Grower">Grower stage (Wk 9 - Wk 18)</option>
+                        <option value="Layer">Layer stage (Wk 19+ / Egg production)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Current Birds Count</label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={pouCount}
+                        onChange={(e) => setPouCount(parseInt(e.target.value) || 0)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Recorded</label>
+                      <input
+                        type="date"
+                        required
+                        value={pouDate}
+                        onChange={(e) => setPouDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Total Feed Daily Intake (KG)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        required
+                        value={pouFeedGiven}
+                        onChange={(e) => setPouFeedGiven(parseFloat(e.target.value) || 0)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Feed Formulation Type</label>
+                      <input
+                        type="text"
+                        value={pouFeedType}
+                        onChange={(e) => setPouFeedType(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Mortality Count Today</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        value={pouMortality}
+                        onChange={(e) => setPouMortality(parseInt(e.target.value) || 0)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Water Intake (Liters)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={pouWater}
+                        onChange={(e) => setPouWater(parseInt(e.target.value) || 0)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-[#ffffff]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Vaccines/Medications Administered</label>
+                      <input
+                        type="text"
+                        placeholder="E.g. Day 7 Newcastle Vaccine"
+                        value={pouVaccines}
+                        onChange={(e) => setPouVaccines(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    {pouStage === 'Layer' && (
+                      <>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Egg Crates Collected (30 Eggs/Crate)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            required
+                            value={pouEggCrates}
+                            onChange={(e) => setPouEggCrates(parseFloat(e.target.value) || 0)}
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cracked / Rejected Eggs Count</label>
+                          <input
+                            type="number"
+                            min="0"
+                            required
+                            value={pouCrackedEggs}
+                            onChange={(e) => setPouCrackedEggs(parseInt(e.target.value) || 0)}
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                          />
+                        </div>
+
+                        <div className="bg-amber-100 border border-amber-200 rounded-xl p-3 flex flex-col justify-between">
+                          <span className="text-[9.5px] font-black text-amber-900 uppercase">Interactive Layers Hint</span>
+                          <span className="text-[10.5px] text-slate-700 leading-tight">
+                            Estimated Lay \%: <strong>{(((pouEggCrates * 30 - pouCrackedEggs) / (pouCount || 1)) * 100).toFixed(1)}% Hen-Day</strong>. Target for profitable egg production is &gt;80%.
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="md:col-span-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Daily Log Notes & Observations</label>
+                      <input
+                        type="text"
+                        value={pouNotes}
+                        onChange={(e) => setPouNotes(e.target.value)}
+                        placeholder="E.g. Droppings look healthy and firm. Brooder heater kept constant."
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3 flex justify-end gap-2 border-t pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setPouShowAdd(false)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer m-0"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-slate-900 hover:bg-slate-850 text-white rounded-lg text-xs font-bold uppercase transition-all shadow cursor-pointer m-0"
+                      >
+                        Save Poultry Entry
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Poultry records list */}
+                <div className="grid grid-cols-1 gap-4">
+                  {poultryRecords.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                      No poultry ledger records registered yet.
+                    </div>
+                  ) : (
+                    poultryRecords.map((item) => (
+                      <div key={item.id} className="p-5 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-slate-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono bg-indigo-950 text-white text-[10px] px-2.5 py-0.5 rounded font-black">
+                              {item.id}
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              {item.batchName} ({item.count} Birds)
+                            </span>
+                            <span className="text-xs bg-amber-100 text-amber-950 font-bold px-2 py-0.5 rounded">
+                              {item.stage}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500 font-bold">
+                              Date: {item.dateLogged}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                            <div className="bg-white p-2 border border-slate-100 rounded-xl">
+                              <span className="text-[9.5px] font-black text-slate-400 block uppercase">Feed Daily</span>
+                              <span className="text-xs font-mono font-bold text-slate-800">
+                                {item.feedGivenKg} KG ({item.feedType})
+                              </span>
+                            </div>
+                            <div className="bg-white p-2 border border-slate-100 rounded-xl">
+                              <span className="text-[9.5px] font-black text-slate-400 block uppercase">Water Intake</span>
+                              <span className="text-xs font-mono font-bold text-slate-800">
+                                {item.waterIntakeLiters || 0} Liters
+                              </span>
+                            </div>
+                            <div className="bg-white p-2 border border-slate-100 rounded-xl">
+                              <span className="text-[9.5px] font-black text-slate-400 block uppercase">Mortality Today</span>
+                              <span className={`text-xs font-mono font-bold ${item.mortalityCount > 0 ? 'text-rose-600' : 'text-slate-505'}`}>
+                                {item.mortalityCount} birds
+                              </span>
+                            </div>
+                            {item.stage === 'Layer' ? (
+                              <div className="bg-teal-50 border border-teal-100 p-2 rounded-xl">
+                                <span className="text-[9px] font-black text-teal-900 block uppercase">Egg Production</span>
+                                <span className="text-xs font-mono font-extrabold text-teal-950">
+                                  {item.eggCratesHarvested || 0} Crates ({item.percentageProduction || 0}% Lay)
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="bg-slate-100 p-2 rounded-xl">
+                                <span className="text-[9px] font-black text-slate-500 block uppercase">Avg Feed/Bird</span>
+                                <span className="text-xs font-mono font-bold text-slate-705">
+                                  {item.feedGivenKg && item.count ? ((item.feedGivenKg / item.count) * 1000).toFixed(0) : 0} grams
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {item.vaccinesAdministered && (
+                            <div className="text-[10.5px] bg-red-50 text-red-950 font-bold px-3 py-1 rounded inline-block">
+                              🩺 Administered: {item.vaccinesAdministered}
+                            </div>
+                          )}
+
+                          <p className="text-[11px] text-slate-500 italic mt-1 bg-white p-2.5 rounded-xl border border-slate-100">
+                            " {item.notes} "
+                          </p>
+                        </div>
+
+                        {onDeletePoultry && (
+                          <button
+                            onClick={() => onDeletePoultry(item.id)}
+                            className="text-slate-300 hover:text-red-700 p-2 border rounded-xl hover:border-red-150 bg-white shadow-xs transition-all m-0 font-bold cursor-pointer"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* NEW SUBTAB: HEIFER REPRODUCTION & DEVELOPMENT SYSTEM */}
+          {livestockSubTab === 'heifers' && (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Educational Advisory on Heifer rearing */}
+              <div className="bg-amber-900 text-amber-50 p-6 rounded-3xl space-y-3 shadow">
+                <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded font-black tracking-widest uppercase">Reproductive Science</span>
+                <h4 className="text-xl font-bold tracking-tight text-white">🐄 Sustainable Heifer Growth to First Calving</h4>
+                <p className="text-xs text-amber-100 leading-relaxed max-w-2xl font-medium">
+                  Heifers are the future replacement cows of the dairy farm. Target steady, lean skeletel growth of <strong>655g to 750g average daily liveweight gain (ADG)</strong>. Monitor chest girth metrics so heifers can safely reach breeding size of <strong>290-310 KG</strong> at 14-16 months of maturity.
+                </p>
+                <div className="text-xs bg-amber-955 p-3 rounded-xl space-y-1.5 border border-amber-800">
+                  <span className="text-yellow-400 font-extrabold uppercase text-[10.5px] block">👑 Best Feeding Strategy</span>
+                  <p className="text-[10.5px] text-amber-100 leading-tight">
+                    Provide ad-libitum access to clean Boma Rhodes hay blocks, fortified with 1-2kg of high-energy grower meal raw formulation diariamente. Calcium and trace mineral salts are mandatory to ensure follicular maturation, ovulation capacity, and robust fertility cycles.
+                  </p>
+                </div>
+              </div>
+
+              {/* Girth-to-Weight Interactive Calculator */}
+              <div className="bg-gradient-to-r from-emerald-50 to-indigo-50/50 p-6 rounded-3xl border border-emerald-100 space-y-5">
+                <div>
+                  <h5 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">📐 CHEST GIRTH-TO-WEIGHT & AI MATURITY CALCULATOR</h5>
+                  <p className="text-slate-400 text-[9.5px] font-bold uppercase mt-0.5">Use heart chest girth to predict heifer body weights instantly</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 space-y-4">
+                    <span className="text-[10px] uppercase font-black text-indigo-900 tracking-wider">Adjustment dial</span>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Heifer Chest Girth: <span className="font-mono text-indigo-900 text-xs font-black">{hefGirth} cm</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="100"
+                        max="180"
+                        step="1"
+                        value={hefGirth}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setHefGirth(val);
+                          // standard girth-weight projection for heifers: Girth 100cm = ~110kg, 140cm = ~240kg, 160cm = ~330kg
+                          const estWt = Math.round(110 + (val - 100) * 3.65);
+                          setHefWeight(estWt);
+                          setHefBreedingReady(estWt >= 280);
+                        }}
+                        className="w-full accent-indigo-900 h-2 bg-slate-200 rounded-lg cursor-pointer mt-2"
+                      />
+                      <span className="text-[9.5px] text-slate-400 font-mono mt-0.5 block">Measure around the chest directly behind forelegs.</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase">Estimated Liveweight</span>
+                      <div className="text-3xl font-black text-indigo-950 font-mono tracking-tight mt-1">
+                        {hefWeight} <span className="text-xs text-slate-400 font-bold uppercase">KG</span>
+                      </div>
+                      <p className="text-[10px] text-slate-550 mt-1 font-medium leading-relaxed">
+                        For dairy breeds (Holstein, Jersey, Friesian crosses), estimated by heart chest girth conversion curves.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`${hefBreedingReady ? 'bg-indigo-950 text-amber-200' : 'bg-slate-900 text-slate-200'} p-5 rounded-2xl flex flex-col justify-between transition-all`}>
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 block uppercase">AI BREEDING ELIGIBILITY</span>
+                      <div className="text-lg font-extrabold mt-2 tracking-tight">
+                        {hefBreedingReady ? '🎉 BREEDING READY' : '❌ NOT MATURE FOR BULL'}
+                      </div>
+                      <p className="text-[10px] text-slate-350 leading-tight mt-1.5 font-medium">
+                        {hefBreedingReady 
+                          ? "This heifer has crossed the 280KG threshold and has adequate frame structure to warrant AI insemination." 
+                          : `Requires ${280 - hefWeight} KG additional liveweight before puberty insemination is veterinary-permissible.`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Heifer record keeping table */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🐄 REGISTERED HEIFER MONITORS</span>
+                    </h5>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase mt-0.5">Development histories, chest dimensions, and daily gains</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setHefShowAdd(!hefShowAdd)}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-900 hover:bg-amber-950 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      Log Development metrics
+                    </button>
+                    {onTriggerSectionReport && (
+                      <button
+                        onClick={() => onTriggerSectionReport('heifers')}
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                      >
+                        <Printer size={13} />
+                        Print Report
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {hefShowAdd && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const id = `hef-${Math.floor(1000 + Math.random() * 9000).toString()}`;
+                      const estWt = Math.round(110 + (hefGirth - 100) * 3.65);
+
+                      const newRec: HeiferRecord = {
+                        id,
+                        cowId: hefCowId,
+                        dateLogged: hefDate,
+                        weightKg: estWt,
+                        girthCm: hefGirth,
+                        feedRationType: hefRation,
+                        averageDailyGainGrams: hefAdg,
+                        breedingReady: estWt >= 280,
+                        notes: hefNotes
+                      };
+
+                      if (onAddHeifer) {
+                        onAddHeifer(newRec);
+                        setHefShowAdd(false);
+                        setHefCowId('');
+                        setHefNotes('');
+                      }
+                    }}
+                    className="p-6 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+                  >
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Heifer Ear Tag or Name</label>
+                      <input
+                        type="text"
+                        placeholder="E.g. Friesian Cross Lucy"
+                        required
+                        value={hefCowId}
+                        onChange={(e) => setHefCowId(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Logged</label>
+                      <input
+                        type="date"
+                        required
+                        value={hefDate}
+                        onChange={(e) => setHefDate(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Chest Girth Metric (cm)</label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="220"
+                        required
+                        value={hefGirth}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          setHefGirth(val);
+                          setHefWeight(Math.round(110 + (val - 100) * 3.65));
+                        }}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Ration Mixture Details</label>
+                      <input
+                        type="text"
+                        placeholder="Rhodes hay, lucerne block, mineral salts"
+                        value={hefRation}
+                        onChange={(e) => setHefRation(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">
+                        Average Daily gain (grams/day): <strong className="font-mono text-slate-800">{hefAdg}g</strong>
+                      </label>
+                      <input
+                        type="range"
+                        min="300"
+                        max="1000"
+                        step="50"
+                        value={hefAdg}
+                        onChange={(e) => setHefAdg(parseInt(e.target.value))}
+                        className="w-full accent-amber-800 h-2 bg-slate-200 rounded-lg cursor-pointer mt-3"
+                      />
+                    </div>
+
+                    <div className="bg-amber-100/70 border border-amber-200 p-3 rounded-xl flex items-center">
+                      <span className="text-[10.5px] font-bold text-slate-800 leading-tight">
+                        Calculated Target weight is <strong>{hefWeight} KG</strong>. Pre-estimated by veterinarian algorithm.
+                      </span>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">General Observations (Cycle signs, hair coat texture, vigor)</label>
+                      <textarea
+                        rows={2}
+                        value={hefNotes}
+                        onChange={(e) => setHefNotes(e.target.value)}
+                        placeholder="Coat looks shiny, active and alert, shows early heat signs (estrus behavior)."
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3 flex justify-end gap-2 border-t pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setHefShowAdd(false)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer m-0"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-slate-900 hover:bg-slate-850 text-white rounded-lg text-xs font-bold uppercase transition-all shadow cursor-pointer m-0"
+                      >
+                        Save Heifer Log
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="grid grid-cols-1 gap-4">
+                  {heiferRecords.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                      No heifer development logs recorded yet.
+                    </div>
+                  ) : (
+                    heiferRecords.map((item) => (
+                      <div key={item.id} className="p-5 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-slate-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono bg-amber-900 text-white text-[10px] px-2.5 py-0.5 rounded font-black uppercase">
+                              {item.id}
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              Heifer: {item.cowId}
+                            </span>
+                            <span className="text-[10.2px] font-mono text-slate-500 font-bold uppercase">
+                              Date: {item.dateLogged}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase">Chest Girth</span>
+                              <span className="text-xs font-mono font-extrabold text-[#111]">
+                                {item.girthCm || 0} cm
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase">Calculated Weight</span>
+                              <span className="text-xs font-mono font-extrabold text-[#111]">
+                                {item.weightKg} KG
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase">Ration Notes</span>
+                              <span className="text-xs font-bold text-indigo-950 block truncate">
+                                {item.feedRationType}
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase">ADG (Daily Gain)</span>
+                              <span className="text-xs font-mono font-bold text-emerald-800">
+                                {item.averageDailyGainGrams} g/day
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase">AI Eligibility</span>
+                              <span className={`text-[10px] font-black uppercase ${item.breedingReady ? 'text-indigo-900' : 'text-slate-400'}`}>
+                                {item.breedingReady ? 'Ready (AI Target)' : 'Immature'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-slate-500 italic mt-1 bg-white p-2.5 rounded-xl border border-slate-100">
+                            " {item.notes} "
+                          </p>
+                        </div>
+
+                        {onDeleteHeifer && (
+                          <button
+                            onClick={() => onDeleteHeifer(item.id)}
+                            className="text-slate-300 hover:text-red-700 p-2.5 rounded-lg border hover:border-red-100/80 bg-white shadow-xs cursor-pointer m-0 transition-colors"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* NEW SUBTAB: VETERINARY QUARANTINE ISOLATION CENTRE */}
+          {livestockSubTab === 'quarantine' && (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Introduction Safety Checklist banner */}
+              <div className="bg-rose-950 text-[#fff] p-6 rounded-3xl space-y-4 border border-rose-900 shadow">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-yellow-400 text-rose-950 px-2.5 py-1 rounded font-black tracking-widest uppercase">Biosecurity Protocol</span>
+                  <span className="text-[10px] bg-rose-900 text-rose-100 border border-rose-800 px-2 py-1 rounded uppercase font-bold">Infection isolation</span>
+                </div>
+                <h4 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                  <span>🩺 Nyaronde Veterinary Quarantine isolation ledger</span>
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-[11px] pt-1">
+                  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+                    <span className="font-extrabold uppercase text-yellow-400 block">1. 21-Days Isolation</span>
+                    <span>All newly purchased cattle/goats must undergo a mandatory 21-day quarantine prior to herd merger.</span>
+                  </div>
+                  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+                    <span className="font-extrabold uppercase text-yellow-400 block">2. Dedicated Equipment</span>
+                    <span>Use exclusive feeding troughs, water buckets, and manure spades. Never move devices out of isolation zones.</span>
+                  </div>
+                  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+                    <span className="font-extrabold uppercase text-yellow-400 block">3. Footbath Hygiene</span>
+                    <span>Re-fill entrance footbaths with copper sulfate or chlorine disinfectant daily. Step in before boarding/leaving.</span>
+                  </div>
+                  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+                    <span className="font-extrabold uppercase text-yellow-400 block">4. Separate milking</span>
+                    <span>Always milk quarantined animals last. Pasteurize or safely discard milk; do not load into the main dairy cooler.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* IMPROVEMENTS 1 & 3: INTERACTIVE VET DIAGNOSTIC TREE & MEDICATION SAFETY WIZARD */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 1. INTERACTIVE CLINICAL DISEASE DIAGNOSTIC TREE */}
+                <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-4 shadow">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-rose-500 font-extrabold text-white px-2.5 py-0.5 rounded uppercase tracking-wider">Clinical Tree</span>
+                    <h5 className="text-base font-black text-white flex items-center gap-1.5 mt-1">
+                      <span>🩺 Vet Clinical Symptom Diagnostic Advisor</span>
+                    </h5>
+                    <p className="text-slate-400 text-xs">Analyze critical physiological traits and receive vet recommendation procedures.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Target Specimen</label>
+                      <select
+                        value={diagSpecies}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setDiagSpecies(val);
+                          // Default symptoms based on species
+                          if (val === 'Cattle') setDiagSymptom('fever_milk_drop');
+                          else if (val === 'Poultry') setDiagSymptom('resp_green_poop');
+                          else if (val === 'Goat') setDiagSymptom('skin_nodules');
+                        }}
+                        className="text-xs bg-slate-950 border border-slate-800 rounded-lg p-2.5 w-full text-white font-bold cursor-pointer"
+                      >
+                        <option value="Cattle">🐄 Dairy Cow / Calf</option>
+                        <option value="Poultry">🐣 Poultry Flock</option>
+                        <option value="Goat">🐐 Dairy Goat Herd</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Observed Clinical Signs</label>
+                      <select
+                        value={diagSymptom}
+                        onChange={(e) => setDiagSymptom(e.target.value)}
+                        className="text-xs bg-slate-950 border border-slate-800 rounded-lg p-2.5 w-full text-white font-bold cursor-pointer"
+                      >
+                        {diagSpecies === 'Cattle' && (
+                          <>
+                            <option value="fever_milk_drop">High Fever, swollen udder, milk is watery / clotted</option>
+                            <option value="salivation_limping">Excessive drooling, frothing, painful foot blisters, limping</option>
+                            <option value="bloody_waste">Severe blackish diarrhea, dry nose, rapid weight atrophy</option>
+                          </>
+                        )}
+                        {diagSpecies === 'Poultry' && (
+                          <>
+                            <option value="resp_green_poop">Severe gasping/snicking, greenish diarrhea, twisted neck</option>
+                            <option value="bloody_chicks">Pale combs, ruffled feathers, bloody diarrhea in brooder</option>
+                            <option value="soft_shells">Sudden drop in eggs count, soft/shell-less eggs, head tremors</option>
+                          </>
+                        )}
+                        {diagSpecies === 'Goat' && (
+                          <>
+                            <option value="skin_nodules">Nodular skin bumps, fever, ocular/nasal discharges</option>
+                            <option value="cough_wasting">Heavy coughing, fast panting, heavy nasal mucus, wasting</option>
+                          </>
+                        )}
+                        <option value="none">Observation only / General wellness isolate</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Diagnostic Output Readout */}
+                  {(() => {
+                    let estimatedDisease = "General Isolation Observation";
+                    let protocolPriority = "Medium Concern";
+                    let protocolColor = "border-amber-500/30 bg-amber-500/10 text-amber-300";
+                    let colorKey = "amber";
+                    let primaryMed = "Isolate and check temperature twice daily.";
+                    let bioSteps = "Observe for 7 days. Ensure footdisinfectant bath is renewed.";
+
+                    if (diagSymptom === 'fever_milk_drop') {
+                      estimatedDisease = "🛡️ Clinical Mastitis (Bacterial infection)";
+                      protocolPriority = "URGENT (Separate Milking)";
+                      protocolColor = "border-amber-500/40 bg-amber-500/10 text-amber-205";
+                      colorKey = "amber";
+                      primaryMed = "Intramammary infusions (dry-cow syringe), Systemic Penicillin, Flunixin Meglumine.";
+                      bioSteps = "Must milk affected cattle manually last. Thoroughly discard infected milk; sanitize hands and cluster cups.";
+                    } else if (diagSymptom === 'salivation_limping') {
+                      estimatedDisease = "🚨 Foot and Mouth Disease (FMD Virus)";
+                      protocolPriority = "CRITICAL BIOLOGICAL EMERGENCY (Strict Containment)";
+                      protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+                      colorKey = "red";
+                      primaryMed = "No direct cure. Support therapy: antiseptic foot washing, mild analgesics, oxytetracycline spray fields.";
+                      bioSteps = "Bar all visitors! Block all livestock movements. Dig deep pit for manure; sanitize tire tracks of outgoing feeds.";
+                    } else if (diagSymptom === 'bloody_waste') {
+                      estimatedDisease = "🚨 East Coast Fever (ECF - Tick Transmitted Protozoa)";
+                      protocolPriority = "CRITICAL (High Mortality Vet Alert)";
+                      protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+                      colorKey = "red";
+                      primaryMed = "Buparvaquone (Butalex) injection, plus Oxytetracycline LA.";
+                      bioSteps = "Intense systemic acaricide tick spraying/dip immediately for surrounding healthy herds.";
+                    } else if (diagSymptom === 'resp_green_poop') {
+                      estimatedDisease = "💀 Newcastle Disease or Gumboro / IBD Virus";
+                      protocolPriority = "CRITICAL (Extreme Virulence Layer Hazard)";
+                      protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+                      colorKey = "red";
+                      primaryMed = "No therapy available for active virus. Support with dynamic vitamins/electrolytes.";
+                      bioSteps = "Strictly incinerate or deep bury carcasses with quicklime. Sanitize brooder structures using formalin mist.";
+                    } else if (diagSymptom === 'bloody_chicks') {
+                      estimatedDisease = "🛡️ Avian Coccidiosis (Eimeria Parasite)";
+                      protocolPriority = "URGENT (Brooder Containment)";
+                      protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+                      colorKey = "amber";
+                      primaryMed = "Amprolium or Sulphaclozine-Sodium in drinking water for 5 continuous days.";
+                      bioSteps = "Eliminate wet wood shavings in brooders. Replace with clean, dry shavings. Keep drinker areas bone dry.";
+                    } else if (diagSymptom === 'soft_shells') {
+                      estimatedDisease = "⚠️ Egg Drop Syndrome or Calcium/D3 Starvation";
+                      protocolPriority = "NUTRITIONAL ADJUSTMENT";
+                      protocolColor = "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+                      colorKey = "cyan";
+                      primaryMed = "Continuous layer mash supplement feed, Oyster chalk grit, Dicalcium Phosphate (DCP).";
+                      bioSteps = "Isolate older heavy-pecking hens. Maintain clean nests and feed bins.";
+                    } else if (diagSymptom === 'skin_nodules') {
+                      estimatedDisease = "⚠️ Lumpy Skin Disease / Capripox Virus";
+                      protocolPriority = "URGENT isolate (Vector Spread danger)";
+                      protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+                      colorKey = "amber";
+                      primaryMed = "Broad spectrum antibiotics to control secondary bacterial invasion, wound antiseptics.";
+                      bioSteps = "Spray mosquito control fields. Block tick and fly contacts inside zero-grazing isolators.";
+                    } else if (diagSymptom === 'cough_wasting') {
+                      estimatedDisease = "🛡️ Contagious Caprine Pleuropneumonia (CCPP Mycoplasma)";
+                      protocolPriority = "URGENT respiratory control";
+                      protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+                      colorKey = "amber";
+                      primaryMed = "Oxytetracycline LA dose or Tylosin injections.";
+                      bioSteps = "Avoid crowding. Keep airflow vents high in the goat shelter. Disinfect saliva droplets.";
+                    }
+
+                    return (
+                      <div className={`p-4 border rounded-2xl ${protocolColor} space-y-3`}>
+                        <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                          <span className="text-[10px] uppercase font-black tracking-widest text-white">Advisory diagnostics</span>
+                          <span className="text-[9.5px] font-mono font-black uppercase text-yellow-300">{protocolPriority}</span>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <span className="text-[11px] uppercase font-bold text-slate-400 block">Symptomatic Estimation</span>
+                          <span className="text-sm font-black text-white">{estimatedDisease}</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <span className="text-[10px] uppercase font-extrabold text-slate-400 block mb-0.5">Primary Vet Prescription (SOP)</span>
+                            <span className="text-slate-100 font-medium">{primaryMed}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-extrabold text-slate-400 block mb-0.5">Urgent Biosecurity Step</span>
+                            <span className="text-slate-100 font-medium">{bioSteps}</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 text-[9.5px] font-bold text-yellow-300 flex items-center gap-1.5 border-t border-white/5">
+                          <span>⚠️</span>
+                          <span>Always authorize treatment choices with a certified veterinarian before dosage.</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* 3. VETERINARY MEDICATION SAFETY & DRUG WITHDRAWAL WIZARD */}
+                <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-4 shadow">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-emerald-600 font-extrabold text-white px-2.5 py-0.5 rounded uppercase tracking-wider">Product Safety Tracker</span>
+                    <h5 className="text-base font-black text-white flex items-center gap-1.5 mt-1">
+                      <span>🧪 Veterinary Drug Withdrawal Safety Indicator</span>
+                    </h5>
+                    <p className="text-slate-400 text-xs">Calculate milk and meat biosecurity countdowns to safeguard food standards.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Medication Category</label>
+                      <select
+                        value={withMedType}
+                        onChange={(e) => setWithMedType(e.target.value)}
+                        className="text-xs bg-slate-950 border border-slate-800 rounded-lg p-2.5 w-full text-white font-bold cursor-pointer"
+                      >
+                        <option value="antibiotic_pen">🛡️ Penicillin-Dihydrostreptomycin (3d Milk, 14d Meat)</option>
+                        <option value="antibiotic_tet">🛡️ Oxytetracycline LA (Alamycin) (5d Milk, 21d Meat)</option>
+                        <option value="dewormer_alben">🐛 Albendazole Dewormer (1d Milk, 10d Meat)</option>
+                        <option value="acaricide_dip">🕷️ Triatix/Coopers Acaricide Spray (0d Milk, 1d Meat)</option>
+                        <option value="sedative_xyl">💉 Xylazine / Vet Sedatives (1d Milk, 3d Meat)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Treatment Injection Date</label>
+                      <input
+                        type="date"
+                        value={withTreatDate}
+                        onChange={(e) => setWithTreatDate(e.target.value)}
+                        className="text-xs bg-slate-950 border border-slate-800 rounded-lg p-2.5 w-full text-white font-bold font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {(() => {
+                    // Extract withdrawal lengths
+                    let milkDays = 3;
+                    let meatDays = 14;
+                    let title = "Penicillin Block";
+
+                    if (withMedType === 'antibiotic_pen') {
+                      milkDays = 3; meatDays = 14; title = "Pen-Strep Antibiotic";
+                    } else if (withMedType === 'antibiotic_tet') {
+                      milkDays = 5; meatDays = 21; title = "Oxytetracycline LA";
+                    } else if (withMedType === 'dewormer_alben') {
+                      milkDays = 1; meatDays = 10; title = "Albendazole Dewormer";
+                    } else if (withMedType === 'acaricide_dip') {
+                      milkDays = 0; meatDays = 1; title = "Triatix Acaricide";
+                    } else if (withMedType === 'sedative_xyl') {
+                      milkDays = 1; meatDays = 3; title = "Xylazine Sedative";
+                    }
+
+                    // Compute dates
+                    const treatDateObj = new Date(withTreatDate);
+                    const milkClearDateObj = new Date(treatDateObj);
+                    milkClearDateObj.setDate(treatDateObj.getDate() + milkDays);
+
+                    const meatClearDateObj = new Date(treatDateObj);
+                    meatClearDateObj.setDate(treatDateObj.getDate() + meatDays);
+
+                    const todayObj = new Date();
+                    todayObj.setHours(0, 0, 0, 0);
+
+                    // Check if current date is cleared
+                    const isMilkCleared = todayObj >= milkClearDateObj;
+                    const isMeatCleared = todayObj >= meatClearDateObj;
+
+                    const formattedMilkDate = milkClearDateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const formattedMeatDate = meatClearDateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    // Count remaining days
+                    const msPerDay = 1000 * 60 * 60 * 24;
+                    const milkDaysRemaining = Math.max(0, Math.ceil((milkClearDateObj.getTime() - todayObj.getTime()) / msPerDay));
+                    const meatDaysRemaining = Math.max(0, Math.ceil((meatClearDateObj.getTime() - todayObj.getTime()) / msPerDay));
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Milk safety */}
+                        <div className={`p-4 border rounded-2xl ${isMilkCleared ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/40 bg-rose-500/10'} space-y-2`}>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] uppercase font-black text-slate-400">🥛 Milk Sales Safety</span>
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${isMilkCleared ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}`}>
+                              {isMilkCleared ? 'Cleared' : 'WITHDRAWN'}
+                            </span>
+                          </div>
+
+                          <div className="space-y-0.5">
+                            <span className="text-lg font-mono font-black text-white">{isMilkCleared ? '0' : milkDaysRemaining} Days left</span>
+                            <span className="text-[10px] text-slate-350 block font-bold">Clear date: {formattedMilkDate}</span>
+                          </div>
+
+                          <p className={`text-[10px] font-medium leading-relaxed ${isMilkCleared ? 'text-emerald-300' : 'text-rose-300'}`}>
+                            {isMilkCleared 
+                              ? "✔ Milk chemical residues are down. Safe to deliver to the dairy cooperative." 
+                              : `🔴 DISCARD! Milk has active antibiotic residues. Feeding calf is allowed, but do not sell to retail.`}
+                          </p>
+                        </div>
+
+                        {/* Meat safety */}
+                        <div className={`p-4 border rounded-2xl ${isMeatCleared ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/40 bg-rose-500/10'} space-y-2`}>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] uppercase font-black text-slate-400">🥩 Meat Slaughter Safety</span>
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${isMeatCleared ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}`}>
+                              {isMeatCleared ? 'Cleared' : 'WITHDRAWN'}
+                            </span>
+                          </div>
+
+                          <div className="space-y-0.5">
+                            <span className="text-lg font-mono font-black text-white">{isMeatCleared ? '0' : meatDaysRemaining} Days left</span>
+                            <span className="text-[10px] text-slate-350 block font-bold">Clear date: {formattedMeatDate}</span>
+                          </div>
+
+                          <p className={`text-[10px] font-medium leading-relaxed ${isMeatCleared ? 'text-emerald-300' : 'text-rose-300'}`}>
+                            {isMeatCleared 
+                              ? "✔ Meat tissues completely secure for packaging and direct slaughterhouse dispatch." 
+                              : `🔴 WARNING! Chemical withdrawals in muscle tissues are dangerous to consumer health.`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Quarantine register list with Add Form */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🩺 ISOLATED VET CASE HISTORY RECORD</span>
+                    </h5>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase mt-0.5">Biosecurity incident logs and clearing clearance codes</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setQuaShowAdd(!quaShowAdd)}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-rose-900 hover:bg-rose-950 text-white rounded-xl font-bold text-xs uppercase tracking-wider m-0 shadow cursor-pointer transition-all"
+                    >
+                      <Plus size={14} />
+                      Register Quarantine Isolate
+                    </button>
+                    {onTriggerSectionReport && (
+                      <button
+                        onClick={() => onTriggerSectionReport('quarantine')}
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-705 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                      >
+                        <Printer size={13} />
+                        Print Report
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {quaShowAdd && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const id = `qua-${Math.floor(1000 + Math.random() * 9000).toString()}`;
+                      const newRec: QuarantineRecord = {
+                        id,
+                        animalType: quaType,
+                        animalTagOrBatch: quaTag,
+                        dateStarted: quaDateStart,
+                        dateScheduledEnd: quaDateEnd || quaDateStart,
+                        quarantineReason: quaReason,
+                        symptomsObserved: quaSymptoms,
+                        quarantineStatus: quaStatus,
+                        vetInCharge: quaVet || 'Unassigned',
+                        notes: quaNotes
+                      };
+
+                      if (onAddQuarantine) {
+                        onAddQuarantine(newRec);
+                        setQuaShowAdd(false);
+                        setQuaTag('');
+                        setQuaNotes('');
+                        setQuaReason('');
+                        setQuaVet('');
+                      }
+                    }}
+                    className="p-6 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+                  >
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Species</label>
+                      <select
+                        value={quaType}
+                        onChange={(e) => setQuaType(e.target.value as any)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Cow">Cattle / Cows</option>
+                        <option value="Goat">Goat</option>
+                        <option value="Calf">Young calf</option>
+                        <option value="Poultry">Poultry bird</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Other">Other Species</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Tag ID / Cow Code Name</label>
+                      <input
+                        type="text"
+                        placeholder="E.g. Tag NYO-432"
+                        required
+                        value={quaTag}
+                        onChange={(e) => setQuaTag(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date Isolation Started</label>
+                      <input
+                        type="date"
+                        required
+                        value={quaDateStart}
+                        onChange={(e) => setQuaDateStart(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Expected Clearing Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={quaDateEnd}
+                        onChange={(e) => setQuaDateEnd(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Primary Isolation Cause / Reason</label>
+                      <input
+                        type="text"
+                        placeholder="E.g. New purchase quarantine, Foot and Mouth suspect"
+                        required
+                        value={quaReason}
+                        onChange={(e) => setQuaReason(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Active Symptoms Observed</label>
+                      <input
+                        type="text"
+                        placeholder="Fever, cough, diarrhea, or None"
+                        value={quaSymptoms}
+                        onChange={(e) => setQuaSymptoms(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Active Quarantine Status</label>
+                      <select
+                        value={quaStatus}
+                        onChange={(e) => setQuaStatus(e.target.value as any)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Strict Isolation">Strict Isolation (Absolute confinement)</option>
+                        <option value="Under Observation">Under Observation (Testing ongoing)</option>
+                        <option value="Cleared & Released">Cleared & Released (Approved merger)</option>
+                        <option value="Failed & Culled">Failed & Culled (Euthanized/Sold)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Attending Veterinarian Name</label>
+                      <input
+                        type="text"
+                        placeholder="Dr. Ronald Nyamira Range"
+                        value={quaVet}
+                        onChange={(e) => setQuaVet(e.target.value)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div className="bg-[#fef2f2] text-rose-950 p-3.5 border border-rose-200 rounded-xl flex flex-col justify-between">
+                      <span className="text-[10px] font-black text-rose-900 uppercase">Milking Security Warning</span>
+                      <p className="text-[10.5px] text-slate-700 leading-snug">
+                        Keep isolates thoroughly locked from direct physical or water access with healthy herds! Use separate gloves.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Vet prescription / Treatment actions notes</label>
+                      <textarea
+                        rows={2}
+                        value={quaNotes}
+                        onChange={(e) => setQuaNotes(e.target.value)}
+                        placeholder="Antibiotic doses administered, blood sample taken on Tuesday."
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      />
+                    </div>
+
+                    <div className="md:col-span-3 flex justify-end gap-2 border-t pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuaShowAdd(false)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer m-0"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 bg-slate-900 hover:bg-slate-850 text-white rounded-lg text-xs font-bold uppercase transition-all shadow cursor-pointer m-0"
+                      >
+                        Register Isolated Animal
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="grid grid-cols-1 gap-4">
+                  {quarantineRecords.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                      No current animals in veterinary quarantine.
+                    </div>
+                  ) : (
+                    quarantineRecords.map((item) => {
+                      const isCleared = item.quarantineStatus === 'Cleared & Released';
+
+                      return (
+                        <div key={item.id} className="p-5 border border-slate-150 rounded-2xl bg-slate-50/20 hover:bg-slate-50 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                          <div className="space-y-1.5 flex-1 w-full">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono bg-rose-900 text-white text-[10px] px-2.5 py-0.5 rounded font-black uppercase">
+                                {item.id}
+                              </span>
+                              <span className="text-sm font-black text-slate-900">
+                                Species: {item.animalType} (Ear-Tag {item.animalTagOrBatch})
+                              </span>
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                                isCleared ? 'bg-green-150 text-green-950' : 'bg-rose-100 text-rose-850'
+                              }`}>
+                                {item.quarantineStatus}
+                              </span>
+                              <span className="text-[10px] font-mono font-bold text-slate-501">
+                                Started: {item.dateStarted}
+                              </span>
+                              {item.dateScheduledEnd && (
+                                <span className="text-[10px] font-mono font-bold text-slate-501">
+                                  Expected Release: {item.dateScheduledEnd}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Isolation Reason</span>
+                                <span className="text-xs font-bold text-rose-950">
+                                  {item.quarantineReason}
+                                </span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Symptoms Logged</span>
+                                <span className="text-xs font-medium text-slate-700">
+                                  {item.symptomsObserved}
+                                </span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                                <span className="text-[9px] font-black text-slate-400 block uppercase">Attending Veterinarian</span>
+                                <span className="text-xs font-bold text-slate-800">
+                                  🩺 {item.vetInCharge || 'Unassigned Local Scout'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 italic mt-1 bg-white p-2.5 rounded-xl border border-slate-100">
+                              " {item.notes} "
+                            </p>
+                          </div>
+
+                          {onDeleteQuarantine && (
+                            <button
+                              onClick={() => onDeleteQuarantine(item.id)}
+                              className="text-slate-300 hover:text-red-700 p-2.5 rounded-lg border hover:border-red-100/80 bg-white shadow-xs cursor-pointer m-0 transition-colors"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* SUBTAB 2A: POULTRY & CANINES COOPERATIVE */}
           {livestockSubTab === 'poultry_dogs' && (
@@ -2254,6 +4276,159 @@ export function OtherSections({
           {/* SUBTAB 2C: CALF LIFESPAN FLOW PILES */}
           {livestockSubTab === 'calves' && (
             <div className="space-y-6">
+              {/* BRAND NEW: EDUCATIONAL & INTERACTIVE CALF WEANING REGISTER ADVISER */}
+              <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-indigo-950 text-white p-6 rounded-3xl space-y-6 shadow-xl border border-slate-800">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9.5px] bg-emerald-500 font-extrabold text-slate-950 px-2.5 py-0.5 rounded uppercase tracking-wider">Veterinary Rearing & Growth Science</span>
+                      <span className="text-[9.5px] bg-slate-800 text-slate-350 border border-slate-705 px-2 py-0.5 rounded uppercase font-bold">Interactive Weaning Targetizer</span>
+                    </div>
+                    <h4 className="text-lg font-black text-white flex items-center gap-2">
+                      <span>🍼 Calving & Optimal Weaning weight Advisor</span>
+                    </h4>
+                    <p className="text-xs text-slate-300 leading-relaxed max-w-2xl font-bold">
+                      Maximize heifer puberty growth, rumen papillae development, and immunity transfer. Standard dairy guidelines recommend weaning calves once they double their birth weight and consume at least 1.5 KG of calf starter pellets daily.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Interactive Inputs */}
+                  <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-4">
+                    <span className="text-[10px] uppercase font-black text-emerald-400 tracking-wider">Weaning Sim Configuration</span>
+                    
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">
+                        Calf Birth Weight: <span className="font-mono text-emerald-400 font-extrabold">{calfBirthWeight} KG</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="25"
+                        max="50"
+                        step="1"
+                        value={calfBirthWeight}
+                        onChange={(e) => setCalfBirthWeight(parseInt(e.target.value))}
+                        className="w-full accent-emerald-550 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">
+                        Target Weaning Age: <span className="font-mono text-emerald-400 font-extrabold">{calfTargetAgeWeeks} Weeks ({calfTargetAgeWeeks * 7} Days)</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="6"
+                        max="16"
+                        step="1"
+                        value={calfTargetAgeWeeks}
+                        onChange={(e) => setCalfTargetAgeWeeks(parseInt(e.target.value))}
+                        className="w-full accent-emerald-550 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculations */}
+                  <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">Calculated Milestones</span>
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs leading-none">
+                        <div>
+                          <span className="text-[9px] text-slate-450 block uppercase font-bold">Birth weight</span>
+                          <span className="text-sm font-extrabold text-white mt-1 block">{calfBirthWeight} KG</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-450 block uppercase font-bold">Target Weaning Weight</span>
+                          <span className="text-sm font-extrabold text-emerald-400 mt-1 block">{calfBirthWeight * 2} KG</span>
+                        </div>
+                        <div className="col-span-2 pt-2 border-t border-slate-800/80">
+                          <span className="text-[9px] text-slate-455 text-slate-400 block uppercase font-bold">Total Gain Required</span>
+                          <span className="text-sm font-extrabold text-white mt-1 block">{calfBirthWeight} KG</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800">
+                      <span className="text-[9px] font-black text-indigo-300 block uppercase mb-1">Target Average Daily Gain (ADG)</span>
+                      <div className="text-2xl font-black text-white font-mono tracking-tight leading-none">
+                        {((calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000).toFixed(0)} <span className="text-xs text-slate-400 font-sans uppercase font-extrabold">g / Day</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* dynamic feeding advisor based on ADG */}
+                  <div className="bg-slate-850 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between text-xs font-semibold leading-relaxed">
+                    <div>
+                      <span className="text-[10px] uppercase font-black text-yellow-405 text-yellow-400 block mb-2">🌿 ADG FEED RECOMMENDATION</span>
+                      {(() => {
+                        const adg = (calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000;
+                        if (adg > 650) {
+                          return (
+                            <p className="text-slate-300">
+                              <strong>High Performance:</strong> To achieve over <span className="text-white">650g/day</span>, feed colostrum early (within 2h). Administer premium <strong>Creep Starter pellets</strong> (at least 20% Crude Protein) beginning day 10. Limit fiber intake until rumen is matured.
+                            </p>
+                          );
+                        } else if (adg > 500) {
+                          return (
+                            <p className="text-slate-300">
+                              <strong>Steady Moderate ADG:</strong> Requires feeding at least 4-5 Liters whole clean milk daily (at 38°C) split into two feeds. Keep dry starter grains free choice with plenty of clean water to initiate rumen fermentation.
+                            </p>
+                          );
+                        } else {
+                          return (
+                            <p className="text-slate-300">
+                              <strong>Gradual Growth Plan:</strong> Feed 4 Liters milk daily. Rumen development will be slower; ensure calf has constant access to mineral salt block and young tender Rhodes grass leaf (avoid tough stalks).
+                            </p>
+                          );
+                        }
+                      })()}
+                    </div>
+                    <div className="text-[10.5px] bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-yellow-300 mt-2">
+                       💡 <strong>Rule of thumb:</strong> Do NOT wean by age alone. Wean only when the calf eats 1.5 KG of dry calf starter pellet daily for 3 consecutive days.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Educational Bento Feed Timeline */}
+                <div className="border-t border-slate-850 pt-5 space-y-3">
+                  <span className="text-[10px] uppercase font-black text-slate-405 text-slate-400 tracking-wider block">Optimal Calf Feeding Weaning Protocol Timeline</span>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium leading-relaxed text-slate-300">
+                    <div className="bg-slate-900/40 p-4 border border-slate-800/80 rounded-2xl space-y-2">
+                      <span className="text-[9.5px] bg-amber-500/10 text-amber-300 font-extrabold px-2 py-0.5 rounded block uppercase w-fit">Days 1 - 3</span>
+                      <h5 className="font-extrabold text-white text-xs">The Colostrum Shield</h5>
+                      <p className="text-[11px] leading-snug">
+                        Feed colostrum equal to <strong>10% of birth weight</strong> (e.g. 3.5L for a 35kg calf) within 2 hours of birth. This transfers crucial maternal antibodies before gut closure.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-900/40 p-4 border border-slate-800/80 rounded-2xl space-y-2">
+                      <span className="text-[9.5px] bg-emerald-500/10 text-emerald-300 font-extrabold px-2 py-0.5 rounded block uppercase w-fit">Weeks 2 - 8</span>
+                      <h5 className="font-extrabold text-white text-xs">Liquid Milk & Starter</h5>
+                      <p className="text-[11px] leading-snug">
+                        Feed 5-6 Liters milk daily (divided in two). Introduce sweet <strong>Calf Starter Creep Meal</strong> (18-20% crude protein) from day 10. Grain fermentation produces butyrate to grow rumen papillae.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-900/40 p-4 border border-slate-800/80 rounded-2xl space-y-2">
+                      <span className="text-[9.5px] bg-blue-500/10 text-blue-300 font-extrabold px-2 py-0.5 rounded block uppercase w-fit">Weeks 9 - 10</span>
+                      <h5 className="font-extrabold text-white text-xs">Milk Deceleration</h5>
+                      <p className="text-[11px] leading-snug">
+                        Once starter feed intake reaches 1.0 KG daily, cut milk volume by half (single morning feeds of 2-3 Liters). This triggers the calf to eat search alternative nutrition form of dry starter.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-900/40 p-4 border border-slate-800/80 rounded-2xl space-y-2">
+                      <span className="text-[9.5px] bg-indigo-500/10 text-indigo-300 font-extrabold px-2 py-0.5 rounded block uppercase w-fit">Weeks 11+</span>
+                      <h5 className="font-extrabold text-white text-xs">Weaning Complete</h5>
+                      <p className="text-[11px] leading-snug">
+                        Stop milk entirely once the calf consumes 1.5 KG dry starter pellets. Complete transition to weaner pellets, fine legumes, and unlimited clean dry water.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center bg-white/20 px-1 font-bold">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Liquid-fed Calves pipeline</span>
                 <div className="flex items-center gap-2">
@@ -2560,6 +4735,42 @@ export function OtherSections({
                     <h5 className="text-xs font-black uppercase tracking-wider text-zinc-900">Log Insect Grubs Batch & Protein Cycle</h5>
                     <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Track eggs inoculation, larvae size harvested, and dates</p>
                   </div>
+
+                  {/* BSF Quick Presets */}
+                  <div className="p-3.5 bg-amber-50/50 border border-amber-200/60 rounded-2xl space-y-2">
+                    <span className="text-[9.5px] uppercase font-black text-amber-800 tracking-wider flex items-center gap-1">
+                      👑 SECURE BSF COMPREHENSIVE BIOMASS PRESETS
+                    </span>
+                    <p className="text-[10.5px] text-slate-600 leading-tight">Click one to pre-fill standard protein recycling substrate ratios:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                      {[
+                        { label: '🥑 Avocado Pulp Eco-cycle', substrate: 'Waste Avocado skins & discarded pulp seeds', target: 'BSF-AVO-RECYCLE', larvae: 4.5, status: 'Harvest' as const, notes: 'Thermophilic digestion of lipids inside avocado waste' },
+                        { label: '🌽 Maize Germ Sweepings', substrate: 'Maize germ floor sweepings & bran husk mix', target: 'BSF-MAIZE-BRAN', larvae: 2.8, status: 'Harvest' as const, notes: 'Dry carbohydrate substrate inoculation with high weight return' },
+                        { label: '🌾 Brewers Spent Grain', substrate: 'Spent malted barley grain from local micro-breweries', target: 'BSF-BREW-MALT', larvae: 5.2, status: 'Harvest' as const, notes: 'Highly pre-digested nitrogen-rich substrate with peak pupae outcomes' }
+                      ].map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            const code = `${preset.target}-${Math.floor(100 + Math.random() * 900)}`;
+                            setBsBatchId(code);
+                            setBsSubstrate(preset.substrate);
+                            setBsLarvae(preset.larvae);
+                            setBsStatus(preset.status);
+                            setBsNotes(preset.notes);
+                            const prevDate = new Date();
+                            prevDate.setDate(prevDate.getDate() - 14);
+                            setBsInoculation(prevDate.toISOString().split('T')[0]);
+                          }}
+                          className="text-left bg-white hover:bg-amber-50 p-2.5 rounded-xl border border-slate-200 hover:border-amber-350 text-[10.5px] text-slate-700 transition-all font-bold m-0 flex flex-col justify-between cursor-pointer shadow-xs"
+                        >
+                          <span className="text-slate-900 font-extrabold truncate">{preset.label}</span>
+                          <span className="text-[9px] text-amber-700 font-mono mt-0.5 font-bold">Inoculate: ~14d cycle • {preset.larvae} KG</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Batch ID Code</label>
@@ -2717,11 +4928,24 @@ export function OtherSections({
 
               {/* Feed Display Container */}
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b">
-                  <h5 className="text-xs font-black uppercase tracking-wider text-slate-800">Operational Timeline Feed</h5>
-                  <div className="text-[11px] font-mono text-slate-400 font-bold">
-                    Showing operations across past, present, and future scheduled tasks.
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b w-full">
+                  <div className="flex flex-col">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-slate-800">Operational Timeline Feed</h5>
+                    <div className="text-[11px] font-mono text-slate-400 font-bold mt-0.5">
+                      Showing operations across past, present, and future scheduled tasks.
+                    </div>
                   </div>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('livestock')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-[10px] uppercase rounded-lg transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Livestock Operations Report"
+                    >
+                      <Printer size={12} />
+                      Print Feed Report
+                    </button>
+                  )}
                 </div>
 
                 {/* Combined Operations Feed Item mapper */}
@@ -2885,9 +5109,20 @@ export function OtherSections({
               </div>
 
               {/* Action Buttons to trigger Adding forms */}
-              <div className="flex bg-slate-100 p-1.5 rounded-2xl border justify-between items-center w-full">
+              <div className="flex flex-col md:flex-row bg-slate-100 p-1.5 rounded-2xl border justify-between items-center w-full gap-2 md:gap-0">
                 <span className="text-[10px] font-black text-slate-405 uppercase tracking-widest block ml-2">Add Sales Event / Mortality drop</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-end">
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('livestock')}
+                      type="button"
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                      title="Download Livestock Sales & Mortality Report"
+                    >
+                      <Printer size={13} />
+                      Report
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowAddForm(!showAddForm); setAsCategory('Poultry'); }}
                     className="bg-emerald-900 text-white font-black text-xs uppercase px-4 py-2.5 rounded-xl hover:bg-emerald-805 flex items-center gap-1.5 m-0"

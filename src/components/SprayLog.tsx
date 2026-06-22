@@ -149,6 +149,48 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
             <p className="text-xs text-slate-400 mt-1 font-medium">Log active block fungicide/pesticide sprays</p>
           </div>
 
+          {/* Quick IPM & Pest Solution Presets */}
+          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 space-y-2">
+            <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider flex items-center gap-1">
+              <Sparkles size={11} className="text-amber-500 animate-pulse" />
+              Quick IPM Presets (Pest Control)
+            </span>
+            <p className="text-[10px] text-slate-500 leading-tight">Click to instant-populate standard GlobalGAP treatment guidelines:</p>
+            <div className="flex flex-col gap-1.5 pt-1">
+              {[
+                { label: '🥑 Avocado: Fruit Fly', block: 'Avocado Block B', chemical: 'Methyl Eugenol Pheromone Trap', phi: 0, target: 'Bactrocera dorsalis Fruit Fly' },
+                { label: '🌱 Tea: Red Mites', block: 'Tea Sector South', chemical: 'Wettable Sulphur formulation', phi: 3, target: 'Oligonychus coffeae Red Mites' },
+                { label: '🌽 Maize: Armyworm', block: 'Maize Block Flat-B', chemical: 'Pyrethrum-based Organic Bio-Spray', phi: 7, target: 'Spodoptera frugiperda Armyworm' },
+                { label: '🌾 Rhodes: Rust', block: 'Meadow Flat Block C', chemical: 'Copper Oxychloride (Copper Fungicide)', phi: 14, target: 'Puccinia graminis leaf rust' },
+                { label: '🍅 Vegetables: Whitefly', block: 'Greenhouse Section A', chemical: 'Acetamiprid Whitefly blocker', phi: 7, target: 'Bemisia tabaci whiteflies' }
+              ].map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setBlock(p.block);
+                    setChemical(p.chemical);
+                    setPhi(p.phi);
+                    setTarget(p.target);
+                    // Trigger next date calculations
+                    const baseDate = new Date(sprayDate);
+                    const safeDateObj = new Date(baseDate);
+                    safeDateObj.setDate(safeDateObj.getDate() + p.phi);
+                    if (typeof intervalDays === 'number') {
+                      const nextObj = new Date(baseDate);
+                      nextObj.setDate(nextObj.getDate() + intervalDays);
+                      setNextSprayDate(nextObj.toISOString().split('T')[0]);
+                    }
+                  }}
+                  className="w-full text-left bg-white hover:bg-slate-100 p-2 rounded-xl border border-slate-200/80 hover:border-slate-350 text-[11px] font-bold text-slate-700 transition-all flex justify-between items-center cursor-pointer m-0"
+                >
+                  <span className="truncate">{p.label}</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">PHI {p.phi}d</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Target Treatment Block</label>

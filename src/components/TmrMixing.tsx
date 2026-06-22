@@ -4,9 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { Truck, Scale, Sparkles, Check, Trash2, ClipboardCheck, Activity, Calendar, FlaskConical, RefreshCw, Layers } from 'lucide-react';
+import { Truck, Scale, Sparkles, Check, Trash2, ClipboardCheck, Activity, Calendar, FlaskConical, RefreshCw, Layers, Printer } from 'lucide-react';
 
-export function TmrMixing() {
+interface TmrMixingProps {
+  onTriggerSectionReport?: (sectionKey: string) => void;
+}
+
+export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
   const [sorghum, setSorghum] = useState<number>(20);
   const [napier, setNapier] = useState<number>(15);
   const [rhodes, setRhodes] = useState<number>(3);
@@ -157,14 +161,27 @@ export function TmrMixing() {
           </div>
         </div>
 
-        {/* Real-time synchronization banner trigger */}
-        <button
-          onClick={handleReloadFormula}
-          className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer m-0 shrink-0"
-        >
-          <RefreshCw size={13} className="text-emerald-800" />
-          <span>Sync Lab Formula</span>
-        </button>
+        {/* Real-time synchronization and print controls */}
+        <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
+          <button
+            onClick={handleReloadFormula}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-105 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer m-0"
+          >
+            <RefreshCw size={13} className="text-emerald-800" />
+            <span>Sync Lab Formula</span>
+          </button>
+          {onTriggerSectionReport && (
+            <button
+              onClick={() => onTriggerSectionReport('inventory')}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-805 text-white rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-slate-800"
+              title="Download TMR & Inventory Report"
+            >
+              <Printer size={13} />
+              Report
+            </button>
+          )}
+        </div>
       </div>
 
       {syncFeedback && (

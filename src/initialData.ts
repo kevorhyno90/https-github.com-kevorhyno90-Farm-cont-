@@ -298,6 +298,15 @@ export const INITIAL_FIELDS: FieldRecord[] = [
     status: 'Growing',
     notes: 'Tree count ~1400. Excellent windbreaker barrier for avocado orchard.',
     date: getRelativeDate(-30)
+  },
+  {
+    id: 'fld-4',
+    blockName: 'Meadow Flat Block C',
+    cropType: 'Boma Rhodes',
+    acreage: 2.2,
+    status: 'Growing',
+    notes: 'Premium high-protein forage grass. Scheduled for cutting and baling in 2 weeks.',
+    date: getRelativeDate(-10)
   }
 ];
 

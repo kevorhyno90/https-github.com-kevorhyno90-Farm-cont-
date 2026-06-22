@@ -517,6 +517,7 @@ export function Financials({
                       <option value="Milk Sale">Brookside Milk Deliveries</option>
                       <option value="Tea Sale">KTDA Tea Bonus/Advances</option>
                       <option value="Avocado Sale">Avocado Export Payout</option>
+                      <option value="Boma Rhodes Sale">Boma Rhodes Hay Sale 🌾</option>
                       <option value="Poultry / Eggs">Flock Egg Trays Sale</option>
                       <option value="Crops Sale">Fields / Timber / Bananas</option>
                       <option value="Other Revenue">Other Miscellaneous</option>

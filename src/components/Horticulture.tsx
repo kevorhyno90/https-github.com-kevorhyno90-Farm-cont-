@@ -104,6 +104,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
   const [priceReject, setPriceReject] = useState<number | ''>(38);   // per KG
   const [avoBuyer, setAvoBuyer] = useState('Kakuzi Agribusiness Exporters');
   const [avoDate, setAvoDate] = useState(new Date().toISOString().split('T')[0]);
+  const [boxWeightKg, setBoxWeightKg] = useState<number>(10); // average weight of export box/crate (KGs)
 
   // GlobalGAP/KEPHIS Interactive Label Builder states
   const [selectedLotRef, setSelectedLotRef] = useState('');
@@ -156,7 +157,12 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
       priceGradeB: pB,
       priceReject: pR,
       buyer: buyVal,
-      totalSales: (ga * pA) + (gb * pB) + (rj * pR)
+      totalSales: (ga * pA) + (gb * pB) + (rj * pR),
+      boxWeightKg: boxWeightKg,
+      weightKgA: ga * boxWeightKg,
+      weightKgB: gb * boxWeightKg,
+      pricePerKgA: Number((pA / boxWeightKg).toFixed(2)),
+      pricePerKgB: Number((pB / boxWeightKg).toFixed(2))
     });
     setGradeA('');
     setGradeB('');
@@ -471,6 +477,26 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               />
             </div>
             <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Crate/Box Net Weight (KG)</label>
+              <input
+                type="number"
+                required
+                min="1"
+                max="100"
+                value={boxWeightKg}
+                onChange={(e) => setBoxWeightKg(Math.max(1, parseInt(e.target.value) || 1))}
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-emerald-50 text-emerald-950"
+              />
+            </div>
+            <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex flex-col justify-center">
+              <span className="text-[9px] font-black text-emerald-900 uppercase">Calculated Grade Prices Per KG</span>
+              <span className="text-[11px] font-mono font-bold text-slate-700 leading-tight">
+                Grade A: <strong className="text-emerald-800">Ksh {priceGradeA && boxWeightKg ? (priceGradeA / boxWeightKg).toFixed(1) : 0}/KG</strong>
+                <br />
+                Grade B: <strong className="text-emerald-800">Ksh {priceGradeB && boxWeightKg ? (priceGradeB / boxWeightKg).toFixed(1) : 0}/KG</strong>
+              </span>
+            </div>
+            <div>
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Shipping Ref</label>
               <input
                 type="text"
@@ -548,6 +574,11 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                 const pR = item.priceReject ?? 38;
                 const totVal = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
                 const buyer = item.buyer ?? 'Kakuzi Agribusiness Exporters';
+                const bWt = item.boxWeightKg ?? 10;
+                const pricePerKgA = item.pricePerKgA ?? (pA / bWt);
+                const pricePerKgB = item.pricePerKgB ?? (pB / bWt);
+                const weightKgA = item.weightKgA ?? (item.gradeA * bWt);
+                const weightKgB = item.weightKgB ?? (item.gradeB * bWt);
 
                 return (
                   <div key={idx} className="p-4 border border-slate-150 rounded-2xl bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs mb-3 hover:bg-slate-50 transition-all">
@@ -562,9 +593,9 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                         Exporter: {buyer}
                       </p>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-500 font-medium">
-                        <span>A: <strong>{item.gradeA}</strong> Box (Ksh {pA}/bx)</span>
+                        <span>A: <strong>{item.gradeA}</strong> Box ({weightKgA} KG @ <strong className="text-emerald-800">Ksh {pricePerKgA.toFixed(1)}/kg</strong>)</span>
                         <span>•</span>
-                        <span>B: <strong>{item.gradeB}</strong> Box (Ksh {pB}/bx)</span>
+                        <span>B: <strong>{item.gradeB}</strong> Box ({weightKgB} KG @ <strong className="text-emerald-800">Ksh {pricePerKgB.toFixed(1)}/kg</strong>)</span>
                         <span>•</span>
                         <span>Reject: <strong>{item.reject}</strong> KG (Ksh {pR}/kg)</span>
                       </div>

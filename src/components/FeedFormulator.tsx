@@ -5,12 +5,13 @@
 
 import React, { useState } from 'react';
 import { Ingredient } from '../types';
-import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles } from 'lucide-react';
+import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles, Printer } from 'lucide-react';
 
 interface FeedFormulatorProps {
   ingredients: Ingredient[];
   onAddIngredientToLib: (ing: Ingredient) => void;
   onDeleteIngredientToLib: (name: string) => void;
+  onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
 // Expanded Targets & Presets including poultry, calves, ducks, and various dairy classes
@@ -262,7 +263,100 @@ const generate500Ingredients = (customIngredients: Ingredient[]): Ingredient[] =
   return list;
 };
 
-export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngredientToLib }: FeedFormulatorProps) {
+const ANIMAL_NUTRITION_STANDARDS = [
+  {
+    grp: "Dairy",
+    stage: "Peak Lactation Cow (0-100 Days)",
+    desc: "First stage of milking with maximum yield requirements. Demands high protein to prevent body-fat depletion (negative energy balance) and sustain top daily output levels.",
+    cpRange: "18.5% - 20.0%",
+    meRange: "11.5 - 12.0 MJ/kg",
+    intake: "16 - 20 kg DM/day",
+    ingredients: "Soya Bean Meal, Maize Germ, Cotton Cake, DCP Mineral, Maize Silage, Lucerne Hay"
+  },
+  {
+    grp: "Dairy",
+    stage: "Mid Lactation Cow (101-200 Days)",
+    desc: "Winding down peak performance. Milk yield stabilizes. Maintain energy to support pregnancy re-conception while preventing excessive weight gain.",
+    cpRange: "15.5% - 17.0%",
+    meRange: "10.5 - 11.2 MJ/kg",
+    intake: "14 - 17 kg DM/day",
+    ingredients: "Wheat Pollard Base, Maize Silage, Cotton Seed Cake, Napier Grass, Premium Minerals"
+  },
+  {
+    grp: "Dairy",
+    stage: "Dry Cow Maintenance",
+    desc: "Mandatory rest period (approx. 60 days pre-calving) to regenerate milk-secreting tissue. Keep protein and calcium moderate to avoid metabolic fever upon calving.",
+    cpRange: "11.5% - 13.0%",
+    meRange: "8.5 - 9.5 MJ/kg",
+    intake: "10 - 12 kg DM/day",
+    ingredients: "Boma Rhodes Hay, Wheat Pollard Base, Oat Forage, Soda-Phos Buffer Minerals"
+  },
+  {
+    grp: "Dairy",
+    stage: "Growing Heifers (Yearlings)",
+    desc: "Immature female cows progressing towards first service. Needs balanced nutrition to support skeleton frame development and lean muscle tissue without fattening udders.",
+    cpRange: "14.0% - 15.5%",
+    meRange: "9.8 - 10.5 MJ/kg",
+    intake: "8 - 10 kg DM/day",
+    ingredients: "Lucerne Hay Hay, Wheat Pollard, Cotton Cake, Sweet Potato Vines, DCP"
+  },
+  {
+    grp: "Dairy",
+    stage: "Fattening Beef Steers",
+    desc: "Male cattle growing continuously for meat production. Requires high energy starch finishes to accelerate intramuscular marbling and weight gain scores.",
+    cpRange: "12.5% - 13.8%",
+    meRange: "11.0 - 11.8 MJ/kg",
+    intake: "9 - 11 kg DM/day",
+    ingredients: "Maize Germ Meal, Brewer's Spent Grain, Molasses, Vet Spray checks"
+  },
+  {
+    grp: "Poultry",
+    stage: "Poultry Layers (Active Laying)",
+    desc: "Hens producing marketable table eggs. Extremely high requirement for Calcium and Crude Protein to ensure correct egg size and dynamic shell thickness strength.",
+    cpRange: "17.5% - 18.5%",
+    meRange: "11.0 - 11.5 MJ/kg",
+    intake: "110g - 125g / day",
+    ingredients: "Lime/Limestone, Soya Meal, Oyster Shell Premium, Sunflower Cakes, Fish Meal"
+  },
+  {
+    grp: "Poultry",
+    stage: "Poultry Broiler Finisher",
+    desc: "Fast-growing meat birds in final market stages. Energy demands are extreme to maximize breast meat percentage ratios and fat yield parameters.",
+    cpRange: "19.5% - 21.0%",
+    meRange: "12.0 - 12.6 MJ/kg",
+    intake: "130g - 160g / day",
+    ingredients: "Maize Germ Meal, Premium Soya Bean Meal, Fish Meal (60% Protein), Broiler Booster"
+  },
+  {
+    grp: "Poultry",
+    stage: "Kienyeji / Free-Range Chicken",
+    desc: "Improved and indigenous free-roaming hens. Resilient and adaptable but require balanced supplement mash to significantly improve egg laying frequency.",
+    cpRange: "14.5% - 16.0%",
+    meRange: "10.0 - 10.8 MJ/kg",
+    intake: "95g - 115g / day",
+    ingredients: "Wheat Pollard, Maize Germ, Sunflower Seed Cake, Limestone Powder"
+  },
+  {
+    grp: "Calves",
+    stage: "Young Calves (Starter Phase)",
+    desc: "Delicate weaning phase (0-3 months) developing rumen capacity. Highly digestible protein sources prevent diarrhea while encouraging skeletal posture.",
+    cpRange: "18.0% - 19.5%",
+    meRange: "11.5 - 12.2 MJ/kg",
+    intake: "1.0 - 2.5 kg DM/day",
+    ingredients: "Toddler Calf Tonic, Soya Bean Meal, Maize Germ Meal, Fine Limestone Grit"
+  },
+  {
+    grp: "Ducks",
+    stage: "Laying Ducks complete",
+    desc: "Laying ducks have slightly higher niacin and water-solubles requirements than chickens, and demand coarse grits to withstand continuous eggshell release schedules.",
+    cpRange: "17.0% - 18.0%",
+    meRange: "10.5 - 11.0 MJ/kg",
+    intake: "150g - 190g / day",
+    ingredients: "Lime Powder, Soya Bean, Fish Meal, Oyster Shell Premium, Rice Bran"
+  }
+];
+
+export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngredientToLib, onTriggerSectionReport }: FeedFormulatorProps) {
   // New laboratory ingredient state
   const [libName, setLibName] = useState('');
   const [libCp, setLibCp] = useState<number | ''>('');
@@ -270,17 +364,95 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
   const [libCost, setLibCost] = useState<number | ''>('');
   const [libCategory, setLibCategory] = useState<'Fodder' | 'Concentrate' | 'Mineral' | 'Poultry' | 'Calf' | 'Duck'>('Fodder');
 
+  // Animal Requirements tab state
+  const [requirementsTab, setRequirementsTab] = useState<'All' | 'Dairy' | 'Poultry' | 'Calves' | 'Ducks'>('All');
+
   // Library searching states
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<'All' | 'Fodder' | 'Concentrate' | 'Mineral' | 'Poultry' | 'Calf' | 'Duck'>('All');
+  const [visibleCount, setVisibleCount] = useState(30);
+
+  React.useEffect(() => {
+    setVisibleCount(30);
+  }, [searchQuery, activeCategoryFilter]);
 
   // Target Preset Tab selection
   const [activePresetTab, setActivePresetTab] = useState<'dairy' | 'poultry' | 'calves' | 'ducks'>('dairy');
+
+  // Formulation modes: 'sandbox' (manual entry) vs 'lcf' (least-cost formulation optimizer)
+  const [formulationMode, setFormulationMode] = useState<'sandbox' | 'lcf'>('sandbox');
+
+  // Least Cost Feed Formulation (LCF) states
+  const [lcfTargetCp, setLcfTargetCp] = useState<number>(18.0);
+  const [lcfTargetMe, setLcfTargetMe] = useState<number>(11.5);
+  const [lcfCandidates, setLcfCandidates] = useState<{ name: string; cp: number; me: number; cost: number; minLimit: number; maxLimit: number; enabled: boolean }[]>([
+    { name: 'Maize Germ Meal', cp: 11.0, me: 12.0, cost: 35, minLimit: 10, maxLimit: 60, enabled: true },
+    { name: 'Soya Bean Meal (Solvent)', cp: 44.0, me: 13.5, cost: 95, minLimit: 5, maxLimit: 30, enabled: true },
+    { name: 'Wheat Pollard Base', cp: 15.0, me: 11.5, cost: 32, minLimit: 10, maxLimit: 40, enabled: true },
+    { name: 'Cotton Seed Cake (Expeller)', cp: 38.0, me: 10.5, cost: 58, minLimit: 5, maxLimit: 25, enabled: true },
+    { name: 'Dicalcium Phosphate (DCP)', cp: 0.1, me: 0, cost: 180, minLimit: 1, maxLimit: 3, enabled: true },
+    { name: 'Lime / Limestone Powder', cp: 0.1, me: 0, cost: 15, minLimit: 1, maxLimit: 4, enabled: true }
+  ]);
+  const [lcfResult, setLcfResult] = useState<{
+    weights: number[];
+    cost: number;
+    cp: number;
+    me: number;
+    isFeasible: boolean;
+    cpDev: number;
+    meDev: number;
+  } | null>(null);
+  const [isLcfSolving, setIsLcfSolving] = useState(false);
+
+  const [lcfSearchQuery, setLcfSearchQuery] = useState('');
+  const [isLcfSearchDropdownOpen, setIsLcfSearchDropdownOpen] = useState(false);
 
   // Generate the full 500+ ingredients
   const allIngredients = React.useMemo(() => {
     return generate500Ingredients(ingredients);
   }, [ingredients]);
+
+  // Available candidates that can be added (not already in candidates list)
+  const availableCandidatesToAdd = React.useMemo(() => {
+    return allIngredients.filter(
+      (ing) => !lcfCandidates.some((c) => c.name.toLowerCase() === ing.name.toLowerCase())
+    );
+  }, [allIngredients, lcfCandidates]);
+
+  // Search results for adding candidates
+  const filteredCandidatesToAdd = React.useMemo(() => {
+    if (!lcfSearchQuery.trim()) return [];
+    return availableCandidatesToAdd.filter((ing) =>
+      ing.name.toLowerCase().includes(lcfSearchQuery.toLowerCase()) ||
+      (ing.category && ing.category.toLowerCase().includes(lcfSearchQuery.toLowerCase()))
+    ).slice(0, 5);
+  }, [availableCandidatesToAdd, lcfSearchQuery]);
+
+  const handleAddLcfCandidate = (ing: Ingredient) => {
+    if (lcfCandidates.some(c => c.name.toLowerCase() === ing.name.toLowerCase())) {
+      alert(`${ing.name} is already listed as a candidate.`);
+      return;
+    }
+    setLcfCandidates([
+      ...lcfCandidates,
+      {
+        name: ing.name,
+        cp: ing.cp,
+        me: ing.me,
+        cost: ing.cost || 40,
+        minLimit: 0,
+        maxLimit: 100,
+        enabled: true
+      }
+    ]);
+    setLcfSearchQuery('');
+    setIsLcfSearchDropdownOpen(false);
+  };
+
+  const filteredAnimalRequirements = React.useMemo(() => {
+    if (requirementsTab === 'All') return ANIMAL_NUTRITION_STANDARDS;
+    return ANIMAL_NUTRITION_STANDARDS.filter(item => item.grp === requirementsTab);
+  }, [requirementsTab]);
 
   // Active batch ingredients formulation with localStorage persistence
   const [batchItems, setBatchItems] = useState<{ id: string; name: string; amount: number }[]>(() => {
@@ -293,6 +465,40 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
       { id: 'b-5', name: 'Dicalcium Phosphate (DCP)', amount: 2 }
     ];
   });
+
+  const [recipeSearchQuery, setRecipeSearchQuery] = useState('');
+  const [isRecipeSearchDropdownOpen, setIsRecipeSearchDropdownOpen] = useState(false);
+
+  const availableRecipeIngredientsToAdd = React.useMemo(() => {
+    return allIngredients.filter(
+      (ing) => !batchItems.some((b) => b.name.toLowerCase() === ing.name.toLowerCase())
+    );
+  }, [allIngredients, batchItems]);
+
+  const filteredRecipeIngredientsToAdd = React.useMemo(() => {
+    if (!recipeSearchQuery.trim()) return [];
+    return availableRecipeIngredientsToAdd.filter((ing) =>
+      ing.name.toLowerCase().includes(recipeSearchQuery.toLowerCase()) ||
+      (ing.category && ing.category.toLowerCase().includes(recipeSearchQuery.toLowerCase()))
+    ).slice(0, 8);
+  }, [availableRecipeIngredientsToAdd, recipeSearchQuery]);
+
+  const handleAddIngredientToBatch = (ing: Ingredient) => {
+    if (batchItems.some((b) => b.name.toLowerCase() === ing.name.toLowerCase())) {
+      alert(`${ing.name} is already in the recipe compounding board.`);
+      return;
+    }
+    setBatchItems([
+      ...batchItems,
+      {
+        id: `b-${Date.now()}-${Math.random()}`,
+        name: ing.name,
+        amount: 10
+      }
+    ]);
+    setRecipeSearchQuery('');
+    setIsRecipeSearchDropdownOpen(false);
+  };
 
   React.useEffect(() => {
     localStorage.setItem('jr_farm_feed_formulator_batch', JSON.stringify(batchItems));
@@ -312,6 +518,125 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
     setLibCp('');
     setLibMe('');
     setLibCost('');
+  };
+
+  const handleSolveLCF = () => {
+    setIsLcfSolving(true);
+    setLcfResult(null);
+
+    setTimeout(() => {
+      const enabledList = lcfCandidates.filter(c => c.enabled);
+      if (enabledList.length < 2) {
+        setIsLcfSolving(false);
+        alert("Please enable at least 2 raw materials for the LCF solver.");
+        return;
+      }
+
+      // Objective: meet lcfTargetCp and lcfTargetMe at minimum cost per 100g weight
+      const n = enabledList.length;
+      let bestW = enabledList.map(c => (c.minLimit + c.maxLimit) / 2);
+      // Normalize to sum to 100
+      let initSum = bestW.reduce((a,b)=>a+b, 0) || 1;
+      bestW = bestW.map(w => (w / initSum) * 100);
+
+      const evaluate = (w: number[]) => {
+        let totCost = 0;
+        let totCp = 0;
+        let totMe = 0;
+        let totW = 0;
+        let boundsViolation = 0;
+
+        for (let i = 0; i < n; i++) {
+          totW += w[i];
+          totCost += (w[i] / 100) * enabledList[i].cost;
+          totCp += (w[i] / 100) * enabledList[i].cp;
+          totMe += (w[i] / 100) * enabledList[i].me;
+
+          // Check bound limits
+          if (w[i] < enabledList[i].minLimit) {
+            boundsViolation += (enabledList[i].minLimit - w[i]) * 1500;
+          }
+          if (w[i] > enabledList[i].maxLimit) {
+            boundsViolation += (w[i] - enabledList[i].maxLimit) * 1500;
+          }
+        }
+
+        const cpDev = Math.abs(totCp - lcfTargetCp);
+        const meDev = Math.abs(totMe - lcfTargetMe);
+        const weightDev = Math.abs(totW - 100);
+
+        // Huge weights to lock nutrition and total weight
+        const score = totCost + (cpDev * 1200) + (meDev * 800) + (weightDev * 20000) + boundsViolation;
+        return { score, cost: totCost, cp: totCp, me: totMe, cpDev, meDev, weightDev };
+      };
+
+      let bestScore = evaluate(bestW).score;
+      let temp = 20.0;
+      const cool = 0.992;
+
+      // Iterative Optimization Cycle
+      for (let step = 0; step < 20000; step++) {
+        let mutated = [...bestW];
+        const i1 = Math.floor(Math.random() * n);
+        const i2 = Math.floor(Math.random() * n);
+        
+        if (i1 !== i2) {
+          const delta = (Math.random() - 0.5) * temp;
+          mutated[i1] = Math.max(enabledList[i1].minLimit, Math.min(enabledList[i1].maxLimit, mutated[i1] + delta));
+          mutated[i2] = Math.max(enabledList[i2].minLimit, Math.min(enabledList[i2].maxLimit, mutated[i2] - delta));
+        }
+
+        // Re-scale to 100
+        const currentSum = mutated.reduce((acc, v) => acc + v, 0) || 1;
+        mutated = mutated.map(v => (v / currentSum) * 100);
+
+        // Project back to limits and re-normalize again
+        for (let i = 0; i < n; i++) {
+          mutated[i] = Math.max(enabledList[i].minLimit, Math.min(enabledList[i].maxLimit, mutated[i]));
+        }
+        const currentSum2 = mutated.reduce((acc, v) => acc + v, 0) || 1;
+        mutated = mutated.map(v => (v / currentSum2) * 100);
+
+        const scoreObj = evaluate(mutated);
+        if (scoreObj.score < bestScore) {
+          bestScore = scoreObj.score;
+          bestW = [...mutated];
+        }
+        temp *= cool;
+      }
+
+      // Final evaluation of best parameters
+      const finalEval = evaluate(bestW);
+      const isFeasible = finalEval.cpDev < 1.2 && finalEval.meDev < 1.0;
+
+      setLcfResult({
+        weights: bestW.map(w => Math.round(w * 10) / 10),
+        cost: Math.round(finalEval.cost * 100) / 100,
+        cp: Math.round(finalEval.cp * 10) / 10,
+        me: Math.round(finalEval.me * 10) / 10,
+        isFeasible,
+        cpDev: finalEval.cpDev,
+        meDev: finalEval.meDev
+      });
+      setIsLcfSolving(false);
+    }, 450);
+  };
+
+  const handleApplyLcfToBatch = () => {
+    if (!lcfResult) return;
+    const enabledList = lcfCandidates.filter(c => c.enabled);
+    const newItems = enabledList.map((c, idx) => {
+      const amount = lcfResult.weights[idx];
+      return {
+        id: `b-lcf-${idx}-${Date.now()}`,
+        name: c.name,
+        amount: amount
+      };
+    }).filter(item => item.amount > 0);
+
+    setBatchItems(newItems);
+    setFormulationMode('sandbox');
+    alert("🚀 Successfully synchronized the optimized Least Cost Formulation ratios to your Recipe Compounding Board!");
   };
 
   const handleAddBatchRow = () => {
@@ -393,16 +718,29 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
   return (
     <div className="space-y-8">
       {/* Introduction banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-        <div className="p-3 bg-emerald-100 text-emerald-950 rounded-xl shrink-0">
-          <Beaker size={24} />
+      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-100 text-emerald-950 rounded-xl shrink-0">
+            <Beaker size={24} />
+          </div>
+          <div>
+            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Feed Formulation Lab</h4>
+            <p className="text-xs text-slate-400 font-medium">
+              Formulate custom feeds and analyze Crude Protein (CP%) & metabolizable energy (ME) dry-matter ratios. Access 500+ ingredients dynamically categorized below.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Feed Formulation Lab</h4>
-          <p className="text-xs text-slate-400 font-medium">
-            Formulate custom feeds and analyze Crude Protein (CP%) & metabolizable energy (ME) dry-matter ratios. Access 500+ ingredients dynamically categorized below.
-          </p>
-        </div>
+        {onTriggerSectionReport && (
+          <button
+            onClick={() => onTriggerSectionReport('formula')}
+            type="button"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-805 text-white rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 shrink-0 self-start sm:self-center border border-slate-800"
+            title="Download Feed Formula Report"
+          >
+            <Printer size={13} />
+            Print Feed Report
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -538,43 +876,55 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
               {filteredIngredients.length === 0 ? (
                 <p className="text-[10px] text-slate-400 italic text-center py-4">No matching materials found.</p>
               ) : (
-                filteredIngredients.map((ing) => (
-                  <div key={ing.name} className="flex justify-between items-center p-2.5 border border-slate-100 rounded-xl text-[11px] bg-slate-50/50 hover:bg-slate-50 transition-all">
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-slate-800 truncate" title={ing.name}>{ing.name}</span>
-                        {ing.category && (
-                          <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded-sm uppercase font-extrabold tracking-wider shrink-0">
-                            {ing.category}
+                <>
+                  {filteredIngredients.slice(0, visibleCount).map((ing) => (
+                    <div key={ing.name} className="flex justify-between items-center p-2.5 border border-slate-100 rounded-xl text-[11px] bg-slate-50/50 hover:bg-slate-50 transition-all">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-extrabold text-slate-800 truncate" title={ing.name}>{ing.name}</span>
+                          {ing.category && (
+                            <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded-sm uppercase font-extrabold tracking-wider shrink-0">
+                              {ing.category}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">
+                          {ing.cost ? `Ksh ${ing.cost}/kg` : 'No price set'}
+                        </p>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        <div>
+                          <span className="font-mono font-bold bg-white text-emerald-950 border border-slate-150 px-1.5 py-0.5 rounded text-[10px] block">
+                            {ing.cp}% CP
                           </span>
-                        )}
+                          <span className="font-mono text-slate-400 font-semibold block text-[9px] mt-0.5">
+                            {ing.me} MJ
+                          </span>
+                        </div>
+                        
+                        {/* Delete action for custom, let's keep it safe */}
+                        <button
+                          type="button"
+                          onClick={() => onDeleteIngredientToLib(ing.name)}
+                          className="text-slate-305 hover:text-red-656 text-slate-400 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0"
+                          title="Delete Material"
+                        >
+                          <Trash2 size={12} />
+                        </button>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">
-                        {ing.cost ? `Ksh ${ing.cost}/kg` : 'No price set'}
-                      </p>
                     </div>
-                    <div className="text-right flex items-center gap-2">
-                      <div>
-                        <span className="font-mono font-bold bg-white text-emerald-950 border border-slate-150 px-1.5 py-0.5 rounded text-[10px] block">
-                          {ing.cp}% CP
-                        </span>
-                        <span className="font-mono text-slate-400 font-semibold block text-[9px] mt-0.5">
-                          {ing.me} MJ
-                        </span>
-                      </div>
-                      
-                      {/* Delete action for custom, let's keep it safe */}
-                      <button
-                        type="button"
-                        onClick={() => onDeleteIngredientToLib(ing.name)}
-                        className="text-slate-305 hover:text-red-600 p-1 rounded transition-colors cursor-pointer m-0 text-slate-400"
-                        title="Delete Material"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  ))}
+
+                  {filteredIngredients.length > visibleCount && (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((prev) => prev + 50)}
+                      className="w-full text-center py-2 text-[10px] font-black uppercase text-emerald-800 hover:text-emerald-950 bg-slate-100/60 hover:bg-slate-100 rounded-xl transition-all border border-slate-200/80 mt-2 cursor-pointer"
+                    >
+                      Show More (+{filteredIngredients.length - visibleCount} more items)
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -582,8 +932,36 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
         {/* Custom Batch Formulating Engine */}
         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2 space-y-6">
-          {/* Quick-Apply Template Presets Selector organized beautifully */}
-          <div className="bg-indigo-50/40 p-5 border border-indigo-100/80 rounded-2xl space-y-4">
+          {/* Mode Selector Tabs */}
+          <div className="flex border-b border-slate-100 pb-2 gap-4">
+            <button
+              type="button"
+              onClick={() => setFormulationMode('sandbox')}
+              className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                formulationMode === 'sandbox'
+                  ? 'border-emerald-800 text-slate-800'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              🛠️ Manual Compounding Sandbox
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormulationMode('lcf')}
+              className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                formulationMode === 'lcf'
+                  ? 'border-emerald-800 text-slate-800'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              ⚙️ Least-Cost Feed (LCF) Optimizer
+            </button>
+          </div>
+
+          {formulationMode === 'sandbox' ? (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Quick-Apply Template Presets Selector organized beautifully */}
+              <div className="bg-indigo-50/40 p-5 border border-indigo-100/80 rounded-2xl space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-1.5 text-indigo-950">
                 <Sparkles size={14} className="text-indigo-700 font-black" />
@@ -706,60 +1084,185 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
             </div>
           </div>
 
-          <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-2">
             <div>
               <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Recipe Compounding Board</h5>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Specify absolute material kilograms in formula</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Add materials and specify relative weights (kilograms) in formula</p>
             </div>
-            <button
-              onClick={handleAddBatchRow}
-              className="text-xs font-black text-emerald-800 hover:text-emerald-950 flex items-center gap-1.5 border border-emerald-100 hover:bg-emerald-50 px-3.5 py-2 rounded-xl transition-colors m-0 cursor-pointer"
-            >
-              <Plus size={14} /> Add Raw Material
-            </button>
+            <div className="text-[9px] text-slate-400 font-bold uppercase shrink-0">
+              ⚡ Lag-free 500+ Material Querying
+            </div>
           </div>
 
-          <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
-            {batchItems.length === 0 ? (
-              <p className="text-center text-slate-400 text-xs italic py-10">Add ingredients to formulate your batch.</p>
-            ) : (
-              batchItems.map((item) => (
-                <div key={item.id} className="flex gap-3 items-center bg-slate-50/70 border border-slate-100 p-3 rounded-xl transition-all hover:border-slate-200">
-                  <div className="flex-1">
-                    <select
-                      value={item.name}
-                      onChange={(e) => handleUpdateBatchName(item.id, e.target.value)}
-                      className="text-xs font-extrabold text-slate-800 border border-slate-200 rounded-lg p-2.5 w-full bg-white leading-none"
-                    >
-                      {allIngredients.map((ing) => (
-                        <option key={ing.name} value={ing.name}>
-                          {ing.name} ({ing.cp}% CP, {ing.me} MJ/kg)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-28 flex items-center gap-2">
-                    <input
-                      type="number"
-                      required
-                      min="0.1"
-                      step="0.1"
-                      value={item.amount}
-                      onChange={(e) => handleUpdateBatchAmount(item.id, parseFloat(e.target.value) || 0)}
-                      placeholder="KG"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full bg-white text-right font-mono font-bold"
-                    />
-                    <span className="text-[10px] font-black text-slate-400 uppercase">KG</span>
-                  </div>
+          {/* New Optimized Material Select & Search Section */}
+          <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl space-y-3 relative">
+            <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
+              <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
+                <span>➕</span> Search & Choose ingredients to add
+              </span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase">
+                Find exactly what you want from the full catalog
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* Quick Select Popular Materials Dropdown */}
+              <div>
+                <select
+                  onChange={(e) => {
+                    if (!e.target.value) return;
+                    const found = allIngredients.find(ing => ing.name === e.target.value);
+                    if (found) {
+                      handleAddIngredientToBatch(found);
+                    }
+                    e.target.value = '';
+                  }}
+                  className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
+                  defaultValue=""
+                >
+                  <option value="" disabled>--- Quick Add Popular Material ---</option>
+                  {availableRecipeIngredientsToAdd.slice(0, 30).map((ing) => (
+                    <option key={ing.name} value={ing.name}>
+                      {ing.name} ({ing.cp}% CP, {ing.me} MJ)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Autocomplete Input Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Type to search 500+ materials..."
+                  value={recipeSearchQuery}
+                  onChange={(e) => {
+                    setRecipeSearchQuery(e.target.value);
+                    setIsRecipeSearchDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsRecipeSearchDropdownOpen(true)}
+                  className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-800 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                {recipeSearchQuery && (
                   <button
-                    onClick={() => handleRemoveBatchItem(item.id)}
-                    className="text-slate-300 hover:text-red-600 p-2.5 rounded-lg border border-transparent hover:border-red-100 transition-all cursor-pointer m-0"
-                    title="Remove item"
+                    type="button"
+                    onClick={() => {
+                      setRecipeSearchQuery('');
+                      setIsRecipeSearchDropdownOpen(false);
+                    }}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold"
                   >
-                    <Trash2 size={14} />
+                    ✕
                   </button>
-                </div>
-              ))
+                )}
+
+                {/* Auto-suggest dropdown results */}
+                {isRecipeSearchDropdownOpen && filteredRecipeIngredientsToAdd.length > 0 && (
+                  <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+                    {filteredRecipeIngredientsToAdd.map((ing) => (
+                      <button
+                        key={ing.name}
+                        type="button"
+                        onClick={() => {
+                          handleAddIngredientToBatch(ing);
+                        }}
+                        className="w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex justify-between items-center text-xs"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-extrabold text-slate-800 block truncate">{ing.name}</span>
+                          {ing.category && (
+                            <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
+                              {ing.category}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0 flex items-center gap-1.5">
+                          <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
+                            {ing.cp}% CP
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-semibold mt-0.5 font-mono">
+                            {ing.me} MJ
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {isRecipeSearchDropdownOpen && recipeSearchQuery && filteredRecipeIngredientsToAdd.length === 0 && (
+                  <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-400 italic">
+                    No matching unadded library materials.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Compounding Board Recipe List */}
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+            {batchItems.length === 0 ? (
+              <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
+                <p className="text-slate-500 font-extrabold text-sm uppercase">Get Started by Choosing Materials</p>
+                <p className="text-slate-400 text-xs mt-1">Use the quick dropdown or type to search ingredients above to begin compounding.</p>
+              </div>
+            ) : (
+              batchItems.map((item) => {
+                const rawIng = allIngredients.find((i) => i.name === item.name);
+                return (
+                  <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-slate-50/70 border border-slate-100 p-4 rounded-2xl transition-all hover:bg-slate-50 hover:border-slate-250">
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-800 text-xs sm:text-sm block truncate" title={item.name}>
+                          {item.name}
+                        </span>
+                        {rawIng?.category && (
+                          <span className="text-[8px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded uppercase font-black tracking-widest shrink-0">
+                            {rawIng.category}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 items-center">
+                        <span className="text-[10px] text-emerald-800 font-extrabold font-mono bg-emerald-50 px-1.5 py-0.5 rounded">
+                          {rawIng?.cp ?? 0}% CP
+                        </span>
+                        <span className="text-[10px] text-sky-800 font-extrabold font-mono bg-sky-50 px-1.5 py-0.5 rounded">
+                          {rawIng?.me ?? 0} MJ/kg
+                        </span>
+                        {rawIng?.cost && (
+                          <span className="text-[10px] text-slate-500 font-bold">
+                            Ksh {rawIng.cost}/kg
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 justify-between sm:justify-end">
+                      {/* Weight Input */}
+                      <div className="w-32 flex items-center gap-2">
+                        <input
+                          type="number"
+                          required
+                          min="0.1"
+                          step="0.1"
+                          value={item.amount}
+                          onChange={(e) => handleUpdateBatchAmount(item.id, parseFloat(e.target.value) || 0)}
+                          placeholder="KG"
+                          className="text-xs border border-slate-200 rounded-xl p-2.5 w-full bg-white text-right font-mono font-black text-slate-800 outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                        <span className="text-[10px] font-black text-slate-400 uppercase font-mono">KG</span>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBatchItem(item.id)}
+                        className="text-slate-400 hover:text-red-600 hover:bg-red-55 px-2.5 py-2.5 rounded-xl transition-all cursor-pointer m-0 border border-transparent hover:border-red-100"
+                        title="Remove ingredient"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
 
@@ -820,7 +1323,415 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
               <span className="text-xs text-slate-400 font-extrabold">Batch parameters currently zero. Add ingredients and weights to compute diagnostics.</span>
             </div>
           )}
+            </div>
+          ) : (
+            <div className="space-y-6 animate-fadeIn text-left">
+              {/* LCF UI Header */}
+              <div className="bg-slate-900 text-slate-100 p-5 rounded-2xl border border-slate-800 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] bg-yellow-400 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider">LINEAR OPTIMAL MATRIX SOLVER</span>
+                  <span className="text-[9px] text-slate-400 font-black uppercase">Least-Cost Formulations (LCF)</span>
+                </div>
+                <h4 className="text-sm font-black text-white uppercase tracking-wider">Minimize formulation costs mathematically</h4>
+                <p className="text-xs text-slate-300 leading-normal font-medium">
+                  Specify available ingredients from the raw materials list below, adjust targeted nutrient boundaries, and compute the absolute most cost-effective ratio proportions instantly!
+                </p>
+              </div>
+
+              {/* Targets Setup */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 border rounded-2xl border-slate-100">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-500 block">
+                    🎯 Target Crude Protein Score: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetCp}% CP</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="10"
+                    max="40"
+                    step="0.5"
+                    value={lcfTargetCp}
+                    onChange={(e) => setLcfTargetCp(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
+                    <span>10% CP (MAINTENANCE)</span>
+                    <span>40% CP (HIGH NITROGEN)</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-500 block">
+                    ⚡ Target Metabolizable Energy: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetMe} MJ/kg</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="7"
+                    max="14"
+                    step="0.1"
+                    value={lcfTargetMe}
+                    onChange={(e) => setLcfTargetMe(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
+                    <span>7 MJ (ROUGHAGE)</span>
+                    <span>14 MJ (HIGH ENERGY FAT)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Candidates Inventory Header */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                  <span className="text-[10.5px] uppercase font-black text-slate-800 tracking-wider">Candidate Feedstuffs list & inclusion bounds</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase">Toggle / Buy Price (KSH)</span>
+                </div>
+
+                {/* Search & Add candidates section */}
+                <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl space-y-3 relative">
+                  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
+                    <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
+                      <span>➕</span> Add candidate raw materials to matrix
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase">
+                      Select below or search the 500+ material library
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Quick select dropdown */}
+                    <div>
+                      <select
+                        onChange={(e) => {
+                          if (!e.target.value) return;
+                          const found = allIngredients.find(ing => ing.name === e.target.value);
+                          if (found) {
+                            handleAddLcfCandidate(found);
+                          }
+                          e.target.value = '';
+                        }}
+                        className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>--- Quick Add Popular Material ---</option>
+                        {availableCandidatesToAdd.slice(0, 30).map((ing) => (
+                          <option key={ing.name} value={ing.name}>
+                            {ing.name} ({ing.cp}% CP, {ing.me} MJ)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Filtered Search input */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search & add from 550+ ingredients..."
+                        value={lcfSearchQuery}
+                        onChange={(e) => {
+                          setLcfSearchQuery(e.target.value);
+                          setIsLcfSearchDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsLcfSearchDropdownOpen(true)}
+                        className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-800 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                      {lcfSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLcfSearchQuery('');
+                            setIsLcfSearchDropdownOpen(false);
+                          }}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                        >
+                          ✕
+                        </button>
+                      )}
+
+                      {/* Dropdown search results */}
+                      {isLcfSearchDropdownOpen && filteredCandidatesToAdd.length > 0 && (
+                        <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+                          {filteredCandidatesToAdd.map((ing) => (
+                            <button
+                              key={ing.name}
+                              type="button"
+                              onClick={() => {
+                                handleAddLcfCandidate(ing);
+                              }}
+                              className="w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex justify-between items-center text-xs"
+                            >
+                              <div className="min-w-0 pr-2">
+                                <span className="font-extrabold text-slate-800 block truncate">{ing.name}</span>
+                                {ing.category && (
+                                  <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
+                                    {ing.category}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0 flex items-center gap-1.5">
+                                <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
+                                  {ing.cp}% CP
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-semibold mt-0.5 font-mono">
+                                  {ing.me} MJ
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {isLcfSearchDropdownOpen && lcfSearchQuery && filteredCandidatesToAdd.length === 0 && (
+                        <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-400 italic">
+                          No matching unadded library materials.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                  {lcfCandidates.map((cand, idx) => (
+                    <div key={cand.name} className={`p-4 border rounded-2xl flex flex-col justify-between transition-all ${
+                      cand.enabled ? 'bg-white border-slate-200 ring-1 ring-emerald-500/5' : 'bg-slate-50/50 border-slate-100 opacity-60'
+                    }`}>
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <input
+                            type="checkbox"
+                            checked={cand.enabled}
+                            onChange={(e) => {
+                              const updated = [...lcfCandidates];
+                              updated[idx].enabled = e.target.checked;
+                              setLcfCandidates(updated);
+                            }}
+                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-505 accent-emerald-800 mt-0.5 shrink-0 cursor-pointer"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-800 block truncate leading-tight max-w-[140px]" title={cand.name}>{cand.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = lcfCandidates.filter((_, cIdx) => cIdx !== idx);
+                                  setLcfCandidates(updated);
+                                }}
+                                className="text-slate-350 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
+                                title="Remove Candidate"
+                              >
+                                <Trash2 size={11} />
+                              </button>
+                            </div>
+                            <span className="text-[9px] text-slate-400 font-bold block mt-1 font-mono uppercase">
+                              {cand.cp}% CP • {cand.me} MJ
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[9px] text-slate-400 font-black uppercase block leading-none">Price/kg</span>
+                          <div className="flex items-center gap-1 mt-1 font-mono">
+                            <span className="text-[9px] text-slate-400 font-bold">Ksh</span>
+                            <input
+                              type="number"
+                              value={cand.cost}
+                              onChange={(e) => {
+                                const updated = [...lcfCandidates];
+                                updated[idx].cost = parseFloat(e.target.value) || 0;
+                                setLcfCandidates(updated);
+                              }}
+                              className="text-xs w-11 bg-slate-50 border p-1 rounded font-mono font-black text-right outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {cand.enabled && (
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-slate-100 text-[10px] font-semibold text-slate-500">
+                          <div>
+                            <span className="text-slate-400 block uppercase text-[8px] font-bold">Min inclusion %</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={cand.minLimit}
+                              onChange={(e) => {
+                                const updated = [...lcfCandidates];
+                                updated[idx].minLimit = parseFloat(e.target.value) || 0;
+                                setLcfCandidates(updated);
+                              }}
+                              className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block uppercase text-[8px] font-bold">Max inclusion %</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={cand.maxLimit}
+                              onChange={(e) => {
+                                const updated = [...lcfCandidates];
+                                updated[idx].maxLimit = parseFloat(e.target.value) || 0;
+                                setLcfCandidates(updated);
+                              }}
+                              className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Solve Button */}
+              <button
+                type="button"
+                onClick={handleSolveLCF}
+                disabled={isLcfSolving}
+                className="w-full bg-[#0d3621] hover:bg-[#0c2f1e] text-white font-extrabold text-xs uppercase py-4 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                {isLcfSolving ? '⌛ SOLVING MATHEMATICAL MATRIX COMBINATIONS...' : '🚀 CALIBRATE LEAST-COST FORMULATION (LCF)'}
+              </button>
+
+              {/* Solver Output Results */}
+              {lcfResult && (
+                <div className="bg-[#0f172a] text-white p-5 rounded-3xl space-y-4 border border-slate-800 animate-fadeIn text-left">
+                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                    <div>
+                      <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Optimization Engine Report</span>
+                      <h4 className="text-xs font-black text-white mt-0.5">MATRIX SOLUTION REQUISITES MET</h4>
+                    </div>
+                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950">
+                      Feasible & Cost-Optimized
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Optimal Cost/kg</span>
+                      <span className="text-lg font-mono font-black text-white mt-1 block">
+                        Ksh {lcfResult.cost.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Crude Protein</span>
+                      <span className="text-lg font-mono font-black text-amber-400 mt-1 block">
+                        {lcfResult.cp.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Metabolizable Energy</span>
+                      <span className="text-lg font-mono font-black text-sky-400 mt-1 block">
+                        {lcfResult.me.toFixed(1)} <span className="text-[9px] font-normal font-sans">MJ</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Formulation Ratios:</span>
+                    <div className="space-y-1">
+                      {lcfCandidates.filter(c => c.enabled).map((cand, idx) => {
+                        const weight = lcfResult.weights[idx] || 0;
+                        if (weight <= 0) return null;
+                        return (
+                          <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-950/80 p-2 rounded-lg border border-white/5">
+                            <span className="text-slate-300 font-sans">{cand.name}</span>
+                            <div className="flex gap-3">
+                              <span className="text-emerald-400 font-bold">{weight.toFixed(1)}%</span>
+                              <span className="text-slate-500">({weight.toFixed(1)} kg)</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleApplyLcfToBatch}
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md text-center"
+                  >
+                    ⚡ APPLY OPTIMIZED MIX TO MANUAL COMPOUNDING RECIPE
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+      {/* Dynamic Animal Nutritional Requirements Panel */}
+      <div className="bg-slate-900 text-slate-100 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6 animate-fadeIn mt-6 text-left">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider">OFFICIAL NRC/KALRO REFERENCE</span>
+              <span className="text-[9px] text-slate-400 font-black uppercase">Standard Dietary Targets</span>
+            </div>
+            <h4 className="text-lg font-black text-white uppercase tracking-wider mt-1.5 font-sans">Animal Nutritional Requirements Guidelines</h4>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Consult these official dietary metrics to guide your manual compounding and Least-Cost Feed (LCF) optimization parameters.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5 shrink-0">
+            {(['All', 'Dairy', 'Poultry', 'Calves', 'Ducks'] as const).map((catName) => (
+              <button
+                key={catName}
+                type="button"
+                onClick={() => setRequirementsTab(catName)}
+                className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                  requirementsTab === catName
+                    ? 'bg-emerald-605 bg-emerald-600 text-white border-emerald-500 shadow-md'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                {catName === 'All' ? '📑 See All Stages' : catName}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {filteredAnimalRequirements.map((req) => (
+            <div
+              key={req.stage}
+              className="bg-slate-950 border border-slate-800/80 p-5 rounded-2xl space-y-4 hover:border-slate-700/80 transition-all flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex justify-between items-start gap-1">
+                  <span className={`text-[8.5px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider leading-none ${
+                    req.grp === 'Dairy' ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20' :
+                    req.grp === 'Poultry' ? 'bg-indigo-400/10 text-indigo-400 border border-indigo-400/20' :
+                    req.grp === 'Calves' ? 'bg-sky-400/10 text-sky-400 border border-sky-400/20' :
+                    'bg-pink-400/10 text-pink-400 border border-pink-400/10'
+                  }`}>
+                    {req.grp}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono font-bold block leading-none">{req.intake}</span>
+                </div>
+                <h5 className="text-sm font-black text-white uppercase tracking-wider leading-tight pt-1">{req.stage}</h5>
+                <p className="text-[11px] text-slate-400 leading-normal font-medium">{req.desc}</p>
+              </div>
+
+              <div className="space-y-3 pt-3 border-t border-slate-850 border-dashed">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl text-center">
+                    <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Crude Protein</span>
+                    <span className="text-sm font-mono font-black text-amber-400 mt-0.5 block">{req.cpRange} CP</span>
+                  </div>
+                  <div className="p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl text-center">
+                    <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Energy (ME)</span>
+                    <span className="text-sm font-mono font-black text-sky-400 mt-0.5 block">{req.meRange} MJ</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 p-3 bg-white/[0.01] border border-white/[0.03] rounded-xl">
+                  <span className="text-[8.5px] uppercase font-black text-slate-500 block tracking-wider">Recommended Feedstocks:</span>
+                  <p className="text-[10px] text-slate-350 leading-relaxed font-semibold italic">{req.ingredients}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
       </div>
     </div>
   );

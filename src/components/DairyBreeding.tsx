@@ -2189,6 +2189,49 @@ export function DairyBreeding({
 
               {/* SECTION A: PATIENT IDENTITY & ENTRY TIMING */}
               <div className="space-y-3">
+                {/* Clinical Diagnostic Presets */}
+                <div className="p-3.5 bg-blue-50/50 border border-blue-200/60 rounded-2xl space-y-2 mb-4">
+                  <span className="text-[9.5px] uppercase font-black text-blue-900 tracking-wider flex items-center gap-1">
+                    💉 EXCLUSIVE CLINICAL DIAGNOSTIC PRESETS
+                  </span>
+                  <p className="text-[10.5px] text-slate-600 leading-tight">Click one to pre-fill standard clinical parameters & withholding times:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                    {[
+                      { label: '🩺 East Coast Fever', type: 'Treatment' as const, diagnosis: 'Theileria parva (East Coast Fever) - High fever, swollen nodes', temp: 40.5, hr: 95, rr: 38, drug: 'Buparvaquone + Oxytetracycline', dosage: '1ml per 20kg bodyweight', route: 'IM' as const, milkWithholding: 3, meatWithholding: 28, cost: 4500, notes: 'Target lymph node injection block' },
+                      { label: '🥛 Mastitis Pen-Strep', type: 'Treatment' as const, diagnosis: 'Acute mastitis inside bottom-left quarter', temp: 39.2, hr: 80, rr: 24, drug: 'Penicillin-Streptomycin intramammary', dosage: 'One intramammary tube per infected quarter', route: 'Intramammary' as const, milkWithholding: 5, meatWithholding: 7, cost: 1800, notes: 'Strip the quarter thoroughly before administration' },
+                      { label: '🪱 Deworming Albendazole', type: 'Deworming' as const, diagnosis: 'Routine parasite drenching prophylaxis', temp: 38.5, hr: 68, rr: 18, drug: 'Albendazole 10% Oral Suspension', dosage: '10ml per 100kg bodyweight', route: 'Oral' as const, milkWithholding: 3, meatWithholding: 14, cost: 750, notes: 'Perform oral drenching using dosing gun' },
+                      { label: '🛡️ Foot-and-Mouth (FMD)', type: 'Vaccination' as const, diagnosis: 'Scheduled prophylactic herd vaccination', temp: 38.6, hr: 70, rr: 20, drug: 'FMD Quadrivalent Vaccine', dosage: '2ml subcutaneous', route: 'SC' as const, milkWithholding: 0, meatWithholding: 0, cost: 1200, notes: 'FMD vaccination campaign, booster due in 6 months' }
+                    ].map((p, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setVetType(p.type);
+                          setVetDiagnosis(p.diagnosis);
+                          setVetTemp(p.temp);
+                          setVetHeartRate(p.hr);
+                          setVetRespRate(p.rr);
+                          setVetDrug(p.drug);
+                          setVetDosage(p.dosage);
+                          setVetRoute(p.route);
+                          setVetWithdrawalMilk(p.milkWithholding);
+                          setVetWithdrawalMeat(p.meatWithholding);
+                          setVetCost(p.cost);
+                          setVetNotes(p.notes);
+                          setVetPrognosis('Good');
+                          const dateObj = new Date();
+                          dateObj.setDate(dateObj.getDate() + (p.type === 'Vaccination' ? 180 : 30));
+                          setVetNextDue(dateObj.toISOString().split('T')[0]);
+                        }}
+                        className="text-left bg-white hover:bg-indigo-50/50 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-350 text-[10.5px] text-slate-700 transition-all font-bold m-0 flex flex-col justify-between cursor-pointer shadow-xs"
+                      >
+                        <span className="text-indigo-950 font-extrabold truncate">{p.label}</span>
+                        <span className="text-[9px] text-[#2c3e50] font-mono mt-0.5 font-bold">{p.type} • Milk WH {p.milkWithholding}d</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">1. Patient Identification & Timeline</h6>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -3052,13 +3095,164 @@ export function DairyBreeding({
                       </div>
                     </div>
 
-                    {/* Gestation Proband Status Description bar */}
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-3.5 rounded-2xl">
-                      <p className="text-[9px] font-black uppercase text-emerald-800 tracking-wider">🗓️ Chronological Cycle Status</p>
-                      <p className="text-xs text-slate-700 font-semibold mt-1 leading-relaxed">
-                        {focusedCowData.scoreText}
-                      </p>
-                    </div>
+                    {/* Dynamic Gestation / Breeding Milestone Timeline visually tracking key physiological phases */}
+                    <div className="bg-slate-950 text-white p-5 rounded-2xl border border-slate-800 space-y-4">
+                      {(() => {
+                        const latestAIServiceDate = focusedCowData.latestAI ? focusedCowData.latestAI.date : null;
+                        const isPregnant = focusedCowData.forecastStatus === 'In-Calf' || focusedCowData.forecastStatus === 'Dry';
+                        
+                        // Calculate days in gestation or default
+                        const daysGestation = latestAIServiceDate 
+                          ? Math.max(0, Math.ceil((new Date(simulatedDate).getTime() - new Date(latestAIServiceDate).getTime()) / (1000 * 60 * 60 * 24)))
+                          : (focusedCowData.status === 'In-Calf' ? 120 : 0);
+
+                        const isDryPeriod = daysGestation >= 220;
+
+                        if (isPregnant) {
+                          const gestationMilestones = [
+                            { day: 0, label: "Day 0", title: "Conception", desc: "AI Straw insemination completed.", tip: "Observe for secondary heat on Day 21" },
+                            { day: 30, label: "Day 30", title: "Attachment", desc: "Embryo attaches firmly.", tip: "Avoid stressful handlings" },
+                            { day: 60, label: "Day 60", title: "Sexing Scan", desc: "Fetal heartbeat matches rhythm indicators.", tip: "Vet scanning open for sexing" },
+                            { day: 150, label: "Day 150", title: "Rumen Grow", desc: "Skeletal frame ossified.", tip: "Supply copper & selenium" },
+                            { day: 220, label: "Day 220", title: "Dry-Off", desc: "Milking halted to save colostrum.", tip: "Infuse dry-cow mastitis tubes" },
+                            { day: 270, label: "Day 270", title: "Steam-Up", desc: "Transition grain introduced.", tip: "Shift to transition close-up feeds" },
+                            { day: 283, label: "Day 283", title: "Calving Due", desc: "Due date of birth.", tip: "Move to sterilized calving block" }
+                          ];
+
+                          // Find active milestone
+                          let activeIndex = 0;
+                          for (let i = 0; i < gestationMilestones.length; i++) {
+                            if (daysGestation >= gestationMilestones[i].day) {
+                              activeIndex = i;
+                            }
+                          }
+
+                          return (
+                            <div className="space-y-3.5">
+                              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <span className="text-[10px] uppercase font-black text-yellow-400 tracking-wider">🤰 ACTIVE PREGNANCY TIMELINE METRIC</span>
+                                <span className="bg-blue-500/10 text-blue-300 text-[10px] font-mono font-black px-2 py-0.5 rounded border border-blue-500/20">
+                                  Day {daysGestation} / 283
+                                </span>
+                              </div>
+
+                              <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                                📌 <strong>Chronological Status:</strong> {focusedCowData.scoreText}
+                              </p>
+
+                              {/* Horizontal or Vertical scrollable step milestones */}
+                              <span className="text-[9.5px] uppercase font-black text-slate-400 block mb-1">Gestation Milestone Milestones:</span>
+                              <div className="grid grid-cols-1 gap-2 max-h-[190px] overflow-y-auto pr-1">
+                                {gestationMilestones.map((ms, idx) => {
+                                  const isCompleted = daysGestation > ms.day;
+                                  const isActive = activeIndex === idx;
+                                  const isFuture = daysGestation <= ms.day && !isActive;
+
+                                  let statusColor = "border-slate-800 bg-slate-900/40 text-slate-500";
+                                  let indicator = "⚪";
+                                  if (isCompleted) {
+                                    statusColor = "border-emerald-900/50 bg-emerald-950/20 text-slate-300";
+                                    indicator = "✔";
+                                  } else if (isActive) {
+                                    statusColor = "border-amber-500/40 bg-amber-500/10 text-white shadow-sm shadow-amber-500/5";
+                                    indicator = "⭐";
+                                  }
+
+                                  return (
+                                    <div key={ms.title} className={`p-2.5 border rounded-xl flex gap-2.5 items-start text-xs leading-tight transition-all ${statusColor}`}>
+                                      <span className="text-sm shrink-0 mt-0.5 font-mono font-black">{indicator}</span>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-baseline gap-1">
+                                          <span className="font-extrabold text-[11px] truncate uppercase">{ms.title}</span>
+                                          <span className="text-[8.5px] font-mono text-slate-400 shrink-0 font-extrabold">{ms.label}</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium leading-normal">{ms.desc}</p>
+                                        {isActive && (
+                                          <p className="text-[9.5px] text-yellow-300 mt-1 font-bold bg-yellow-405/10 p-1 rounded border border-yellow-500/10">
+                                            💡 Veterinary Tip: {ms.tip}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          // Non-pregnant / standard cycling timeline
+                          const cycleMilestones = [
+                            { day: 0, label: "Day 0", title: "Calving Day", desc: "Starts fresh milk curve.", tip: "Flush uterine tracts, check retained placenta within 12h" },
+                            { day: 30, label: "Day 30", title: "Involution Complete", desc: "Uterus returns to normal size.", tip: "Record secondary mucus discharge metrics" },
+                            { day: 45, label: "Day 45", title: "Voluntary Wait Expire", desc: "Ready for primary insemination.", tip: "Heat signs: standing to be mounted, swelling vulva" },
+                            { day: 75, label: "Day 75", title: "Peak Breeding Zone", desc: "Highest fertility and conception rates.", tip: "Semen straw choice: High milk yield Friesian, Jersey" },
+                            { day: 220, label: "Day 220", title: "Mid-Lactation Decline", desc: "Persistent yield drops 10% monthly.", tip: "Optimize fiber and mineral levels in standard meal" },
+                            { day: 305, label: "Day 305", title: "Milking Cutoff", desc: "Complete 305-day lactation cycle.", tip: "Impose physical dry-off transitional period" }
+                          ];
+
+                          // Estimate where the cow is (let's assume lactating starts about 60 days post calving)
+                          const daysPostCalving = focusedCowData.status === 'Lactating' ? 65 : 320;
+                          
+                          let activeIndex = 0;
+                          for (let i = 0; i < cycleMilestones.length; i++) {
+                            if (daysPostCalving >= cycleMilestones[i].day) {
+                              activeIndex = i;
+                            }
+                          }
+
+                          return (
+                            <div className="space-y-3.5">
+                              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <span className="text-[10px] uppercase font-black text-emerald-400 tracking-wider">🐄 LACTATION & INSEMINATION CYCLE TIMELINE</span>
+                                <span className="bg-emerald-500/10 text-emerald-300 text-[10px] font-mono font-black px-2 py-0.5 rounded border border-emerald-500/20">
+                                  Peak Milker Timeline
+                                </span>
+                              </div>
+
+                              <p className="text-[11px] text-slate-300 leading-relaxed font-semibold">
+                                📌 {focusedCowData.scoreText}
+                              </p>
+
+                              <span className="text-[9.5px] uppercase font-black text-slate-400 block mb-1">Yearly Breeding Cycle Milestones:</span>
+                              <div className="grid grid-cols-1 gap-2 max-h-[190px] overflow-y-auto pr-1">
+                                {cycleMilestones.map((ms, idx) => {
+                                  const isCompleted = daysPostCalving > ms.day;
+                                  const isActive = activeIndex === idx;
+
+                                  let statusColor = "border-slate-800 bg-slate-900/40 text-slate-500";
+                                  let indicator = "⚪";
+                                  if (isCompleted) {
+                                    statusColor = "border-emerald-950/30 bg-emerald-950/15 text-slate-300";
+                                    indicator = "✔";
+                                  } else if (isActive) {
+                                    statusColor = "border-emerald-500/40 bg-emerald-500/10 text-white shadow-sm shadow-emerald-500/5";
+                                    indicator = "⭐";
+                                  }
+
+                                  return (
+                                    <div key={ms.title} className={`p-2.5 border rounded-xl flex gap-2.5 items-start text-xs leading-tight transition-all ${statusColor}`}>
+                                      <span className="text-sm shrink-0 mt-0.5 font-mono font-black">{indicator}</span>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-baseline gap-1">
+                                          <span className="font-extrabold text-[11px] truncate uppercase">{ms.title}</span>
+                                          <span className="text-[8.5px] font-mono text-slate-400 shrink-0 font-bold">{ms.label}</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium leading-normal">{ms.desc}</p>
+                                        {isActive && (
+                                          <p className="text-[9.5px] text-emerald-300 mt-1 font-bold bg-emerald-500/10 p-1 rounded border border-emerald-500/10">
+                                            💡 Herd Manager Tip: {ms.tip}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()}
+                      </div>
 
                     {/* Quick Reproduction Action buttons */}
                     <div className="grid grid-cols-3 gap-2.5 pt-2">

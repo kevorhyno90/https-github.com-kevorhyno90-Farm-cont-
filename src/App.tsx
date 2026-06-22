@@ -73,7 +73,11 @@ import {
   CropSaleRecord,
   AnimalSaleRecord,
   MortalityRecord,
-  MilkOutflowRecord
+  MilkOutflowRecord,
+  SilageRecord,
+  HeiferRecord,
+  PoultryRecord,
+  QuarantineRecord
 } from './types';
 
 // Mock Primers
@@ -164,6 +168,53 @@ export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
 </svg>`;
 
 export default function App() {
+  const getStoredFeedFormula = () => {
+    try {
+      const saved = localStorage.getItem('jr_farm_feed_formulator_batch');
+      if (saved) {
+        return JSON.parse(saved) as { id: string; name: string; amount: number }[];
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      { id: 'b-1', name: 'Maize Germ Meal', amount: 50 },
+      { id: 'b-2', name: 'Wheat Pollard Base', amount: 25 },
+      { id: 'b-3', name: 'Cotton Seed Cake (Expeller)', amount: 15 },
+      { id: 'b-4', name: 'Soya Bean Meal (Solvent)', amount: 8 },
+      { id: 'b-5', name: 'Dicalcium Phosphate (DCP)', amount: 2 }
+    ];
+  };
+
+  const getIngredientNutrients = (name: string): { cp: number; me: number; cost: number } => {
+    const custom = (ingredients || []).find(i => i.name.toLowerCase() === name.toLowerCase());
+    if (custom) {
+      return { cp: custom.cp, me: custom.me, cost: custom.cost || 40 };
+    }
+    const baseList: Record<string, { cp: number; me: number; cost: number }> = {
+      'maize germ meal': { cp: 11.0, me: 12.0, cost: 35 },
+      'wheat pollard base': { cp: 15.0, me: 11.5, cost: 32 },
+      'soya bean meal (solvent)': { cp: 44.0, me: 13.5, cost: 95 },
+      'cotton seed cake (expeller)': { cp: 38.0, me: 10.5, cost: 58 },
+      'dicalcium phosphate (dcp)': { cp: 0.1, me: 0, cost: 180 },
+      'lime / limestone powder': { cp: 0.1, me: 0, cost: 15 },
+      'fish meal (60% protein)': { cp: 60.0, me: 12.5, cost: 140 },
+      'sunflower seed meal (decorticated)': { cp: 32.0, me: 9.5, cost: 48 },
+      'napier grass (pennisetum purpureum)': { cp: 8.5, me: 7.8, cost: 8 },
+      'lucerne / alfalfa hay (grade a)': { cp: 19.5, me: 10.2, cost: 45 },
+      'maize silage (dough stage)': { cp: 8.1, me: 10.5, cost: 15 },
+      'brachiaria grass (b. decumbens)': { cp: 10.2, me: 8.5, cost: 12 },
+      'rhodes grass hay (chloris gayana)': { cp: 7.8, me: 8.0, cost: 18 },
+      'boma rhodes premium bales': { cp: 8.5, me: 8.2, cost: 22 }
+    };
+    const key = name.toLowerCase().trim();
+    if (baseList[key]) return baseList[key];
+    for (const [k, v] of Object.entries(baseList)) {
+      if (key.includes(k) || k.includes(key)) return v;
+    }
+    return { cp: 12.0, me: 9.5, cost: 30 };
+  };
+
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<string>('dash');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -334,6 +385,107 @@ export default function App() {
   const [mortalities, setMortalities] = useState<MortalityRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_mortalities');
     return saved ? JSON.parse(saved) : INITIAL_MORTALITY_RECORDS;
+  });
+
+  const [silageRecords, setSilageRecords] = useState<SilageRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_silages');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'silage-1',
+        rawMaterial: 'Maize',
+        acres: 2.0,
+        calculatedWeightKg: 36000,
+        dateMade: '2026-05-15',
+        dateOpened: '2026-06-10',
+        quality: 'Excellent (Golden yellow, lactic acid smell)',
+        notes: 'Formic acid inoculant used. Well compacted. No visual moulds.',
+        animalsFedCount: 15,
+        averageAnimalWeightKg: 450,
+        recommendedDailyIntakePerAnimal: 15,
+        daysOfFeedAvailable: 160
+      }
+    ];
+  });
+
+  const [heiferRecords, setHeiferRecords] = useState<HeiferRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_heifers');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'heifer-1',
+        cowId: 'C-083 (Precious)',
+        dateLogged: '2026-06-20',
+        weightKg: 295,
+        girthCm: 154,
+        feedRationType: 'Boma Rhodes + Grower cake concentrate + legumes',
+        averageDailyGainGrams: 750,
+        breedingReady: true,
+        notes: 'Exceeded the 280kg insemination marker. Frame growth is superb. Ready for AI.'
+      }
+    ];
+  });
+
+  const [poultryRecords, setPoultryRecords] = useState<PoultryRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_poultries');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'poultry-chick',
+        stage: 'Chick',
+        batchName: 'Batch G-9 Chicks',
+        count: 500,
+        dateLogged: '2026-06-18',
+        feedGivenKg: 35,
+        feedType: 'Chick Start Crumble',
+        mortalityCount: 1,
+        waterIntakeLiters: 90,
+        vaccinesAdministered: 'Gumboro Booster Dose',
+        notes: 'Chicks are active; brooder temperature stands at ~31°C.'
+      },
+      {
+        id: 'poultry-grower',
+        stage: 'Grower',
+        batchName: 'Batch F-2 Pullets',
+        count: 400,
+        dateLogged: '2026-06-19',
+        feedGivenKg: 48,
+        feedType: 'Growers Mash',
+        mortalityCount: 0,
+        waterIntakeLiters: 110,
+        notes: 'Growing frame is high. Average weight is inside targets (~1.25kg).'
+      },
+      {
+        id: 'poultry-layer',
+        stage: 'Layer',
+        batchName: 'Batch E-8 Layers',
+        count: 600,
+        dateLogged: '2026-06-21',
+        feedGivenKg: 75,
+        feedType: 'Layers High Calcium mash',
+        mortalityCount: 0,
+        eggCratesHarvested: 17,
+        crackedEggsCount: 2,
+        waterIntakeLiters: 155,
+        percentageProduction: 85,
+        notes: 'Laying peak cycle. Excellent calcified egg shells.'
+      }
+    ];
+  });
+
+  const [quarantineRecords, setQuarantineRecords] = useState<QuarantineRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_quarantines');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'quar-1',
+        animalType: 'Cow',
+        animalTagOrBatch: 'H-302 (Milly)',
+        dateStarted: '2026-06-15',
+        dateScheduledEnd: '2026-06-29',
+        quarantineReason: 'Newly purchased heifer from Nyeri showground',
+        symptomsObserved: 'None, routine quarantine protocol for biosecurity',
+        quarantineStatus: 'Under Observation',
+        vetInCharge: 'Dr. Joseph Ndwiga',
+        notes: 'Isolated in Section C Quarantine Pen.'
+      }
+    ];
   });
 
   // Report modal state
@@ -835,7 +987,88 @@ export default function App() {
       `;
     }
 
-    // 14. Inventory
+    // 14. Feed Formulation
+    if (sections.formula) {
+      const fItems = getStoredFeedFormula();
+      let fWeight = 0, fCpW = 0, fMeW = 0, fCostT = 0;
+      fItems.forEach((bItem) => {
+        const raw = getIngredientNutrients(bItem.name);
+        if (bItem.amount > 0) {
+          fWeight += bItem.amount;
+          fCpW += raw.cp * bItem.amount;
+          fMeW += raw.me * bItem.amount;
+          fCostT += raw.cost * bItem.amount;
+        }
+      });
+      const fCpAvg = fWeight > 0 ? fCpW / fWeight : 0;
+      const fMeAvg = fWeight > 0 ? fMeW / fWeight : 0;
+      const fCostAvg = fWeight > 0 ? fCostT / fWeight : 0;
+
+      let fQualityStr = 'Low Protein Supplement';
+      if (fCpAvg >= 15 && fCpAvg < 18) {
+        fQualityStr = 'Standard Ration (Young Milkers / Duck Cover)';
+      } else if (fCpAvg >= 18 && fCpAvg <= 21) {
+        fQualityStr = 'Intense Lactation / Premium Poultry Layer';
+      } else if (fCpAvg > 21) {
+        fQualityStr = 'Elite Concentrated Booster (High Nitrogen)';
+      } else if (fWeight > 0) {
+        fQualityStr = 'Sub-optimal Protein Ration (<15% CP)';
+      }
+
+      const summaryHtml = `
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-family: sans-serif;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center;">
+            <div style="float: left; width: 25%;">
+              <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block;">Total Weight</span>
+              <strong style="font-size: 14px; color: #0f172a; font-family: monospace;">${fWeight.toFixed(1)} KG</strong>
+            </div>
+            <div style="float: left; width: 25%;">
+              <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block;">Crude Protein</span>
+              <strong style="font-size: 14px; color: #15803d; font-family: monospace;">${fCpAvg.toFixed(2)}% CP</strong>
+            </div>
+            <div style="float: left; width: 25%;">
+              <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block;">Energy Profile</span>
+              <strong style="font-size: 14px; color: #0f172a; font-family: monospace;">${fMeAvg.toFixed(2)} MJ</strong>
+            </div>
+            <div style="float: left; width: 25%;">
+              <span style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold; display: block;">Formula Cost</span>
+              <strong style="font-size: 14px; color: #1e3a8a; font-family: monospace;">Ksh ${fCostAvg.toFixed(2)}/kg</strong>
+            </div>
+            <div style="clear: both;"></div>
+          </div>
+          <div style="font-size: 10px; text-align: center; color: #475569; font-weight: bold; margin-top: 10px; border-top: 1px solid #cbd5e1; padding-top: 8px;">
+            Assessment Classification: ${fQualityStr}
+          </div>
+        </div>
+      `;
+
+      const rows = fItems.map(item => {
+        const raw = getIngredientNutrients(item.name);
+        const pct = fWeight > 0 ? (item.amount / fWeight) * 100 : 0;
+        const costVal = raw.cost * item.amount;
+        return [
+          `<strong>${item.name}</strong>`,
+          `<strong style="font-family: monospace;">${item.amount.toFixed(1)} kg</strong>`,
+          `<span style="font-family: monospace;">${pct.toFixed(1)}%</span>`,
+          `<span style="font-family: monospace;">${raw.cp.toFixed(1)}% CP</span>`,
+          `<span style="font-family: monospace;">${raw.me.toFixed(1)} MJ</span>`,
+          `<strong style="font-family: monospace; color: #15803d;">Ksh ${costVal.toLocaleString()}</strong>`
+        ];
+      });
+
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>14. Optimized Feed Formulation & Compounding Board (Formula Made)</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${fItems.length} recipe ingredients)</span>
+          </h3>
+          ${summaryHtml}
+          ${buildTableHtml(['Ingredient Name', 'Inclusion weight', 'Proportional %', 'Crude Protein (CP)', 'Energy (ME)', 'Inclusion Cost'], rows)}
+        </div>
+      `;
+    }
+
+    // 15. Inventory
     if (sections.inventory) {
       const rows = inventory.map(item => {
         const isLow = item.quantity <= item.minStock;
@@ -1073,6 +1306,94 @@ export default function App() {
       `;
     }
 
+    // 18. Silage
+    if (sections.silage) {
+      const rows = silageRecords.map(item => [
+        `<span style="font-family: monospace; font-weight: bold;">${item.dateMade}</span>`,
+        `<strong>${item.rawMaterial}</strong>`,
+        `<strong>${item.acres} Acres</strong>`,
+        `<span style="font-family: monospace;">${item.calculatedWeightKg.toLocaleString()} KG</span>`,
+        `<span style="font-size: 11px;">${item.quality}</span>`,
+        `<span style="font-size: 11px;">Feed: ${item.animalsFedCount} head (${item.averageAnimalWeightKg}kg)<br>Lifespan: <strong>${item.daysOfFeedAvailable} Days</strong></span>`,
+        `<em style="font-size: 11px;">${item.notes}</em>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>18. Silage Preservation & Feed Rations Audit</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${silageRecords.length} records)</span>
+          </h3>
+          ${buildTableHtml(['Date Made', 'Raw Crop Material', 'Acres Area', 'Silage Weight (KG)', 'Quality Diagnosis', 'Livestock Feed Projections', 'Compaction Notes'], rows)}
+        </div>
+      `;
+    }
+
+    // 19. Heifers
+    if (sections.heifers) {
+      const rows = heiferRecords.map(item => [
+        `<span style="font-family: monospace; font-weight: bold;">${item.dateLogged}</span>`,
+        `<strong>${item.cowId}</strong>`,
+        `<strong>${item.weightKg} KG</strong> <small>(${item.girthCm || 'N/A'} cm girth)</small>`,
+        `<span style="color: #166534; font-weight: bold; font-family: monospace;">+${item.averageDailyGainGrams}g / Day</span>`,
+        `<strong>${item.breedingReady ? 'READY (AI Eligible)' : 'Growing'}</strong>`,
+        `<em style="font-size: 11px;">${item.notes}</em>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>19. Heifer Progressive Growth & Puberty Monitors</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${heiferRecords.length} animals)</span>
+          </h3>
+          ${buildTableHtml(['Date Logged', 'Heifer Ear Tag ID', 'Liveweight & Chest Girth', 'Average Daily Gain (ADG)', 'Puberty/Breeding Status', 'Feeding & Ration Details'], rows)}
+        </div>
+      `;
+    }
+
+    // 20. Poultry
+    if (sections.poultry) {
+      const rows = poultryRecords.map(item => [
+        `<span style="font-family: monospace; font-weight: bold;">${item.dateLogged}</span>`,
+        `<strong>${item.batchName}</strong> (${item.stage})`,
+        `<strong>${item.count ? `${item.count} Birds` : 'N/A'}</strong>`,
+        `<span style="font-family: monospace;">${item.feedGivenKg} KG</span> <small>(${item.feedType})</small>`,
+        `<strong>${item.eggCratesHarvested !== undefined ? `${item.eggCratesHarvested} Cr` : 'N/A'}</strong> <small>(cracked: ${item.crackedEggsCount ?? 0})</small>`,
+        `<strong>${item.mortalityCount || 0} death(s)</strong>`,
+        `<span style="font-size: 11px;">Production Index: <strong>${item.percentageProduction !== undefined ? `${item.percentageProduction}%` : 'N/A'}</strong></span>`,
+        `<em style="font-size: 11px;">${item.notes}</em>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>20. Poultry Flock Development Ledger & Egg Harvesting</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${poultryRecords.length} reports)</span>
+          </h3>
+          ${buildTableHtml(['Date Logged', 'Cohort Group Name', 'Flock Count', 'Daily Feed Ration', 'Egg Crates Yield', 'Mortality Rate', 'Hen-Day Production %', 'Operational Notes'], rows)}
+        </div>
+      `;
+    }
+
+    // 21. Quarantine
+    if (sections.quarantine) {
+      const rows = quarantineRecords.map(item => [
+        `<span style="font-family: monospace; font-weight: bold;">${item.dateStarted}</span>`,
+        `<strong>${item.animalTagOrBatch}</strong> (${item.animalType})`,
+        `<strong>${item.quarantineReason}</strong>`,
+        `<em>${item.symptomsObserved || 'None'}</em>`,
+        `<strong style="color: ${item.quarantineStatus === 'Cleared & Released' ? '#166534' : '#b91c1c'};">${item.quarantineStatus}</strong>`,
+        `Dr. ${item.vetInCharge}`,
+        `<em style="font-size: 11px;">${item.notes}</em>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>21. Biosecurity Vet Isolation & Quarantine Protocols</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${quarantineRecords.length} active quarantines)</span>
+          </h3>
+          ${buildTableHtml(['Isolation Start', 'Animal Tag ID / Specimen', 'Quarantine Reason', 'Symptoms Tracked', 'Release Status', 'Attending Veterinarian', 'Prescription Notes'], rows)}
+        </div>
+      `;
+    }
+
     const netPlAmount = financials.reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
 
     return `
@@ -1278,6 +1599,213 @@ export default function App() {
     `;
   };
 
+  const getSectionsMetadata = () => {
+    return [
+      {
+        key: 'staff',
+        label: '1. Staff Deployment Roster',
+        count: staffList.length,
+        subsections: [
+          { key: 'staff_shifts', label: '1a. Daily Shift Assignments', count: staffList.length },
+          { key: 'staff_offs', label: '1b. Shift Offs & Leaves Ledger', count: staffOffRecords?.length || 0 }
+        ]
+      },
+      {
+        key: 'milk',
+        label: '2. Daily Milking Records',
+        count: milkRecords.length,
+        subsections: [
+          { key: 'milk_production', label: '2a. Daily Cow Milking Logs', count: milkRecords.length },
+          { key: 'milk_outflows', label: '2b. Bulk Sales & Dispatches', count: milkOutflows?.length || 0 }
+        ]
+      },
+      {
+        key: 'ai',
+        label: '3. Insemination & Breeding',
+        count: aiRecords.length,
+        subsections: [
+          { key: 'ai_breeding', label: '3a. Breeding Cycles Log', count: aiRecords.length },
+          { key: 'ai_silage', label: '3b. Bulk Silage Pits Inventory', count: silageRecords?.length || 0 },
+          { key: 'ai_heifers', label: '3c. Heifer Progeny Growth tracker', count: heiferRecords?.length || 0 }
+        ]
+      },
+      {
+        key: 'tea',
+        label: '4. KTDA Tea Deliveries',
+        count: teaRecords.length,
+        subsections: [
+          { key: 'tea_dispatches', label: '4a. Green Leaf Dispatches Log', count: teaRecords.length },
+          { key: 'tea_grading', label: '4b. Tea Factory Buyer Grader Audits', count: 4 }
+        ]
+      },
+      {
+        key: 'avo',
+        label: '5. Avocado Exports Logs',
+        count: avoRecords.length,
+        subsections: [
+          { key: 'avo_shipments', label: '5a. Container Shipment Dispatches', count: avoRecords.length },
+          { key: 'avo_packhouse', label: '5b. Packhouse Grading Check', count: 3 }
+        ]
+      },
+      {
+        key: 'cropSales',
+        label: '6. Commodities Cash Sales',
+        count: cropSales.length,
+        subsections: [
+          { key: 'crop_cash_sales', label: '6a. Commodities Direct Cash Sales', count: cropSales.length },
+          { key: 'crop_ops', label: '6b. Crop Field Care Operations', count: cropOps?.length || 0 }
+        ]
+      },
+      {
+        key: 'financials',
+        label: '7. Operational Ledger',
+        count: financials.length,
+        subsections: [
+          { key: 'fin_revenues', label: '7a. Direct Operating Revenues', count: financials.filter(f => f.type === 'income').length },
+          { key: 'fin_expenses', label: '7b. Operating Expenses & Incurrence', count: financials.filter(f => f.type === 'expense').length },
+          { key: 'fin_capital', label: '7c. Capital Budgets & Cash Outflows', count: financials.filter(f => f.type === 'capital_budget').length }
+        ]
+      },
+      {
+        key: 'spray',
+        label: '8. GlobalGAP Spray Logs',
+        count: sprayRecords.length,
+        subsections: [
+          { key: 'spray_logs', label: '8a. Insecticide & Anti-Fungal Sprays', count: sprayRecords.length },
+          { key: 'spray_quarantine', label: '8b. Safe PHI Harvest Withholding Warnings', count: quarantineRecords?.length || 0 }
+        ]
+      },
+      {
+        key: 'fields',
+        label: '9. Registered Field plots',
+        count: fields.length,
+        subsections: [
+          { key: 'fields_registry', label: '9a. Active Farm Plot Allocations', count: fields.length },
+          { key: 'fields_agroforestry', label: '9b. Agroforestry Conservation Trees Index', count: fields.filter(f => f.conservationTreeCount > 0).length }
+        ]
+      },
+      {
+        key: 'livestock',
+        label: '10. Poultry & Canine Assets',
+        count: livestock.length,
+        subsections: [
+          { key: 'live_canines', label: '10a. Canine Guard Patrol Logs', count: livestock.filter(l => l.category === 'Canine').length },
+          { key: 'live_poultry', label: '10b. Layer Bird Flock Monitor', count: poultryRecords?.length || 0 }
+        ]
+      },
+      {
+        key: 'goats',
+        label: '11. Goat Milk Registers',
+        count: goatRecords.length,
+        subsections: [
+          { key: 'goats_milk', label: '11a. Milking Doe Daily Yields', count: goatRecords.length },
+          { key: 'goats_herd', label: '11b. Breeding Bucks & Does Register', count: 2 }
+        ]
+      },
+      {
+        key: 'calves',
+        label: '12. Liquidfed Calves log',
+        count: calfRecords.length,
+        subsections: [
+          { key: 'calves_log', label: '12a. Milk Replacer Feeding Schedule', count: calfRecords.length },
+          { key: 'calves_health', label: '12b. Deworming and Standard Vaccination Meds', count: calfRecords.filter(c => c.dosageHistory && c.dosageHistory.length > 0).length }
+        ]
+      },
+      {
+        key: 'bsf',
+        label: '13. Organic BSF Batches',
+        count: bsfRecords.length,
+        subsections: [
+          { key: 'bsf_rearing', label: '13a. Organic Substrate Rearing Stages', count: bsfRecords.length },
+          { key: 'bsf_harvest', label: '13b. High Protein Larvae Harvest Records', count: bsfRecords.filter(b => b.harvestedYield > 0).length }
+        ]
+      },
+      {
+        key: 'formula',
+        label: '14. Feed Formulation Recipe',
+        count: getStoredFeedFormula().length,
+        subsections: [
+          { key: 'formula_recipe', label: '14a. Compounded Diet Matrix', count: getStoredFeedFormula().length },
+          { key: 'formula_nutrients', label: '14b. Target Nutrient Standard Check', count: 6 }
+        ]
+      },
+      {
+        key: 'inventory',
+        label: '15. Storage Stocks reserves',
+        count: inventory.length,
+        subsections: [
+          { key: 'inventory_reserves', label: '15a. Warehouse Commodity Materials', count: inventory.length },
+          { key: 'inventory_alerts', label: '15b. Critical Low Stock Reorder Alarms', count: inventory.filter(i => i.qty <= i.reorderLevel).length }
+        ]
+      },
+      {
+        key: 'vet',
+        label: '16. Clinical Treatments',
+        count: vetRecords.length,
+        subsections: [
+          { key: 'vet_treatments', label: '16a. Clinical Treatment Protocols Log', count: vetRecords.length },
+          { key: 'vet_withdrawal', label: '16b. Bio-hazard Withdrawal Safe Period Audits', count: quarantineRecords ? quarantineRecords.length : 0 }
+        ]
+      },
+      {
+        key: 'academy',
+        label: "17. Academy Diag History",
+        count: getStoredDiagHistory().length,
+        subsections: [
+          { key: 'academy_casebook', label: '17a. Clinical Cases Diagnosis Cases Log', count: getStoredDiagHistory().length },
+          { key: 'academy_sop_logs', label: '17b. Auto-Deducted Policy Failure Audits', count: getStoredDeductLogs().length }
+        ]
+      },
+      {
+        key: 'timetable',
+        label: '18. Operations Calendar Tasks',
+        count: getStoredTimetable().length,
+        subsections: [
+          { key: 'timetable_schedule', label: '18a. Operations Calendar Tasks Scheduled', count: getStoredTimetable().length },
+          { key: 'timetable_protocols', label: '18b. Standard SOP Protocols & Check drills', count: 18 }
+        ]
+      }
+    ];
+  };
+
+  const handleSelectAllSections = (status: boolean) => {
+    const keys = [
+      'staff', 'staff_shifts', 'staff_offs',
+      'milk', 'milk_production', 'milk_outflows',
+      'ai', 'ai_breeding', 'ai_silage', 'ai_heifers',
+      'tea', 'tea_dispatches', 'tea_grading',
+      'avo', 'avo_shipments', 'avo_packhouse',
+      'cropSales', 'crop_cash_sales', 'crop_ops',
+      'financials', 'fin_revenues', 'fin_expenses', 'fin_capital',
+      'spray', 'spray_logs', 'spray_quarantine',
+      'fields', 'fields_registry', 'fields_agroforestry',
+      'livestock', 'live_canines', 'live_poultry',
+      'goats', 'goats_milk', 'goats_herd',
+      'calves', 'calves_log', 'calves_health',
+      'bsf', 'bsf_rearing', 'bsf_harvest',
+      'formula', 'formula_recipe', 'formula_nutrients',
+      'inventory', 'inventory_reserves', 'inventory_alerts',
+      'vet', 'vet_treatments', 'vet_withdrawal',
+      'academy', 'academy_casebook', 'academy_sop_logs',
+      'timetable', 'timetable_schedule', 'timetable_protocols'
+    ];
+    const updated = {} as Record<string, boolean>;
+    keys.forEach(k => {
+      updated[k] = status;
+    });
+    setSelectedSections(updated);
+  };
+
+  const handleToggleParent = (key: string, currentVal: boolean, subKeys: string[]) => {
+    setSelectedSections(prev => {
+      const next = { ...prev, [key]: !currentVal };
+      subKeys.forEach(s => {
+        next[s] = !currentVal;
+      });
+      return next;
+    });
+  };
+
   const handleDownloadHtmlReport = (customKeys?: string[]) => {
     let tempSections: Record<string, boolean>;
     if (customKeys && customKeys.length > 0) {
@@ -1285,7 +1813,8 @@ export default function App() {
         staff: false, milk: false, ai: false, tea: false, avo: false,
         cropSales: false, financials: false, spray: false, fields: false,
         livestock: false, goats: false, calves: false, bsf: false,
-        inventory: false, vet: false, academy: false, timetable: false
+        formula: false, inventory: false, vet: false, academy: false, timetable: false,
+        silage: false, heifers: false, poultry: false, quarantine: false
       } as Record<string, boolean>;
       customKeys.forEach(k => {
         const mappedKey = k === 'schedule' ? 'timetable' : k;
@@ -1318,6 +1847,32 @@ export default function App() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleTriggerSectionReport = (key: string) => {
+    handleTriggerSectionReportMulti([key]);
+  };
+
+  const handleTriggerSectionReportMulti = (keys: string[]) => {
+    const resetSections: Record<string, boolean> = {
+      staff: false, milk: false, ai: false, tea: false, avo: false,
+      cropSales: false, financials: false, spray: false, fields: false,
+      livestock: false, goats: false, calves: false, bsf: false,
+      inventory: false, vet: false, academy: false, timetable: false,
+      silage: false, heifers: false, poultry: false, quarantine: false
+    } as any;
+    
+    keys.forEach(k => {
+      const mappedKey = k === 'schedule' ? 'timetable' : k;
+      if (mappedKey in resetSections) {
+        resetSections[mappedKey] = true;
+      } else {
+        resetSections[k] = true;
+      }
+    });
+    
+    setSelectedSections(resetSections);
+    setActiveTab('report_view');
   };
 
 
@@ -1541,51 +2096,90 @@ export default function App() {
   */
 
   const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>({
-    staff: true,
-    milk: true,
-    ai: true,
-    tea: true,
-    avo: true,
-    cropSales: true,
-    financials: true,
-    spray: true,
-    fields: true,
-    livestock: true,
-    goats: true,
-    calves: true,
-    bsf: true,
-    inventory: true,
-    vet: true,
-    academy: true,
-    timetable: true
+    staff: true, staff_shifts: true, staff_offs: true,
+    milk: true, milk_production: true, milk_outflows: true,
+    ai: true, ai_breeding: true, ai_silage: true, ai_heifers: true,
+    tea: true, tea_dispatches: true, tea_grading: true,
+    avo: true, avo_shipments: true, avo_packhouse: true,
+    cropSales: true, crop_cash_sales: true, crop_ops: true,
+    financials: true, fin_revenues: true, fin_expenses: true, fin_capital: true,
+    spray: true, spray_logs: true, spray_quarantine: true,
+    fields: true, fields_registry: true, fields_agroforestry: true,
+    livestock: true, live_canines: true, live_poultry: true,
+    goats: true, goats_milk: true, goats_herd: true,
+    calves: true, calves_log: true, calves_health: true,
+    bsf: true, bsf_rearing: true, bsf_harvest: true,
+    formula: true, formula_recipe: true, formula_nutrients: true,
+    inventory: true, inventory_reserves: true, inventory_alerts: true,
+    vet: true, vet_treatments: true, vet_withdrawal: true,
+    academy: true, academy_casebook: true, academy_sop_logs: true,
+    timetable: true, timetable_schedule: true, timetable_protocols: true
   });
 
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
 
-  // Always reset and enable all 17 sections when Master Report is opened
+
+  // Reset and toggle selected sections when Master Report is opened:
+  // Dynamically include only sections that have user-added records, OR represent the active section they are filling!
   useEffect(() => {
     if (showReportModal) {
+      const withRecs = {
+        staff: staffList.length > 0,
+        milk: milkRecords.length > 0,
+        ai: aiRecords.length > 0,
+        tea: teaRecords.length > 0,
+        avo: avoRecords.length > 0,
+        cropSales: cropSales.length > 0,
+        financials: financials.length > 0,
+        spray: sprayRecords.length > 0,
+        fields: fields.length > 0,
+        livestock: livestock.length > 0,
+        goats: goatRecords.length > 0,
+        calves: calfRecords.length > 0,
+        bsf: bsfRecords.length > 0,
+        formula: getStoredFeedFormula().length > 0,
+        inventory: inventory.length > 0,
+        vet: vetRecords.length > 0,
+        academy: getStoredDiagHistory().length > 0,
+        timetable: getStoredTimetable().length > 0
+      } as Record<string, boolean>;
+
+      // Force active tab keys
+      if (activeTab === 'roster') withRecs.staff = true;
+      if (activeTab === 'factory' || activeTab === 'tmr') withRecs.formula = true;
+      if (activeTab === 'dairy') { withRecs.milk = true; withRecs.ai = true; withRecs.vet = true; withRecs.calves = true; }
+      if (activeTab === 'horti') { withRecs.tea = true; withRecs.avo = true; withRecs.cropSales = true; }
+      if (activeTab === 'spray') withRecs.spray = true;
+      if (activeTab === 'finance') withRecs.financials = true;
+      if (activeTab === 'fields') withRecs.fields = true;
+      if (activeTab === 'livestock') { withRecs.livestock = true; withRecs.goats = true; }
+      if (activeTab === 'inventory') withRecs.inventory = true;
+      if (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') withRecs.academy = true;
+      if (activeTab === 'timetable') withRecs.timetable = true;
+
       setSelectedSections({
-        staff: true,
-        milk: true,
-        ai: true,
-        tea: true,
-        avo: true,
-        cropSales: true,
-        financials: true,
-        spray: true,
-        fields: true,
-        livestock: true,
-        goats: true,
-        calves: true,
-        bsf: true,
-        inventory: true,
-        vet: true,
-        academy: true,
-        timetable: true
+        staff: withRecs.staff, staff_shifts: withRecs.staff, staff_offs: withRecs.staff,
+        milk: withRecs.milk, milk_production: withRecs.milk, milk_outflows: withRecs.milk,
+        ai: withRecs.ai, ai_breeding: withRecs.ai, ai_silage: withRecs.ai, ai_heifers: withRecs.ai,
+        tea: withRecs.tea, tea_dispatches: withRecs.tea, tea_grading: withRecs.tea,
+        avo: withRecs.avo, avo_shipments: withRecs.avo, avo_packhouse: withRecs.avo,
+        cropSales: withRecs.cropSales, crop_cash_sales: withRecs.cropSales, crop_ops: withRecs.cropSales,
+        financials: withRecs.financials, fin_revenues: withRecs.financials, fin_expenses: withRecs.financials, fin_capital: withRecs.financials,
+        spray: withRecs.spray, spray_logs: withRecs.spray, spray_quarantine: withRecs.spray,
+        fields: withRecs.fields, fields_registry: withRecs.fields, fields_agroforestry: withRecs.fields,
+        livestock: withRecs.livestock, live_canines: withRecs.livestock, live_poultry: withRecs.livestock,
+        goats: withRecs.goats, goats_milk: withRecs.goats, goats_herd: withRecs.goats,
+        calves: withRecs.calves, calves_log: withRecs.calves, calves_health: withRecs.calves,
+        bsf: withRecs.bsf, bsf_rearing: withRecs.bsf, bsf_harvest: withRecs.bsf,
+        formula: withRecs.formula, formula_recipe: withRecs.formula, formula_nutrients: withRecs.formula,
+        inventory: withRecs.inventory, inventory_reserves: withRecs.inventory, inventory_alerts: withRecs.inventory,
+        vet: withRecs.vet, vet_treatments: withRecs.vet, vet_withdrawal: withRecs.vet,
+        academy: withRecs.academy, academy_casebook: withRecs.academy, academy_sop_logs: withRecs.academy,
+        timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
       });
     }
-  }, [showReportModal]);
+  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, goatRecords, calfRecords, bsfRecords, inventory, vetRecords]);
 
   // Synchronize localStorage
   useEffect(() => {
@@ -1675,6 +2269,22 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('jr_farm_mortalities', JSON.stringify(mortalities));
   }, [mortalities]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_silages', JSON.stringify(silageRecords));
+  }, [silageRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_heifers', JSON.stringify(heiferRecords));
+  }, [heiferRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_poultries', JSON.stringify(poultryRecords));
+  }, [poultryRecords]);
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_quarantines', JSON.stringify(quarantineRecords));
+  }, [quarantineRecords]);
 
   // Live timer effect
   useEffect(() => {
@@ -2558,6 +3168,38 @@ export default function App() {
     setCropOps(cropOps.filter(r => r.id !== id));
   };
 
+  const handleAddSilage = (rec: SilageRecord) => {
+    setSilageRecords([rec, ...silageRecords]);
+  };
+
+  const handleDeleteSilage = (id: string) => {
+    setSilageRecords(silageRecords.filter(s => s.id !== id));
+  };
+
+  const handleAddHeifer = (rec: HeiferRecord) => {
+    setHeiferRecords([rec, ...heiferRecords]);
+  };
+
+  const handleDeleteHeifer = (id: string) => {
+    setHeiferRecords(heiferRecords.filter(h => h.id !== id));
+  };
+
+  const handleAddPoultry = (rec: PoultryRecord) => {
+    setPoultryRecords([rec, ...poultryRecords]);
+  };
+
+  const handleDeletePoultry = (id: string) => {
+    setPoultryRecords(poultryRecords.filter(p => p.id !== id));
+  };
+
+  const handleAddQuarantine = (rec: QuarantineRecord) => {
+    setQuarantineRecords([rec, ...quarantineRecords]);
+  };
+
+  const handleDeleteQuarantine = (id: string) => {
+    setQuarantineRecords(quarantineRecords.filter(q => q.id !== id));
+  };
+
   const handleUpdateCropOpStatus = (id: string, status: CropOpRecord['status'], completedBy?: string, notes?: string) => {
     setCropOps(cropOps.map(c => c.id === id ? { ...c, status, completedBy: completedBy ?? c.completedBy, notes: notes ?? c.notes } : c));
   };
@@ -2641,7 +3283,7 @@ export default function App() {
       staff: true, milk: true, ai: true, tea: true, avo: true,
       cropSales: true, financials: true, spray: true, fields: true,
       livestock: true, goats: true, calves: true, bsf: true,
-      inventory: true, vet: true
+      formula: true, inventory: true, vet: true
     };
 
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -2790,7 +3432,23 @@ export default function App() {
       csvContent += '\n';
     }
 
-    // 14. Inventory items
+    // 14. Feed Formulation
+    if (selectedSections.formula) {
+      csvContent += '--- COMPILED FEED FORMULATION RECIPE ---\n';
+      csvContent += 'Ingredient Sourced,Inclusion weight (kg),Proportional Share (%),Crude Protein (CP %),Energy (ME MJ/kg),Unit Cost (Ksh/kg),Inclusion Cost (Ksh)\n';
+      const fItems = getStoredFeedFormula();
+      let fWeight = 0;
+      fItems.forEach(item => fWeight += item.amount);
+      fItems.forEach((item) => {
+        const raw = getIngredientNutrients(item.name);
+        const pct = fWeight > 0 ? (item.amount / fWeight) * 100 : 0;
+        const costVal = raw.cost * item.amount;
+        csvContent += `"${item.name}",${item.amount.toFixed(1)},${pct.toFixed(1)},${raw.cp.toFixed(1)},${raw.me.toFixed(1)},${raw.cost.toFixed(1)},${costVal.toFixed(1)}\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 15. Inventory items
     if (selectedSections.inventory) {
       csvContent += '--- STORAGE WAREHOUSE INVENTORY RESERVES ---\n';
       csvContent += 'Item ID,Item Name,Primary Category,Current Stock,Unit Measure,Reorder Safety Level,Status Alert\n';
@@ -3871,13 +4529,13 @@ export default function App() {
                     else if (activeTab === 'timetable' || activeTab === 'timelines_sub') keys = ['timetable'];
                     
                     if (keys.length > 0) {
-                      handleDownloadHtmlReport(keys);
+                      handleTriggerSectionReportMulti(keys);
                     }
                   }}
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all border border-amber-600/10 m-0 cursor-pointer shadow-sm animate-fade-in"
                 >
-                  <FileDown size={14} />
-                  Export {
+                  <FileText size={14} />
+                  View {
                     activeTab === 'roster' ? 'Staff Roster' :
                     activeTab === 'factory' ? 'Feed Formula' :
                     activeTab === 'tmr' ? 'TMR Mixing' :
@@ -3890,7 +4548,7 @@ export default function App() {
                     activeTab === 'inventory' ? 'Warehouse Stock' :
                     (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') ? "Farmer's Academy Guide" :
                     activeTab === 'timetable' ? "Operations Calendar" : 'Section'
-                  } (HTML)
+                  } Report
                 </button>
               </div>
             </div>
@@ -3925,6 +4583,7 @@ export default function App() {
               onDeleteOffRecord={handleDeleteOffRecord}
               onUpdateOffRecordStatus={handleUpdateOffRecordStatus}
               onEditStaffOffRecord={handleEditStaffOffRecord}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -3933,10 +4592,15 @@ export default function App() {
               ingredients={ingredients}
               onAddIngredientToLib={handleAddIngredientLib}
               onDeleteIngredientToLib={handleDeleteIngredientLib}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
-          {activeTab === 'tmr' && <TmrMixing />}
+          {activeTab === 'tmr' && (
+            <TmrMixing
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
 
           {activeTab === 'dairy' && (
             <DairyBreeding
@@ -3968,7 +4632,7 @@ export default function App() {
               mortalities={mortalities}
               onAddMortality={handleAddMortality}
               onDeleteMortality={handleDeleteMortality}
-              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -3982,6 +4646,7 @@ export default function App() {
               onDeleteAvo={handleDeleteAvo}
               onEditTea={handleEditTea}
               onEditAvo={handleEditAvo}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -3991,6 +4656,7 @@ export default function App() {
               onAddSpray={handleAddSpray}
               onDeleteSpray={handleDeleteSpray}
               onEditSprayRecord={handleEditSprayRecord}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -4000,7 +4666,7 @@ export default function App() {
               onAddTransaction={handleAddTransaction}
               onDeleteTransaction={handleDeleteTransaction}
               onEditFinancialRecord={handleEditFinancialRecord}
-              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -4051,6 +4717,19 @@ export default function App() {
               onEditCropSale={handleEditCropSale}
               vetRecords={vetRecords}
               aiRecords={aiRecords}
+              silageRecords={silageRecords}
+              onAddSilage={handleAddSilage}
+              onDeleteSilage={handleDeleteSilage}
+              heiferRecords={heiferRecords}
+              onAddHeifer={handleAddHeifer}
+              onDeleteHeifer={handleDeleteHeifer}
+              poultryRecords={poultryRecords}
+              onAddPoultry={handleAddPoultry}
+              onDeletePoultry={handleDeletePoultry}
+              quarantineRecords={quarantineRecords}
+              onAddQuarantine={handleAddQuarantine}
+              onDeleteQuarantine={handleDeleteQuarantine}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
@@ -4072,7 +4751,7 @@ export default function App() {
               cows={cows}
               financials={financials}
               setFinancials={setFinancials}
-              onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])}
+              onTriggerSectionReport={handleTriggerSectionReport}
               initialTab={
                 activeTab === 'diagnostics_sub' ? 'diagnostics' :
                 activeTab === 'inventory_deduct_sub' ? 'inventory_deduct' :
@@ -4084,7 +4763,7 @@ export default function App() {
           )}
 
           {activeTab === 'timetable' && (
-            <OperationsSchedule onTriggerSectionReport={(key) => handleDownloadHtmlReport([key])} />
+            <OperationsSchedule onTriggerSectionReport={handleTriggerSectionReport} />
           )}
 
           {activeTab === 'settings' && (
@@ -4097,6 +4776,911 @@ export default function App() {
                 window.location.reload();
               }}
             />
+          )}
+
+          {activeTab === 'report_view' && (
+            <div className="bg-white rounded-3xl w-full shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+              {/* Report Header */}
+              <div className="bg-emerald-950 text-white p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center shrink-0 gap-4">
+                <div className="flex items-center gap-3">
+                  <FileText size={24} className="text-yellow-500" />
+                  <div>
+                    <h3 className="font-extrabold text-base uppercase tracking-widest text-white">Full-Page Interactive Report Hub</h3>
+                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 font-sans">Sovereign Compliance & Master Auditing</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setActiveTab('dash')}
+                    className="px-4 py-2 bg-emerald-900 hover:bg-emerald-850 text-emerald-200 text-xs font-bold rounded-xl transition-all border border-emerald-800 cursor-pointer m-0"
+                  >
+                    ← Back to Dashboard
+                  </button>
+                  <button
+                    onClick={() => handleSelectAllSections(true)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-700 m-0"
+                  >
+                    Select All Sections
+                  </button>
+                  <button
+                    onClick={() => handleSelectAllSections(false)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-700 m-0"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {/* Split Composer Workspace */}
+              <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-[600px] bg-slate-100">
+                {/* Left Pane: Table of Contents / Selector (Hidden on print) */}
+                <div className="w-full lg:w-80 bg-slate-50 border-r border-slate-200 p-6 overflow-y-auto flex flex-col justify-between print:hidden gap-5 shrink-0">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">18-Module Compiler Index</h4>
+                      <p className="text-[10px] text-slate-405 font-bold uppercase tracking-wider mt-0.5">Toggle sections to customize report</p>
+                    </div>
+ 
+                     {/* Section list with record counts as checkbox buttons */}
+                    <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                      {getSectionsMetadata().map((sec) => {
+                        const isExpanded = !!expandedSections[sec.key];
+                        const isChecked = !!selectedSections[sec.key];
+                        const subKeys = sec.subsections.map(s => s.key);
+                        const hasSubsections = sec.subsections.length > 0;
+
+                        return (
+                          <div key={sec.key} className="space-y-1 bg-white p-2 rounded-2xl border border-slate-200">
+                            {/* Parent Section Block */}
+                            <div className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleParent(sec.key, isChecked, subKeys)}
+                                  className={`flex-1 flex items-center gap-2 p-1.5 rounded-lg border text-left font-bold transition-all ${
+                                    isChecked
+                                      ? 'border-emerald-200 bg-emerald-50 text-emerald-950'
+                                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    readOnly
+                                    className="accent-emerald-700 pointer-events-none scale-90"
+                                  />
+                                  <span className="text-[11px] font-sans truncate pr-1" title={sec.label}>
+                                    {sec.label}
+                                  </span>
+                                </button>
+                              </div>
+
+                              {/* Collapse/Expand subsections */}
+                              {hasSubsections && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExpandedSections(prev => ({
+                                      ...prev,
+                                      [sec.key]: !prev[sec.key]
+                                    }));
+                                  }}
+                                  className="p-1 px-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+                                >
+                                  <span className="text-[9px] font-black uppercase tracking-wider font-mono">
+                                    {isExpanded ? 'Hide' : `Show (${sec.subsections.length})`}
+                                  </span>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Collapsible Subsection Branch */}
+                            {hasSubsections && isExpanded && (
+                              <div className="pl-4 pr-1 py-1 bg-slate-50/50 rounded-lg space-y-1 border-l-2 border-slate-200 ml-3">
+                                {sec.subsections.map(sub => {
+                                  const isSubChecked = !!selectedSections[sub.key];
+                                  return (
+                                    <button
+                                      key={sub.key}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedSections(prev => {
+                                          const nextStatus = !prev[sub.key];
+                                          const updated = { ...prev, [sub.key]: nextStatus };
+                                          // If we checked a sub-item, make sure parent is also checked
+                                          if (nextStatus) {
+                                            updated[sec.key] = true;
+                                          }
+                                          return updated;
+                                        });
+                                      }}
+                                      className={`w-full flex items-center justify-between p-1.5 rounded-md border text-left transition-all ${
+                                        isSubChecked
+                                          ? 'border-emerald-100/50 bg-white text-emerald-950 font-bold'
+                                          : 'border-transparent bg-transparent text-slate-400 hover:bg-slate-100'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <input
+                                          type="checkbox"
+                                          checked={isSubChecked}
+                                          readOnly
+                                          className="accent-emerald-700 pointer-events-none scale-75"
+                                        />
+                                        <span className="text-[10px] font-medium truncate font-sans">{sub.label}</span>
+                                      </div>
+                                      <span className={`text-[8px] px-1 py-0.2 rounded-full border font-mono shrink-0 font-bold ${
+                                        isSubChecked ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200/50'
+                                      }`}>
+                                        {sub.count}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-widest hidden lg:block">
+                    Full-Page Document Previewer
+                  </div>
+                </div>
+
+                {/* Right Pane: Full-Page Document Preview Container */}
+                <div className="p-8 overflow-y-auto flex-1 bg-white space-y-6 max-h-[80vh] border-l border-slate-200">
+                  {/* Formal Letterhead */}
+                  <div className="text-center border-b-2 border-slate-900 pb-6 space-y-1 flex flex-col items-center justify-center">
+                    <div 
+                      className="w-16 h-16 mb-2 overflow-hidden opacity-95" 
+                      dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
+                    />
+                    <h1 className="text-3xl font-black text-slate-900 italic tracking-tighter uppercase font-mono">{getStoredSettings()?.estateName || "JR FARM COOPERATIVE ESTATE"}</h1>
+                    <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
+                      Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
+                    </p>
+                    <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
+                      <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* High-Level P&L Summary Cards for print */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Milk Compiled</span>
+                      <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
+                        {milkRecords.reduce((sum, r) => sum + r.am + r.pm, 0).toFixed(1)} L
+                      </h3>
+                    </div>
+                    <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Tea Volumes</span>
+                      <h3 className="text-xl font-black font-mono text-slate-805 mt-1">
+                        {totalTeaQty.toLocaleString()} KG
+                      </h3>
+                    </div>
+                    <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">P&L Operating Balance</span>
+                      <h3 className="text-xl font-black font-mono text-emerald-800 mt-1">
+                        Ksh {netPl.toLocaleString()}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Sections Compilation Stack */}
+                  <div className="space-y-8 pt-4">
+                    {Object.values(selectedSections).filter(Boolean).length === 0 && (
+                      <div className="py-20 text-center text-slate-400 space-y-3">
+                        <FileText className="mx-auto text-slate-300 animate-pulse" size={48} />
+                        <p className="font-black text-xs uppercase tracking-widest font-sans">No Report Sections Compiled</p>
+                        <p className="text-[10px] text-slate-400 font-medium font-sans">Toggle section blocks in the left index column to construct your report.</p>
+                      </div>
+                    )}
+
+                    {/* 1. Staff deployment List */}
+                    {selectedSections.staff && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>1. Staff Deployment Schedule</span>
+                          <span className="text-[9px] font-mono text-slate-400">({staffList.length} staff)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Name</th>
+                              <th className="p-1">Section</th>
+                              <th className="p-1">Morning Shift</th>
+                              <th className="p-1">Afternoon Shift</th>
+                              <th className="p-1 text-center">Duty Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {staffList.map((st) => (
+                              <tr key={st.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-bold text-slate-805">{st.name}</td>
+                                <td className="p-1.5">{st.unit}</td>
+                                <td className="p-1.5 text-slate-500">{st.shiftMorning}</td>
+                                <td className="p-1.5 text-slate-505">{st.shiftAfternoon}</td>
+                                <td className="p-1.5 text-center font-bold">{st.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 2. Milk harvest yields */}
+                    {selectedSections.milk && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>2. Dairy Production Log</span>
+                          <span className="text-[9px] font-mono text-slate-400">({milkRecords.length} records)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Cow Tag ID</th>
+                              <th className="p-1 text-right">AM Liters</th>
+                              <th className="p-1 text-right">PM Liters</th>
+                              <th className="p-1 text-right">Total Yield</th>
+                              <th className="p-1">Milker</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {milkRecords.slice(0, 30).map((m, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
+                                <td className="p-1.5 text-right font-mono">{m.am.toFixed(1)}</td>
+                                <td className="p-1.5 text-right font-mono">{m.pm.toFixed(1)}</td>
+                                <td className="p-1.5 text-right font-mono font-bold">{(m.am + m.pm).toFixed(1)} L</td>
+                                <td className="p-1.5">{m.staff}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {milkRecords.length > 30 && (
+                          <p className="text-[9px] text-slate-400 italic">* Previewing first 30 yield logs. Total dataset holds {milkRecords.length} lines.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 3. Insemination & Breeding */}
+                    {selectedSections.ai && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>3. Insemination Breeding Status Index</span>
+                          <span className="text-[9px] font-mono text-slate-400">({aiRecords.length} records)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Cow Tag ID</th>
+                              <th className="p-1">Service Date</th>
+                              <th className="p-1">Bull Name / Semen Reference</th>
+                              <th className="p-1">Expected Calving Date</th>
+                              <th className="p-1">Pregnancy Stage Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aiRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-bold text-slate-800">{item.cowId}</td>
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 italic">{item.bull}</td>
+                                <td className="p-1.5 font-mono font-bold text-emerald-900">{item.due}</td>
+                                <td className="p-1.5 font-black text-[10px]">{item.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 4. Tea Harvest deliveries */}
+                    {selectedSections.tea && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>4. Green Leaf Tea Dispatches</span>
+                          <span className="text-[9px] font-mono text-slate-400">({teaRecords.length} blocks)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Pluck ID Ref</th>
+                              <th className="p-1">Licensed Buyer Factory</th>
+                              <th className="p-1 text-right">Delivered Qty</th>
+                              <th className="p-1 text-right">Est. Proceeds</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teaRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.ref}</td>
+                                <td className="p-1.5">{item.buyer}</td>
+                                <td className="p-1.5 text-right font-mono font-bold">{item.qty.toLocaleString()} KG</td>
+                                <td className="p-1.5 text-right font-mono text-emerald-800">Ksh {item.totalSales?.toLocaleString() || (item.qty * 58).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 5. Avocado Exports logs */}
+                    {selectedSections.avo && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>5. Export-Grade Avocado Logs</span>
+                          <span className="text-[9px] font-mono text-slate-400">({avoRecords.length} shipments)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Consignation Reference</th>
+                              <th className="p-1 text-right">Grade A Boxes</th>
+                              <th className="p-1 text-right">Grade B Boxes</th>
+                              <th className="p-1 text-right">Rejects (kg)</th>
+                              <th className="p-1 text-right">Yield proceeds</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {avoRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100 font-sans">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.ref}</td>
+                                <td className="p-1.5 text-right">{item.gradeA}</td>
+                                <td className="p-1.5 text-right">{item.gradeB}</td>
+                                <td className="p-1.5 text-right">{item.reject}</td>
+                                <td className="p-1.5 text-right font-mono font-extrabold text-emerald-850">Ksh {item.totalSales?.toLocaleString() || ((item.gradeA * 1500) + (item.gradeB * 850)).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 6. Farm Cash Commodities Sales */}
+                    {selectedSections.cropSales && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>6. Commodity Spot Trade Outflows</span>
+                          <span className="text-[9px] font-mono text-slate-400">({cropSales.length} items)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Commodity / Crop</th>
+                              <th className="p-1 text-right">Sold Volume</th>
+                              <th className="p-1 text-right">Unit Pricing</th>
+                              <th className="p-1 text-right">Gross Receipts</th>
+                              <th className="p-1">Buyer / Purchaser</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cropSales.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.crop}</td>
+                                <td className="p-1.5 text-right font-mono">{item.qty} {item.unit}</td>
+                                <td className="p-1.5 text-right font-mono">Ksh {item.pricePerUnit}</td>
+                                <td className="p-1.5 text-right font-mono font-bold text-emerald-850">Ksh {item.totalSales?.toLocaleString()}</td>
+                                <td className="p-1.5 italic text-slate-700">{item.buyer}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 7. Financial Ledgers */}
+                    {selectedSections.financials && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>7. Farm Operations Account Book Ledger</span>
+                          <span className="text-[9px] font-mono text-slate-400">({financials.length} entries)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Particulars / Details</th>
+                              <th className="p-1">Classification</th>
+                              <th className="p-1">Inflow (CR)</th>
+                              <th className="p-1">Outflow (DR)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {financials.slice(0, 30).map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-semibold text-slate-800">{item.desc}</td>
+                                <td className="p-1.5 font-mono text-[10px]">{item.category}</td>
+                                <td className="p-1.5 text-right font-bold text-emerald-800 font-mono">
+                                  {item.type === 'income' ? `+Ksh ${item.amount.toLocaleString()}` : ''}
+                                </td>
+                                <td className="p-1.5 text-right font-bold text-red-800 font-mono">
+                                  {item.type === 'expense' ? `-Ksh ${item.amount.toLocaleString()}` : ''}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 8. GlobalGAP Sprays */}
+                    {selectedSections.spray && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>8. GlobalGAP Registered Spray Applications</span>
+                          <span className="text-[9px] font-mono text-slate-400">({sprayRecords.length} sessions)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Plot ID Target</th>
+                              <th className="p-1">Chemical Brand Allowed</th>
+                              <th className="p-1">Dosage rate</th>
+                              <th className="p-1">Active Ingredient</th>
+                              <th className="p-1 text-center font-bold">PHI Safe Expiry</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sprayRecords.map((item, idx) => {
+                              const expDate = new Date(new Date(item.date).getTime() + (item.phiDays ?? 7) * 24 * 3600 * 1000).toISOString().split('T')[0];
+                              return (
+                                <tr key={idx} className="border-b border-slate-100">
+                                  <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                  <td className="p-1.5 font-bold text-slate-850">{item.fieldId}</td>
+                                  <td className="p-1.5 font-semibold text-sky-900">{item.chemicalName}</td>
+                                  <td className="p-1.5 font-mono">{item.dosage}</td>
+                                  <td className="p-1.5 italic">{item.activeIngredient || 'Copper Oxychloride'}</td>
+                                  <td className="p-1.5 text-center font-bold text-red-900 font-mono">{expDate} ({item.phiDays ?? 7}d PHI)</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 9. Registered Plots & Fields */}
+                    {selectedSections.fields && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>9. Fields registered under production</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({fields.length} plots)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Plot code ID</th>
+                              <th className="p-1">Crop / Variety Name</th>
+                              <th className="p-1">Size / Acreage</th>
+                              <th className="p-1 text-right">No of Planted Stems</th>
+                              <th className="p-1">Current Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {fields.map((item) => (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-bold text-slate-800">{item.id}</td>
+                                <td className="p-1.5 font-semibold text-slate-705">{item.cropName}</td>
+                                <td className="p-1.5 font-mono">{item.acreage} Acres</td>
+                                <td className="p-1.5 text-right font-mono pr-2">{item.stemsPlanted?.toLocaleString() || '1,200'}</td>
+                                <td className="p-1.5 font-black text-emerald-950 uppercase text-[9px]">{item.status || 'Active'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 10. Poultry & Canines */}
+                    {selectedSections.livestock && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>10. Poultry & Canine Asset Register</span>
+                          <span className="text-[9px] font-mono text-slate-400">({livestock.length} animals)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-503 font-bold">
+                              <th className="p-1">Asset Tag ID</th>
+                              <th className="p-1">Breed/Family Class</th>
+                              <th className="p-1">Acquisition Date</th>
+                              <th className="p-1">Breed line Parentage</th>
+                              <th className="p-1 text-center">Current Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {livestock.map((item) => (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono font-bold text-slate-800">{item.id}</td>
+                                <td className="p-1.5 font-bold">{item.breed}</td>
+                                <td className="p-1.5 font-mono">{item.arrivalDate}</td>
+                                <td className="p-1.5 italic text-slate-500">{item.parentage || 'N/A'}</td>
+                                <td className="p-1.5 text-center font-bold text-[10px]">{item.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 11. Goats log */}
+                    {selectedSections.goats && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>11. Caprine (Goat) Milk yield logs</span>
+                          <span className="text-[9px] font-mono text-slate-400">({goatRecords.length} entries)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Milked Doe Tag ID</th>
+                              <th className="p-1 text-right font-bold">Yield Liters</th>
+                              <th className="p-1">Recording Staff herder</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {goatRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-indigo-900">{item.id}</td>
+                                <td className="p-1.5 text-right font-mono pr-4 font-bold">{item.qty.toFixed(1)} L</td>
+                                <td className="p-1.5 text-slate-705">{item.staff}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 12. Calves milk intake */}
+                    {selectedSections.calves && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>12. Calf Liquid Nutrition & Rearing log</span>
+                          <span className="text-[9px] font-mono text-slate-400">({calfRecords.length} feeds)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date</th>
+                              <th className="p-1">Weanling Calf ID</th>
+                              <th className="p-1 text-right font-bold">Feed Volume (L)</th>
+                              <th className="p-1">Milk Type Sourced</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {calfRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.calfId}</td>
+                                <td className="p-1.5 text-right font-mono pr-4 font-bold">{item.qty} L</td>
+                                <td className="p-1.5 italic text-emerald-900">{item.milkType}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 13. Organic BSF Batches */}
+                    {selectedSections.bsf && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>13. Black Soldier Fly (BSF) Larvae harvest logs</span>
+                          <span className="text-[9px] font-mono text-slate-400">({bsfRecords.length} batches)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Harvest Date</th>
+                              <th className="p-1">Crate Batch ID</th>
+                              <th className="p-1 text-right font-bold">Larvae Dried kg</th>
+                              <th className="p-1">Substrate formulation Used</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bsfRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-450">{item.date}</td>
+                                <td className="p-1.5 font-black text-slate-800">{item.batchId}</td>
+                                <td className="p-1.5 text-right font-mono pr-4 font-bold">{item.qtyHarv.toFixed(1)} KG</td>
+                                <td className="p-1.5 italic text-orange-950">{item.substrate}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 14. Feed Formulation */}
+                    {selectedSections.formula && (() => {
+                      const fItems = getStoredFeedFormula();
+                      let fWeight = 0, fCpW = 0, fMeW = 0, fCostT = 0;
+                      fItems.forEach((bItem) => {
+                        const raw = getIngredientNutrients(bItem.name);
+                        if (bItem.amount > 0) {
+                          fWeight += bItem.amount;
+                          fCpW += raw.cp * bItem.amount;
+                          fMeW += raw.me * bItem.amount;
+                          fCostT += raw.cost * bItem.amount;
+                        }
+                      });
+                      const fCpAvg = fWeight > 0 ? fCpW / fWeight : 0;
+                      const fMeAvg = fWeight > 0 ? fMeW / fWeight : 0;
+                      const fCostAvg = fWeight > 0 ? fCostT / fWeight : 0;
+
+                      let fQualityStr = 'Low Protein Supplement';
+                      let fQualityColor = 'text-amber-700 bg-amber-50 border-amber-200';
+                      if (fCpAvg >= 15 && fCpAvg < 18) {
+                        fQualityStr = 'Standard Ration (Young Milkers)';
+                        fQualityColor = 'text-emerald-700 bg-emerald-50 border-emerald-250';
+                      } else if (fCpAvg >= 18 && fCpAvg <= 21) {
+                        fQualityStr = 'Intense Lactation / Layer Ration';
+                        fQualityColor = 'text-emerald-800 bg-emerald-100 border-emerald-300 font-extrabold';
+                      } else if (fCpAvg > 21) {
+                        fQualityStr = 'Elite Concentrated Booster';
+                        fQualityColor = 'text-purple-700 bg-purple-50 border-purple-200';
+                      } else if (fWeight > 0) {
+                        fQualityStr = 'Sub-optimal Protein Ration (<15% CP)';
+                        fQualityColor = 'text-rose-700 bg-rose-50 border-rose-250';
+                      }
+
+                      return (
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                          <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                            <span>14. Active Best Feed Formulation Recipe Made</span>
+                            <span className="text-[9px] font-mono text-slate-400 font-bold">({fItems.length} recipe ingredients)</span>
+                          </h5>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-150">
+                            <div>
+                              <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold block">Total Weight</span>
+                              <span className="text-xs font-black font-mono text-slate-800">{fWeight.toFixed(1)} KG</span>
+                            </div>
+                            <div>
+                              <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold block">Crude Protein</span>
+                              <span className={`text-xs font-extrabold font-mono px-1.5 py-0.5 rounded-md inline-block ${fQualityColor}`}>{fCpAvg.toFixed(2)}% CP</span>
+                            </div>
+                            <div>
+                              <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold block">Energy Profile</span>
+                              <span className="text-xs font-black font-mono text-slate-800">{fMeAvg.toFixed(2)} MJ/kg</span>
+                            </div>
+                            <div>
+                              <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold block">Compounding Unit Cost</span>
+                              <span className="text-xs font-black font-mono text-emerald-800">Ksh {fCostAvg.toFixed(2)}/kg</span>
+                            </div>
+                          </div>
+
+                          <table className="w-full text-[11px] text-left border-collapse bg-white rounded-xl overflow-hidden shadow-xs">
+                            <thead>
+                              <tr className="border-b border-slate-200 bg-slate-100 text-slate-600 font-extrabold text-[10px] uppercase">
+                                <th className="p-2">Ingredient Sourced</th>
+                                <th className="p-2 text-center">Inclusion weight</th>
+                                <th className="p-2 text-center">Proportional %</th>
+                                <th className="p-2 text-right">Crude Protein (CP %)</th>
+                                <th className="p-2 text-right">Energy (ME MJ/kg)</th>
+                                <th className="p-2 text-right font-bold">Inclusion Cost</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {fItems.map((item, idx) => {
+                                const raw = getIngredientNutrients(item.name);
+                                const pct = fWeight > 0 ? (item.amount / fWeight) * 100 : 0;
+                                const costVal = raw.cost * item.amount;
+                                return (
+                                  <tr key={idx} className="border-b border-slate-100 h-8 hover:bg-slate-50/50">
+                                    <td className="p-2 font-bold text-slate-800">{item.name}</td>
+                                    <td className="p-2 text-center font-mono font-bold text-slate-700">{item.amount.toFixed(1)} kg</td>
+                                    <td className="p-2 text-center font-mono text-slate-500 font-semibold">{pct.toFixed(1)}%</td>
+                                    <td className="p-2 text-right font-mono text-slate-600">{raw.cp.toFixed(1)}%</td>
+                                    <td className="p-2 text-right font-mono text-slate-600">{raw.me.toFixed(1)} MJ</td>
+                                    <td className="p-2 text-right font-mono text-emerald-805 font-semibold">Ksh {costVal.toLocaleString()}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1 text-center italic">
+                            Assessment: {fQualityStr} — Balanced for metabolic dry matter ingestion.
+                          </p>
+                        </div>
+                      );
+                    })()}
+
+                    {/* 15. Stock Reserves */}
+                    {selectedSections.inventory && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>15. Warehouse Materials & Storage stock reserves</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({inventory.length} commodities)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Product Item SKU</th>
+                              <th className="p-1">Category Sourcing</th>
+                              <th className="p-1 text-right font-bold">In Stock balance</th>
+                              <th className="p-1 text-right">Reorder Threshold</th>
+                              <th className="p-1">Primary warehouse location</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {inventory.map((item) => (
+                              <tr key={item.id} className="border-b border-slate-100 font-sans">
+                                <td className="p-1.5 font-bold text-slate-750">{item.name}</td>
+                                <td className="p-1.5 text-[10px] uppercase font-semibold">{item.category}</td>
+                                <td className="p-1.5 text-right font-mono font-bold text-emerald-950 pr-4">{item.qty} {item.unit}</td>
+                                <td className="p-1.5 text-right font-mono pr-4 text-slate-500">{item.minQty} {item.unit}</td>
+                                <td className="p-1.5">{item.storeSection}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 15. Vet records */}
+                    {selectedSections.vet && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>15. Clinical Veterinary Diagnoses & Therapies</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({vetRecords.length} diagnoses)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date Logged</th>
+                              <th className="p-1">Cow / animal ID</th>
+                              <th className="p-1">Clinical Diagnosis</th>
+                              <th className="p-1">Applied Treatment/Drug</th>
+                              <th className="p-1 font-bold">Milk Withdrawal Safe Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {vetRecords.map((item, idx) => {
+                              const expDate = new Date(new Date(item.date).getTime() + (item.withdrawalDays ?? 4) * 24 * 3600 * 1000).toISOString().split('T')[0];
+                              return (
+                                <tr key={idx} className="border-b border-slate-100">
+                                  <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                  <td className="p-1.5 font-bold text-red-955">{item.cowId}</td>
+                                  <td className="p-1.5 font-semibold text-slate-800">{item.disease}</td>
+                                  <td className="p-1.5 italic text-slate-650">{item.drug} ({item.dosage})</td>
+                                  <td className="p-1.5 font-mono font-black text-[10px] text-orange-950">{expDate} ({item.withdrawalDays ?? 4}d)</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 16. Diagnostics / Academy Guide logs */}
+                    {selectedSections.academy && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>16. Farmer's Academy Clinical Archive Historical Casebook</span>
+                          <span className="text-[9px] font-mono text-slate-400">({getStoredDiagHistory().length} cases)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date Logged</th>
+                              <th className="p-1">Target Class</th>
+                              <th className="p-1">Clinical Signs Reported</th>
+                              <th className="p-1">System Suggested Diagnoses</th>
+                              <th className="p-1">Strict Isolation SOP Guide</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getStoredDiagHistory().map((item: any) => (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold">{item.animalType}</td>
+                                <td className="p-1.5 text-slate-705">{item.symptoms}</td>
+                                <td className="p-1.5 font-semibold text-red-900">{item.diagnosisSuggested}</td>
+                                <td className="p-1.5 text-slate-500 italic">{item.isolationGuide || 'Strict bio-security isolation immediately'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 17. Operations Calendar Tasks */}
+                    {selectedSections.timetable && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>17. Operations Calendar Tasks Schedule</span>
+                          <span className="text-[9px] font-mono text-slate-400">({getStoredTimetable().length} tasks)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Date Scheduled</th>
+                              <th className="p-1">Class category</th>
+                              <th className="p-1">Standard Operation description</th>
+                              <th className="p-1">Standard Timing</th>
+                              <th className="p-1">Protocol / Rationale</th>
+                              <th className="p-1 font-bold">Staff Allocated herder</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getStoredTimetable().map((t: any) => (
+                              <tr key={t.id} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{t.targetDate}</td>
+                                <td className="p-1.5 font-bold text-slate-700">{t.category}</td>
+                                <td className="p-1.5 font-semibold text-slate-800">{t.operation}</td>
+                                <td className="p-1.5 italic text-slate-505">{t.when}</td>
+                                <td className="p-1.5 text-slate-600">SOP: {t.how} ({t.why})</td>
+                                <td className="p-1.5 italic text-slate-505">{t.assignedTo || 'Unassigned'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sign-off Stamps */}
+                  <div className="pt-8 grid grid-cols-2 gap-8 text-xs shrink-0">
+                    <div className="border-t border-slate-400 pt-3 text-center space-y-1">
+                      <div className="h-10"></div>
+                      <span className="font-mono font-bold block">Mosoti (Senior Herdsman)</span>
+                      <span className="text-[10px] text-slate-450 block uppercase">Operations Inspector Sig</span>
+                    </div>
+                    <div className="border-t border-slate-400 pt-3 text-center space-y-1">
+                      <div className="h-10"></div>
+                      <span className="font-mono font-bold block">{getStoredSettings()?.administrator || "Dr. Devin Omwenga"} (Overall Farm Manager)</span>
+                      <span className="text-[10px] text-slate-455 block uppercase">Sovereign Superintendent Sig</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons Footer (Hidden on print) */}
+              <div className="bg-slate-50 p-6 border-t border-slate-200 flex flex-wrap justify-between items-center gap-3 shrink-0 print:hidden">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans">
+                  ⚡ Live Compilation Active
+                </span>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={handleExportCSV}
+                    className="px-5 py-3 bg-emerald-100 border border-emerald-200 text-emerald-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 hover:bg-emerald-250 transition-all m-0 cursor-pointer"
+                  >
+                    <Download size={14} /> Download (CSV)
+                  </button>
+
+                  <button
+                    onClick={() => handleDownloadHtmlReport()}
+                    className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 transition-all m-0 cursor-pointer shadow-sm border border-amber-600/15"
+                  >
+                    <FileDown size={14} /> Download (HTML)
+                  </button>
+
+                  <button
+                    onClick={() => window.print()}
+                    className="px-6 py-3 bg-slate-900 text-white font-black rounded-xl text-xs uppercase flex items-center gap-2 hover:bg-slate-800 transition-all m-0 cursor-pointer"
+                  >
+                    <Printer size={14} /> Print Master Deck
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>
@@ -4129,43 +5713,109 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">Master Volume Index</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All 17 estate sections are auto-included</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All 18 estate sections are auto-included</p>
                   </div>
 
-                  {/* Section list with record counts as unselectable badges */}
-                  <div className="space-y-1.5 max-h-[50vh] lg:max-h-[55vh] overflow-y-auto pr-1">
-                    {[
-                      { key: 'staff', label: '1. Staff Deployment Roster', count: staffList.length },
-                      { key: 'milk', label: '2. Milk Harvest Yields', count: milkRecords.length },
-                      { key: 'ai', label: '3. Insemination & Breeding', count: aiRecords.length },
-                      { key: 'tea', label: '4. KTDA Tea Deliveries', count: teaRecords.length },
-                      { key: 'avo', label: '5. Avocado Exports Logs', count: avoRecords.length },
-                      { key: 'cropSales', label: '6. Commodities Cash Sales', count: cropSales.length },
-                      { key: 'financials', label: '7. Operational Ledger', count: financials.length },
-                      { key: 'spray', label: '8. GlobalGAP Spray Logs', count: sprayRecords.length },
-                      { key: 'fields', label: '9. Registered Field plots', count: fields.length },
-                      { key: 'livestock', label: '10. Poultry & Canine Assets', count: livestock.length },
-                      { key: 'goats', label: '11. Goat Milk Registers', count: goatRecords.length },
-                      { key: 'calves', label: '12. Liquidfed Calves log', count: calfRecords.length },
-                      { key: 'bsf', label: '13. Organic BSF Batches', count: bsfRecords.length },
-                      { key: 'inventory', label: '14. Storage Stocks reserves', count: inventory.length },
-                      { key: 'vet', label: '15. Clinical Treatments', count: vetRecords.length },
-                      { key: 'academy', label: "16. Farmer's Academy Clinical Archive", count: getStoredDiagHistory().length },
-                      { key: 'timetable', label: '17. Operations Calendar Tasks', count: getStoredTimetable().length }
-                    ].map((sec) => (
-                      <div
-                        key={sec.key}
-                        className="flex items-center justify-between p-2 rounded-xl border border-emerald-100 bg-emerald-50/30 text-emerald-950 text-xs font-bold font-sans"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-700"></div>
-                          <span className="capitalize text-[11px] font-sans pr-2">{sec.label.toLowerCase()}</span>
+                  {/* Interactive Section list with record counts as checklists */}
+                  <div className="space-y-2 max-h-[50vh] lg:max-h-[55vh] overflow-y-auto pr-1">
+                    {getSectionsMetadata().map((sec) => {
+                      const isExpanded = !!expandedSections[sec.key];
+                      const isChecked = !!selectedSections[sec.key];
+                      const subKeys = sec.subsections.map(s => s.key);
+                      const hasSubsections = sec.subsections.length > 0;
+
+                      return (
+                        <div key={sec.key} className="space-y-1 bg-white p-2 rounded-2xl border border-slate-200">
+                          {/* Parent Section Block */}
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleParent(sec.key, isChecked, subKeys)}
+                                className={`flex-1 flex items-center gap-2 p-1.5 rounded-lg border text-left font-bold transition-all ${
+                                  isChecked
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-950/90'
+                                    : 'border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  readOnly
+                                  className="accent-emerald-700 pointer-events-none scale-90"
+                                />
+                                <span className="text-[11px] font-sans truncate pr-1" title={sec.label}>
+                                  {sec.label}
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* Collapse/Expand subsections */}
+                            {hasSubsections && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExpandedSections(prev => ({
+                                    ...prev,
+                                    [sec.key]: !prev[sec.key]
+                                  }));
+                                }}
+                                className="p-1 px-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+                              >
+                                <span className="text-[9px] font-black uppercase tracking-wider font-mono">
+                                  {isExpanded ? 'Hide' : `Show (${sec.subsections.length})`}
+                                </span>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Collapsible Subsection Branch */}
+                          {hasSubsections && isExpanded && (
+                            <div className="pl-4 pr-1 py-1 bg-slate-50/50 rounded-lg space-y-1 border-l-2 border-slate-200 ml-3">
+                              {sec.subsections.map(sub => {
+                                const isSubChecked = !!selectedSections[sub.key];
+                                return (
+                                  <button
+                                    key={sub.key}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedSections(prev => {
+                                        const nextStatus = !prev[sub.key];
+                                        const updated = { ...prev, [sub.key]: nextStatus };
+                                        if (nextStatus) {
+                                          updated[sec.key] = true;
+                                        }
+                                        return updated;
+                                      });
+                                    }}
+                                    className={`w-full flex items-center justify-between p-1.5 rounded-md border text-left transition-all ${
+                                      isSubChecked
+                                        ? 'border-emerald-100/50 bg-white text-emerald-950 font-bold'
+                                        : 'border-transparent bg-transparent text-slate-400 hover:bg-slate-100'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <input
+                                        type="checkbox"
+                                        checked={isSubChecked}
+                                        readOnly
+                                        className="accent-emerald-700 pointer-events-none scale-75"
+                                      />
+                                      <span className="text-[10px] font-medium truncate font-sans">{sub.label}</span>
+                                    </div>
+                                    <span className={`text-[8px] px-1 py-0.2 rounded-full border font-mono shrink-0 font-bold ${
+                                      isSubChecked ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-slate-100 text-slate-400 border-slate-200/50'
+                                    }`}>
+                                      {sub.count}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white text-emerald-900 border border-emerald-200/50 font-mono shrink-0 font-bold">
-                          {sec.count}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -4677,11 +6327,101 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 14. Stock reserves */}
+                  {/* 14. Feed Formulation Recipe */}
+                  {selectedSections.formula && (() => {
+                    const fItems = getStoredFeedFormula();
+                    let fWeight = 0, fCpW = 0, fMeW = 0, fCostT = 0;
+                    fItems.forEach((bItem) => {
+                      const raw = getIngredientNutrients(bItem.name);
+                      if (bItem.amount > 0) {
+                        fWeight += bItem.amount;
+                        fCpW += raw.cp * bItem.amount;
+                        fMeW += raw.me * bItem.amount;
+                        fCostT += raw.cost * bItem.amount;
+                      }
+                    });
+                    const fCpAvg = fWeight > 0 ? fCpW / fWeight : 0;
+                    const fMeAvg = fWeight > 0 ? fMeW / fWeight : 0;
+                    const fCostAvg = fWeight > 0 ? fCostT / fWeight : 0;
+
+                    let fQualityStr = 'Low Protein Supplement';
+                    if (fCpAvg >= 15 && fCpAvg < 18) {
+                      fQualityStr = 'Standard Ration (Young Milkers)';
+                    } else if (fCpAvg >= 18 && fCpAvg <= 21) {
+                      fQualityStr = 'Intense Lactation / Layer Ration';
+                    } else if (fCpAvg > 21) {
+                      fQualityStr = 'Elite Concentrated Booster';
+                    } else if (fWeight > 0) {
+                      fQualityStr = 'Sub-optimal Protein Ration (<15% CP)';
+                    }
+
+                    return (
+                      <div className="space-y-2 animate-fade-in">
+                        <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>14. Optimized Feed Formulation Recipe (Formula Made)</span>
+                          <span className="text-[9px] font-mono text-slate-400">({fItems.length} recipe ingredients)</span>
+                        </h5>
+
+                        <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-center text-[10px]">
+                          <div>
+                            <span className="text-[8px] uppercase font-bold text-slate-500 block">Total Weight</span>
+                            <span className="font-extrabold font-mono">{fWeight.toFixed(1)} KG</span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] uppercase font-bold text-slate-500 block">Crude Protein</span>
+                            <span className="font-extrabold font-mono text-emerald-800">{fCpAvg.toFixed(2)}% CP</span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] uppercase font-bold text-slate-500 block">Energy Profile</span>
+                            <span className="font-extrabold font-mono">{fMeAvg.toFixed(2)} MJ/kg</span>
+                          </div>
+                          <div>
+                            <span className="text-[8px] uppercase font-bold text-slate-500 block">Formula Cost</span>
+                            <span className="font-extrabold font-mono text-emerald-800">Ksh {fCostAvg.toFixed(2)}/kg</span>
+                          </div>
+                        </div>
+
+                        <table className="w-full text-[11px] text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-550 font-black">
+                              <th className="p-1">Ingredient Name</th>
+                              <th className="p-1 text-center">Inclusion Weight</th>
+                              <th className="p-1 text-center">Proportional %</th>
+                              <th className="p-1 text-right">Crude Protein (CP)</th>
+                              <th className="p-1 text-right">Energy (ME)</th>
+                              <th className="p-1 text-right">Cost (Ksh)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {fItems.map((item, idx) => {
+                              const raw = getIngredientNutrients(item.name);
+                              const pct = fWeight > 0 ? (item.amount / fWeight) * 100 : 0;
+                              const costVal = raw.cost * item.amount;
+                              return (
+                                <tr key={idx} className="border-b border-slate-100">
+                                  <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
+                                  <td className="p-1.5 text-center font-mono font-semibold">{item.amount.toFixed(1)} kg</td>
+                                  <td className="p-1.5 text-center font-mono text-slate-500">{pct.toFixed(1)}%</td>
+                                  <td className="p-1.5 text-right font-mono">{raw.cp.toFixed(1)}%</td>
+                                  <td className="p-1.5 text-right font-mono">{raw.me.toFixed(1)} MJ</td>
+                                  <td className="p-1.5 text-right font-mono text-emerald-900 font-bold">Ksh {costVal.toLocaleString()}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        <p className="text-[9px] text-slate-500 italic font-medium py-1">
+                          Assessment Status: {fQualityStr} — Balanced dry matter compounding.
+                        </p>
+                      </div>
+                    );
+                  })()}
+
+                  {/* 15. Stock reserves */}
                   {selectedSections.inventory && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>14. Storage Warehouse stocks reserves</span>
+                        <span>15. Storage Warehouse stocks reserves</span>
                         <span className="text-[9px] font-mono text-slate-400">({inventory.length} items)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -4720,7 +6460,7 @@ export default function App() {
                   {selectedSections.vet && (
                     <div className="space-y-2">
                        <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>15. Clinical veterinary treatments & diagnostics</span>
+                        <span>16. Clinical veterinary treatments & diagnostics</span>
                         <span className="text-[9px] font-mono text-slate-400">({vetRecords.length} entries)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -4750,12 +6490,12 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 16. Farmer's Academy Clinical Cases Archive & SOP Audit */}
+                  {/* 17. Farmer's Academy Clinical Cases Archive & SOP Audit */}
                   {selectedSections.academy && (
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>16. Farmer's Academy Clinical Cases History Archive</span>
+                          <span>17. Farmer's Academy Clinical Cases History Archive</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredDiagHistory().length} cases)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -4786,7 +6526,7 @@ export default function App() {
 
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>16b. Auto-Deduct SOP Actions Audit Ledger</span>
+                          <span>17b. Auto-Deduct SOP Actions Audit Ledger</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredDeductLogs().length} events)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -4815,11 +6555,11 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 17. Operations & Timetable Calendar Tasks */}
+                  {/* 18. Operations & Timetable Calendar Tasks */}
                   {selectedSections.timetable && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>17. Operations & Timetable Schedule Calendar</span>
+                        <span>18. Operations & Timetable Schedule Calendar</span>
                         <span className="text-[9px] font-mono text-slate-400">({getStoredTimetable().length} tasks)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">

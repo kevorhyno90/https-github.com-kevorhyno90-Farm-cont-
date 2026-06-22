@@ -43,6 +43,11 @@ export interface AvocadoRecord {
   priceReject?: number;
   buyer?: string;
   totalSales?: number;
+  pricePerKgA?: number;
+  pricePerKgB?: number;
+  boxWeightKg?: number;
+  weightKgA?: number;
+  weightKgB?: number;
 }
 
 export interface FinancialRecord {
@@ -293,6 +298,64 @@ export interface MilkOutflowRecord {
   debtCustomer?: string; // Debtor Name / Account
   notes?: string;
 }
+
+export interface SilageRecord {
+  id: string;
+  rawMaterial: string; // "Maize", "Sorghum", "Napier", "Boma Rhodes", "Other"
+  acres: number;
+  calculatedWeightKg: number; // weight of silage made from acres
+  dateMade: string; // YYYY-MM-DD
+  dateOpened?: string; // YYYY-MM-DD
+  quality: string; // "Excellent (Golden yellow, lactic acid smell)", "Good (Acidic scent)", "Fair (Slight butyric)", "Spoiled (Mouldy, rancid)"
+  notes: string;
+  animalsFedCount: number;
+  averageAnimalWeightKg: number; // in KG
+  recommendedDailyIntakePerAnimal: number; // in KG (typically 1.5% - 3% of body weight depending on DM content)
+  daysOfFeedAvailable: number; // calculated feed lifespan
+}
+
+export interface HeiferRecord {
+  id: string;
+  cowId: string; // Target heifer identification tag
+  dateLogged: string; // YYYY-MM-DD
+  weightKg: number; // Target 280-320kg for insemination
+  girthCm?: number; // chest girth correlation
+  feedRationType: string; // "Grower cake + dry Rhodes fiber", "Dairy meal booster", "Silage + High Protein legume"
+  averageDailyGainGrams: number;
+  breedingReady: boolean; // status if weight & puberty parameters met
+  notes: string;
+}
+
+export interface PoultryRecord {
+  id: string;
+  stage: 'Chick' | 'Grower' | 'Layer';
+  batchName: string; // identifier
+  count: number; // current stocking count
+  dateLogged: string; // YYYY-MM-DD
+  feedGivenKg: number;
+  feedType: string; // "Chick Start Crumble", "Growers Mashes", "Layers High Calcium mash"
+  mortalityCount: number;
+  eggCratesHarvested?: number; // layers only (1 crate = 30 eggs)
+  crackedEggsCount?: number;
+  waterIntakeLiters?: number;
+  vaccinesAdministered?: string; // E.g. "Gumboro booster", "Newcastle vaccine"
+  percentageProduction?: number; // calculated egg laying percentage based on count
+  notes: string;
+}
+
+export interface QuarantineRecord {
+  id: string;
+  animalType: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
+  animalTagOrBatch: string;
+  dateStarted: string; // YYYY-MM-DD
+  dateScheduledEnd: string; // YYYY-MM-DD
+  quarantineReason: string; // "New herd addition", "FMD outbreak containment", "Mastitis isolation"
+  symptomsObserved: string;
+  quarantineStatus: 'Strict Isolation' | 'Under Observation' | 'Cleared & Released' | 'Failed & Culled';
+  vetInCharge: string;
+  notes: string;
+}
+
 
 
 

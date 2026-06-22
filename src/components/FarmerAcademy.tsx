@@ -1111,7 +1111,8 @@ export default function FarmerAcademy({
               { id: 'maize', label: 'Maize Staples' },
               { id: 'beans', label: 'Nitrogen Beans' },
               { id: 'vegetables', label: 'Drip Veggies' },
-              { id: 'napier', label: 'Napier & Eucalyptus' }
+              { id: 'napier', label: 'Napier & Eucalyptus' },
+              { id: 'boma_rhodes', label: 'Boma Rhodes' }
             ].map(pill => (
               <button
                 key={pill.id}
@@ -1345,6 +1346,31 @@ export default function FarmerAcademy({
                   </p>
                   <p>
                     <strong>• Eucalyptus Windbreak Architecture:</strong> Fast wind gusts stunt avocado fruit-set. Plant Eucalyptus around field perimeters. Excavate a <span className="font-bold text-slate-900">1.2-meter-deep trench</span> parallel to windbreaks to prevent aggressive Eucalyptus roots from robbing your crops of moisture.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Boma Rhodes Card */}
+            {(selectedCrop === 'all' || selectedCrop === 'boma_rhodes') && filterMatches(
+              "Boma Rhodes Pasture Agronomy",
+              ["boma", "rhodes", "grass", "pasture", "hay", "bales", "forage", "seed"],
+              "Boma Rhodes premium forage grass seeding rate, fine seedbed preparation, hay baling SOPs"
+            ) && (
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 hover:shadow-md transition-all space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="bg-emerald-100 text-emerald-900 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border border-emerald-250">
+                    🌾 PREMIUM FORAGE PASTURE
+                  </span>
+                  <Sprout className="text-emerald-800" size={16} />
+                </div>
+                <h3 className="text-base font-black text-slate-900">Boma Rhodes Pasture SOP & Seed Rate</h3>
+                <div className="text-xs leading-relaxed text-slate-605 space-y-3">
+                  <p>
+                    <strong>• Seeding Rate & Est. Density:</strong> Broadcast seeds at <span className="font-bold text-slate-900">3 - 5 kg per acre</span> on a finely prepared, fine, weed-free seedbed. Maintain adequate soil contact using minimal light soil cover, or simple roller brushing.
+                  </p>
+                  <p>
+                    <strong>• Nitrogen & Canopy Flush:</strong> Apply Nitrogen (CAN) top dressing after the first weeding at <span className="font-bold">50 kg per acre</span> to trigger explosive vegetative flush. Harvest crops exactly at the 50% flowering stage to capture peak leaf nutrition and crude protein content before lignification.
                   </p>
                 </div>
               </div>
