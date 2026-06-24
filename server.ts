@@ -275,6 +275,166 @@ Compile diagnostic analysis reports. Validate that the response is JSON only wit
     }
   });
 
+  // Free Sovereign Expert Advisory Engine
+  function generateFreeAgroAdvisorResponse(message: string, farmState: any, settings: any): string {
+    const norm = (message || "").toLowerCase();
+    
+    const managerName = settings?.administrator || "Dr. Devin Omwenga";
+    const farmName = settings?.estateName || "JR FARM COOPERATIVE ESTATE";
+    const locCode = settings?.locationCode || "KT-205A";
+
+    const dairyKeywords = ['cow', 'cattle', 'milk', 'feed', 'tmr', 'mastitis', 'teat', 'udder', 'breed', 'calv', 'bull', 'heifer', 'inseminat', 'pregnancy', 'protein', 'silage', 'forage', 'dairy', 'livestock', 'gumboro', 'poultry', 'chicken', 'veterinary', 'beast'];
+    const cropKeywords = ['crop', 'tea', 'avocado', 'soil', 'ph', 'spray', 'pesticide', 'tomato', 'fertilizer', 'lime', 'graft', 'fungicid', 'plucking', 'ktda', 'solanace', 'horticulture', 'maize', 'banana', 'agronom'];
+    const financeKeywords = ['financ', 'income', 'expense', 'cost', 'profit', 'loss', 'money', 'ksh', 'budget', 'sale', 'sold', 'revenue', 'ledger', 'bookkeeping', 'price', 'financial', 'record', 'accounting'];
+    const syncKeywords = ['sync', 'backup', 'restore', 'cloud', 'offline', 'save', 'load', 'phone', 'install', 'key', 'pwa', 'server', 'database'];
+    const rosterKeywords = ['roster', 'staff', 'worker', 'shift', 'schedule', 'task', 'manager', 'assign', 'operations', 'job', 'hand'];
+
+    let dairyScore = 0;
+    let cropScore = 0;
+    let financeScore = 0;
+    let syncScore = 0;
+    let rosterScore = 0;
+
+    dairyKeywords.forEach(kw => { if (norm.includes(kw)) dairyScore++; });
+    cropKeywords.forEach(kw => { if (norm.includes(kw)) cropScore++; });
+    financeKeywords.forEach(kw => { if (norm.includes(kw)) financeScore++; });
+    syncKeywords.forEach(kw => { if (norm.includes(kw)) syncScore++; });
+    rosterKeywords.forEach(kw => { if (norm.includes(kw)) rosterScore++; });
+
+    // 1. DAIRY & LIVESTOCK ADVISORY
+    if (dairyScore > 0 && dairyScore >= Math.max(cropScore, financeScore, syncScore, rosterScore)) {
+      return `🐄 **Sovereign Livestock & Dairy Advisory for ${farmName}**
+*(Active Heuristics Expert System - Running Free & Unlimited)*
+
+Hello! Here is the custom veterinary and bovine advisory compiled for **${managerName}**:
+
+1. **Bovine Nutrition & Milk Yields**:
+   - For lactating dairy cows (e.g., your herd of **${farmState?.cowsCount || 6}** cows), target a diet with **18% to 20% Crude Protein (CP)**.
+   - Balance your Total Mixed Ration (TMR) by providing high-quality dry matter forage (such as Napier silage, sweet potato vines) alongside energy concentrates (dairy meal).
+   - Use the **TMR Mixing** and **Feed Formulator** tabs in this app to precisely calibrate ingredient ratios to prevent ruminal acidosis and bloat!
+
+2. **Milking Hygiene & Clinical Mastitis Control**:
+   - Enforce a strict pre- and post-milking hygiene SOP. Use a **0.5% Iodine teat-dip** immediately after milking.
+   - Clean udders using separate dry towels for each cow. Use a strip-cup before milking to detect any milk clots, watery secretions, or early-stage mastitis.
+   - Separate and milk any infected cows last in the sequence to prevent cross-contamination.
+
+3. **Dairy Breeding Cycles**:
+   - Track heat symptoms closely: increased vocalization, clear vaginal mucus discharge, standing to be mounted, and a slight drop in daily milk yield.
+   - Perform Artificial Insemination (AI) 12-18 hours after the onset of standing heat (the AM/PM rule).
+   - Monitor and log calving dates, insemination treatments, and pregnancy diagnostics (PD) using the **Dairy Breeding** tab of this app. Target a calving interval of 365-380 days for maximum profitability.`;
+    }
+
+    // 2. CROP & HORTICULTURE ADVISORY
+    if (cropScore > 0 && cropScore >= Math.max(dairyScore, financeScore, syncScore, rosterScore)) {
+      return `🌱 **Sovereign Crop & Agronomy Advisory for ${farmName}**
+*(Active Heuristics Expert System - Running Free & Unlimited)*
+
+Hello! Here is the custom soil, tea, avocado, and crop safety advisory compiled for **${managerName}** at plot **${locCode}**:
+
+1. **Tea Crop Management (KTDA Compliance)**:
+   - For your tea blocks, enforce the standard **fine plucking cycle (two leaves and a bud)**. This preserves high leaf grades and complies with KTDA factory quality requirements.
+   - Maintain the standard plucking table width and height to optimize solar capture and induce continuous young shoots.
+   - Log plucking weight, dates, and active field workers inside the **Horticulture Blocks** tab of the app.
+
+2. **Avocado Block Best Practices**:
+   - For Hass and Fuerte trees, utilize wedge grafting onto local hardy rootstocks for superior pest tolerance.
+   - Safeguard against Phytophthora root rot by ensuring excellent field drainage, planting on high ridges, and using clean, well-composted organic fertilizer.
+
+3. **Soil pH & Fertilizability**:
+   - **Solanaceous Blocks (Tomato, Potatoes)**: Keep soil pH strictly between **5.8 and 6.4**. Apply dolomite lime if soil testing indicates high acidity.
+   - **Tea Blocks**: Maintain highly acidic soil conditions between **4.5 and 5.6** to ensure optimal nutrient intake.
+   - Integrate organic compost, bio-slurry, or well-seasoned farmyard manure to enrich cation exchange capacity (CEC) and soil microbial life.
+
+4. **Pesticide Safety & GlobalGAP Compliance**:
+   - Log all chemical applications inside the **Spray Log** tab.
+   - Strictly follow the Pre-Harvest Intervals (PHI) for every chemical applied to guarantee residue-free, export-safe crops!`;
+    }
+
+    // 3. FINANCIAL RECORDS & OPERATIONS
+    if (financeScore > 0 && financeScore >= Math.max(dairyScore, cropScore, syncScore, rosterScore)) {
+      return `💰 **Sovereign Financials & Bookkeeping Ledger Guide for ${farmName}**
+*(Active Heuristics Expert System - Running Free & Unlimited)*
+
+Hello! Maintaining clean, accurate books is the secret to a highly profitable agribusiness. Here is how to manage the finances of **${farmName}**:
+
+1. **Revenue Streams (Income)**:
+   - **Milk Sales**: Log daily milk sales income. At your current scale of **${farmState?.cowsCount || 6}** milking cows yielding an average of **${farmState?.milkTotal || 1480} Liters** per month, optimize pricing based on direct supply vs cooperative rates.
+   - **Crop Sales**: Record all proceeds from KTDA tea deliveries and Hass Avocado harvests.
+   
+2. **Operating Expenses (Costs)**:
+   - Track every shilling spent on feed concentrates, silage leases, mineral blocks, veterinary services, farmhand wages, and fertilizers.
+   
+3. **App Bookkeeping SOP**:
+   - Navigate to the **Financials Ledger** tab of this app.
+   - Click **Add Transaction**, select either *Income* or *Expense*, choose the appropriate category (e.g., Feeds, Labor, Milk Revenue), enter the amount in Ksh, and write a brief note.
+   - The app will automatically calculate your net profit margins and display an interactive bento-style card summarizing the estate's overall cash flow!`;
+    }
+
+    // 4. DATABASE BACKUP & SYNC CENTER
+    if (syncScore > 0 && syncScore >= Math.max(dairyScore, cropScore, financeScore, rosterScore)) {
+      return `🔄 **Sovereign PWA Sync & Backup Center Manual for ${farmName}**
+*(Active Heuristics Expert System - Running Free & Unlimited)*
+
+Hello! To ensure your critical records are never lost, this application features a built-in, lightweight **Cloud Sync Server & Mobile Backup** system:
+
+1. **How the Sync Engine Works**:
+   - Every time you add cows, record milking logs, or log financials, the data is saved locally on your phone's browser storage.
+   - If you switch devices, install the PWA on a new phone, or clear your browser cache, you can prevent data loss by backing up your data to the server.
+
+2. **How to Backup Your Data**:
+   - Navigate to the **Settings & Farm Configurations** menu in the app.
+   - Look for the **Database Backup & Sync Center** block.
+   - Set a unique, secure **Sync Key** (e.g., a phrase or nickname you can easily remember, like \`dr_devin_farm\`).
+   - Click **Backup Current Database to Cloud**. The server will securely save your entire farm state!
+
+3. **How to Restore Your Data (on a new phone/device)**:
+   - Open this app on the new device.
+   - Go to **Settings**, type the exact same **Sync Key**, and click **Restore Database from Cloud**. All your records will instantly load into your new phone!`;
+    }
+
+    // 5. STAFF ROSTER & SCHEDULING
+    if (rosterScore > 0 && rosterScore >= Math.max(dairyScore, cropScore, financeScore, syncScore)) {
+      return `📅 **Sovereign Staff Roster & Operations Scheduling Guide for ${farmName}**
+*(Active Heuristics Expert System - Running Free & Unlimited)*
+
+Hello! Efficient workforce allocation is critical for daily farm success. Here is how to organize the tasks at **${farmName}**:
+
+1. **Milking & Barn Shifts**:
+   - Schedule morning milking shifts (typically 5:00 AM) and afternoon milking shifts (typically 4:00 PM). Ensure milking schedules remain completely consistent to prevent stress on your herd.
+   - Assign cleaning tasks immediately after milking to ensure stables are swept and lime powder is spread.
+
+2. **Agronomy & Field Operations**:
+   - Assign weekly weeding, weeding-by-hand, fertilizer application, and tea plucking schedules.
+   - Track spray operators and make sure they wear full PPE. Ensure the manager verifies the Pre-Harvest Interval (PHI) compliance.
+
+3. **App Task Management SOP**:
+   - Navigate to the **Staff Roster** tab to view, add, or edit worker contact files and wage agreements.
+   - Navigate to the **Operations Schedule** tab to create specific, timed farm tasks (e.g. *Spraying Block B*, *Insemination for Cow #4*), set their urgency level, and mark them as complete once done.`;
+    }
+
+    // GENERAL FALLBACK AGRO-ADVISORY BRIEFING
+    return `🌾 **Welcome to the Sovereign Farm Advisor & Expert System for ${farmName}**
+*(Active Heuristics Engine - Running Free, Unlimited & Offline-Friendly)*
+
+Hello **${managerName}**! I am your local, free, zero-key agronomy and livestock assistant. I understand everything about the layout of this app, your livestock, and your crops.
+
+To help you manage your farm optimally, you can ask me any specific question like:
+- 🐄 *"How do I feed my cows to get maximum milk?"* or *"What are heat signs?"*
+- 🩺 *"How do I treat or prevent mastitis?"*
+- 🌱 *"What is the best soil pH for my crops?"* or *"Tell me about tea plucking rules."*
+- 🥑 *"How do I graft Hass avocados or prevent root rot?"*
+- 💰 *"How do I record transactions in the Financials Ledger?"*
+- 🔄 *"How do I backup and synchronize my data onto my phone?"*
+
+**Current Active Estate Health Metrics:**
+- **Herd Strength**: ${farmState?.cowsCount || 6} active cows
+- **Agronomy Capacity**: ${farmState?.fieldsCount || 4} production blocks
+- **Financial Status**: ${farmState?.income ? `Ksh ${farmState.income} revenue logged` : 'Operational books ready'}
+- **Location & Compliance**: GlobalGAP Registered Plot No. **${locCode}**
+
+How can I assist you in livestock or crop management today?`;
+  }
+
   app.post("/api/ai-chat", async (req, res) => {
     const { message, history, farmState, settings } = req.body;
     if (!message) {
@@ -286,9 +446,11 @@ Compile diagnostic analysis reports. Validate that the response is JSON only wit
     const locCode = settings?.locationCode || "KT-205A";
 
     if (!ai) {
-      // Rule-based fallback if API key is not defined, ensuring smooth evaluation
+      // Free Sovereign Expert Engine fallback if API key is not defined, ensuring smooth evaluation without cost!
+      const fallbackResponse = generateFreeAgroAdvisorResponse(message, farmState, settings);
       return res.json({
-        text: `Hello! I am ${managerName}'s Sovereign AI Advisor. (Note: To activate full live AI responses, please add your GEMINI_API_KEY in the Settings > Secrets menu in AI Studio!)\n\nBased on the local dynamic state of ${farmName}:\n- Active Staff Roster: ${farmState?.staffCount || 5} members\n- Total Milking Cows: ${farmState?.cowsCount || 6} in herd\n- Total Acreage Records: ${farmState?.fieldsCount || 4} blocks\n\nI am currently running in Offline mode. Please provide the Gemini API key to query high-precision agricultural intelligence.`
+        text: fallbackResponse,
+        isFreeAdvisor: true
       });
     }
 

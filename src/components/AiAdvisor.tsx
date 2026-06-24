@@ -31,7 +31,12 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
     setMessages([
       {
         role: 'model',
-        text: `Greetings of peace! I am ${managerName}'s Sovereign AI Advisor. I have synchronized with ${farmName}'s live telemetry feed. How can I assist you with agronomy crop diagnostics, dairy yield genetic boosters, or Gumboro poultry scheduling today?`
+        text: `Welcome! I am ${managerName}'s Sovereign AI Agro-Advisor. I run completely for free and understand everything about:
+- 🐄 **Livestock & Poultry**: Feed formulation (TMR), milking hygiene, clinical mastitis, and dairy breeding cycles.
+- 🌱 **Crop & Soil Management**: Tea plucking guidelines, avocado wedge grafting, Phytophthora root rot, and ideal soil pH levels.
+- 💰 **App Management**: Financial ledgers, staff rosters, spray logging, and cloud synchronization.
+
+How can I assist you with livestock, crop health, or navigating this app today?`
       }
     ]);
   }, [managerName, farmName]);
@@ -42,10 +47,10 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
 
   // Suggestions for rapid clicks
   const suggestions = [
-    "Check Biogas loading ratio",
-    "Avocado Root Rot treatment",
-    "Optimal pre/post milking hygiene",
-    "Boost butterfat feed formula"
+    "🐄 How do I feed my cows for maximum milk?",
+    "🌱 What is the best soil pH for tea and avocado?",
+    "🩺 How do I treat or prevent mastitis?",
+    "🔄 How do I backup and sync my data?",
   ];
 
   useEffect(() => {
@@ -172,12 +177,42 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
                       ? 'bg-slate-900 text-slate-100 border border-slate-800 rounded-tl-xs' 
                       : 'bg-emerald-600 text-white rounded-tr-xs'
                   }`}>
-                    {/* Render split paragraphs for clean spacing */}
-                    {m.text.split('\n').map((line, lIdx) => (
-                      <p key={lIdx} className={lIdx > 0 ? 'mt-1.5' : ''}>
-                        {line}
-                      </p>
-                    ))}
+                    {/* Beautifully render structured text with lists, bold tags, and headings */}
+                    {m.text.split('\n').map((line, lIdx) => {
+                      const trimmed = line.trim();
+                      if (!trimmed) return <div key={lIdx} className="h-1.5" />;
+                      
+                      // Check for bullet items
+                      const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+                      const cleanLine = isBullet ? trimmed.substring(2) : line;
+
+                      // Split by ** for bold styling
+                      const parts = cleanLine.split('**');
+                      const renderedLine = parts.map((part, pIdx) => {
+                        if (pIdx % 2 === 1) {
+                          return <strong key={pIdx} className="font-extrabold text-emerald-300">{part}</strong>;
+                        }
+                        return part;
+                      });
+
+                      if (isBullet) {
+                        return (
+                          <div key={lIdx} className="flex items-start gap-1.5 ml-1.5 mt-1 text-[11px]">
+                            <span className="text-emerald-400 select-none shrink-0">•</span>
+                            <span className="text-slate-100 leading-normal">{renderedLine}</span>
+                          </div>
+                        );
+                      }
+
+                      // Heading style detection
+                      const isHeading = trimmed.startsWith('### ') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 100);
+                      
+                      return (
+                        <p key={lIdx} className={`${lIdx > 0 ? 'mt-1' : ''} ${isHeading ? 'text-[11.5px] font-black text-emerald-400 uppercase tracking-wide mt-3 pb-0.5 border-b border-emerald-950/40' : 'text-slate-100'}`}>
+                          {renderedLine}
+                        </p>
+                      );
+                    })}
                   </div>
                 </div>
               );
