@@ -2578,10 +2578,10 @@ export default function FarmerAcademy({
                               <td className="py-2">
                                 <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${
                                   historyItem.isOffline 
-                                    ? 'bg-amber-100 text-amber-800 border border-amber-200/50' 
-                                    : 'bg-emerald-100 text-emerald-800 border border-emerald-200/50'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/50' 
+                                    : 'bg-indigo-100 text-indigo-800 border border-indigo-200/50'
                                 }`}>
-                                  {historyItem.isOffline ? ' Heuristics' : '✨ Gemini'}
+                                  {historyItem.isOffline ? 'Sovereign AI' : '✨ Gemini'}
                                 </span>
                               </td>
                               <td className="py-2 text-right">

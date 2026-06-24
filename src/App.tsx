@@ -1185,7 +1185,7 @@ export default function App() {
         `<em>${h.symptom}</em>`,
         `<strong>${h.conditionName}</strong>`,
         `<strong>${h.likelihood}</strong>`,
-        h.isOffline ? 'Offline Heuristic' : 'Gemini AI Pro'
+        h.isOffline ? 'Sovereign Free AI' : 'Gemini AI Pro'
       ]);
 
       const rowsDeduct = deductLogs.map(l => [
@@ -6606,7 +6606,7 @@ export default function App() {
                                 <td className="p-1.5 italic text-slate-500">{item.symptom}</td>
                                 <td className="p-1.5 font-semibold text-slate-800">{item.conditionName}</td>
                                 <td className="p-1.5 font-bold">{item.likelihood}</td>
-                                <td className="p-1.5 font-mono text-[10px]">{item.isOffline ? 'Offline Heuristic' : 'Gemini AI Pro'}</td>
+                                <td className="p-1.5 font-mono text-[10px]">{item.isOffline ? 'Sovereign Free AI' : 'Gemini AI Pro'}</td>
                               </tr>
                             ))}
                           </tbody>

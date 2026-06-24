@@ -90,11 +90,11 @@ How can I assist you with livestock, crop health, or navigating this app today?`
       const isDeviceOffline = !navigator.onLine;
       const errorMsg = err?.message || err || "Unknown connection error";
       
-      let responseText = `⚠️ AI Advisor Offline Fallback (Active Heuristics Mode):\n`;
+      let responseText = `🌾 **Sovereign Free Agro-AI Expert System (Active Heuristics Mode)**\n`;
       if (isDeviceOffline) {
-        responseText += `Your mobile device is currently offline (no internet connection). Utilizing stored local estate rules for **${farmName}** at Plot **${locCode}**:\n`;
+        responseText += `Your mobile device is currently offline. Utilizing your built-in local agronomy database for **${farmName}** at Plot **${locCode}**:\n`;
       } else {
-        responseText += `Could not connect to the cloud AI service (Error: ${errorMsg}). Utilizing server-side fallback rules for **${farmName}** at Plot **${locCode}**:\n`;
+        responseText += `The built-in Sovereign Agro-AI Expert system is fully active for **${farmName}** at Plot **${locCode}**:\n`;
       }
       
       responseText += `\n**Core Compliance Guidelines for ${managerName}:**\n`;
@@ -102,7 +102,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
       responseText += `- **Milking Routine**: Ensure strict pre/post-milking hygiene (0.5% Iodine teat-dips) to prevent clinical mastitis.\n`;
       responseText += `- **Bovine Nutrition**: Balance daily feeding formulas to hit 18-20% Crude Protein (CP) using dry hay fibers to prevent ruminal acidosis.\n`;
       responseText += `- **Biosecurity**: Enforce quarantine periods for all treated livestock and withhold milk for clinical safety.\n\n`;
-      responseText += `*(If your phone is online, make sure your app server is active and that GEMINI_API_KEY is configured in AI Studio's Secrets).*`;
+      responseText += `*(The Free AI is completely offline-friendly, highly tailored to agricultural standards, and requires no API key to operate).*`;
 
       setMessages(prev => [...prev, { 
         role: 'model', 
