@@ -215,6 +215,24 @@ export default function App() {
     return { cp: 12.0, me: 9.5, cost: 30 };
   };
 
+  // Dynamic Settings Configuration and Orientation States
+  const [farmSettings, setFarmSettings] = useState(() => getStoredSettings());
+  const [viewportOrientation, setViewportOrientation] = useState<'portrait' | 'landscape'>(
+    typeof window !== 'undefined' && window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportOrientation(window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<string>('dash');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
@@ -4105,8 +4123,69 @@ export default function App() {
     );
   };
 
+  // Visual Orientation Enforcement System for Mobile/Tablet Devices
+  const showOrientationBlocker = 
+    typeof window !== 'undefined' && 
+    window.innerWidth < 1024 && // Only block on mobile/tablet screen sizes
+    ((farmSettings.orientationPreference === 'portrait' && viewportOrientation === 'landscape') ||
+     (farmSettings.orientationPreference === 'landscape' && viewportOrientation === 'portrait'));
+
+  const handleBypassOrientation = () => {
+    const updated = { ...farmSettings, orientationPreference: 'any' as const };
+    localStorage.setItem('jr_farm_estate_settings', JSON.stringify(updated));
+    setFarmSettings(updated);
+    applyOrientationPreference('any');
+    triggerAppToastMessage("Orientation unlocked. Native auto-rotate enabled.");
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
+      {/* Dynamic Screen Orientation Blocker Overlay */}
+      {showOrientationBlocker && (
+        <div className="fixed inset-0 z-[9999] bg-emerald-950/98 backdrop-blur-lg flex flex-col items-center justify-center p-8 text-center text-white select-none animate-fade-in font-sans">
+          <div className="max-w-md bg-emerald-900/80 border border-emerald-800 p-8 rounded-3xl shadow-2xl space-y-6 flex flex-col items-center relative overflow-hidden">
+            {/* Subtle decorative background gradient */}
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Animated Rotate Icon */}
+            <div className="w-20 h-20 bg-emerald-800/80 rounded-2xl border-2 border-yellow-500/30 flex items-center justify-center relative animate-pulse shrink-0">
+              <div className="animate-spin duration-1000 ease-in-out">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Informative Text */}
+            <div className="space-y-2">
+              <h2 className="text-xl font-black italic tracking-tight uppercase text-white">
+                {farmSettings.orientationPreference === 'portrait' ? "📱 Portrait View Required" : "📐 Landscape View Required"}
+              </h2>
+              <p className="text-xs text-emerald-200/90 leading-relaxed font-medium">
+                You locked the app display layout to <strong className="text-yellow-500 font-extrabold">{farmSettings.orientationPreference === 'portrait' ? "Portrait (Tall Screen)" : "Landscape (Wide View)"}</strong> in the farm Settings configuration.
+              </p>
+              <p className="text-[11px] text-emerald-300/80 leading-normal italic">
+                Please turn your device or unlock native rotation to continue.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="w-full pt-2 space-y-2 shrink-0">
+              <button
+                onClick={handleBypassOrientation}
+                className="w-full py-3 px-6 bg-yellow-500 hover:bg-yellow-400 active:bg-yellow-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:shadow-yellow-500/20 active:scale-98 transition-all"
+              >
+                🔓 Disable Lock (Allow Free Turn)
+              </button>
+              
+              <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest pt-1">
+                Superintendent Compliance Safe System
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* 1. DESKTOP SIDEBAR */}
       <aside className="fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 w-72 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto hidden lg:flex flex-col z-40 transition-all">
         <div className="p-8 text-center border-b border-emerald-950 mb-6 shrink-0 relative flex flex-col items-center">
@@ -4779,6 +4858,7 @@ export default function App() {
             <SettingsCenter 
               onSaveConfig={(config) => {
                 console.log("Comptroller settings updated online", config);
+                setFarmSettings(config);
               }}
               onResetAllData={() => {
                 handleResetToDefaults();
