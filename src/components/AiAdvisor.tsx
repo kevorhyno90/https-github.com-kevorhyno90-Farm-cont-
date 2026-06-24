@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Bot, X, Send, MessagesSquare, ChevronDown, RefreshCw } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
+import { generateFreeAgroAdvisorResponse } from '../utils/localAi';
 
 interface AiAdvisorProps {
   farmState: {
@@ -87,26 +88,11 @@ How can I assist you with livestock, crop health, or navigating this app today?`
       setMessages(prev => [...prev, { role: 'model', text: data.text || "No response received." }]);
     } catch (err: any) {
       console.error("AI Error:", err);
-      const isDeviceOffline = !navigator.onLine;
-      const errorMsg = err?.message || err || "Unknown connection error";
-      
-      let responseText = `🌾 **Sovereign Free Agro-AI Expert System (Active Heuristics Mode)**\n`;
-      if (isDeviceOffline) {
-        responseText += `Your mobile device is currently offline. Utilizing your built-in local agronomy database for **${farmName}** at Plot **${locCode}**:\n`;
-      } else {
-        responseText += `The built-in Sovereign Agro-AI Expert system is fully active for **${farmName}** at Plot **${locCode}**:\n`;
-      }
-      
-      responseText += `\n**Core Compliance Guidelines for ${managerName}:**\n`;
-      responseText += `- **Soil Standards**: Keep soil pH strictly between 5.8 and 6.4 for Solanaceae fields.\n`;
-      responseText += `- **Milking Routine**: Ensure strict pre/post-milking hygiene (0.5% Iodine teat-dips) to prevent clinical mastitis.\n`;
-      responseText += `- **Bovine Nutrition**: Balance daily feeding formulas to hit 18-20% Crude Protein (CP) using dry hay fibers to prevent ruminal acidosis.\n`;
-      responseText += `- **Biosecurity**: Enforce quarantine periods for all treated livestock and withhold milk for clinical safety.\n\n`;
-      responseText += `*(The Free AI is completely offline-friendly, highly tailored to agricultural standards, and requires no API key to operate).*`;
-
+      // Run Sovereign Free Agro-AI Expert System locally client-side to ensure the chatbot ALWAYS responds perfectly to quizzes
+      const localResponse = generateFreeAgroAdvisorResponse(query, farmState, settings);
       setMessages(prev => [...prev, { 
         role: 'model', 
-        text: responseText
+        text: localResponse
       }]);
     } finally {
       setIsLoading(false);
