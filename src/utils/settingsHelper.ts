@@ -41,7 +41,7 @@ export const DEFAULT_SETTINGS: FarmSettings = {
   admobInterstitialUnitId: 'ca-app-pub-3940256099942544/1033173712',
   monetizationStrategy: 'Ad Supported (AdMob)',
   premiumAppPrice: '9.99',
-  orientationPreference: 'any'
+  orientationPreference: 'portrait'
 };
 
 export function getStoredSettings(): FarmSettings {
@@ -51,6 +51,10 @@ export function getStoredSettings(): FarmSettings {
       const parsed = JSON.parse(stored);
       // Ensure numeric fields are correctly parsed if stringified
       const merged = { ...DEFAULT_SETTINGS, ...parsed };
+      // Override or default any existing configurations to 'portrait' to enforce turning off auto-rotation
+      if (!merged.orientationPreference || merged.orientationPreference === 'any') {
+        merged.orientationPreference = 'portrait';
+      }
       merged.latitude = parseFloat(merged.latitude as any) || DEFAULT_SETTINGS.latitude;
       merged.longitude = parseFloat(merged.longitude as any) || DEFAULT_SETTINGS.longitude;
       merged.teaContractPrice = parseFloat(merged.teaContractPrice as any) || DEFAULT_SETTINGS.teaContractPrice;

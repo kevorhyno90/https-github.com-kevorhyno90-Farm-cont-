@@ -4126,7 +4126,7 @@ export default function App() {
   // Visual Orientation Enforcement System for Mobile/Tablet Devices
   const showOrientationBlocker = 
     typeof window !== 'undefined' && 
-    window.innerWidth < 1024 && // Only block on mobile/tablet screen sizes
+    (window.innerWidth < 1280 || window.matchMedia("(hover: none)").matches) && // Apply to mobile, tablets, and sub-1280px screens
     ((farmSettings.orientationPreference === 'portrait' && viewportOrientation === 'landscape') ||
      (farmSettings.orientationPreference === 'landscape' && viewportOrientation === 'portrait'));
 
