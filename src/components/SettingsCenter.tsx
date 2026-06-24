@@ -19,7 +19,7 @@ import {
   Wifi,
   RefreshCw
 } from 'lucide-react';
-import { getStoredSettings, DEFAULT_SETTINGS } from '../utils/settingsHelper';
+import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference } from '../utils/settingsHelper';
 
 interface SettingsProps {
   onSaveConfig?: (config: any) => void;
@@ -97,6 +97,12 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
   const handleSave = () => {
     try {
       localStorage.setItem('jr_farm_estate_settings', JSON.stringify(settings));
+      
+      // Apply screen orientation preferences immediately
+      if (settings.orientationPreference) {
+        applyOrientationPreference(settings.orientationPreference);
+      }
+      
       if (onSaveConfig) {
         onSaveConfig(settings);
       }
@@ -384,7 +390,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-sans">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 font-sans">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1.5">Interactive Speed Calibration</label>
                   <select
@@ -408,6 +414,18 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     <option value="false">Inactive (Start entirely with empty state)</option>
                   </select>
                 </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1.5">Mobile Auto-Rotate & Screen Turn</label>
+                  <select
+                    value={settings.orientationPreference || 'any'}
+                    onChange={(e) => handleUpdate('orientationPreference', e.target.value)}
+                    className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50/50"
+                  >
+                    <option value="any">🔄 Allow Auto-Rotate (Free Turn)</option>
+                    <option value="portrait">📱 Lock Portrait (No Auto-Turn)</option>
+                    <option value="landscape">📐 Lock Landscape (Wide View)</option>
+                  </select>
+                </div>
               </div>
 
               {/* Cloud Server & PWA Cache Diagnostics Module */}
@@ -427,7 +445,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                   <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left">
                     <div>
                       <span className="text-[9px] uppercase font-bold text-slate-400 block">Cloud API Signal</span>
-                      <div className="flex items-center gap-2 mt-1">
+                      
+                      {/* Visual Indicator of Current Origin */}
+                      <span className="text-[9px] font-mono text-slate-500 block break-all font-semibold mt-0.5 bg-slate-100 p-1 rounded">
+                        App Host: {typeof window !== 'undefined' ? window.location.origin : 'Loading origin...'}
+                      </span>
+
+                      <div className="flex items-center gap-2 mt-2">
                         {connState === 'idle' && (
                           <span className="text-[11px] font-bold text-slate-500">Not Tested</span>
                         )}
@@ -445,7 +469,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                         )}
                         {connState === 'error' && (
                           <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                            <span className="w-2 h-2 rounded-full bg-rose-500 inline-block font-sans"></span>
                             <span className="text-[11px] font-black text-rose-800">Network Failure</span>
                           </div>
                         )}
@@ -462,8 +486,11 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                       )}
 
                       {connState === 'error' && (
-                        <div className="mt-2 text-[10px] leading-normal bg-rose-50 border border-rose-100 p-1.5 rounded-lg text-rose-800 font-semibold">
-                          Error: {serverError}
+                        <div className="mt-2 text-[10px] leading-normal bg-rose-50 border border-rose-100 p-1.5 rounded-lg text-rose-800 font-semibold space-y-1">
+                          <div><strong>Status:</strong> {serverError}</div>
+                          <div className="text-[9px] text-rose-700 pt-1 border-t border-rose-200/50">
+                            <strong>Why 404?</strong> If you installed the app when it was a static client-side-only app, your phone is aggressively requesting stale cached components or using old Service Worker rules. Click <strong>Purge Cache</strong> on the right, or open your Shared App URL inside a <strong>private browser tab (incognito mode)</strong> to fetch latest live endpoints!
+                          </div>
                         </div>
                       )}
                     </div>

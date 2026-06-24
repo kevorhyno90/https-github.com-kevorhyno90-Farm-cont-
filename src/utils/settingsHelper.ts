@@ -18,6 +18,7 @@ export interface FarmSettings {
   admobInterstitialUnitId: string;
   monetizationStrategy: string;
   premiumAppPrice: string;
+  orientationPreference: 'any' | 'portrait' | 'landscape';
 }
 
 export const DEFAULT_SETTINGS: FarmSettings = {
@@ -39,7 +40,8 @@ export const DEFAULT_SETTINGS: FarmSettings = {
   admobBannerUnitId: 'ca-app-pub-3940256099942544/6300978111',
   admobInterstitialUnitId: 'ca-app-pub-3940256099942544/1033173712',
   monetizationStrategy: 'Ad Supported (AdMob)',
-  premiumAppPrice: '9.99'
+  premiumAppPrice: '9.99',
+  orientationPreference: 'any'
 };
 
 export function getStoredSettings(): FarmSettings {
@@ -62,4 +64,46 @@ export function getStoredSettings(): FarmSettings {
     console.error("Local storage load exception", e);
   }
   return DEFAULT_SETTINGS;
+}
+
+/**
+ * Safely applies the user's preferred screen orientation locking/auto-rotate state.
+ * Works inside installed PWAs and supporting mobile browsers.
+ */
+export function applyOrientationPreference(preference: 'any' | 'portrait' | 'landscape') {
+  if (typeof window === 'undefined') return;
+  
+  const screenObj = window.screen as any;
+  if (!screenObj || !screenObj.orientation) {
+    console.log("Screen Orientation API is not supported on this browser or device (e.g. standard iOS Safari).");
+    return;
+  }
+
+  try {
+    if (preference === 'portrait') {
+      screenObj.orientation.lock('portrait-primary')
+        .then(() => console.log("Orientation locked to Portrait Mode successfully."))
+        .catch((err: any) => {
+          // If portrait-primary is not supported, try generic portrait
+          screenObj.orientation.lock('portrait').catch((e2: any) => {
+            console.warn("Could not lock orientation to portrait:", e2);
+          });
+        });
+    } else if (preference === 'landscape') {
+      screenObj.orientation.lock('landscape-primary')
+        .then(() => console.log("Orientation locked to Landscape Mode successfully."))
+        .catch((err: any) => {
+          // If landscape-primary is not supported, try generic landscape
+          screenObj.orientation.lock('landscape').catch((e2: any) => {
+            console.warn("Could not lock orientation to landscape:", e2);
+          });
+        });
+    } else {
+      // Unlock orientation to allow native device auto-rotate
+      screenObj.orientation.unlock();
+      console.log("Orientation unlocked. Device native auto-rotation enabled.");
+    }
+  } catch (e) {
+    console.warn("Failed to set orientation lock state:", e);
+  }
 }

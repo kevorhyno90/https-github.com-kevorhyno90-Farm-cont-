@@ -46,7 +46,7 @@ import { BackupCenter } from './components/BackupCenter';
 import FarmerAcademy from './components/FarmerAcademy';
 import OperationsSchedule from './components/OperationsSchedule';
 import { SettingsCenter } from './components/SettingsCenter';
-import { getStoredSettings } from './utils/settingsHelper';
+import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 
 // Master Types
@@ -237,6 +237,15 @@ export default function App() {
   useEffect(() => {
     if ('Notification' in window) {
       setNotificationPermissionState(Notification.permission);
+    }
+    // Retrieve and apply the user's saved screen orientation lock/auto-rotate setting
+    try {
+      const stored = getStoredSettings();
+      if (stored && stored.orientationPreference) {
+        applyOrientationPreference(stored.orientationPreference);
+      }
+    } catch (e) {
+      console.warn("Could not apply initial orientation settings:", e);
     }
   }, []);
 
