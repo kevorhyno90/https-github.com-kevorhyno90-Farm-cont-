@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord } from '../types';
+import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord, SemenInventoryItem, CalfRecord } from '../types';
 import {
   Plus,
   Calendar,
@@ -63,6 +63,9 @@ interface DairyBreedingProps {
   onAddMortality: (rec: any) => void;
   onDeleteMortality: (id: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  semenInventory?: SemenInventoryItem[];
+  setSemenInventory?: React.Dispatch<React.SetStateAction<SemenInventoryItem[]>>;
+  onAddCalfRecord?: (rec: CalfRecord) => void;
 }
 
 export function DairyBreeding({
@@ -94,10 +97,13 @@ export function DairyBreeding({
   mortalities,
   onAddMortality,
   onDeleteMortality,
-  onTriggerSectionReport
+  onTriggerSectionReport,
+  semenInventory = [],
+  setSemenInventory,
+  onAddCalfRecord
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
-  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger' | 'breeding_wheel'>('lactation');
+  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger' | 'breeding_wheel' | 'semen_inventory'>('lactation');
 
   // Breeding Wheel states
   const [selectedWheelCow, setSelectedWheelCow] = useState<string>('');
@@ -119,11 +125,26 @@ export function DairyBreeding({
   const [milkPrice, setMilkPrice] = useState<number | ''>(52);
   const [milkBuyer, setMilkBuyer] = useState('Brookside Dairy Ltd');
 
+  // Included dispatch fields
+  const [milkUsedAtHomeVal, setMilkUsedAtHomeVal] = useState<number | ''>('');
+  const [milkUsedByWorkersVal, setMilkUsedByWorkersVal] = useState<number | ''>('');
+  const [milkSpoiledVal, setMilkSpoiledVal] = useState<number | ''>('');
+  const [debtsKshVal, setDebtsKshVal] = useState<number | ''>('');
+  const [debtCustomerVal, setDebtCustomerVal] = useState('');
+  const [dispatchNotesVal, setDispatchNotesVal] = useState('');
+
   // AI record states
   const [aiCowId, setAiCowId] = useState('');
   const [aiDate, setAiDate] = useState(new Date().toISOString().split('T')[0]);
   const [aiBull, setAiBull] = useState('');
   const [aiCheckDate, setAiCheckDate] = useState('');
+  const [aiOrigin, setAiOrigin] = useState('Imported');
+  const [aiSemenType, setAiSemenType] = useState('Sexed (Female)');
+  const [aiCost, setAiCost] = useState<number | ''>('');
+  const [aiNotes, setAiNotes] = useState('');
+  const [aiStatus, setAiStatus] = useState<AIRecord['status']>('Pending');
+  const [aiCalfName, setAiCalfName] = useState('');
+  const [aiCalfSex, setAiCalfSex] = useState<'Male' | 'Female'>('Female');
 
   // Cow Identity form states
   const [newCowTag, setNewCowTag] = useState('');
@@ -414,11 +435,23 @@ export function DairyBreeding({
       date: milkingDate,
       pricePerLiter: prVal,
       buyer: buyVal,
-      totalSales: isMilkSold ? (totalVol * prVal) : 0
+      totalSales: isMilkSold ? (totalVol * prVal) : 0,
+      milkUsedAtHome: milkUsedAtHomeVal === '' ? undefined : Number(milkUsedAtHomeVal),
+      milkUsedByWorkers: milkUsedByWorkersVal === '' ? undefined : Number(milkUsedByWorkersVal),
+      milkSpoiled: milkSpoiledVal === '' ? undefined : Number(milkSpoiledVal),
+      debtsKsh: debtsKshVal === '' ? undefined : Number(debtsKshVal),
+      debtCustomer: debtCustomerVal.trim() || undefined,
+      notes: dispatchNotesVal.trim() || undefined
     });
     setCowTag('');
     setAmLiters('');
     setPmLiters('');
+    setMilkUsedAtHomeVal('');
+    setMilkUsedByWorkersVal('');
+    setMilkSpoiledVal('');
+    setDebtsKshVal('');
+    setDebtCustomerVal('');
+    setDispatchNotesVal('');
     setMilkingDate(new Date().toISOString().split('T')[0]);
   };
 
@@ -426,25 +459,68 @@ export function DairyBreeding({
     e.preventDefault();
     if (!aiCowId.trim() || !aiDate || !aiBull.trim()) return;
 
-    // Estimate due date (standard cow gestation is ~283 days)
     const serviceDateObj = new Date(aiDate);
+    // Estimate due date (standard cow gestation is ~283 days)
     const dueDateObj = new Date(serviceDateObj);
     dueDateObj.setDate(dueDateObj.getDate() + 283);
     const estimatedDue = dueDateObj.toISOString().split('T')[0];
+
+    // Return heat date is ~21 days after service date
+    const returnHeatObj = new Date(serviceDateObj);
+    returnHeatObj.setDate(returnHeatObj.getDate() + 21);
+    const calculatedReturnHeat = returnHeatObj.toISOString().split('T')[0];
 
     onAddAIRecord({
       cowId: aiCowId.trim(),
       date: aiDate,
       bull: aiBull.trim(),
       due: estimatedDue,
-      status: 'Pending',
-      checkDate: aiCheckDate || undefined
+      status: aiStatus,
+      checkDate: aiCheckDate || undefined,
+      origin: aiOrigin,
+      semenType: aiSemenType,
+      cost: aiCost === '' ? undefined : Number(aiCost),
+      returnHeatDate: calculatedReturnHeat,
+      calfName: aiCalfName.trim() || undefined,
+      notes: aiNotes.trim() || undefined
     });
+
+    // Auto-deduct from semen inventory straw count
+    if (setSemenInventory) {
+      setSemenInventory(prev => prev.map(item => {
+        if (item.id === aiBull || item.bullName === aiBull) {
+          return { ...item, quantity: Math.max(0, item.quantity - 1) };
+        }
+        return item;
+      }));
+    }
+
+    // Auto-add calf to registry if calved
+    if (aiStatus === 'Calved' && aiCalfName.trim() && onAddCalfRecord) {
+      onAddCalfRecord({
+        id: `calf-${Date.now()}`,
+        calfId: `Calf-${aiCalfName.trim()}`,
+        damId: aiCowId.trim(),
+        dob: aiDate,
+        milkIntakeLiters: 4.0,
+        weaned: false,
+        notes: `Auto-registered from mother cow ${aiCowId.trim()}'s AI calving confirmation. Notes: ${aiNotes}`,
+        date: aiDate,
+        calfName: aiCalfName.trim(),
+        sex: aiCalfSex
+      });
+    }
 
     setAiCowId('');
     setAiDate(new Date().toISOString().split('T')[0]);
     setAiBull('');
     setAiCheckDate('');
+    setAiOrigin('Imported');
+    setAiSemenType('Sexed (Female)');
+    setAiCost('');
+    setAiNotes('');
+    setAiStatus('Pending');
+    setAiCalfName('');
   };
 
   const handleCowSubmit = (e: React.FormEvent) => {
@@ -1018,8 +1094,216 @@ export function DairyBreeding({
           >
             Sales & Loss
           </button>
+          <button
+            onClick={() => setSubTab('semen_inventory')}
+            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+              subTab === 'semen_inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            🧬 Semen Straws
+          </button>
         </div>
       </div>
+
+      {/* SUB-TAB: GENETIC SEMEN INVENTORY */}
+      {subTab === 'semen_inventory' && (
+        <div className="space-y-6 animate-fadeIn" id="semen-inventory-section">
+          <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-sm relative overflow-hidden">
+            <div className="relative z-10 space-y-2">
+              <span className="bg-amber-500/10 text-amber-400 font-black tracking-widest text-[10px] uppercase px-2.5 py-1 rounded-full border border-amber-500/20">
+                🧬 Genetic Stock Center
+              </span>
+              <h3 className="text-xl font-black text-white">Semen Straws & Breeding Sire Inventory</h3>
+              <p className="text-slate-400 text-xs font-medium">Manage and monitor high-yield genetic straws in stock. Select these genetic resources during artificial insemination (AI) service logs to track usage and auto-deduct straw inventory.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Add New Straw Form */}
+            <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+              <h4 className="text-xs font-black uppercase text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-1.5">
+                ➕ Register Semen Straw
+              </h4>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const fd = new FormData(form);
+                const id = fd.get('id') as string;
+                const bullName = fd.get('bullName') as string;
+                const breed = fd.get('breed') as string;
+                const semenType = fd.get('semenType') as string;
+                const origin = fd.get('origin') as string;
+                const cost = Number(fd.get('cost')) || 0;
+                const quantity = Number(fd.get('quantity')) || 0;
+
+                if (!id || !bullName) return;
+
+                if (semenInventory.some(s => s.id.toLowerCase() === id.trim().toLowerCase())) {
+                  alert('A semen straw with this code already exists!');
+                  return;
+                }
+
+                if (setSemenInventory) {
+                  setSemenInventory([...semenInventory, { id: id.trim(), bullName: bullName.trim(), breed, semenType, origin, cost, quantity }]);
+                }
+                form.reset();
+              }} className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Straw Code / Reference ID</label>
+                  <input
+                    name="id"
+                    type="text"
+                    required
+                    placeholder="E.g. SEMEN-JE-800"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Bull / Sire Name</label>
+                  <input
+                    name="bullName"
+                    type="text"
+                    required
+                    placeholder="E.g. Jersey Prime Elite"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Breed</label>
+                    <select
+                      name="breed"
+                      required
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    >
+                      <option value="Holstein-Friesian">Holstein-Friesian</option>
+                      <option value="Jersey">Jersey</option>
+                      <option value="Ayrshire">Ayrshire</option>
+                      <option value="Guernsey">Guernsey</option>
+                      <option value="Friesian">Friesian</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Semen Type</label>
+                    <select
+                      name="semenType"
+                      required
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    >
+                      <option value="Sexed (Female)">Sexed (Female)</option>
+                      <option value="Sexed (Male)">Sexed (Male)</option>
+                      <option value="Conventional">Conventional</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Origin</label>
+                    <input
+                      name="origin"
+                      type="text"
+                      required
+                      placeholder="E.g. Imported (USA)"
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cost (Ksh/Straw)</label>
+                    <input
+                      name="cost"
+                      type="number"
+                      required
+                      min="0"
+                      placeholder="Cost"
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Quantity in Stock (Straws)</label>
+                  <input
+                    name="quantity"
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="E.g. 10"
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
+                >
+                  Register Genetic Straw
+                </button>
+              </form>
+            </div>
+
+            {/* Inventory Table */}
+            <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs md:col-span-2 space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h4 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+                  📋 Straws Registry Ledger
+                </h4>
+                <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
+                  {semenInventory.length} types registered
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                      <th className="p-2.5">Straw Code / Sire</th>
+                      <th className="p-2.5">Breed / Type</th>
+                      <th className="p-2.5">Origin</th>
+                      <th className="p-2.5 text-right">Cost (Ksh)</th>
+                      <th className="p-2.5 text-center">In-Stock</th>
+                      <th className="p-2.5 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {semenInventory.map((item) => (
+                      <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                        <td className="p-2.5 font-bold">
+                          <span className="font-mono text-slate-900 block">{item.id}</span>
+                          <span className="text-[10px] text-slate-400 font-medium block">{item.bullName}</span>
+                        </td>
+                        <td className="p-2.5 font-medium">
+                          <span className="text-slate-850 block">{item.breed}</span>
+                          <span className="text-[9px] text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded font-black uppercase inline-block mt-0.5">{item.semenType}</span>
+                        </td>
+                        <td className="p-2.5 text-slate-500 font-semibold">{item.origin}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-slate-700">Ksh {item.cost.toLocaleString()}</td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-[10px] font-mono ${
+                            item.quantity <= 2 
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200' 
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                          }`}>
+                            {item.quantity} units
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <button
+                            onClick={() => {
+                              if (setSemenInventory) {
+                                setSemenInventory(semenInventory.filter(s => s.id !== item.id));
+                              }
+                            }}
+                            className="text-rose-600 hover:text-rose-850 font-bold hover:bg-rose-50 px-2 py-1 rounded transition-colors text-[10px] uppercase cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SUB-TAB 4: COWS & CALVES SALES & MORTALITY LEDGER */}
       {subTab === 'life_ledger' && (
@@ -1453,6 +1737,86 @@ export function DairyBreeding({
                 </select>
               </div>
 
+              {/* Optional Dispatch integration fields */}
+              <div className="col-span-2 border-t border-slate-100 pt-3 space-y-3">
+                <span className="text-[10px] font-black text-indigo-900 uppercase block tracking-wider">
+                  🚛 Integrated Dispatch & Allocation (Optional)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Home Consumption (L)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={milkUsedAtHomeVal}
+                      onChange={(e) => setMilkUsedAtHomeVal(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="Liters"
+                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Worker Allocation (L)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={milkUsedByWorkersVal}
+                      onChange={(e) => setMilkUsedByWorkersVal(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="Liters"
+                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Spoilt / Lost (L)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={milkSpoiledVal}
+                      onChange={(e) => setMilkSpoiledVal(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="Liters"
+                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Debts / Unpaid Sales Value (Ksh)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={debtsKshVal}
+                      onChange={(e) => setDebtsKshVal(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="E.g. 1500"
+                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Debtor Customer Name</label>
+                    <input
+                      type="text"
+                      value={debtCustomerVal}
+                      onChange={(e) => setDebtCustomerVal(e.target.value)}
+                      placeholder="E.g. Mama Amara"
+                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dispatch Notes & Remarks</label>
+                  <input
+                    type="text"
+                    value={dispatchNotesVal}
+                    onChange={(e) => setDispatchNotesVal(e.target.value)}
+                    placeholder="E.g. Unlocked home intake, morning batch dispatch details..."
+                    className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-medium text-slate-700"
+                  />
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
@@ -1583,7 +1947,7 @@ export function DairyBreeding({
 
             <form onSubmit={handleAISubmit} className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Inseminated Cow ID</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Inseminated Cow ID</label>
                 {cows.length > 0 ? (
                   <select
                     required
@@ -1593,7 +1957,7 @@ export function DairyBreeding({
                   >
                     <option value="">-- Choose cow --</option>
                     {cows.map(c => (
-                      <option key={c.id} value={c.id}>{c.id}</option>
+                      <option key={c.id} value={c.id}>{c.id} {c.name ? `(${c.name})` : ''}</option>
                     ))}
                   </select>
                 ) : (
@@ -1609,7 +1973,7 @@ export function DairyBreeding({
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Service Date</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Service Date (Inseminated)</label>
                 <input
                   type="date"
                   required
@@ -1620,7 +1984,7 @@ export function DairyBreeding({
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Check Date (Optional Repeat/Confirm date)</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Check Date (Scan/Verification)</label>
                 <input
                   type="date"
                   value={aiCheckDate}
@@ -1629,23 +1993,175 @@ export function DairyBreeding({
                 />
               </div>
 
+              {/* Semen Straw Selector from Genetic Inventory */}
+              <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Select Semen Straw (From Genetic Inventory)</label>
+                  <select
+                    value={semenInventory.some(s => s.id === aiBull || s.bullName === aiBull) ? semenInventory.find(s => s.id === aiBull || s.bullName === aiBull)?.id : ""}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      if (selectedId) {
+                        const item = semenInventory.find(s => s.id === selectedId);
+                        if (item) {
+                          setAiBull(item.id);
+                          setAiOrigin(item.origin);
+                          setAiSemenType(item.semenType);
+                          setAiCost(item.cost);
+                        }
+                      } else {
+                        setAiBull('');
+                        setAiOrigin('Imported');
+                        setAiSemenType('Sexed (Female)');
+                        setAiCost('');
+                      }
+                    }}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                  >
+                    <option value="">-- Custom / Manual Entry --</option>
+                    {semenInventory.map(item => (
+                      <option key={item.id} value={item.id}>
+                        {item.id} - {item.bullName} ({item.quantity} straws left)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Bull Name / Semen straw reference</label>
+                  <input
+                    type="text"
+                    required
+                    value={aiBull}
+                    onChange={(e) => setAiBull(e.target.value)}
+                    placeholder="E.g. SEMEN-HO-991 (Holstein Elite)"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Semen Origin, Type, and Cost */}
+              <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Semen Origin</label>
+                  <input
+                    type="text"
+                    required
+                    value={aiOrigin}
+                    onChange={(e) => setAiOrigin(e.target.value)}
+                    placeholder="E.g. KAGRC (Local)"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Semen Type</label>
+                  <select
+                    value={aiSemenType}
+                    onChange={(e) => setAiSemenType(e.target.value)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                  >
+                    <option value="Sexed (Female)">Sexed (Female)</option>
+                    <option value="Sexed (Male)">Sexed (Male)</option>
+                    <option value="Conventional">Conventional</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Straw Cost (Ksh)</label>
+                  <input
+                    type="number"
+                    value={aiCost}
+                    onChange={(e) => setAiCost(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="E.g. 1500"
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* AI pregnancy status and calf option */}
+              <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-100 pt-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">AI Straw status</label>
+                  <select
+                    value={aiStatus}
+                    onChange={(e) => setAiStatus(e.target.value as any)}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                  >
+                    <option value="Pending">Pending Scan/Confirmation</option>
+                    <option value="Confirmed Pregnant">Confirmed Pregnant</option>
+                    <option value="Calved">Calved Successfully</option>
+                    <option value="Failed">Straw Failed (Returned to Heat)</option>
+                  </select>
+                </div>
+
+                {aiStatus === 'Calved' && (
+                  <>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Name (Auto-added to Registry)</label>
+                      <input
+                        type="text"
+                        required
+                        value={aiCalfName}
+                        onChange={(e) => setAiCalfName(e.target.value)}
+                        placeholder="E.g. Precious Junior"
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calf Sex</label>
+                      <select
+                        value={aiCalfSex}
+                        onChange={(e) => setAiCalfSex(e.target.value as any)}
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                      >
+                        <option value="Female">Female (Heifer)</option>
+                        <option value="Male">Male (Bull Calf)</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Autocalculated Breeding Dates Alert Panel */}
+              {aiDate && (
+                <div className="col-span-2 bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100/50 flex flex-col sm:flex-row justify-between text-xs font-semibold text-indigo-950 gap-3">
+                  <div>
+                    🔄 Expected Return Heat Date: <span className="font-extrabold text-rose-800">
+                      {(() => {
+                        const d = new Date(aiDate);
+                        d.setDate(d.getDate() + 21);
+                        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                      })()}
+                    </span> (21-day cycle)
+                  </div>
+                  <div>
+                    🍼 Expected Calving Date: <span className="font-extrabold text-indigo-900">
+                      {(() => {
+                        const d = new Date(aiDate);
+                        d.setDate(d.getDate() + 283);
+                        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                      })()}
+                    </span> (283-day gestation)
+                  </div>
+                </div>
+              )}
+
               <div className="col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Bull Name / Semen straw reference</label>
-                <input
-                  type="text"
-                  required
-                  value={aiBull}
-                  onChange={(e) => setAiBull(e.target.value)}
-                  placeholder="E.g. SEMEN-HO-991 (Holstein Elite)"
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Insemination Notes</label>
+                <textarea
+                  value={aiNotes}
+                  onChange={(e) => setAiNotes(e.target.value)}
+                  placeholder="Notes about the straw batch, sire details, or cow's condition during insemination..."
+                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium h-16"
                 />
               </div>
 
               <button
                 type="submit"
-                className="col-span-2 bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
+                className="col-span-2 bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 cursor-pointer"
               >
-                Log AI Service Straw
+                Log AI Breeding Service Straw
               </button>
             </form>
 
@@ -1687,16 +2203,38 @@ export function DairyBreeding({
                           )}
                         </div>
                         <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">
-                          Semen: {cycle.bull} • Service: {cycle.date}
+                          Semen: {cycle.bull} {cycle.semenType ? `(${cycle.semenType})` : ''} {cycle.origin ? `• Origin: ${cycle.origin}` : ''} • Service: {cycle.date}
                         </p>
-                        {cycle.checkDate && (
-                          <p className="text-[10px] text-teal-700 bg-teal-50 border border-teal-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
-                            🔍 CONFIRM CHECK DATE: {new Date(cycle.checkDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {cycle.cost && (
+                          <p className="text-[10px] text-indigo-900 font-extrabold font-mono">
+                            Straw Cost: Ksh {cycle.cost.toLocaleString()}
                           </p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {cycle.returnHeatDate && (
+                            <span className="text-[10px] text-rose-700 bg-rose-50 border border-rose-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                              🔄 Return Heat: {new Date(cycle.returnHeatDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          )}
+                          {cycle.checkDate && (
+                            <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                              🔍 Check Date: {new Date(cycle.checkDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          )}
+                          {cycle.calfName && (
+                            <span className="text-[10px] text-purple-800 bg-purple-50 border border-purple-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                              🍼 Calf: {cycle.calfName}
+                            </span>
+                          )}
+                        </div>
+                        {cycle.notes && (
+                          <div className="text-[10px] text-slate-500 bg-slate-50 border border-slate-100 rounded-lg p-2 max-w-[450px] italic">
+                            Notes: {cycle.notes}
+                          </div>
                         )}
                         <div className="flex items-center gap-1.5 text-xs font-bold text-rose-950">
                           <Calendar size={12} className="text-rose-700 font-bold shrink-0" />
-                          <span>Expected Due: {new Date(cycle.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span>Expected Calving: {new Date(cycle.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           {daysLeft > 0 && (
                             <span className={`text-[10px] font-black font-mono px-1.5 py-0.5 rounded ${isClose ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-100'}`}>
                               ({daysLeft} days)
@@ -3668,7 +4206,7 @@ export function DairyBreeding({
       {/* Edit AI Breeding Record Modal */}
       {editingAI && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-sm font-black uppercase text-slate-800">Edit Insemination Log</h3>
               <button onClick={() => setEditingAI(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
@@ -3709,29 +4247,98 @@ export function DairyBreeding({
                   <select
                     value={editingAI.status}
                     onChange={(e) => setEditingAI({ ...editingAI, status: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
                   >
                     <option value="Pending">Pending Scan</option>
                     <option value="Confirmed Pregnant">Confirmed Pregnant</option>
-                    <option value="Calved">Calved</option>
-                    <option value="Failed">Straw Failed</option>
+                    <option value="Calved">Calved Successfully</option>
+                    <option value="Failed">Straw Failed (Returned to Heat)</option>
                   </select>
                 </div>
               </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Semen Origin</label>
+                  <input
+                    type="text"
+                    value={editingAI.origin || ''}
+                    onChange={(e) => setEditingAI({ ...editingAI, origin: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Semen Type</label>
+                  <select
+                    value={editingAI.semenType || 'Conventional'}
+                    onChange={(e) => setEditingAI({ ...editingAI, semenType: e.target.value as any })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
+                  >
+                    <option value="Sexed (Female)">Sexed (Female)</option>
+                    <option value="Sexed (Male)">Sexed (Male)</option>
+                    <option value="Conventional">Conventional</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Straw Cost (Ksh)</label>
+                  <input
+                    type="number"
+                    value={editingAI.cost ?? ''}
+                    onChange={(e) => setEditingAI({ ...editingAI, cost: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Expected Return Heat Date</label>
+                  <input
+                    type="date"
+                    value={editingAI.returnHeatDate || ''}
+                    onChange={(e) => setEditingAI({ ...editingAI, returnHeatDate: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Expected Calving Date</label>
+                  <input
+                    type="date"
+                    value={editingAI.due}
+                    onChange={(e) => setEditingAI({ ...editingAI, due: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  />
+                </div>
+              </div>
+
+              {editingAI.status === 'Calved' && (
+                <div>
+                  <label className="text-[10px] font-black text-purple-700 uppercase block mb-1">Calf Name (Auto-added to Registry on save)</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingAI.calfName || ''}
+                    onChange={(e) => setEditingAI({ ...editingAI, calfName: e.target.value })}
+                    placeholder="E.g. Precious Junior"
+                    className="border border-purple-200 rounded-lg p-3 w-full text-xs font-bold"
+                  />
+                </div>
+              )}
+
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Expected Due Date</label>
-                <input
-                  type="date"
-                  value={editingAI.due}
-                  onChange={(e) => setEditingAI({ ...editingAI, due: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Breeding Notes</label>
+                <textarea
+                  value={editingAI.notes || ''}
+                  onChange={(e) => setEditingAI({ ...editingAI, notes: e.target.value })}
+                  placeholder="Notes about the breeding session..."
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-medium h-16"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
               <button
                 onClick={() => setEditingAI(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-55 m-0 cursor-pointer"
               >
                 Cancel
               </button>
@@ -3739,6 +4346,20 @@ export function DairyBreeding({
                 onClick={() => {
                   if (onEditAIRecord) {
                     onEditAIRecord(editingAI.cowId, editingAI.date, editingAI);
+                  }
+                  if (editingAI.status === 'Calved' && editingAI.calfName && onAddCalfRecord) {
+                    onAddCalfRecord({
+                      id: `calf-${Date.now()}`,
+                      calfId: `Calf-${editingAI.calfName.trim()}`,
+                      damId: editingAI.cowId,
+                      dob: new Date().toISOString().split('T')[0],
+                      milkIntakeLiters: 4.0,
+                      weaned: false,
+                      notes: `Auto-registered from Mother ${editingAI.cowId}'s AI calving edit.`,
+                      date: new Date().toISOString().split('T')[0],
+                      calfName: editingAI.calfName.trim(),
+                      sex: 'Female'
+                    });
                   }
                   setEditingAI(null);
                 }}

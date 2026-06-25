@@ -74,6 +74,7 @@ import {
   AnimalSaleRecord,
   MortalityRecord,
   MilkOutflowRecord,
+  SemenInventoryItem,
   SilageRecord,
   HeiferRecord,
   PoultryRecord,
@@ -104,7 +105,8 @@ import {
   INITIAL_CROP_SALES,
   INITIAL_ANIMAL_SALES,
   INITIAL_MORTALITY_RECORDS,
-  INITIAL_MILK_OUTFLOW_RECORDS
+  INITIAL_MILK_OUTFLOW_RECORDS,
+  INITIAL_SEMEN_INVENTORY
 } from './initialData';
 
 export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
@@ -317,12 +319,49 @@ export default function App() {
 
   const [teaRecords, setTeaRecords] = useState<TeaRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_tea');
-    return saved ? JSON.parse(saved) : INITIAL_TEA_RECORDS;
+    const parsed = saved ? JSON.parse(saved) : INITIAL_TEA_RECORDS;
+    if (Array.isArray(parsed)) {
+      return parsed.map((item: any) => ({
+        qty: Number(item.qty ?? 0),
+        ref: item.ref || 'KTDA-UNKNOWN',
+        date: item.date || new Date().toISOString().split('T')[0],
+        pricePerKg: Number(item.pricePerKg ?? 58),
+        buyer: item.buyer || 'Chinga KTDA Factory',
+        totalSales: Number(item.totalSales ?? (Number(item.qty ?? 0) * Number(item.pricePerKg ?? 58)))
+      }));
+    }
+    return INITIAL_TEA_RECORDS;
   });
 
   const [avoRecords, setAvoRecords] = useState<AvocadoRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_avo');
-    return saved ? JSON.parse(saved) : INITIAL_AVOCADO_RECORDS;
+    const parsed = saved ? JSON.parse(saved) : INITIAL_AVOCADO_RECORDS;
+    if (Array.isArray(parsed)) {
+      return parsed.map((item: any) => {
+        const grade1Kg = Number(item.grade1Kg ?? item.gradeA ?? item.grade1 ?? 0);
+        const grade1PricePerKg = Number(item.grade1PricePerKg ?? item.priceGradeA ?? 150);
+        const rejectKg = Number(item.rejectKg ?? item.rejects ?? item.reject ?? 0);
+        const priceForRejects = Number(item.priceForRejects ?? item.priceRejects ?? 35);
+        const totalSales = Number(item.totalSales ?? ((grade1Kg * grade1PricePerKg) + (rejectKg * priceForRejects)));
+        return {
+          ref: item.ref || 'EXP-UNKNOWN',
+          date: item.date || new Date().toISOString().split('T')[0],
+          grade1Kg,
+          grade1PricePerKg,
+          rejectKg,
+          priceForRejects,
+          grade1Buyer: item.grade1Buyer || item.buyerGradeA || 'Kakuzi Agribusiness Exporters',
+          rejectBuyer: item.rejectBuyer || item.buyerRejects || 'Local Puree Processor',
+          paymentMode: item.paymentMode || item.paymentModeNextHarvestSeason || 'Deferred',
+          nextHarvestSeason: item.nextHarvestSeason || 'October - December',
+          paymentModeNextHarvestSeason: item.paymentModeNextHarvestSeason || 'Deferred',
+          debts: Number(item.debts ?? 0),
+          notes: item.notes || '',
+          totalSales
+        };
+      });
+    }
+    return INITIAL_AVOCADO_RECORDS;
   });
 
   const [financials, setFinancials] = useState<FinancialRecord[]>(() => {
@@ -514,6 +553,15 @@ export default function App() {
       }
     ];
   });
+
+  const [semenInventory, setSemenInventory] = useState<SemenInventoryItem[]>(() => {
+    const saved = localStorage.getItem('jr_farm_semen_inventory');
+    return saved ? JSON.parse(saved) : INITIAL_SEMEN_INVENTORY;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_semen_inventory', JSON.stringify(semenInventory));
+  }, [semenInventory]);
 
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -775,10 +823,15 @@ export default function App() {
       const rows = avoRecords.map(item => [
         `<span style="font-family: monospace;">${item.date}</span>`,
         `<strong>${item.ref}</strong>`,
-        item.gradeA.toString(),
-        item.gradeB.toString(),
-        item.reject.toString(),
-        `<span style="color: #166534; font-weight: bold; font-family: monospace;">Ksh ${(item.totalSales || ((item.gradeA * (item.priceGradeA ?? 1500)) + (item.gradeB * (item.priceGradeB ?? 850)) + (item.reject * (item.priceReject ?? 38)))).toLocaleString()}</span>`
+        `${item.grade1Kg} kg`,
+        `Ksh ${item.grade1PricePerKg}`,
+        `${item.rejectKg} kg`,
+        `Ksh ${item.priceForRejects}`,
+        item.grade1Buyer,
+        item.rejectBuyer,
+        item.paymentModeNextHarvestSeason,
+        `Ksh ${item.debts.toLocaleString()}`,
+        `<span style="color: #166534; font-weight: bold; font-family: monospace;">Ksh ${item.totalSales.toLocaleString()}</span>`
       ]);
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
@@ -786,7 +839,7 @@ export default function App() {
             <span>5. Avocado Export Grading & Logistics</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${avoRecords.length} records)</span>
           </h3>
-          ${buildTableHtml(['Date', 'Shipping Ref', 'Grade A (Boxes)', 'Grade B (Boxes)', 'Reject (KG)', 'Gross Proceeds'], rows)}
+          ${buildTableHtml(['Date', 'Ref', 'Grade 1 KG', 'Price/KG', 'Reject KG', 'Reject Price/KG', 'G1 Buyer', 'Reject Buyer', 'Payment Mode', 'Debts', 'Total Money Got'], rows)}
         </div>
       `;
     }
@@ -2958,17 +3011,14 @@ export default function App() {
 
   const handleAddAvo = (rec: AvocadoRecord) => {
     setAvoRecords([rec, ...avoRecords]);
-    const pA = rec.priceGradeA ?? 1500;
-    const pB = rec.priceGradeB ?? 850;
-    const pR = rec.priceReject ?? 38;
-    const finalSales = rec.totalSales ?? ((rec.gradeA * pA) + (rec.gradeB * pB) + (rec.reject * pR));
-    const buyerName = rec.buyer ?? 'Kakuzi Agribusiness Exporters';
+    const finalSales = rec.totalSales;
+    const buyerName = rec.grade1Buyer || 'Kakuzi Agribusiness Exporters';
     const autoIncome: FinancialRecord = {
       id: `f-auto-${Date.now()}`,
       type: 'income',
       amount: finalSales,
       category: 'Avocado Sale',
-      description: `Avocado Export shipment Ref ${rec.ref} to (${buyerName}) - A: ${rec.gradeA} bx @ Ks${pA}, B: ${rec.gradeB} bx @ Ks${pB}, Rj: ${rec.reject} kg @ Ks${pR}`,
+      description: `Avocado Export Ref ${rec.ref} to (${buyerName}) - Grd 1: ${rec.grade1Kg} KG @ Ks${rec.grade1PricePerKg}/KG, Rejects: ${rec.rejectKg} KG @ Ks${rec.priceForRejects}/KG`,
       date: rec.date
     };
     setFinancials((prev) => [autoIncome, ...prev]);
@@ -3367,14 +3417,9 @@ export default function App() {
     // 5. Avocado Section
     if (selectedSections.avo) {
       csvContent += '--- AVOCADO EXPORT LOGISTICS ---\n';
-      csvContent += 'Date,Shipping Ref,Primary Exporter,Grade A (Boxes),Grade B (Boxes),Reject (KG),Price Grade A (Ksh),Price Grade B (Ksh),Price Reject (Ksh),Gross Revenue (Ksh)\n';
+      csvContent += 'Date,Shipping Ref,Grade 1 KG,Grade 1 Price/KG,Reject KG,Price for Rejects,Grade 1 Buyer,Reject Buyer,Payment Mode Next Harvest,Debts,Notes,Total Money Got\n';
       avoRecords.forEach((item) => {
-        const pA = item.priceGradeA ?? 1500;
-        const pB = item.priceGradeB ?? 850;
-        const pR = item.priceReject ?? 38;
-        const b = item.buyer ?? 'Kakuzi Agribusiness Exporters';
-        const s = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
-        csvContent += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
+        csvContent += `${item.date},"${item.ref}",${item.grade1Kg},${item.grade1PricePerKg},${item.rejectKg},${item.priceForRejects},"${item.grade1Buyer}","${item.rejectBuyer}","${item.paymentModeNextHarvestSeason}",${item.debts},"${item.notes.replace(/"/g, '""')}",${item.totalSales}\n`;
       });
       csvContent += '\n';
     }
@@ -3733,24 +3778,34 @@ export default function App() {
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
-                    <th className="p-1">Date</th>
-                    <th className="p-1">Shipping Ref</th>
-                    <th className="p-1 text-right">Grade A (Boxes)</th>
-                    <th className="p-1 text-right">Grade B (Boxes)</th>
-                    <th className="p-1 text-right">Reject (KG)</th>
-                    <th className="p-1 text-right">Gross proceeds</th>
+                    <th className="p-1 text-[10px] uppercase">Date</th>
+                    <th className="p-1 text-[10px] uppercase">Ref</th>
+                    <th className="p-1 text-right text-[10px] uppercase">Grade 1 KG</th>
+                    <th className="p-1 text-right text-[10px] uppercase">G1 Price/KG</th>
+                    <th className="p-1 text-right text-[10px] uppercase">Reject KG</th>
+                    <th className="p-1 text-right text-[10px] uppercase">Reject Price/KG</th>
+                    <th className="p-1 text-[10px] uppercase">G1 Buyer</th>
+                    <th className="p-1 text-[10px] uppercase">Reject Buyer</th>
+                    <th className="p-1 text-[10px] uppercase">Payment Mode</th>
+                    <th className="p-1 text-right text-[10px] uppercase">Debts</th>
+                    <th className="p-1 text-right text-[10px] uppercase">Total Money Got</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(forPdf ? avoRecords : avoRecords.slice(0, 10)).map((item, idx) => (
-                    <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-mono text-slate-700 font-bold">{item.date}</td>
+                    <tr key={idx} className="border-b border-slate-100 text-[10px]">
+                      <td className="p-1.5 font-mono text-slate-750 font-bold">{item.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{item.ref}</td>
-                      <td className="p-1.5 text-right font-mono">{item.gradeA}</td>
-                      <td className="p-1.5 text-right font-mono">{item.gradeB}</td>
-                      <td className="p-1.5 text-right font-mono">{item.reject}</td>
-                      <td className="p-1.5 text-right font-mono font-bold text-emerald-800 font-mono">
-                        Ksh {(item.totalSales || ((item.gradeA * (item.priceGradeA ?? 1500)) + (item.gradeB * (item.priceGradeB ?? 850)) + (item.reject * (item.priceReject ?? 38)))).toLocaleString()}
+                      <td className="p-1.5 text-right font-mono font-bold">{item.grade1Kg} kg</td>
+                      <td className="p-1.5 text-right font-mono">Ksh {item.grade1PricePerKg}</td>
+                      <td className="p-1.5 text-right font-mono font-bold">{item.rejectKg} kg</td>
+                      <td className="p-1.5 text-right font-mono">Ksh {item.priceForRejects}</td>
+                      <td className="p-1.5 font-medium">{item.grade1Buyer}</td>
+                      <td className="p-1.5 font-medium">{item.rejectBuyer}</td>
+                      <td className="p-1.5 font-medium">{item.paymentModeNextHarvestSeason}</td>
+                      <td className="p-1.5 text-right font-mono text-rose-700 font-bold">Ksh {item.debts.toLocaleString()}</td>
+                      <td className="p-1.5 text-right font-mono font-bold text-emerald-800">
+                        Ksh {item.totalSales.toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -4726,6 +4781,9 @@ export default function App() {
               onAddMortality={handleAddMortality}
               onDeleteMortality={handleDeleteMortality}
               onTriggerSectionReport={handleTriggerSectionReport}
+              semenInventory={semenInventory}
+              setSemenInventory={setSemenInventory}
+              onAddCalfRecord={handleAddCalfRecord}
             />
           )}
 
@@ -5218,24 +5276,34 @@ export default function App() {
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
                           <thead>
-                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold text-[10px]">
                               <th className="p-1">Date</th>
-                              <th className="p-1">Consignation Reference</th>
-                              <th className="p-1 text-right">Grade A Boxes</th>
-                              <th className="p-1 text-right">Grade B Boxes</th>
-                              <th className="p-1 text-right">Rejects (kg)</th>
-                              <th className="p-1 text-right">Yield proceeds</th>
+                              <th className="p-1">Ref</th>
+                              <th className="p-1 text-right">Grade 1 KG</th>
+                              <th className="p-1 text-right">G1 Price/KG</th>
+                              <th className="p-1 text-right">Reject KG</th>
+                              <th className="p-1 text-right">Reject Price/KG</th>
+                              <th className="p-1">G1 Buyer</th>
+                              <th className="p-1">Reject Buyer</th>
+                              <th className="p-1">Payment Mode</th>
+                              <th className="p-1 text-right">Debts</th>
+                              <th className="p-1 text-right">Yield Proceeds</th>
                             </tr>
                           </thead>
                           <tbody>
                             {avoRecords.map((item, idx) => (
-                              <tr key={idx} className="border-b border-slate-100 font-sans">
+                              <tr key={idx} className="border-b border-slate-100 font-sans text-[10px]">
                                 <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
                                 <td className="p-1.5 font-bold text-slate-800">{item.ref}</td>
-                                <td className="p-1.5 text-right">{item.gradeA}</td>
-                                <td className="p-1.5 text-right">{item.gradeB}</td>
-                                <td className="p-1.5 text-right">{item.reject}</td>
-                                <td className="p-1.5 text-right font-mono font-extrabold text-emerald-850">Ksh {item.totalSales?.toLocaleString() || ((item.gradeA * 1500) + (item.gradeB * 850)).toLocaleString()}</td>
+                                <td className="p-1.5 text-right font-mono font-bold">{item.grade1Kg} kg</td>
+                                <td className="p-1.5 text-right font-mono">Ksh {item.grade1PricePerKg}</td>
+                                <td className="p-1.5 text-right font-mono font-bold">{item.rejectKg} kg</td>
+                                <td className="p-1.5 text-right font-mono">Ksh {item.priceForRejects}</td>
+                                <td className="p-1.5 font-medium">{item.grade1Buyer}</td>
+                                <td className="p-1.5 font-medium">{item.rejectBuyer}</td>
+                                <td className="p-1.5 font-medium">{item.paymentModeNextHarvestSeason}</td>
+                                <td className="p-1.5 text-right font-mono text-rose-700 font-bold">Ksh {item.debts.toLocaleString()}</td>
+                                <td className="p-1.5 text-right font-mono font-extrabold text-emerald-850">Ksh {item.totalSales.toLocaleString()}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -6120,25 +6188,35 @@ export default function App() {
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black text-[10px]">
                             <th className="p-1">Date</th>
-                            <th className="p-1">Shipping Ref</th>
-                            <th className="p-1 text-right">Grade A (Boxes)</th>
-                            <th className="p-1 text-right">Grade B (Boxes)</th>
-                            <th className="p-1 text-right">Reject (KG)</th>
-                            <th className="p-1 text-right">Gross proceeds</th>
+                            <th className="p-1">Ref</th>
+                            <th className="p-1 text-right">Grade 1 KG</th>
+                            <th className="p-1 text-right">G1 Price/KG</th>
+                            <th className="p-1 text-right">Reject KG</th>
+                            <th className="p-1 text-right">Reject Price/KG</th>
+                            <th className="p-1">G1 Buyer</th>
+                            <th className="p-1">Reject Buyer</th>
+                            <th className="p-1">Payment Mode</th>
+                            <th className="p-1 text-right">Debts</th>
+                            <th className="p-1 text-right font-bold text-emerald-800">Total Money Got</th>
                           </tr>
                         </thead>
                         <tbody>
                           {avoRecords.slice(0, 10).map((item, idx) => (
-                            <tr key={idx} className="border-b border-slate-100">
+                            <tr key={idx} className="border-b border-slate-100 text-[10px]">
                               <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
                               <td className="p-1.5 font-bold text-slate-850">{item.ref}</td>
-                              <td className="p-1.5 text-right font-mono">{item.gradeA}</td>
-                              <td className="p-1.5 text-right font-mono">{item.gradeB}</td>
-                              <td className="p-1.5 text-right font-mono">{item.reject}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{item.grade1Kg} kg</td>
+                              <td className="p-1.5 text-right font-mono">Ksh {item.grade1PricePerKg}</td>
+                              <td className="p-1.5 text-right font-mono font-bold">{item.rejectKg} kg</td>
+                              <td className="p-1.5 text-right font-mono">Ksh {item.priceForRejects}</td>
+                              <td className="p-1.5 font-medium">{item.grade1Buyer}</td>
+                              <td className="p-1.5 font-medium">{item.rejectBuyer}</td>
+                              <td className="p-1.5 font-medium">{item.paymentModeNextHarvestSeason}</td>
+                              <td className="p-1.5 text-right font-mono text-rose-700 font-bold">Ksh {item.debts.toLocaleString()}</td>
                               <td className="p-1.5 text-right font-mono font-bold text-emerald-850">
-                                Ksh {(item.totalSales || ((item.gradeA * (item.priceGradeA ?? 1500)) + (item.gradeB * (item.priceGradeB ?? 850)) + (item.reject * (item.priceReject ?? 38)))).toLocaleString()}
+                                Ksh {item.totalSales.toLocaleString()}
                               </td>
                             </tr>
                           ))}

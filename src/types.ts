@@ -12,15 +12,38 @@ export interface MilkingRecord {
   pricePerLiter?: number;
   buyer?: string;
   totalSales?: number;
+  // Dispatch details included inside milk log record
+  milkUsedAtHome?: number;
+  milkUsedByWorkers?: number;
+  milkSpoiled?: number;
+  debtsKsh?: number;
+  debtCustomer?: string;
+  notes?: string;
 }
 
 export interface AIRecord {
   cowId: string;
-  date: string; // Service Date YYYY-MM-DD
-  bull: string; // Semen / Bull details
-  due: string; // Expected due date YYYY-MM-DD
+  date: string; // Service Date YYYY-MM-DD (Date inseminated)
+  bull: string; // Semen / Bull details (Bull Name)
+  due: string; // Expected due date YYYY-MM-DD (Expected calving date)
   status: 'Pending' | 'Confirmed Pregnant' | 'Calved' | 'Failed';
   checkDate?: string; // Verification check date YYYY-MM-DD
+  origin?: string; // origin of semen (Local/Imported)
+  semenType?: string; // semen type (from semen inventory)
+  cost?: number; // semen/straw cost
+  returnHeatDate?: string; // Return heat date (autocalculated)
+  calfName?: string; // calf name (auto added to calf registry)
+  notes?: string;
+}
+
+export interface SemenInventoryItem {
+  id: string; // straw reference / ID
+  bullName: string;
+  breed: string;
+  semenType: string; // e.g. "Sexed (Female)", "Sexed (Male)", "Conventional"
+  origin: string; // e.g. "Imported (USA)", "Imported (EU)", "Local (KAGRC)"
+  cost: number;
+  quantity: number; // straw stock count
 }
 
 export interface TeaRecord {
@@ -33,21 +56,20 @@ export interface TeaRecord {
 }
 
 export interface AvocadoRecord {
-  gradeA: number; // Boxes
-  gradeB: number; // Boxes
-  reject: number; // KG
-  ref: string; // Shipping ref
-  date: string; // YYYY-MM-DD
-  priceGradeA?: number;
-  priceGradeB?: number;
-  priceReject?: number;
-  buyer?: string;
-  totalSales?: number;
-  pricePerKgA?: number;
-  pricePerKgB?: number;
-  boxWeightKg?: number;
-  weightKgA?: number;
-  weightKgB?: number;
+  ref: string; // Unique reference identifier
+  date: string; // Harvest/Export date (YYYY-MM-DD)
+  grade1Kg: number; // Grade 1 quantity in KGs
+  grade1PricePerKg: number; // Price per KG for Grade 1
+  rejectKg: number; // Reject quantity in KGs
+  priceForRejects: number; // Price per KG for rejects
+  grade1Buyer: string; // Buyer for Grade 1
+  rejectBuyer: string; // Buyer for rejects
+  paymentMode: string; // E.g. Cash, Bank Transfer, Deferred
+  nextHarvestSeason: string; // E.g. Oct-Dec Main Season, Mar-May Fly Crop
+  paymentModeNextHarvestSeason?: string; // Legacy field for safety
+  debts: number; // Debts on this lot
+  notes: string; // General notes/remarks
+  totalSales: number; // Autocalculated total money got
 }
 
 export interface FinancialRecord {

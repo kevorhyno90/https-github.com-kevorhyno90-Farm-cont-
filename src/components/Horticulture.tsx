@@ -94,17 +94,19 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
   const [editingTea, setEditingTea] = useState<TeaRecord | null>(null);
   const [editingAvo, setEditingAvo] = useState<AvocadoRecord | null>(null);
 
-  // Avocado state
+  // Avocado state (Updated to matching requested fields only)
   const [avoRef, setAvoRef] = useState('');
-  const [gradeA, setGradeA] = useState<number | ''>('');
-  const [gradeB, setGradeB] = useState<number | ''>('');
+  const [grade1Kg, setGrade1Kg] = useState<number | ''>('');
+  const [grade1PricePerKg, setGrade1PricePerKg] = useState<number | ''>('');
   const [rejectKg, setRejectKg] = useState<number | ''>('');
-  const [priceGradeA, setPriceGradeA] = useState<number | ''>(1500); // per box
-  const [priceGradeB, setPriceGradeB] = useState<number | ''>(850);  // per box
-  const [priceReject, setPriceReject] = useState<number | ''>(38);   // per KG
-  const [avoBuyer, setAvoBuyer] = useState('Kakuzi Agribusiness Exporters');
+  const [priceForRejects, setPriceForRejects] = useState<number | ''>('');
+  const [grade1Buyer, setGrade1Buyer] = useState('Kakuzi Agribusiness Exporters');
+  const [rejectBuyer, setRejectBuyer] = useState('Local Puree Processor');
+  const [paymentMode, setPaymentMode] = useState('Deferred (Next harvest payouts)');
+  const [nextHarvestSeason, setNextHarvestSeason] = useState('October - December');
+  const [debts, setDebts] = useState<number | ''>(0);
+  const [notes, setNotes] = useState('');
   const [avoDate, setAvoDate] = useState(new Date().toISOString().split('T')[0]);
-  const [boxWeightKg, setBoxWeightKg] = useState<number>(10); // average weight of export box/crate (KGs)
 
   // GlobalGAP/KEPHIS Interactive Label Builder states
   const [selectedLotRef, setSelectedLotRef] = useState('');
@@ -138,42 +140,46 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
 
   const handleAvoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (gradeA === '' || gradeB === '' || rejectKg === '' || !avoRef.trim()) return;
-    const ga = Number(gradeA);
-    const gb = Number(gradeB);
+    if (grade1Kg === '' || grade1PricePerKg === '' || rejectKg === '' || priceForRejects === '' || !avoRef.trim()) return;
+    const g1 = Number(grade1Kg);
+    const p1 = Number(grade1PricePerKg);
     const rj = Number(rejectKg);
-    const pA = priceGradeA === '' ? 1500 : Number(priceGradeA);
-    const pB = priceGradeB === '' ? 850 : Number(priceGradeB);
-    const pR = priceReject === '' ? 38 : Number(priceReject);
-    const buyVal = avoBuyer.trim() || 'Kakuzi Exporters';
+    const pr = Number(priceForRejects);
+    const debtVal = Number(debts) || 0;
 
     onAddAvo({
-      gradeA: ga,
-      gradeB: gb,
-      reject: rj,
       ref: avoRef.trim(),
       date: avoDate,
-      priceGradeA: pA,
-      priceGradeB: pB,
-      priceReject: pR,
-      buyer: buyVal,
-      totalSales: (ga * pA) + (gb * pB) + (rj * pR),
-      boxWeightKg: boxWeightKg,
-      weightKgA: ga * boxWeightKg,
-      weightKgB: gb * boxWeightKg,
-      pricePerKgA: Number((pA / boxWeightKg).toFixed(2)),
-      pricePerKgB: Number((pB / boxWeightKg).toFixed(2))
+      grade1Kg: g1,
+      grade1PricePerKg: p1,
+      rejectKg: rj,
+      priceForRejects: pr,
+      grade1Buyer: grade1Buyer.trim() || 'Kakuzi Exporters',
+      rejectBuyer: rejectBuyer.trim() || 'Local Puree Processor',
+      paymentMode: paymentMode.trim() || 'Deferred (Next harvest payouts)',
+      nextHarvestSeason: nextHarvestSeason.trim() || 'October - December',
+      debts: debtVal,
+      notes: notes.trim() || 'None',
+      totalSales: (g1 * p1) + (rj * pr)
     });
-    setGradeA('');
-    setGradeB('');
+
+    setGrade1Kg('');
+    setGrade1PricePerKg('');
     setRejectKg('');
+    setPriceForRejects('');
+    setPaymentMode('Deferred (Next harvest payouts)');
+    setNextHarvestSeason('October - December');
+    setDebts(0);
+    setNotes('');
     setAvoRef('');
     setAvoDate(new Date().toISOString().split('T')[0]);
   };
 
   // Compute total aggregates for Horticulture
-  const totalTeaAllTime = teaRecords.reduce((sum, r) => sum + r.qty, 0);
-  const totalAvoBoxes = avoRecords.reduce((sum, r) => sum + r.gradeA + r.gradeB, 0);
+  const totalTeaAllTime = teaRecords.reduce((sum, r) => sum + (r.qty || 0), 0);
+  const totalAvoGrade1Kg = avoRecords.reduce((sum, r) => sum + (r.grade1Kg || 0), 0);
+  const totalAvoRejectKg = avoRecords.reduce((sum, r) => sum + (r.rejectKg || 0), 0);
+  const totalAvoSalesAllTime = avoRecords.reduce((sum, r) => sum + (r.totalSales || 0), 0);
 
   // CSV downlod helper functions
   const downloadTeaCSV = () => {
@@ -200,14 +206,9 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'AVOCADO EXPORT LOGISTICS & REVENUES\n';
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-    csv += 'Date,Shipping Ref,Primary Exporter,Grade A (Boxes),Grade B (Boxes),Reject (KG),Price Grade A (Ksh),Price Grade B (Ksh),Price Reject (Ksh),Gross Revenue (Ksh)\n';
+    csv += 'Date,Shipping Ref,Grade 1 KG,Grade 1 Price/KG,Reject KG,Price for Rejects,Grade 1 Buyer,Reject Buyer,Payment Mode,Next Harvest Season,Debts,Notes,Total Money Got\n';
     avoRecords.forEach((item) => {
-      const pA = item.priceGradeA ?? 1500;
-      const pB = item.priceGradeB ?? 850;
-      const pR = item.priceReject ?? 38;
-      const b = item.buyer ?? 'Kakuzi Agribusiness Exporters';
-      const s = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
-      csv += `${item.date},"${item.ref}","${b}",${item.gradeA},${item.gradeB},${item.reject},${pA},${pB},${pR},${s}\n`;
+      csv += `${item.date},"${item.ref}",${item.grade1Kg},${item.grade1PricePerKg},${item.rejectKg},${item.priceForRejects},"${item.grade1Buyer}","${item.rejectBuyer}","${item.paymentMode || item.paymentModeNextHarvestSeason || 'Deferred'}","${item.nextHarvestSeason || 'N/A'}",${item.debts},"${item.notes.replace(/"/g, '""')}",${item.totalSales}\n`;
     });
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
@@ -347,7 +348,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                   </tr>
                 </thead>
                 <tbody>
-                  {[...teaRecords].sort((a,b)=> b.date.localeCompare(a.date)).map((t, idx) => {
+                  {[...teaRecords].sort((a,b)=> (b.date || '').localeCompare(a.date || '')).map((t, idx) => {
                     const price = t.pricePerKg ?? 58;
                     const totVal = t.totalSales ?? (t.qty * price);
                     const buyer = t.buyer ?? 'Chinga KTDA Factory';
@@ -367,7 +368,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                           <span className="font-mono text-[9px] text-slate-400 block">Ksh {price.toFixed(0)}/KG</span>
                         </td>
                         <td className="p-2 text-right">
-                          <span className="font-mono font-black text-emerald-800 block">Ksh {totVal.toLocaleString()}</span>
+                          <span className="font-mono font-black text-emerald-800 block">Ksh {(totVal ?? 0).toLocaleString()}</span>
                           <span className="text-[8px] bg-emerald-100 font-extrabold text-emerald-900 px-1 py-0.2 rounded inline-block uppercase">Sold</span>
                         </td>
                         <td className="p-2 text-center">
@@ -402,102 +403,119 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
         {/* Avocado packing graded ledger */}
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-3">
-            <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Avocado Export Harvest</h5>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Record graded crates ready for shipping exporter</p>
+            <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Avocado Export & Graded Ledger</h5>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Record and track Grade 1 shipments, rejects, buyers, payment terms, and debts</p>
           </div>
 
-          <form onSubmit={handleAvoSubmit} className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleAvoSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade A (Export Boxes)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade 1 Quantity (KG)</label>
               <input
                 type="number"
                 required
                 min="0"
-                value={gradeA}
-                onChange={(e) => setGradeA(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="Grade A quantity"
+                value={grade1Kg}
+                onChange={(e) => setGrade1Kg(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder="Grade 1 KG"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade A Price per Box (Ksh)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade 1 Price per KG (Ksh)</label>
               <input
                 type="number"
                 required
-                min="1"
-                value={priceGradeA}
-                onChange={(e) => setPriceGradeA(e.target.value === '' ? '' : parseInt(e.target.value))}
+                min="0.1"
+                step="0.1"
+                value={grade1PricePerKg}
+                onChange={(e) => setGrade1PricePerKg(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder="Price per KG"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade B (Boxes)</label>
-              <input
-                type="number"
-                required
-                min="0"
-                value={gradeB}
-                onChange={(e) => setGradeB(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="Grade B quantity"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade B Price per Box (Ksh)</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={priceGradeB}
-                onChange={(e) => setPriceGradeB(e.target.value === '' ? '' : parseInt(e.target.value))}
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Reject (KG)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Reject Weight (KG)</label>
               <input
                 type="number"
                 required
                 min="0"
                 value={rejectKg}
-                onChange={(e) => setRejectKg(e.target.value === '' ? '' : parseInt(e.target.value))}
-                placeholder="Rejects in weight"
+                onChange={(e) => setRejectKg(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder="Rejects KG"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Reject Price per KG (Ksh)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Price for Rejects (per KG)</label>
               <input
                 type="number"
                 required
-                min="1"
-                value={priceReject}
-                onChange={(e) => setPriceReject(e.target.value === '' ? '' : parseInt(e.target.value))}
+                min="0"
+                step="0.1"
+                value={priceForRejects}
+                onChange={(e) => setPriceForRejects(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder="Reject price per KG"
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Crate/Box Net Weight (KG)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Grade 1 Buyer</label>
+              <input
+                type="text"
+                required
+                value={grade1Buyer}
+                onChange={(e) => setGrade1Buyer(e.target.value)}
+                placeholder="E.g. Kakuzi Agribusiness Exporters"
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Reject Buyer</label>
+              <input
+                type="text"
+                required
+                value={rejectBuyer}
+                onChange={(e) => setRejectBuyer(e.target.value)}
+                placeholder="E.g. Local Puree Processor"
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Payment Mode / Term</label>
+              <input
+                type="text"
+                required
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                placeholder="E.g. Deferred, Cash, Bank Transfer"
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Next Harvest Season</label>
+              <input
+                type="text"
+                required
+                value={nextHarvestSeason}
+                onChange={(e) => setNextHarvestSeason(e.target.value)}
+                placeholder="E.g. October - December"
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Debts (Ksh)</label>
               <input
                 type="number"
                 required
-                min="1"
-                max="100"
-                value={boxWeightKg}
-                onChange={(e) => setBoxWeightKg(Math.max(1, parseInt(e.target.value) || 1))}
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono bg-emerald-50 text-emerald-950"
+                min="0"
+                value={debts}
+                onChange={(e) => setDebts(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder="Outstanding debts"
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono text-rose-700 bg-rose-50/50"
               />
             </div>
-            <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 flex flex-col justify-center">
-              <span className="text-[9px] font-black text-emerald-900 uppercase">Calculated Grade Prices Per KG</span>
-              <span className="text-[11px] font-mono font-bold text-slate-700 leading-tight">
-                Grade A: <strong className="text-emerald-800">Ksh {priceGradeA && boxWeightKg ? (priceGradeA / boxWeightKg).toFixed(1) : 0}/KG</strong>
-                <br />
-                Grade B: <strong className="text-emerald-800">Ksh {priceGradeB && boxWeightKg ? (priceGradeB / boxWeightKg).toFixed(1) : 0}/KG</strong>
-              </span>
-            </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Shipping Ref</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Shipping / Batch Ref</label>
               <input
                 type="text"
                 required
@@ -508,17 +526,6 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Exporter / Buyer</label>
-              <input
-                type="text"
-                required
-                value={avoBuyer}
-                onChange={(e) => setAvoBuyer(e.target.value)}
-                placeholder="E.g. Kakuzi Exporters"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-              />
-            </div>
-            <div className="col-span-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Export Logging Date</label>
               <input
                 type="date"
@@ -528,9 +535,35 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                 className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer bg-white"
               />
             </div>
+            <div className="col-span-1 md:col-span-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Debts and Notes</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Enter debts details, quality notes, or transport details..."
+                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium h-20"
+              />
+            </div>
+
+            <div className="col-span-1 md:col-span-2 bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 flex justify-between items-center">
+              <div>
+                <span className="text-[9px] font-black text-emerald-900 uppercase block">Dynamic Auto-Calculations</span>
+                <span className="text-[11px] font-sans text-slate-600">
+                  Grade 1 subtotal: <strong className="text-slate-900 font-mono">Ksh {((Number(grade1Kg) || 0) * (Number(grade1PricePerKg) || 0)).toLocaleString()}</strong>
+                  {"  "}|{"  "}Rejects subtotal: <strong className="text-slate-900 font-mono">Ksh {((Number(rejectKg) || 0) * (Number(priceForRejects) || 0)).toLocaleString()}</strong>
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[9px] font-black text-emerald-900 uppercase block">Total Money Got (Gross)</span>
+                <span className="text-sm font-black text-emerald-800 font-mono">
+                  Ksh {(((Number(grade1Kg) || 0) * (Number(grade1PricePerKg) || 0)) + ((Number(rejectKg) || 0) * (Number(priceForRejects) || 0))).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
             <button
               type="submit"
-              className="col-span-2 bg-emerald-905 bg-emerald-900 hover:bg-emerald-950 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
+              className="col-span-1 md:col-span-2 bg-emerald-900 hover:bg-emerald-950 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 cursor-pointer"
             >
               Log Avocado Harvest & Export Income
             </button>
@@ -538,9 +571,9 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
 
           {/* Past avocado grading */}
           <div className="border-t border-slate-100 pt-5 space-y-3">
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-bold">Export Shipping Ledger</label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={downloadAvoCSV}
                   type="button"
@@ -561,52 +594,51 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                     Report
                   </button>
                 )}
-                <span className="font-bold text-indigo-950">Total Boxes: {totalAvoBoxes} Bags/Crates</span>
+                <span className="font-extrabold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-150">
+                  Total Proceeds: Ksh {(totalAvoSalesAllTime || 0).toLocaleString()}
+                </span>
               </div>
             </div>
 
-            <div className="max-h-[30rem] overflow-y-auto pr-1">
+            <div className="max-h-[35rem] overflow-y-auto pr-1 space-y-3">
               {avoRecords.map((item, idx) => {
-                const totalCrates = item.gradeA + item.gradeB;
-                const ratio = totalCrates > 0 ? (item.gradeA / totalCrates) * 100 : 0;
-                const pA = item.priceGradeA ?? 1500;
-                const pB = item.priceGradeB ?? 850;
-                const pR = item.priceReject ?? 38;
-                const totVal = item.totalSales ?? ((item.gradeA * pA) + (item.gradeB * pB) + (item.reject * pR));
-                const buyer = item.buyer ?? 'Kakuzi Agribusiness Exporters';
-                const bWt = item.boxWeightKg ?? 10;
-                const pricePerKgA = item.pricePerKgA ?? (pA / bWt);
-                const pricePerKgB = item.pricePerKgB ?? (pB / bWt);
-                const weightKgA = item.weightKgA ?? (item.gradeA * bWt);
-                const weightKgB = item.weightKgB ?? (item.gradeB * bWt);
-
+                const totVal = item.totalSales;
                 return (
-                  <div key={idx} className="p-4 border border-slate-150 rounded-2xl bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs mb-3 hover:bg-slate-50 transition-all">
-                    <div className="space-y-1">
+                  <div key={idx} className="p-4 border border-slate-150 rounded-2xl bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs hover:bg-slate-50 transition-all">
+                    <div className="space-y-2 w-full">
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-sm text-slate-800">{item.ref}</span>
                         <span className="text-[9px] bg-slate-200/80 font-bold text-slate-500 px-2 py-0.5 rounded uppercase font-mono">
                           {item.date}
                         </span>
+                        {item.debts > 0 && (
+                          <span className="text-[8px] bg-red-100 text-red-800 font-black uppercase px-1.5 py-0.5 rounded">
+                            Debts Active
+                          </span>
+                        )}
                       </div>
-                      <p className="text-[10px] text-emerald-800 font-extrabold italic uppercase leading-none">
-                        Exporter: {buyer}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-500 font-medium">
-                        <span>A: <strong>{item.gradeA}</strong> Box ({weightKgA} KG @ <strong className="text-emerald-800">Ksh {pricePerKgA.toFixed(1)}/kg</strong>)</span>
-                        <span>•</span>
-                        <span>B: <strong>{item.gradeB}</strong> Box ({weightKgB} KG @ <strong className="text-emerald-800">Ksh {pricePerKgB.toFixed(1)}/kg</strong>)</span>
-                        <span>•</span>
-                        <span>Reject: <strong>{item.reject}</strong> KG (Ksh {pR}/kg)</span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[11px] leading-relaxed text-slate-600">
+                        <div>
+                          <p>⭐ <strong>Grade 1:</strong> {item.grade1Kg} KG @ <span className="text-emerald-800 font-bold font-mono">Ksh {item.grade1PricePerKg}/KG</span></p>
+                          <p className="text-[10px] pl-4 text-slate-400">Buyer: {item.grade1Buyer}</p>
+                        </div>
+                        <div>
+                          <p>🍂 <strong>Rejects:</strong> {item.rejectKg} KG @ <span className="text-slate-800 font-bold font-mono">Ksh {item.priceForRejects}/KG</span></p>
+                          <p className="text-[10px] pl-4 text-slate-400">Buyer: {item.rejectBuyer}</p>
+                        </div>
+                      </div>
+                      <div className="border-t border-dashed border-slate-200 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-y-1 text-[10px] text-slate-500 font-medium">
+                        <p>🤝 <strong>Payment Mode / Term:</strong> {item.paymentMode || item.paymentModeNextHarvestSeason}</p>
+                        <p>📅 <strong>Next Harvest Season:</strong> {item.nextHarvestSeason || 'N/A'}</p>
+                        <p className="text-rose-700">🚨 <strong>Lot Debts:</strong> Ksh {(item.debts ?? 0).toLocaleString()}</p>
+                        {item.notes && <p className="col-span-1 sm:col-span-2 text-[10px] text-slate-450 italic mt-1 font-sans">📝 Notes: {item.notes}</p>}
                       </div>
                     </div>
                     <div className="text-right flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/50">
                       <div className="text-left sm:text-right">
+                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Money Got</span>
                         <span className="text-base font-black text-emerald-800 font-mono block">
-                          Ksh {totVal.toLocaleString()}
-                        </span>
-                        <span className="text-[9px] bg-emerald-100 text-emerald-950 px-2 py-0.5 rounded font-black mt-1 inline-block uppercase">
-                          {ratio.toFixed(0)}% Grade A
+                          Ksh {(totVal ?? 0).toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -682,7 +714,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                     if (teaMatch) {
                       setCustomNote(`KTDA COMPLIANT EXPORT TEA BLOCK-A. NET WEIGHT: ${teaMatch.qty} KG.`);
                     } else if (avoMatch) {
-                      setCustomNote(`HASS AVOCADOS G-A: ${avoMatch.gradeA} BX / G-B: ${avoMatch.gradeB} BX. CERTIFIED PREMIUM.`);
+                      setCustomNote(`HASS AVOCADOS GRADE 1: ${avoMatch.grade1Kg} KG / REJECTS: ${avoMatch.rejectKg} KG. CERTIFIED PREMIUM.`);
                     }
                   }}
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-white outline-hidden cursor-pointer font-bold"
@@ -692,7 +724,7 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
                     <option key={`t-${idx}`} value={t.ref}>Tea Delivery: {t.ref} ({t.qty} KG)</option>
                   ))}
                   {avoRecords.map((a, idx) => (
-                    <option key={`a-${idx}`} value={a.ref}>Avo Export: {a.ref} ({a.gradeA + a.gradeB} Boxes)</option>
+                    <option key={`a-${idx}`} value={a.ref}>Avo Export: {a.ref} ({a.grade1Kg} KG)</option>
                   ))}
                   <option value="SAMPLE-GLOBALGAP-2026">Sample Lot: EXP-LOT-G2026</option>
                 </select>
@@ -989,71 +1021,95 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade A (Box count)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade 1 KG</label>
                   <input
                     type="number"
-                    value={editingAvo.gradeA}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, gradeA: parseInt(e.target.value) || 0 })}
+                    value={editingAvo.grade1Kg}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, grade1Kg: parseFloat(e.target.value) || 0 })}
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade B (Box count)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade 1 Price / KG</label>
                   <input
                     type="number"
-                    value={editingAvo.gradeB}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, gradeB: parseInt(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Grade A (Ksh/box)</label>
-                  <input
-                    type="number"
-                    value={editingAvo.priceGradeA ?? 1500}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, priceGradeA: parseInt(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Grade B (Ksh/box)</label>
-                  <input
-                    type="number"
-                    value={editingAvo.priceGradeB ?? 850}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, priceGradeB: parseInt(e.target.value) || 0 })}
+                    value={editingAvo.grade1PricePerKg}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, grade1PricePerKg: parseFloat(e.target.value) || 0 })}
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Reject (KG count)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Reject Weight (KG)</label>
                   <input
                     type="number"
-                    value={editingAvo.reject}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, reject: parseInt(e.target.value) || 0 })}
+                    value={editingAvo.rejectKg}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, rejectKg: parseFloat(e.target.value) || 0 })}
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price Reject (Ksh/KG)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Reject Price / KG</label>
                   <input
                     type="number"
-                    value={editingAvo.priceReject ?? 38}
-                    onChange={(e) => setEditingAvo({ ...editingAvo, priceReject: parseInt(e.target.value) || 0 })}
+                    value={editingAvo.priceForRejects}
+                    onChange={(e) => setEditingAvo({ ...editingAvo, priceForRejects: parseFloat(e.target.value) || 0 })}
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Exporter / Buyer Name</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Grade 1 Buyer</label>
                 <input
                   type="text"
-                  value={editingAvo.buyer ?? ''}
-                  onChange={(e) => setEditingAvo({ ...editingAvo, buyer: e.target.value })}
+                  value={editingAvo.grade1Buyer}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, grade1Buyer: e.target.value })}
                   className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Reject Buyer</label>
+                <input
+                  type="text"
+                  value={editingAvo.rejectBuyer}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, rejectBuyer: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Payment Mode / Term</label>
+                <input
+                  type="text"
+                  value={editingAvo.paymentMode || ''}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, paymentMode: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Next Harvest Season</label>
+                <input
+                  type="text"
+                  value={editingAvo.nextHarvestSeason || ''}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, nextHarvestSeason: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Debts (Ksh)</label>
+                <input
+                  type="number"
+                  value={editingAvo.debts}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, debts: parseFloat(e.target.value) || 0 })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono text-rose-700"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Notes</label>
+                <textarea
+                  value={editingAvo.notes}
+                  onChange={(e) => setEditingAvo({ ...editingAvo, notes: e.target.value })}
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-medium h-16"
                 />
               </div>
             </div>
@@ -1067,12 +1123,9 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               <button
                 onClick={() => {
                   if (onEditAvo) {
-                    const pA = editingAvo.priceGradeA ?? 1500;
-                    const pB = editingAvo.priceGradeB ?? 850;
-                    const pR = editingAvo.priceReject ?? 38;
                     onEditAvo(editingAvo.ref, {
                       ...editingAvo,
-                      totalSales: (editingAvo.gradeA * pA) + (editingAvo.gradeB * pB) + (editingAvo.reject * pR),
+                      totalSales: (editingAvo.grade1Kg * editingAvo.grade1PricePerKg) + (editingAvo.rejectKg * editingAvo.priceForRejects),
                     });
                   }
                   setEditingAvo(null);

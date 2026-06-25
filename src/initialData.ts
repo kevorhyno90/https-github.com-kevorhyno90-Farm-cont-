@@ -26,7 +26,8 @@ import {
   CropSaleRecord,
   AnimalSaleRecord,
   MortalityRecord,
-  MilkOutflowRecord
+  MilkOutflowRecord,
+  SemenInventoryItem
 } from './types';
 
 // Helper to get formatted dates relative to today
@@ -133,6 +134,45 @@ export const INITIAL_MILK_RECORDS: MilkingRecord[] = [
   { id: 'Cow-103 (Ruby)', am: 13.5, pm: 11.5, staff: 'Mosoti', date: getRelativeDate(0) }
 ];
 
+export const INITIAL_SEMEN_INVENTORY: SemenInventoryItem[] = [
+  {
+    id: 'SEMEN-HO-992',
+    bullName: 'SEMEN-HO-992 (Holstein Pure)',
+    breed: 'Holstein-Friesian',
+    semenType: 'Sexed (Female)',
+    origin: 'Imported (USA)',
+    cost: 3500,
+    quantity: 12
+  },
+  {
+    id: 'SEMEN-JE-771',
+    bullName: 'SEMEN-JE-771 (Jersey Prime)',
+    breed: 'Jersey',
+    semenType: 'Sexed (Female)',
+    origin: 'Imported (EU)',
+    cost: 3000,
+    quantity: 8
+  },
+  {
+    id: 'SEMEN-AYR-404',
+    bullName: 'SEMEN-AYR-404 (Ayrshire Select)',
+    breed: 'Ayrshire',
+    semenType: 'Conventional',
+    origin: 'Local (KAGRC)',
+    cost: 1500,
+    quantity: 15
+  },
+  {
+    id: 'SEMEN-FR-301',
+    bullName: 'SEMEN-FR-301 (Friesian Red-Star)',
+    breed: 'Friesian',
+    semenType: 'Sexed (Male)',
+    origin: 'Local (KAGRC)',
+    cost: 1800,
+    quantity: 6
+  }
+];
+
 export const INITIAL_AI_RECORDS: AIRecord[] = [
   {
     cowId: 'Cow-101 (Daisy)',
@@ -166,8 +206,38 @@ export const INITIAL_TEA_RECORDS: TeaRecord[] = [
 ];
 
 export const INITIAL_AVOCADO_RECORDS: AvocadoRecord[] = [
-  { gradeA: 24, gradeB: 12, reject: 45, ref: 'KEPHIS-EXP-201', date: getRelativeDate(-3), priceGradeA: 1450, priceGradeB: 800, priceReject: 35, buyer: 'Kakuzi Agribusiness Exporters', totalSales: 45975 },
-  { gradeA: 30, gradeB: 15, reject: 50, ref: 'KEPHIS-EXP-202', date: getRelativeDate(-1), priceGradeA: 1500, priceGradeB: 850, priceReject: 38, buyer: 'Sunripe East Africa Export Ltd', totalSales: 59650 }
+  {
+    ref: 'KEPHIS-EXP-201',
+    date: getRelativeDate(-3),
+    grade1Kg: 240,
+    grade1PricePerKg: 150,
+    rejectKg: 45,
+    priceForRejects: 35,
+    grade1Buyer: 'Kakuzi Agribusiness Exporters',
+    rejectBuyer: 'Local Puree Processor',
+    paymentMode: 'Deferred',
+    nextHarvestSeason: 'October - December',
+    paymentModeNextHarvestSeason: 'Deferred (Next harvest payouts)',
+    debts: 5000,
+    notes: 'Excellent fruit oil level verified by phytosanitary team.',
+    totalSales: 37575
+  },
+  {
+    ref: 'KEPHIS-EXP-202',
+    date: getRelativeDate(-1),
+    grade1Kg: 300,
+    grade1PricePerKg: 160,
+    rejectKg: 50,
+    priceForRejects: 38,
+    grade1Buyer: 'Sunripe East Africa Export Ltd',
+    rejectBuyer: 'Local Juice Co.',
+    paymentMode: 'M-Pesa / Immediate',
+    nextHarvestSeason: 'March - May (Fly Crop)',
+    paymentModeNextHarvestSeason: 'M-Pesa / Immediate',
+    debts: 0,
+    notes: 'Grade 1 selection approved under GlobalGAP standard.',
+    totalSales: 49900
+  }
 ];
 
 export const INITIAL_FINICAL_RECORDS: FinancialRecord[] = [
