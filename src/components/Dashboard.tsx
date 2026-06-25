@@ -39,8 +39,8 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { MilkingRecord, Todo, StaffOffRecord, StaffMember } from '../types';
-import { CalendarIcon, Bell, Users, Eye } from 'lucide-react';
+import { MilkingRecord, Todo, StaffOffRecord, StaffMember, Cow, QuarantineRecord, SprayRecord, FieldRecord, VetRecord } from '../types';
+import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
 
 interface DashboardProps {
@@ -56,6 +56,11 @@ interface DashboardProps {
   staffOffRecords: StaffOffRecord[];
   staffList: StaffMember[];
   onNavigateToTab?: (tabId: string) => void;
+  cows?: Cow[];
+  quarantineRecords?: QuarantineRecord[];
+  sprayRecords?: SprayRecord[];
+  fields?: FieldRecord[];
+  vetRecords?: VetRecord[];
 }
 
 export function Dashboard({
@@ -70,10 +75,16 @@ export function Dashboard({
   totalTeaQty,
   staffOffRecords = [],
   staffList = [],
-  onNavigateToTab
+  onNavigateToTab,
+  cows = [],
+  quarantineRecords = [],
+  sprayRecords = [],
+  fields = [],
+  vetRecords = []
 }: DashboardProps) {
   const [newTodo, setNewTodo] = useState('');
   const [todoAssignee, setTodoAssignee] = useState('');
+  const [expandedSopId, setExpandedSopId] = useState<string | null>(null);
   const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'rainy' | 'dry-cold'>('sunny');
   const [soilMoisture, setSoilMoisture] = useState<number>(42);
 
@@ -570,6 +581,257 @@ export function Dashboard({
                         <span>{msg}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 🛡️ ACTIVE ESTATE HEALTH & BIO-SECURITY SCORECARD */}
+      {(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 1. Find active quarantines
+        const activeQuarantines = quarantineRecords.filter(q => q.quarantineStatus !== 'Cleared & Released');
+
+        // 2. Find active pesticide spraying withholding windows (PHI)
+        const activeSprayWarnings = sprayRecords.filter(s => s.safeDate >= todayStr);
+
+        // 3. Find active chemical/medical withdrawal days (milking or meat withdrawal)
+        const activeWithdrawals = vetRecords.filter(vet => {
+          if (!vet.withdrawalMilkDays && !vet.withdrawalMeatDays) return false;
+          const treatmentDate = new Date(vet.date);
+          const withdrawalDays = Math.max(vet.withdrawalMilkDays || 0, vet.withdrawalMeatDays || 0);
+          const safeDate = new Date(treatmentDate);
+          safeDate.setDate(safeDate.getDate() + withdrawalDays);
+          const safeStr = safeDate.toISOString().split('T')[0];
+          return safeStr >= todayStr;
+        });
+
+        // 4. Find abnormal soil pH records (pH < 4.8 or pH > 7.5)
+        const abnormalSoilFields = fields.filter(f => {
+          if (!f.soilPh) return false;
+          if (f.cropType.toLowerCase().includes('tea')) {
+            return f.soilPh < 4.8 || f.soilPh > 6.2;
+          }
+          return f.soilPh < 5.8 || f.soilPh > 7.5;
+        });
+
+        // Compute biosecurity rating score (starts at 100)
+        let bioScore = 100;
+        bioScore -= activeQuarantines.length * 15;
+        bioScore -= activeSprayWarnings.length * 15;
+        bioScore -= activeWithdrawals.length * 15;
+        bioScore -= abnormalSoilFields.length * 10;
+        bioScore = Math.max(10, Math.min(100, bioScore));
+
+        // Status description and color theme
+        let scoreColor = 'text-emerald-700 bg-emerald-50 border-emerald-100';
+        let scoreBgBar = 'bg-emerald-600';
+        let statusText = isSwahili ? "MURI KIJANI - Salama Kabisa" : "EXCELLENT - GlobalGAP Compliant";
+        let scoreTextDesc = isSwahili 
+          ? "Mazao yote ya mauzo ya nje na mifugo yako yanafuata kanuni kamili za afya. Hakuna marufuku ya kuvuna."
+          : "All active livestock and field blocks meet premium GlobalGAP and biosecurity criteria. Free to harvest.";
+
+        if (bioScore < 90 && bioScore >= 70) {
+          scoreColor = 'text-amber-700 bg-amber-50 border-amber-150';
+          scoreBgBar = 'bg-amber-500';
+          statusText = isSwahili ? "TAHADHARI - Kuna Vizuizi vya Muda" : "CAUTION - Active Withholding Protocols";
+          scoreTextDesc = isSwahili
+            ? "Kuna dawa zilizopuliziwa hivi karibuni au wanyama walio chini ya matibabu. Angalia tarehe salama za kuvuna."
+            : "Recent chemical application or animal treatments require temporary withholding. Verify pre-harvest dates.";
+        } else if (bioScore < 70) {
+          scoreColor = 'text-rose-700 bg-rose-50 border-rose-150';
+          scoreBgBar = 'bg-rose-600';
+          statusText = isSwahili ? "HATARI - Utii upo chini sana" : "CRITICAL - Active Containment or PHI Violation Risk";
+          scoreTextDesc = isSwahili
+            ? "Mlipuko au unyunyiziaji wa hivi karibuni unahatarisha uthibitisho vya GlobalGAP. Tenga mazao na maziwa!"
+            : "Active isolation containment or pending Pre-Harvest Intervals (PHI) violate export standards if neglected.";
+        }
+
+        // Aggregate list of warnings
+        const allAlarms = [
+          ...activeQuarantines.map(q => ({
+            id: `quar-${q.id}`,
+            type: 'Quarantine Isolation' as const,
+            title: isSwahili ? `Mnyama Katika Karantini: ${q.animalTagOrBatch}` : `Strict Animal Quarantine: Tag ${q.animalTagOrBatch}`,
+            desc: isSwahili 
+              ? `Hali: ${q.quarantineStatus}. Sababu: ${q.quarantineReason}. Dalili zilizorekodiwa: "${q.symptomsObserved}"`
+              : `Status: ${q.quarantineStatus}. Reason: ${q.quarantineReason}. Symptoms: "${q.symptomsObserved}"`,
+            sop: isSwahili
+              ? `MWONGOZO WA USALAMA (SOP):\n1. Weka mnyama mbali na wengine kwa mita 50.\n2. Milia ng'ombe huyu MWISHO ili kuzuia kuenea kwa bakteria.\n3. Osha mikono na vifaa kwa Iodini kabla ya kuhudumia wengine.`
+              : `BIOSECURITY SOP:\n1. Maintain strict 50-meter separation from healthy herds.\n2. ALWAYS milk this cow last to prevent cross-contamination.\n3. Disinfect hands and milking clusters with 0.5% chlorhexidine before handling other dairy stock.`,
+            badge: 'Strict Isolation',
+            color: 'rose'
+          })),
+          ...activeSprayWarnings.map(s => ({
+            id: `spray-${s.id}`,
+            type: 'Pre-Harvest Interval (PHI)' as const,
+            title: isSwahili ? `Kizuizi cha PHI: Block ${s.block}` : `Active Pesticide PHI: Block ${s.block}`,
+            desc: isSwahili
+              ? `Dawa iliyotumika: ${s.chemical}. Tarehe salama ya kuvuna: ${s.safeDate}. Usivune kabla ya tarehe hii!`
+              : `Chemical applied: ${s.chemical}. Safe harvest release date: ${s.safeDate}. Do NOT harvest crops from this block before release!`,
+            sop: isSwahili
+              ? `MWONGOZO WA USALAMA (SOP):\n1. Weka bango nyekundu la onyo mlangoni mwa Block ${s.block}.\n2. Wajulishe wafanyakazi wote kuzuia kuingia bila viatu na nguo za usalama.\n3. Rekodi tarehe ya mwisho ya kipindi cha kuzuia matumizi katika daftari la GlobalGAP.`
+              : `GlobalGAP SOP:\n1. Post highly visible RED hazard signage at the entry point of Block ${s.block}.\n2. Brief all plucking teams to suspend operations in this sector.\n3. Compile chemical batch traceability sheet and verify that pre-harvest interval (PHI) of ${s.phi} days has fully elapsed before loading shipping crates.`,
+            badge: `PHI: ${s.safeDate}`,
+            color: 'amber'
+          })),
+          ...activeWithdrawals.map(v => {
+            const expDate = new Date(v.date);
+            const withdrawalDays = Math.max(v.withdrawalMilkDays || 0, v.withdrawalMeatDays || 0);
+            expDate.setDate(expDate.getDate() + withdrawalDays);
+            const releaseDateStr = expDate.toISOString().split('T')[0];
+
+            return {
+              id: `vet-${v.id}`,
+              type: 'Drug Withdrawal' as const,
+              title: isSwahili ? `Kizuizi cha Dawa za Matibabu: ${v.cowId}` : `Chemical Drug Withdrawal: Cow Tag ${v.cowId}`,
+              desc: isSwahili
+                ? `Mnyama alipewa dawa ya ${v.drugAdministered || 'antibiotics'}. Lita za maziwa lazima zimwagwe na zisitumike hadi: ${releaseDateStr}.`
+                : `Animal administered with ${v.drugAdministered || 'antibiotics'}. Yields must be discarded/poured out. Withholding active until: ${releaseDateStr}.`,
+              sop: isSwahili
+                ? `MWONGOZO WA USALAMA (SOP):\n1. Mwaga maziwa yote ya ng'ombe huyu kwa udongo (usilishe ndama bila kuchemsha).\n2. Weka rangi maalum ya bluu kwenye kiwele cha ng'ombe huyu.\n3. Hakikisha tarehe ya mwisho ya kuzuia imepita kabla ya kuchanganya na maziwa ya jumla.`
+                : `VETERINARY DRUG WITHHOLDING SOP:\n1. Pour milk down the drain. Do NOT feed to calves as it triggers early drug-resistance.\n2. Mark the cow's tail and udder with high-visibility purple tail-tape.\n3. Run a Delvotest or snap-test to verify zero antibiotic residues before releasing milk to the bulk commercial tank.`,
+              badge: `Drug Release: ${releaseDateStr}`,
+              color: 'rose'
+            };
+          }),
+          ...abnormalSoilFields.map(f => ({
+            id: `soil-${f.id}`,
+            type: 'Soil pH Defect' as const,
+            title: isSwahili ? `Udongo Una Tindikali Kali: Block ${f.blockName}` : `Sub-optimal Soil pH: Block ${f.blockName}`,
+            desc: isSwahili
+              ? `Kipimo cha pH kipo: ${f.soilPh || 'N/A'}. Hii inazuia mmea wa ${f.cropType} kufyonza virutubisho vyema.`
+              : `Soil pH measured at ${f.soilPh || 'N/A'}. Crop '${f.cropType}' requires adjustments to avoid toxic aluminum uptake or nutrient lock.`,
+            sop: isSwahili
+              ? `MWONGOZO WA USALAMA (SOP):\n1. Weka chokaa ya kilimo (Agricultural Lime) ya Dolomite kilo 50 kwa kila ekari.\n2. Punguza matumizi ya mbolea zenye Naitrojeni ya Ammonium (kama urea) ambayo huongeza asidi.\n3. Pima udongo tena baada ya siku 60.`
+              : `SOIL REGENERATION SOP:\n1. Top-dress with Dolomitic Agricultural Lime (approx 500kg per acre based on pH deficiency).\n2. Suspend acidifying ammonium-based nitrogen feeds; prefer Nitrate-based fertilizers (Calcium Ammonium Nitrate).\n3. Re-test soil saturation index after 60 days of organic compost cover-cropping.`,
+            badge: `pH: ${f.soilPh}`,
+            color: 'amber'
+          }))
+        ];
+
+        return (
+          <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm text-left relative overflow-hidden transition-all hover:shadow-md">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full opacity-60 pointer-events-none"></div>
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-2xl border ${bioScore >= 90 ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 border-amber-500/20'}`}>
+                  {bioScore >= 90 ? <ShieldCheck size={22} className="animate-pulse" /> : <ShieldAlert size={22} className="animate-bounce" />}
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
+                    {isSwahili ? "Mizani ya Afya ya Shamba & Biosecurity" : "Real-time Biosecurity & Crop Safety Core"}
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    {isSwahili ? "Mfumo wa uthibitisho wa GlobalGAP na ufuatiliaji vya vizuizi vya kemikali" : "Automated GlobalGAP quarantine tracking & pesticide pre-harvest audits."}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Quality Health Index</span>
+                  <span className={`text-base font-mono font-black ${bioScore >= 90 ? 'text-emerald-700' : bioScore >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>
+                    {bioScore}%
+                  </span>
+                </div>
+                <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                  <div className={`h-full ${scoreBgBar}`} style={{ width: `${bioScore}%` }}></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Scorecard Pane */}
+              <div className="lg:col-span-4 space-y-4">
+                <div className={`p-5 rounded-2xl border ${scoreColor} flex flex-col justify-between h-full min-h-[140px]`}>
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest opacity-80 block mb-1">Estate Status</span>
+                    <h4 className="text-xs font-black uppercase leading-normal tracking-wide">{statusText}</h4>
+                    <p className="text-[11px] font-medium leading-relaxed mt-2 text-slate-600">
+                      {scoreTextDesc}
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100/40 text-[10px] font-mono font-black opacity-85 uppercase flex items-center gap-1.5 mt-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-current animate-pulse"></span>
+                    <span>{isSwahili ? "Imethibitishwa na AI" : "Verified by Autonomous Audits"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warnings and SOP Guidelines */}
+              <div className="lg:col-span-8 space-y-3">
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                  {isSwahili ? `Arifa za Kiusalama na PHI zilizogunduliwa (${allAlarms.length})` : `Detected Biosecurity Warnings & PHI Audits (${allAlarms.length})`}
+                </h4>
+
+                {allAlarms.length === 0 ? (
+                  <div className="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-2">
+                    <ShieldCheck size={28} className="text-emerald-600" />
+                    <p className="text-xs text-slate-700 font-extrabold uppercase">✓ No active biological warnings detected</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Your farm complies 100% with GlobalGAP food export standards and chemical limits today.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[20rem] overflow-y-auto pr-1">
+                    {allAlarms.map((alarm) => {
+                      const isExpanded = expandedSopId === alarm.id;
+                      return (
+                        <div key={alarm.id} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl transition-all">
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="flex gap-2.5 items-start">
+                              <span className="text-lg mt-0.5 shrink-0">
+                                {alarm.color === 'rose' ? '🛑' : '⚠️'}
+                              </span>
+                              <div>
+                                <span className="text-[9px] uppercase font-mono font-black text-slate-400 block tracking-wider leading-none">
+                                  {alarm.type}
+                                </span>
+                                <h5 className="text-xs font-black text-slate-800 uppercase mt-1 leading-normal">
+                                  {alarm.title}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 font-medium mt-1 leading-relaxed">
+                                  {alarm.desc}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col items-end shrink-0 gap-2">
+                              <span className={`text-[8px] font-mono font-black uppercase px-2 py-0.5 rounded ${
+                                alarm.color === 'rose' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                              }`}>
+                                {alarm.badge}
+                              </span>
+                              <button
+                                onClick={() => setExpandedSopId(isExpanded ? null : alarm.id)}
+                                type="button"
+                                className="text-[9px] font-black uppercase text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer bg-emerald-500/5 px-2 py-1 rounded hover:bg-emerald-500/10 transition-all border border-emerald-500/10"
+                              >
+                                <span>{isExpanded ? (isSwahili ? "Funga SOP" : "Hide SOP") : (isSwahili ? "Mwongozo SOP" : "Action SOP")}</span>
+                                <span className="font-mono text-[8px]">{isExpanded ? '▲' : '▼'}</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Collapsible Action Plan SOP Panel */}
+                          {isExpanded && (
+                            <div className="mt-3.5 pt-3.5 border-t border-slate-200/60 bg-emerald-950 text-emerald-100 p-4 rounded-xl font-mono text-[10px] leading-relaxed shadow-inner">
+                              <div className="flex items-center gap-1.5 text-emerald-400 font-black uppercase tracking-wider mb-2 border-b border-emerald-900/60 pb-1.5 text-[9px]">
+                                <ShieldCheck size={11} />
+                                <span>{isSwahili ? "Mkakati wa Kuondoa Hatari (SOP)" : "Remediation Standard Operating Procedure"}</span>
+                              </div>
+                              <pre className="whitespace-pre-wrap text-emerald-200 font-semibold font-mono font-bold">
+                                {alarm.sop}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

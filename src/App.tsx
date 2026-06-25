@@ -4656,6 +4656,11 @@ export default function App() {
               staffOffRecords={staffOffRecords}
               staffList={staffList}
               onNavigateToTab={(tabId) => setActiveTab(tabId)}
+              cows={cows}
+              quarantineRecords={quarantineRecords}
+              sprayRecords={sprayRecords}
+              fields={fields}
+              vetRecords={vetRecords}
             />
           )}
 
@@ -4755,6 +4760,8 @@ export default function App() {
               onDeleteTransaction={handleDeleteTransaction}
               onEditFinancialRecord={handleEditFinancialRecord}
               onTriggerSectionReport={handleTriggerSectionReport}
+              cows={cows}
+              fields={fields}
             />
           )}
 
@@ -4839,6 +4846,7 @@ export default function App() {
               cows={cows}
               financials={financials}
               setFinancials={setFinancials}
+              fields={fields}
               onTriggerSectionReport={handleTriggerSectionReport}
               initialTab={
                 activeTab === 'diagnostics_sub' ? 'diagnostics' :

@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import { 
+  AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
 import { 
   BookOpen, 
   Sprout, 
@@ -24,6 +29,8 @@ import {
   Lightbulb,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Info,
   Database,
   Calendar,
@@ -32,14 +39,15 @@ import {
   Gauge,
   Clipboard,
   Trash2,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
 import { InventoryItem } from '../types';
 
 interface FarmerAcademyProps {
   inventory?: InventoryItem[];
   setInventory?: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
-  initialTab?: 'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines';
+  initialTab?: 'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines' | 'forecasting';
   sprayRecords?: any[];
   setSprayRecords?: React.Dispatch<React.SetStateAction<any[]>>;
   vetRecords?: any[];
@@ -47,6 +55,7 @@ interface FarmerAcademyProps {
   cows?: any[];
   financials?: any[];
   setFinancials?: React.Dispatch<React.SetStateAction<any[]>>;
+  fields?: any[];
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
@@ -61,10 +70,12 @@ export default function FarmerAcademy({
   cows,
   financials,
   setFinancials,
+  fields,
   onTriggerSectionReport
 }: FarmerAcademyProps) {
+  const fieldRecords = fields;
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines'>('science');
+  const [activeTab, setActiveTab] = useState<'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines' | 'forecasting'>('science');
 
   React.useEffect(() => {
     if (initialTab) {
@@ -101,6 +112,15 @@ export default function FarmerAcademy({
   const [currentMilk, setCurrentMilk] = useState<number>(15);
   const [currentProtein, setCurrentProtein] = useState<number>(14);
 
+  // New upgraded state variables for the 5 Smart Tools
+  const [selectedCowId, setSelectedCowId] = useState<string>('');
+  const [tool1Message, setTool1Message] = useState<string | null>(null);
+  const [tool2Message, setTool2Message] = useState<string | null>(null);
+  const [tool3ActiveIngredients, setTool3ActiveIngredients] = useState<string[]>([]);
+  const [selectedFieldId, setSelectedFieldId] = useState<string>('');
+  const [tool4Message, setTool4Message] = useState<{ text: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [tool5Message, setTool5Message] = useState<string | null>(null);
+
   // Fertilizer calculator states
   const [calcCrop, setCalcCrop] = useState<string>('maize');
   const [calcAcreage, setCalcAcreage] = useState<number>(1);
@@ -136,6 +156,204 @@ export default function FarmerAcademy({
   } | null>(null);
 
   // Pipeline integrations & diagnostics history states (Improvements 1, 2, 3, 4)
+  const [forecastBreed, setForecastBreed] = useState<'Friesian' | 'Ayrshire' | 'Jersey' | 'Guernsey'>('Friesian');
+  const [forecastWeight, setForecastWeight] = useState<number>(550);
+  const [forecastFeedQuality, setForecastFeedQuality] = useState<'poor' | 'average' | 'premium'>('average');
+  const [forecastBcs, setForecastBcs] = useState<number>(3.0);
+
+  const forecastingCurveData = React.useMemo(() => {
+    const fatPct = { Friesian: 3.6, Ayrshire: 4.0, Jersey: 5.2, Guernsey: 4.5 }[forecastBreed];
+    const basePeak = { Friesian: 34, Ayrshire: 26, Jersey: 21, Guernsey: 24 }[forecastBreed];
+    
+    const feedMod = forecastFeedQuality === 'poor' ? 0.75 : (forecastFeedQuality === 'premium' ? 1.15 : 1.0);
+    let bcsMod = 1.0;
+    if (forecastBcs < 2.5) bcsMod = 0.82;
+    else if (forecastBcs > 4.0) bcsMod = 0.88;
+
+    const adjustedPeak = basePeak * feedMod * bcsMod;
+    
+    const peakWeek = 6;
+    const b = 0.18;
+    const declineMod = forecastFeedQuality === 'poor' ? 1.35 : (forecastFeedQuality === 'premium' ? 0.75 : 1.0);
+
+    const curve = [];
+    for (let w = 1; w <= 44; w++) {
+      let yieldVal = 0;
+      if (w <= peakWeek) {
+        yieldVal = adjustedPeak * Math.pow(w / peakWeek, b) * Math.exp(-b * (w - peakWeek) / peakWeek);
+      } else {
+        yieldVal = adjustedPeak * Math.pow(w / peakWeek, b) * Math.exp(-b * (w - peakWeek) / peakWeek * declineMod);
+      }
+
+      const fcm = yieldVal * (0.4 + 0.15 * fatPct);
+      const dmi = 0.0185 * forecastWeight + 0.305 * fcm;
+
+      curve.push({
+        week: `Wk ${w}`,
+        weekNum: w,
+        milkYield: Number(yieldVal.toFixed(1)),
+        feedIntake: Number(dmi.toFixed(1))
+      });
+    }
+
+    const totalMilk = curve.reduce((sum, item) => sum + item.milkYield, 0) * 7;
+    const totalFeed = curve.reduce((sum, item) => sum + item.feedIntake, 0) * 7;
+
+    return {
+      curve,
+      totalMilk,
+      totalFeed,
+      adjustedPeak: Number(adjustedPeak.toFixed(1))
+    };
+  }, [forecastBreed, forecastWeight, forecastFeedQuality, forecastBcs]);
+
+  // Pest and Disease Simulator States
+  const [simActiveCaseIndex, setSimActiveCaseIndex] = useState<number | null>(null);
+  const [simScore, setSimScore] = useState<number>(100);
+  const [simStreak, setSimStreak] = useState<number>(0);
+  const [simInspectedClues, setSimInspectedClues] = useState<string[]>([]);
+  const [simChosenDiagnosis, setSimChosenDiagnosis] = useState<string | null>(null);
+  const [simChosenTreatment, setSimChosenTreatment] = useState<string | null>(null);
+  const [simFeedback, setSimFeedback] = useState<{ success: boolean; text: string } | null>(null);
+
+  const simCases = React.useMemo(() => [
+    {
+      id: 1,
+      category: 'livestock',
+      specimen: 'Ayrshire Purebred (Milking Cow)',
+      symptoms: 'High somatic cell count in Bulk Tank Milk test. During milking, the cow kicks when the back quarter is touched, and she looks distressed. The milk from that quarter has tiny white stringy clots.',
+      inspectOptions: [
+        { key: 'udder', label: 'Perform Udder Palpation', clue: 'The rear-left quarter of the udder is extremely swollen, hot to the touch, and hard (fibrous).' },
+        { key: 'cmt', label: 'California Mastitis Test (CMT)', clue: 'The CMT paddle shows deep purple gelation in the rear-left cup, confirming a massive inflammatory reaction.' },
+        { key: 'temp', label: 'Measure Body Temperature', clue: 'Rectal temperature is 39.6°C, indicating systemic infection fever.' }
+      ],
+      diagnoses: [
+        'Subclinical Mastitis',
+        'Acute Streptococcal Mastitis',
+        'Milk Fever (Hypocalcemia)',
+        'Ketosis (Acetonemia)'
+      ],
+      correctDiagnosis: 'Acute Streptococcal Mastitis',
+      treatments: [
+        'Intramammary antibiotic infusion of Amoxicillin + dry cow therapy',
+        'Oral Calcium Borogluconate drench',
+        'Intravenous Dextrose 50% solution',
+        'Isolate cow and apply warm salt water rubs only'
+      ],
+      correctTreatment: 'Intramammary antibiotic infusion of Amoxicillin + dry cow therapy',
+      feedbackSuccess: 'Outstanding! Acute Streptococcal Mastitis requires immediate targeted intramammary antibiotic infusions to clear the udder infection. Stripping out the bad quarter completely and discarding the milk prevents somatic cell count spike in public sales.',
+      feedbackFail: 'Incorrect. While somatic cell count indicates mastitis, treating it with warm rubs or metabolic drenches is insufficient for acute bacterial infections of the mammary tissue. This can lead to permanent quarter blindness.'
+    },
+    {
+      id: 2,
+      category: 'crops',
+      specimen: 'Tomato Block Alpha (Drip Irrigation)',
+      symptoms: 'Older leaves are turning dull yellow, mottled, and speckled. Under close look, there are tiny fine silk-like threads or webs spinning across the stems and leaf junctions.',
+      inspectOptions: [
+        { key: 'loupe', label: 'Examine leaf underside with loupe', clue: 'Loupe inspection reveals hundreds of microscopic, 8-legged yellowish-green mites crawling and feeding on leaf sap.' },
+        { key: 'rh', label: 'Check environmental humidity', clue: 'Relative Humidity is extremely low (35%) and temperature is 32°C. Low moisture accelerates mite hatch cycles.' },
+        { key: 'soil', label: 'Soil moisture probe', clue: 'Soil is dry on the top 3 inches; plant is undergoing moisture stress.' }
+      ],
+      diagnoses: [
+        'Tomato Yellow Leaf Curl Virus (TYLCV)',
+        'Two-Spotted Spider Mites Infestation',
+        'Late Blight fungal damage',
+        'Nitrogen nutrient deficiency'
+      ],
+      correctDiagnosis: 'Two-Spotted Spider Mites Infestation',
+      treatments: [
+        'Foliar spray of Abamectin miticide + organic copper soap',
+        'Apply high nitrogen NPK 23:10:10 fertilizer',
+        'Copper Oxychloride spray + pruning',
+        'Systemic Imidacloprid drench'
+      ],
+      correctTreatment: 'Foliar spray of Abamectin miticide + organic copper soap',
+      feedbackSuccess: 'Perfect diagnosis! Two-spotted spider mites are sap-sucking arachnids that thrive in hot, dry conditions. Applying Abamectin (a specialized miticide) combined with raising humidity breaks their life cycle effectively.',
+      feedbackFail: 'Incorrect. Spider mites are arachnids, meaning standard systemic insecticides (like Imidacloprid) or fertilizers are ineffective and may actually trigger a population surge by killing natural insect predators.'
+    },
+    {
+      id: 3,
+      category: 'crops',
+      specimen: 'Maize Block Beta (Rainfed Crop)',
+      symptoms: 'Ragged, deep, irregular holes in the maize whorls. The center of the leaf whorl contains dark green caterpillars and is filled with moist sawdust-like brown fecal matter (frass).',
+      inspectOptions: [
+        { key: 'head', label: 'Inspect caterpillar head capsule', clue: 'Close inspection of the caterpillar head shows a highly prominent, white inverted Y-shaped mark.' },
+        { key: 'window', label: 'Check leaf margins', clue: 'The margins show extensive windowpane feeding where early-stage larvae ate everything except the transparent upper epidermis.' },
+        { key: 'count', label: 'Perform larval count per whorl', clue: 'Averages 3 active larvae per plant, which is well above the economic threshold of 1 larva/plant.' }
+      ],
+      diagnoses: [
+        'Maize Stalk Borer',
+        'Fall Armyworm (Spodoptera frugiperda)',
+        'African Migratory Locusts',
+        'Cutworm infestation'
+      ],
+      correctDiagnosis: 'Fall Armyworm (Spodoptera frugiperda)',
+      treatments: [
+        'Apply Emamectin Benzoate or Spinetoram directed inside the whorls at dusk',
+        'Broadcast NPK fertilizer directly onto leaves',
+        'Spray systemic glyphosate herbicide',
+        'Release Bacillus subtilis beneficial fungi to soil'
+      ],
+      correctTreatment: 'Apply Emamectin Benzoate or Spinetoram directed inside the whorls at dusk',
+      feedbackSuccess: 'Superb! Fall Armyworm larvae reside deep inside the whorl. Spraying Emamectin Benzoate at dusk (when caterpillars feed actively) directly down into the whorls ensures contact. General sprays that miss the whorl will fail due to canopy protection.',
+      feedbackFail: 'Incorrect. Standard broadcast fertilizer or soil fungi will not control Fall Armyworm. General surface sprays fail because the larvae reside deep inside the protective whorl cavity, feeding on the growing tip.'
+    },
+    {
+      id: 4,
+      category: 'livestock',
+      specimen: 'Jersey Purebred (Freshly Calved)',
+      symptoms: 'Cow calved 18 hours ago. She is unable to stand, weak in her hind legs, and is resting in sternal recumbency with her neck kinked in an S shape, tucking her head into her flank. Her muzzle is dry, and she looks drowsy.',
+      inspectOptions: [
+        { key: 'temp', label: 'Check body temperature', clue: 'Rectal temperature is subnormal (37.1°C) and her ears feel icy cold.' },
+        { key: 'heart', label: 'Measure heart rate & check eyes', clue: 'Heart rate is elevated but weak (92 bpm) and pupils are dilated and unresponsive to light.' },
+        { key: 'urine', label: 'Urinalysis for ketones', clue: 'Urinalysis is negative for ketones.' }
+      ],
+      diagnoses: [
+        'Ketosis (Acetonemia)',
+        'Hypocalcemia (Milk Fever)',
+        'Downer Cow Syndrome (Pelvic Nerve Injury)',
+        'Toxic Mastitis'
+      ],
+      correctDiagnosis: 'Hypocalcemia (Milk Fever)',
+      treatments: [
+        'Slow intravenous administration of Calcium Borogluconate 23% solution',
+        'Intramuscular Penicillin injection',
+        'Oral drenching with Propylene Glycol',
+        'Force cow to stand using hip clamps'
+      ],
+      correctTreatment: 'Slow intravenous administration of Calcium Borogluconate 23% solution',
+      feedbackSuccess: 'Excellent! Milk Fever is a metabolic calcium deficiency caused by sudden milk synthesis drawing calcium from blood faster than bone mobilization. Injecting Calcium Borogluconate IV slowly (monitoring heart rate, as calcium affects myocardium) saves the cow within minutes.',
+      feedbackFail: 'Incorrect. Intramuscular antibiotics or propylene glycol have no effect on subnormal calcium levels. Forcing the cow to stand can cause severe muscle tearing or skeletal fractures.'
+    },
+    {
+      id: 5,
+      category: 'crops',
+      specimen: 'Hass Avocado Block (Clay Loam Soil)',
+      symptoms: 'Tree canopy is pale green and leaves are small, wilted, and falling off, leading to branch dieback. The tree is wilting despite recent heavy rainfall.',
+      inspectOptions: [
+        { key: 'drainage', label: 'Inspect soil drainage base', clue: 'Soil around the base is heavy, waterlogged clay with highly compacted layers.' },
+        { key: 'roots', label: 'Examine feeder roots', clue: 'Feeder roots are dark brown, mushy, rotten, and snap easily, instead of being creamy white and fibrous.' },
+        { key: 'bark', label: 'Bark canker check', clue: 'No active bleeding or cankers on the main trunk above ground.' }
+      ],
+      diagnoses: [
+        'Avocado Thrips damage',
+        'Phytophthora Cinnamomi (Root Rot)',
+        'Fusarium Wilt',
+        'Zinc micro-nutrient deficiency'
+      ],
+      correctDiagnosis: 'Phytophthora Cinnamomi (Root Rot)',
+      treatments: [
+        'Improve soil drainage + inject tree with Potassium Phosphonate + Trichoderma drench',
+        'Spray Copper Oxychloride on foliage',
+        'Apply heavy doses of Urea 46% nitrogen fertilizer',
+        'Heavy systemic insecticide sprays'
+      ],
+      correctTreatment: 'Improve soil drainage + inject tree with Potassium Phosphonate + Trichoderma drench',
+      feedbackSuccess: 'Outstanding! Phytophthora root rot is caused by a water mold that thrives in heavy compacted soils. Injecting Potassium Phosphonate systemically strengthens tree immune defenses, while Trichoderma drench repopulates soil with beneficial fungi.',
+      feedbackFail: 'Incorrect. Copper foliar sprays cannot reach or heal rotted root systems. Applying high-nitrogen Urea in anaerobic soil will accelerate root decay by increasing salt toxicity.'
+    }
+  ], []);
+
   const [remediationBlock, setRemediationBlock] = useState<string>('Block Alpha - Tomatoes');
   const [remediationCost, setRemediationCost] = useState<number>(3500);
   const [selectedBovineId, setSelectedBovineId] = useState<string>('COW-01');
@@ -149,6 +367,12 @@ export default function FarmerAcademy({
     conditionName: string;
     likelihood: string;
     isOffline: boolean;
+    pathogen?: string;
+    description?: string;
+    treatment?: string;
+    quarantine?: string;
+    prevention?: string;
+    deepResearch?: string;
   }>>(() => {
     try {
       const saved = localStorage.getItem('jr_farm_diagnostic_history');
@@ -168,6 +392,60 @@ export default function FarmerAcademy({
     }
   });
 
+  const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
+
+  const getFallbackDeepResearch = (target: string, conditionName: string) => {
+    const normCond = (conditionName || '').toLowerCase();
+    const tgt = (target || '').toLowerCase();
+
+    if (tgt === 'cow' || tgt === 'cattle') {
+      if (normCond.includes('mastitis')) {
+        return "Epidemiological research across East African smallholder dairies highlights Streptococcus and Staphylococcus strains as major contributors to subclinical losses. Cold damp resting floors, lack of post-milking teat disinfectants, and improper strip-testing are key structural catalysts leading to chronic udder tissue inflammation.";
+      }
+      if (normCond.includes('east coast') || normCond.includes('fever') || normCond.includes('tick')) {
+        return "East Coast Fever (ECF) remains the leading cause of exotic and crossbred cattle mortality in sub-Saharan Africa. The brown ear tick (Rhipicephalus appendiculatus) acts as the primary vector for Theileria parva. Clinical research shows that early therapeutic intervention with buparvaquone within 48 hours of high-fever detection increases survival rates by over 90%.";
+      }
+      return "Agronomic & metabolic research reveals that intensive zero-grazing feeding regimes lacking physical structure or buffers often trigger acute rumen fermentation. Managing forage-to-concentrate ratios is key to stabilizing rumen microbes and preventing fatal bloat episodes.";
+    }
+
+    if (tgt === 'tomato') {
+      if (normCond.includes('curl') || normCond.includes('tylcv')) {
+        return "Tomato Yellow Leaf Curl Virus (TYLCV) is a highly destructive geminivirus vectored exclusively by the whitefly (Bemisia tabaci) complex. Research indicates that modern climate shifts and prolonged dry spells have expanded whitefly habitats, raising regional infestation pressures. Complete eradication of weed hosts like Solanum incanum from farm margins is vital.";
+      }
+      if (normCond.includes('blight')) {
+        return "Phytophthora infestans is an extremely aggressive oomycete pathogen capable of wiping out solanaceous fields in under 10 days during high-humidity periods. Studies show that spore proliferation is optimal between 15°C and 22°C with free leaf moisture. Effective control requires rotating chemical modes of action and implementing wide spacing.";
+      }
+      return "Solanaceous crop agronomy warns against continuous monocropping. Soil-borne bacterial wilt (Ralstonia solanacearum) and root-knot nematodes can build up in the soil matrix, requiring crop rotation with non-host crops like Rhodes grass or brassicas to break the cycle.";
+    }
+
+    if (tgt === 'maize') {
+      return "Maize Lethal Necrosis (MLN) and Streak Virus are devastating regional viral complexes transmitted by thrips, aphids, and leafhoppers. Research confirms that planting resistant germplasm, maintaining strict weed-free margins, and synchronizing planting dates across blocks are the most effective community-wide preventative strategies.";
+    }
+
+    if (tgt === 'chicken' || tgt === 'poultry') {
+      return "Epidemiological surveillance of poultry in East Africa indicates that Newcastle Disease and Gumboro (IBD) cause up to 80% mortality in unvaccinated flocks. The virus spreads rapidly via aerosolized droplets and contaminated feed/water. Maintaining strict biosecurity barriers at coop entries and adhering to a strict vaccination timetable are paramount.";
+    }
+
+    return "Agronomic and veterinary diagnostic studies confirm that structural biosecurity, sanitary handling, and early pathogen strain identification are the cornerstones of farm productivity. Proper logging of diagnostic cases enables historical analytics, assisting local extension officers in coordinating responses to regional outbreaks.";
+  };
+
+  const getFullHistoryItem = (item: any) => {
+    if (item.treatment && item.deepResearch) {
+      return item;
+    }
+    const fallback = selectClientFallbackDiagnosis(item.specimen, item.symptom);
+    const deepRes = getFallbackDeepResearch(item.specimen, item.conditionName);
+    return {
+      ...item,
+      pathogen: item.pathogen || fallback.pathogen || "General Pathogen / Environmental stressor",
+      description: item.description || fallback.description || "General physiological or biological disorder triggered by local conditions.",
+      treatment: item.treatment || fallback.treatment || "Isolate specimen and apply recommended systemic therapy.",
+      quarantine: item.quarantine || fallback.quarantine || "Withhold sales/use of products during active clinical recovery.",
+      prevention: item.prevention || fallback.prevention || "Implement continuous sanitation, biosecurity controls, and vector management.",
+      deepResearch: item.deepResearch || deepRes
+    };
+  };
+
   // SMART STOCK AUTO-DEDUCT STATES
   const [selectedAutoSop, setSelectedAutoSop] = useState<string>('sop-1');
   const [actionLogs, setActionLogs] = useState<Array<{ id: string; timestamp: string; taskTitle: string; deductionText: string; success: boolean }>>(() => {
@@ -181,6 +459,497 @@ export default function FarmerAcademy({
   const [phiChemical, setPhiChemical] = useState<string>('copper');
   const [phiDaysElapsed, setPhiDaysElapsed] = useState<number>(3);
   const [gestDaysInseminated, setGestDaysInseminated] = useState<number>(150);
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentWidth = pageWidth - (margin * 2);
+    
+    let pageNumber = 1;
+    
+    const drawHeader = (pageNum: number) => {
+      // Dark slate background brand bar
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.rect(margin, 12, contentWidth, 24, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('CLINICAL DIAGNOSTICS & CASE ARCHIVE REPORT', margin + 6, 21);
+      
+      // Subtitle
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(203, 213, 225); // slate-300
+      const generatedDate = new Date().toLocaleString('en-US', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      doc.text(`Generated: ${generatedDate} | Farmer's Academy Portal | Page ${pageNum}`, margin + 6, 28);
+    };
+    
+    const drawFooter = (pageNum: number) => {
+      // Simple hairline divider at footer
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 14, margin + contentWidth, pageHeight - 14);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184); // slate-400
+      doc.text("Farmer's Academy Expert Diagnostics & Vet SOP Center", margin, pageHeight - 9);
+      doc.text(`Page ${pageNum}`, pageWidth - margin - 15, pageHeight - 9);
+    };
+    
+    drawHeader(pageNumber);
+    drawFooter(pageNumber);
+    
+    let y = 43;
+    
+    // Aggregated Metrics Banner
+    doc.setFillColor(248, 250, 252); // slate-50
+    doc.rect(margin, y, contentWidth, 26, 'F');
+    doc.setDrawColor(226, 232, 240); // slate-200
+    doc.setLineWidth(0.5);
+    doc.rect(margin, y, contentWidth, 26, 'S');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.text('DIAGNOSTIC CASE SYNCHRONIZATION STATS', margin + 6, y + 6);
+    
+    const totalCases = diagnosticHistory.length;
+    
+    // Specimen type breakdown
+    const cowCount = diagnosticHistory.filter(h => h.specimen === 'cow').length;
+    const cropCount = diagnosticHistory.filter(h => ['tomato', 'maize', 'avocado', 'banana'].includes(h.specimen)).length;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text('Total Cases Saved', margin + 6, y + 13);
+    doc.text('Animal vs Crop Cases', margin + 75, y + 13);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 41, 59); // slate-800
+    doc.text(`${totalCases} cases`, margin + 6, y + 19.5);
+    doc.setTextColor(29, 78, 216); // blue-700
+    doc.text(`${cowCount} Anm / ${cropCount} Crp`, margin + 75, y + 19.5);
+    
+    y += 35;
+    
+    // Details header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text('CHRONOLOGICAL VET & AGRONOMIC DIAGNOSTIC CASE DOSSIERS', margin, y);
+    
+    y += 7;
+    
+    // Sort items newest first
+    const sortedHistory = [...diagnosticHistory].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    
+    sortedHistory.forEach((rawItem, index) => {
+      const item = getFullHistoryItem(rawItem);
+      
+      // Calculate dynamic text wrapping
+      const textWidth = contentWidth - 16; // internal padding inside box
+      const wrappedSymptom = doc.splitTextToSize(`"${item.symptom}"`, textWidth);
+      const wrappedResearch = doc.splitTextToSize(item.deepResearch || '', textWidth);
+      const wrappedTreatment = doc.splitTextToSize(item.treatment || '', textWidth - 40);
+      const wrappedQuarantine = doc.splitTextToSize(item.quarantine || '', textWidth - 40);
+      const wrappedPrevention = doc.splitTextToSize(item.prevention || '', textWidth - 40);
+      
+      // Compute total dynamic height of this case report block
+      const symptomLinesHeight = wrappedSymptom.length * 4;
+      const researchLinesHeight = wrappedResearch.length * 4;
+      const treatmentLinesHeight = wrappedTreatment.length * 3.8;
+      const quarantineLinesHeight = wrappedQuarantine.length * 3.8;
+      const preventionLinesHeight = wrappedPrevention.length * 3.8;
+      
+      const detailsSectionHeight = treatmentLinesHeight + quarantineLinesHeight + preventionLinesHeight + 20;
+      const blockHeight = 16 + symptomLinesHeight + researchLinesHeight + detailsSectionHeight + 8;
+      
+      // Dynamic page break detection
+      if (y + blockHeight > pageHeight - 20) {
+        doc.addPage();
+        pageNumber++;
+        drawHeader(pageNumber);
+        drawFooter(pageNumber);
+        y = 43;
+      }
+      
+      // Draw outer card box
+      doc.setFillColor(250, 251, 252); // extremely soft gray
+      doc.rect(margin, y, contentWidth, blockHeight - 4, 'F');
+      
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.4);
+      doc.rect(margin, y, contentWidth, blockHeight - 4, 'S');
+      
+      // Left border accent line depending on specimen
+      const isCrop = ['tomato', 'maize', 'avocado', 'banana'].includes(item.specimen);
+      if (isCrop) {
+        doc.setFillColor(16, 185, 129); // emerald green
+      } else {
+        doc.setFillColor(29, 78, 216); // dark blue
+      }
+      doc.rect(margin, y, 4, blockHeight - 4, 'F');
+      
+      let cursorY = y + 6;
+      
+      // Header: Date & Case ID & Classification Name
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42); // slate-900
+      const specText = item.specimen ? item.specimen.toUpperCase() : 'GENERIC';
+      doc.text(`${item.timestamp} | ${specText} CASE | CLASSIFICATION: ${item.conditionName.toUpperCase()}`, margin + 8, cursorY);
+      
+      cursorY += 6;
+      
+      // Pathogen & Likelihood line
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Pathogen Profile: ', margin + 8, cursorY);
+      doc.setFont('helvetica', 'bold');
+      doc.text(item.pathogen || 'Unknown Pathogen Strain', margin + 30, cursorY);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.text('Likelihood: ', margin + 110, cursorY);
+      doc.setFont('helvetica', 'bold');
+      doc.text(item.likelihood || 'High', margin + 125, cursorY);
+      
+      cursorY += 6;
+      
+      // Reported Symptoms block
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(30, 41, 59);
+      doc.text('Symptom Footprint: ', margin + 8, cursorY);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 116, 139);
+      wrappedSymptom.forEach((line: string) => {
+        doc.text(line, margin + 35, cursorY);
+        cursorY += 4;
+      });
+      
+      cursorY += 2;
+      
+      // Deep Research section
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(29, 78, 216); // blue-700
+      doc.text('EPIDEMIOLOGICAL ANALYSIS & DEEP RESEARCH CONTEXT:', margin + 8, cursorY);
+      cursorY += 4.5;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(71, 85, 105); // slate-600
+      wrappedResearch.forEach((line: string) => {
+        doc.text(line, margin + 8, cursorY);
+        cursorY += 4;
+      });
+      
+      cursorY += 3;
+      
+      // Clinical Solution and SOP Protocols
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(16, 185, 129); // emerald-600
+      doc.text('CLINICAL RECOVERY & BIOSECURITY PROTOCOLS:', margin + 8, cursorY);
+      cursorY += 5;
+      
+      // Therapy sub-block
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(51, 65, 85);
+      doc.text('Active Therapy & Medication:', margin + 8, cursorY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      wrappedTreatment.forEach((line: string) => {
+        doc.text(line, margin + 48, cursorY);
+        cursorY += 3.8;
+      });
+      
+      cursorY += 1.5;
+      
+      // Quarantine sub-block
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(180, 83, 9); // amber-700
+      doc.text('Quarantine & Isolation SOP:', margin + 8, cursorY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      wrappedQuarantine.forEach((line: string) => {
+        doc.text(line, margin + 48, cursorY);
+        cursorY += 3.8;
+      });
+      
+      cursorY += 1.5;
+      
+      // Prevention sub-block
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(71, 85, 105);
+      doc.text('Long-term Biosecurity SOP:', margin + 8, cursorY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      wrappedPrevention.forEach((line: string) => {
+        doc.text(line, margin + 48, cursorY);
+        cursorY += 3.8;
+      });
+      
+      y += blockHeight + 2; // Advance Y to next block position
+    });
+    
+    const fileDateStr = new Date().toISOString().split('T')[0];
+    doc.save(`clinical_diagnostics_archive_${fileDateStr}.pdf`);
+  };
+
+  // --- HANDLERS FOR THE FIVE UPGRADED SMART TOOLS ---
+  
+  // Tool 1 Handler: Record Artificial Insemination Event
+  const handleRecordInsemination = (targetCowId: string, scheduledTimeText: string) => {
+    const cowId = targetCowId || 'COW-01';
+    const newRecord = {
+      id: 'vet-' + Date.now(),
+      cowId: cowId,
+      animalCategory: 'Cow' as const,
+      date: new Date().toISOString().substring(0, 10),
+      type: 'Treatment' as const,
+      treatment: `Scheduled Reproductive AI (AM-PM Window: ${scheduledTimeText})`,
+      cost: 3000,
+      staff: 'Sovereign AI Operator',
+      notes: `Heat observed at ${heatTime} (${heatPeriod === 'morning' ? 'AM' : 'PM'}). Insemination scheduled via Reproductive Window Planner.`,
+      diagnosis: 'Oestrus Heat Management (AM-PM Rule)',
+      prognosis: 'Good' as const,
+      retreatmentScheduled: false
+    };
+
+    if (setVetRecords) {
+      setVetRecords(prev => [newRecord, ...prev]);
+    } else {
+      try {
+        const saved = localStorage.getItem('jr_farm_vet_records');
+        const existing = saved ? JSON.parse(saved) : [];
+        localStorage.setItem('jr_farm_vet_records', JSON.stringify([newRecord, ...existing]));
+      } catch (e) {
+        console.error("Local vet logging failed:", e);
+      }
+    }
+
+    setTool1Message(`✓ Recorded AI Insemination task successfully for Cow ${cowId}! Check the Veterinary log or Dairy & AI tab.`);
+    setTimeout(() => setTool1Message(null), 5000);
+  };
+
+  // Tool 2 Handler: Add Slurry Yield to Inventory and log offset
+  const handleLogBiogasSlurry = () => {
+    const slurryLiters = Math.round(biogasVolume * 45);
+    const manureItemName = 'Premium Bio-slurry Liquid Nitrogen';
+    
+    // 1. Update Inventory
+    if (inventory && setInventory) {
+      const existingItem = inventory.find(i => i.name.toLowerCase() === manureItemName.toLowerCase());
+      if (existingItem) {
+        const updated = inventory.map(i => i.id === existingItem.id ? { ...i, quantity: i.quantity + slurryLiters } : i);
+        setInventory(updated);
+      } else {
+        const newItem = {
+          id: 'inv-' + Date.now(),
+          name: manureItemName,
+          category: 'Fertilizer' as const,
+          quantity: slurryLiters,
+          unit: 'liters',
+          minStock: 200,
+          location: 'Bio-digester Pit B',
+          dateReceived: new Date().toISOString().substring(0, 10)
+        };
+        setInventory([newItem, ...inventory]);
+      }
+    } else {
+      // Local inventory fallback
+      const saved = localStorage.getItem('jr_farm_inventory');
+      let currentInv = saved ? JSON.parse(saved) : [];
+      const existingItem = currentInv.find((i: any) => i.name.toLowerCase() === manureItemName.toLowerCase());
+      if (existingItem) {
+        currentInv = currentInv.map((i: any) => i.id === existingItem.id ? { ...i, quantity: i.quantity + slurryLiters } : i);
+      } else {
+        const newItem = {
+          id: 'inv-' + Date.now(),
+          name: manureItemName,
+          category: 'Fertilizer',
+          quantity: slurryLiters,
+          unit: 'liters',
+          minStock: 200,
+          location: 'Bio-digester Pit B',
+          dateReceived: new Date().toISOString().substring(0, 10)
+        };
+        currentInv = [newItem, ...currentInv];
+      }
+      localStorage.setItem('jr_farm_inventory', JSON.stringify(currentInv));
+      if (setInventory) {
+        setInventory(currentInv);
+      }
+    }
+
+    // 2. Add green-energy offset to financials
+    const energySavingsKsh = Math.round(biogasVolume * 300); // 300 KES daily LP Gas savings per m3
+    const offsetRecord = {
+      id: 'fin-' + Date.now(),
+      type: 'income' as const,
+      amount: energySavingsKsh,
+      category: 'Other Revenue (Energy Offset)',
+      description: `Daily Biogas Methane Fuel Offset (${biogasVolume} m³)`,
+      date: new Date().toISOString().substring(0, 10)
+    };
+
+    if (setFinancials) {
+      setFinancials(prev => [offsetRecord, ...prev]);
+    } else {
+      try {
+        const saved = localStorage.getItem('jr_farm_financials');
+        const existing = saved ? JSON.parse(saved) : [];
+        localStorage.setItem('jr_farm_financials', JSON.stringify([offsetRecord, ...existing]));
+      } catch (e) {
+        console.error("Local financial logging failed:", e);
+      }
+    }
+
+    setTool2Message(`✓ Successfully added ${slurryLiters}L bio-slurry to store inventory & logged +KES ${energySavingsKsh} LP Gas offset to Operating Income!`);
+    setTimeout(() => setTool2Message(null), 7000);
+  };
+
+  // Tool 4 Handler: Verify Store Inventory and Deduct Stock
+  const handleVerifyAndDeductFertilizer = (cropKey: string, acreageCount: number, fertilizerDbData: any) => {
+    if (!fertilizerDbData) return;
+    
+    const isSsp = fertilizerDbData.planting.toLowerCase().includes('ssp');
+    const isDap = fertilizerDbData.planting.toLowerCase().includes('dap');
+    const isNpk = fertilizerDbData.planting.toLowerCase().includes('npk');
+    const isCan = fertilizerDbData.topDressing.toLowerCase().includes('can');
+
+    const plantingFertilizerName = isSsp ? 'SSP Fertilizer' : isNpk ? 'NPK 17:17:17' : 'DAP Fertilizer';
+    const topDressingFertilizerName = isCan ? 'CAN Topdressing' : 'NPK 17:17:17';
+
+    // Parse estimated bags required
+    let plantingBagsNeeded = 1;
+    let topDressingBagsNeeded = 1;
+
+    try {
+      if (fertilizerDbData.planting.includes('—')) {
+        const parts = fertilizerDbData.planting.split('—');
+        const bagsPerAcreStr = parts[1].replace(/[^0-9.]/g, '');
+        plantingBagsNeeded = Math.ceil(parseFloat(bagsPerAcreStr) * acreageCount);
+      }
+      if (fertilizerDbData.topDressing.includes('—')) {
+        const parts = fertilizerDbData.topDressing.split('—');
+        const bagsPerAcreStr = parts[1].replace(/[^0-9.]/g, '');
+        topDressingBagsNeeded = Math.ceil(parseFloat(bagsPerAcreStr) * acreageCount);
+      }
+    } catch {
+      plantingBagsNeeded = Math.ceil(acreageCount);
+      topDressingBagsNeeded = Math.ceil(acreageCount);
+    }
+
+    // Check store inventory items matching these categories
+    const currentInv = inventory || localInventory;
+    const plantingItem = currentInv.find(i => i.name.toLowerCase().includes(plantingFertilizerName.toLowerCase()) || i.category === 'Fertilizer');
+    const topDressingItem = currentInv.find(i => i.name.toLowerCase().includes(topDressingFertilizerName.toLowerCase()));
+
+    if (!plantingItem || plantingItem.quantity < plantingBagsNeeded) {
+      setTool4Message({
+        text: `⚠️ Insufficient Fertilizer in stock! Required: ${plantingBagsNeeded} bags of ${plantingFertilizerName}. Please restock the Inventory Store first.`,
+        type: 'error'
+      });
+      return;
+    }
+
+    // We can proceed to deduct the bags
+    const nextInv = currentInv.map(i => {
+      if (plantingItem && i.id === plantingItem.id) {
+        return { ...i, quantity: Math.max(0, i.quantity - plantingBagsNeeded) };
+      }
+      if (topDressingItem && i.id === topDressingItem.id) {
+        return { ...i, quantity: Math.max(0, i.quantity - topDressingBagsNeeded) };
+      }
+      return i;
+    });
+
+    if (setInventory) {
+      setInventory(nextInv);
+    } else {
+      setLocalInventory(nextInv);
+      localStorage.setItem('jr_farm_inventory', JSON.stringify(nextInv));
+    }
+
+    // Add financial expense for fertilizer usage
+    const expenseCost = (plantingBagsNeeded + topDressingBagsNeeded) * 2800; // Estimated 2800 KES per bag
+    const expenseRecord = {
+      id: 'fin-' + Date.now(),
+      type: 'expense' as const,
+      amount: expenseCost,
+      category: 'Crop Inputs (Fertilizer)',
+      description: `Fertilizer Application: Deducted ${plantingBagsNeeded} bags ${plantingFertilizerName} and ${topDressingBagsNeeded} bags for ${cropKey} on ${calcAcreage} acres.`,
+      date: new Date().toISOString().substring(0, 10)
+    };
+
+    if (setFinancials) {
+      setFinancials(prev => [expenseRecord, ...prev]);
+    } else {
+      try {
+        const saved = localStorage.getItem('jr_farm_financials');
+        const existing = saved ? JSON.parse(saved) : [];
+        localStorage.setItem('jr_farm_financials', JSON.stringify([expenseRecord, ...existing]));
+      } catch (e) {
+        console.error("Local financial expense logging failed:", e);
+      }
+    }
+
+    setTool4Message({
+      text: `✓ Deducted ${plantingBagsNeeded} bags of ${plantingFertilizerName} successfully from store inventory. Logged ${expenseCost} KES fertilizer utilization expense.`,
+      type: 'success'
+    });
+    setTimeout(() => setTool4Message(null), 6000);
+  };
+
+  // Tool 5 Handler: Publish Daily Feed Profit Margin to Financial Ledger
+  const handlePublishFeedMarginProfit = (revenue: number, feedCost: number) => {
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const revRecord = {
+      id: 'fin-rev-' + Date.now(),
+      type: 'income' as const,
+      amount: revenue,
+      category: 'Dairy Milking Revenue',
+      description: `Daily Milk Yield revenue (${analyzerMilkYield}L @ ${analyzerMilkPrice} KES/L) published via Feed Margin Analyzer`,
+      date: todayStr
+    };
+    const expRecord = {
+      id: 'fin-exp-' + Date.now(),
+      type: 'expense' as const,
+      amount: feedCost,
+      category: 'Animal Feed Inputs',
+      description: `Daily TMR Dairy Feed Rations Cost (${analyzerSilageKg}kg silage, ${analyzerMealKg}kg dairy meal, ${analyzerSupplementsKg}kg lucerne)`,
+      date: todayStr
+    };
+
+    if (setFinancials) {
+      setFinancials(prev => [revRecord, expRecord, ...prev]);
+    } else {
+      try {
+        const saved = localStorage.getItem('jr_farm_financials');
+        const existing = saved ? JSON.parse(saved) : [];
+        localStorage.setItem('jr_farm_financials', JSON.stringify([revRecord, expRecord, ...existing]));
+      } catch (e) {
+        console.error("Local financial logging failed:", e);
+      }
+    }
+
+    setTool5Message(`✓ Successfully published Milk Yield Revenue (+KES ${revenue}) and Feed Cost (-KES ${feedCost}) to the Farm Financial Ledger!`);
+    setTimeout(() => setTool5Message(null), 6000);
+  };
 
   const handleCustomAiDiagnose = async () => {
     if (!customSymptom.trim()) return;
@@ -210,7 +979,13 @@ export default function FarmerAcademy({
           symptom: customSymptom.trim(),
           conditionName: diagObj.conditionName,
           likelihood: 'High',
-          isOffline: true
+          isOffline: true,
+          pathogen: diagObj.pathogen,
+          description: diagObj.description,
+          treatment: diagObj.treatment,
+          quarantine: diagObj.quarantine,
+          prevention: diagObj.prevention,
+          deepResearch: getFallbackDeepResearch(diagSelectedTarget, diagObj.conditionName)
         };
         setDiagnosticHistory(prev => {
           const updated = [newCase, ...prev];
@@ -251,8 +1026,14 @@ export default function FarmerAcademy({
           specimen: diagSelectedTarget,
           symptom: customSymptom.trim(),
           conditionName: diagObj.conditionName,
-          likelihood: diagObj.likelihood,
-          isOffline: !!data.isOffline
+          likelihood: diagObj.likelihood || 'High',
+          isOffline: !!data.isOffline,
+          pathogen: diagObj.pathogen,
+          description: diagObj.description,
+          treatment: diagObj.treatment,
+          quarantine: diagObj.quarantine,
+          prevention: diagObj.prevention,
+          deepResearch: diagObj.deepResearch || getFallbackDeepResearch(diagSelectedTarget, diagObj.conditionName)
         };
         setDiagnosticHistory(prev => {
           const updated = [newCase, ...prev];
@@ -288,7 +1069,13 @@ export default function FarmerAcademy({
         symptom: customSymptom.trim(),
         conditionName: diagObj.conditionName,
         likelihood: 'High',
-        isOffline: true
+        isOffline: true,
+        pathogen: diagObj.pathogen,
+        description: diagObj.description,
+        treatment: diagObj.treatment,
+        quarantine: diagObj.quarantine,
+        prevention: diagObj.prevention,
+        deepResearch: getFallbackDeepResearch(diagSelectedTarget, diagObj.conditionName)
       };
       setDiagnosticHistory(prev => {
         const updated = [newCase, ...prev];
@@ -599,6 +1386,62 @@ export default function FarmerAcademy({
         quarantine: "Scrape wet coop litter and apply dry lime. Quarantine young chicks from mature flocks.",
         prevention: "Keep litter bone dry. Add feed-grade coccidiostats. Ensure feeder troughs are suspended above dropping zones."
       };
+    }
+    
+    // 4b. GOAT
+    if (tgt === 'goat' || tgt === 'goats') {
+      if (norm.includes('cough') || norm.includes('breathe') || norm.includes('pneumonia') || norm.includes('nose') || norm.includes('nasal')) {
+        return {
+          symptom,
+          conditionName: "Contagious Caprine Pleuropneumonia (CCPP) (Heuristic Match)",
+          pathogen: "Mycoplasma capricolum subsp. capripneumoniae",
+          likelihood: "High" as const,
+          description: "A highly contagious, devastating respiratory mycoplasma causing severe pleuropneumonia, high fever, coughing, and yellow/frothy nasal discharges.",
+          treatment: "Administer Oxytetracycline 20% Long-Acting (1ml/10kg body weight) or Tylosin injectable (10mg/kg) early in the course of the infection.",
+          quarantine: "Isolate affected goats immediately. CCPP is highly infectious via airborne aerosols. Disinfect pasture stalls with Virkon-S.",
+          prevention: "Vaccinate annually with inactivated CCPP culture vaccine. Quarantine newly bought goats for at least 21 days."
+        };
+      }
+      if (norm.includes('hoof') || norm.includes('foot') || norm.includes('lame') || norm.includes('limp') || norm.includes('rot')) {
+        return {
+          symptom,
+          conditionName: "Infectious Caprine Foot Rot (Heuristic Match)",
+          pathogen: "Dichelobacter nodosus + Fusobacterium necrophorum",
+          likelihood: "High" as const,
+          description: "An extremely painful synergistic bacterial infection causing progressive decay of the hoof horn, severe lameness, and a foul, distinctive odor.",
+          treatment: "Trim infected hoof tissue meticulously to expose anaerobic bacteria. Paint with 10% Copper Sulfate solution or oxytetracycline spray.",
+          quarantine: "Tether sick animals on dry elevated slats. Keep away from muddy communal water logs or damp clay pastures.",
+          prevention: "Provide weekly 10% Zinc/Copper Sulfate foot-baths. Keep kidding pens clean and dry."
+        };
+      }
+    }
+
+    // 4c. AVOCADO
+    if (tgt === 'avocado' || tgt === 'avocados') {
+      if (norm.includes('root') || norm.includes('rot') || norm.includes('wilt') || norm.includes('dieback')) {
+        return {
+          symptom,
+          conditionName: "Phytophthora Root Rot (Heuristic Match)",
+          pathogen: "Phytophthora cinnamomi (Oomycete Spore)",
+          likelihood: "High" as const,
+          description: "A catastrophic root destroyer. Causes avocado foliage to turn pale green/yellow, wilt, drop prematurely, and leads to branch tip dieback.",
+          treatment: "Drench soil with Metalaxyl (Ridomil Gold) or inject the tree trunks with soluble Potassium Phosphonate solutions (10% formulation).",
+          quarantine: "Cease immediate over-irrigation. Do not transport soil or tools from infected root zones to clean avocado sectors.",
+          prevention: "Plant avocado seedlings on raised mounds (at least 30cm high) for premium drainage. Meticulously apply coarse organic mulch."
+        };
+      }
+      if (norm.includes('spot') || norm.includes('dark') || norm.includes('anthracnose') || norm.includes('fruit')) {
+        return {
+          symptom,
+          conditionName: "Avocado Anthracnose Fruit Rot (Heuristic Match)",
+          pathogen: "Colletotrichum gloeosporioides (Fungal Spore)",
+          likelihood: "High" as const,
+          description: "A high-risk fungal infection creating circular, sunken dark brown or black spots on the avocado skin, which rot the edible flesh underneath.",
+          treatment: "Spray preventive Copper Hydroxide (Kocide 3000) at 15g per 20-liter tank every 21-28 days starting from fruit set.",
+          quarantine: "Withhold all harvested avocados from export crates if there are signs of dark skin specks. Keep harvest tools disinfected.",
+          prevention: "Prune lower avocado branches (keep canopy at least 1 meter off the ground) to optimize airflow and lower humidity build-up."
+        };
+      }
     }
 
     // 5. CROP OVERALL DEFAULT
@@ -927,6 +1770,19 @@ export default function FarmerAcademy({
         >
           <Activity size={13} />
           Diagnostics Wizard
+        </button>
+
+        <button
+          onClick={() => { setActiveTab('forecasting'); }}
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wide transition-all cursor-pointer m-0 ${
+            activeTab === 'forecasting'
+              ? 'bg-teal-700 text-white border-teal-700 shadow-sm animate-pulse'
+              : 'bg-teal-50 text-teal-950 hover:bg-teal-100/50 border-teal-200'
+          }`}
+          id="tab-forecasting"
+        >
+          <TrendingUp size={13} />
+          Predictive Yield Forecasting
         </button>
 
         <button
@@ -1611,18 +2467,41 @@ export default function FarmerAcademy({
             
             {/* Tool 1: Standing Heat & AI Window Calculator */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs hover:shadow-sm space-y-4">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Clock className="text-purple-700 font-bold animate-spin-slow" size={18} />
-                AM-PM Reproductive Insemination Window Planner
-              </h3>
+              <div className="flex justify-between items-start">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Clock className="text-purple-700 font-bold animate-spin-slow" size={18} />
+                  AM-PM Reproductive Insemination Window Planner
+                </h3>
+                <span className="bg-purple-100 text-purple-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-purple-200">
+                  Tool 1 Upgraded
+                </span>
+              </div>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                Maximize heifers conception ratios. Input exact standing heat observation hours to chart the biological ovulation timing window.
+                Maximize heifers conception ratios. Select the target heifer/cow, input the heat observation details, and directly log the recommended veterinarian artificial insemination task.
               </p>
 
               <div className="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                      Select Specimen Cow
+                    </label>
+                    <select
+                      value={selectedCowId || (cows && cows[0]?.id) || 'COW-01'}
+                      onChange={(e) => setSelectedCowId(e.target.value)}
+                      className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold focus:border-purple-500 outline-none cursor-pointer"
+                    >
+                      {((cows && cows.length > 0) ? cows : [
+                        { id: 'COW-01', name: 'Jersey Beauty (Jersey)' },
+                        { id: 'COW-02', name: 'Ayrshire Crown (Ayrshire)' },
+                        { id: 'HEIFER-01', name: 'Maziwa Mingi (Friesian)' }
+                      ]).map(c => (
+                        <option key={c.id} value={c.id}>{c.name} [Tag: {c.id}]</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                       Time Heat Observed
                     </label>
                     <input 
@@ -1632,18 +2511,33 @@ export default function FarmerAcademy({
                       className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold font-mono focus:border-purple-500 outline-none" 
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                      Observation Focus Period
-                    </label>
-                    <select
-                      value={heatPeriod}
-                      onChange={(e) => setHeatPeriod(e.target.value as any)}
-                      className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold focus:border-purple-500 outline-none cursor-pointer"
-                    >
-                      <option value="morning">Morning (AM Standing Mount)</option>
-                      <option value="afternoon">Evening/Afternoon (PM Standing Mount)</option>
-                    </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                    Observation Focus Period
+                  </label>
+                  <select
+                    value={heatPeriod}
+                    onChange={(e) => setHeatPeriod(e.target.value as any)}
+                    className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold focus:border-purple-500 outline-none cursor-pointer"
+                  >
+                    <option value="morning">Morning (AM Standing Mount - Heat starts around 6am)</option>
+                    <option value="afternoon">Evening/Afternoon (PM Standing Mount - Heat starts around 6pm)</option>
+                  </select>
+                </div>
+
+                {/* Fertile Window Visualizer Gauge */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] font-black uppercase text-slate-400 tracking-wider">
+                    <span>Heat Start</span>
+                    <span className="text-purple-750 font-black text-purple-700">Optimal Window (9-18 Hours Peak)</span>
+                    <span>Window Closes</span>
+                  </div>
+                  <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                    <div className="h-full bg-slate-300" style={{ width: '30%' }} title="Early Stage (0-9h) - Low fertility" />
+                    <div className="h-full bg-gradient-to-r from-purple-500 to-purple-700 animate-pulse" style={{ width: '45%' }} title="Optimal Window (9-18h) - HIGH fertility" />
+                    <div className="h-full bg-slate-300" style={{ width: '25%' }} title="Late Stage (18-24h) - Declining fertility" />
                   </div>
                 </div>
 
@@ -1666,23 +2560,65 @@ export default function FarmerAcademy({
                     )}
                   </div>
                 </div>
+
+                {/* Logging Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => handleRecordInsemination(
+                    selectedCowId || (cows && cows[0]?.id) || 'COW-01',
+                    heatPeriod === 'morning' ? 'Today 3:00 PM - 9:00 PM' : 'Tomorrow 6:00 AM - 11:30 AM'
+                  )}
+                  className="w-full bg-purple-700 hover:bg-purple-800 text-white font-black text-xs uppercase py-3 rounded-xl border border-purple-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+                >
+                  <Plus size={14} />
+                  Record Insemination to Vet Logs
+                </button>
+
+                {tool1Message && (
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl font-bold animate-fadeIn">
+                    {tool1Message}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Tool 2: Biogas Digester Loading Optimizer */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs hover:shadow-sm space-y-4">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Flame className="text-amber-500 font-bold" size={18} />
-                Biogas Slurry Loading & Yield Estimator
-              </h3>
+              <div className="flex justify-between items-start">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Flame className="text-amber-500 font-bold" size={18} />
+                  Biogas Slurry Loading & Yield Estimator
+                </h3>
+                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-200">
+                  Tool 2 Upgraded
+                </span>
+              </div>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                 Estimate how many kilograms of fresh bovine dung and water are needed daily to generate high methane gas pressures without souring risks.
               </p>
 
               <div className="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-150">
+                  <span className="text-[10px] font-bold text-slate-500">Live Active Herd Size:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-black text-slate-900 text-xs">{cows?.length || 3} Cattle</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const count = cows?.length || 3;
+                        // Limit to maximum supported volume (10 m3) or calculate: 0.8 m3 per cow
+                        setBiogasVolume(Math.min(10, Math.max(1, parseFloat((count * 0.8).toFixed(1)))));
+                      }}
+                      className="bg-amber-50 border border-amber-200 text-amber-900 font-black text-[9px] uppercase px-2 py-1 rounded hover:bg-amber-100 transition-all cursor-pointer"
+                    >
+                      Sync Volume
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                    Target Gas Generation: <strong className="text-emerald-800 font-mono font-black">{biogasVolume} m³</strong> per day
+                    Target Gas Generation: <strong className="text-emerald-800 font-mono font-black text-sm">{biogasVolume} m³</strong> per day
                   </label>
                   <input 
                     type="range" 
@@ -1693,10 +2629,25 @@ export default function FarmerAcademy({
                     onChange={(e) => setBiogasVolume(parseFloat(e.target.value))}
                     className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-850" 
                   />
-                  <div className="flex justify-between text-[10px] font-bold text-slate-450 mt-1 font-mono">
+                  <div className="flex justify-between text-[9px] font-bold text-slate-450 mt-1 font-mono">
                     <span>1 m³ (Single Burner)</span>
                     <span>10 m³ (Large Generator)</span>
                   </div>
+                </div>
+
+                {/* Methane Pressure Indicator Gauge */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] font-black uppercase text-slate-405 tracking-wider">
+                    <span>Low Pressure</span>
+                    <span className="text-amber-600">Optimal Digestion Zone</span>
+                    <span>High Danger</span>
+                  </div>
+                  <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden flex">
+                    <div className="h-full bg-slate-300" style={{ width: `${Math.max(0, Math.min(100, (biogasVolume / 10) * 100))}%` }} />
+                  </div>
+                  <span className="text-[8px] text-slate-400 font-bold block text-center leading-normal">
+                    {biogasVolume < 3 ? '● Sub-optimal loading (low pressure)' : biogasVolume <= 7.5 ? '✓ Perfect biological loading & high pressures' : '⚠️ Extreme Loading - Monitor digestor acid content'}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1716,17 +2667,37 @@ export default function FarmerAcademy({
                   <span className="text-yellow-405 font-black block text-[10px] uppercase tracking-wide">🍂 Recycling Bio-slurry bypass:</span>
                   <span>This system yields approximately <strong className="font-mono text-white">{(biogasVolume * 45).toFixed(0)} L</strong> of ammoniacal premium fertilizer daily, perfect for avocado trees or Napier crops.</span>
                 </div>
+
+                {/* Harvesting Integration Trigger */}
+                <button
+                  type="button"
+                  onClick={handleLogBiogasSlurry}
+                  className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs uppercase py-3 rounded-xl border border-emerald-700 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+                >
+                  Harvest Bio-slurry & Log Green Offset
+                </button>
+
+                {tool2Message && (
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-xl font-bold animate-fadeIn leading-relaxed">
+                    {tool2Message}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Tool 3: TMR Feed Protein Optimizer */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs hover:shadow-sm space-y-4 md:col-span-1 lg:col-span-2">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Calculator className="text-emerald-700 font-bold" size={18} />
-                Lactation Dairy CP Protein Target Estimator
-              </h3>
+              <div className="flex justify-between items-start">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Calculator className="text-emerald-700 font-bold" size={18} />
+                  Lactation Dairy CP Protein Target Estimator
+                </h3>
+                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-200">
+                  Tool 3 Upgraded
+                </span>
+              </div>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                Determine if your feeding mixture satisfies the Crude Protein (CP) threshold required for high-yield dairy cows versus low yield or dry cows.
+                Determine if your feeding mixture satisfies the Crude Protein (CP) threshold required for high-yield dairy cows. Check premium organic supplements to boost feed density.
               </p>
 
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1745,7 +2716,7 @@ export default function FarmerAcademy({
 
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 block mb-1">
-                      Estimated Crude Protein (CP) of Feed Mix (%)
+                      Base Feed Crude Protein (CP) (%)
                     </label>
                     <div className="flex items-center gap-3">
                       <input 
@@ -1759,42 +2730,123 @@ export default function FarmerAcademy({
                       <span className="text-xs font-black font-mono bg-white px-2.5 py-1 rounded border border-emerald-200/50 text-emerald-800">{currentProtein}%</span>
                     </div>
                   </div>
+
+                  {/* Interactive Ingredient Boosters */}
+                  <div className="space-y-2 pt-1 border-t border-slate-200/60">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                      Add Premium Protein Boosters
+                    </span>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        { name: 'Lucerne/Alfalfa (Hay)', cpBoost: 3, desc: 'High fiber & protein (+3% CP)' },
+                        { name: 'Cottonseed Cake (Bypass)', cpBoost: 4, desc: 'Bypass amino acids (+4% CP)' },
+                        { name: 'Brewer\'s Dried Grains (BDG)', cpBoost: 5, desc: 'Palatable fermented feed (+5% CP)' },
+                        { name: 'Concentrated Fish Meal', cpBoost: 6, desc: 'High density lysine (+6% CP)' }
+                      ].map(booster => {
+                        const isChecked = tool3ActiveIngredients.includes(booster.name);
+                        return (
+                          <label key={booster.name} className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) {
+                                  setTool3ActiveIngredients(tool3ActiveIngredients.filter(n => n !== booster.name));
+                                } else {
+                                  setTool3ActiveIngredients([...tool3ActiveIngredients, booster.name]);
+                                }
+                              }}
+                              className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+                            />
+                            <div>
+                              <span className="text-xs font-black text-slate-800 block leading-tight">{booster.name}</span>
+                              <span className="text-[10px] text-slate-500 block leading-normal font-semibold">{booster.desc}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex flex-col justify-center">
+                <div className="flex flex-col justify-center space-y-4">
                   {(() => {
                     const requiredProtein = currentMilk < 10 ? 12 : currentMilk < 20 ? 14 : currentMilk < 30 ? 16 : 18;
-                    const isFading = currentProtein >= requiredProtein;
+                    const boosterCp = tool3ActiveIngredients.reduce((acc, name) => {
+                      const cpMap: Record<string, number> = {
+                        'Lucerne/Alfalfa (Hay)': 3,
+                        'Cottonseed Cake (Bypass)': 4,
+                        'Brewer\'s Dried Grains (BDG)': 5,
+                        'Concentrated Fish Meal': 6
+                      };
+                      return acc + (cpMap[name] || 0);
+                    }, 0);
+                    const totalCpCalculated = currentProtein + boosterCp;
+                    const isSatisfied = totalCpCalculated >= requiredProtein;
                     return (
-                      <div className={`p-4 rounded-2xl border transition-all ${
-                        isFading 
-                          ? 'bg-emerald-50 text-emerald-950 border-emerald-200' 
-                          : 'bg-rose-50 text-rose-950 border-rose-200'
-                      }`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className={isFading ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold'} size={18} />
-                          <span className="text-xs font-black uppercase tracking-tight">
-                            {isFading ? 'Dietary Protein Satisfied!' : 'Protein Deficiency Alert'}
-                          </span>
-                        </div>
-                        <div className="text-xs space-y-2 font-medium">
-                          <p>
-                            • A cow yielding <strong className="font-mono text-sm">{currentMilk}L</strong> requires a minimum dietary ration crude protein level of <strong className="font-sans text-sm">{requiredProtein}% CP</strong>.
-                          </p>
-                          <p>
-                            • Your estimated diet is <strong className="font-mono text-sm">{currentProtein}% CP</strong>.
-                          </p>
-                          {!isFading && (
-                            <p className="bg-rose-950/10 p-2.5 rounded font-black text-[10px] text-rose-900 leading-normal">
-                              💡 Upgrade Advice: Incorporate high-protein bypass concentrates like cottonseed cake, sunflower meal, or brewer's dried grains to avoid milk production drops and cow mineral depletion.
+                      <div className="space-y-4">
+                        <div className={`p-5 rounded-2xl border transition-all ${
+                          isSatisfied 
+                            ? 'bg-emerald-50 text-emerald-950 border-emerald-200' 
+                            : 'bg-rose-50 text-rose-950 border-rose-200'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className={isSatisfied ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold'} size={18} />
+                            <span className="text-xs font-black uppercase tracking-tight">
+                              {isSatisfied ? 'Dietary Protein Satisfied!' : 'Protein Deficiency Alert'}
+                            </span>
+                          </div>
+                          <div className="text-xs space-y-2 font-medium">
+                            <p>
+                              • Yield: <strong className="font-mono text-sm">{currentMilk}L/day</strong> requires a minimum crude protein level of <strong className="font-sans text-sm">{requiredProtein}% CP</strong>.
                             </p>
-                          )}
-                          {isFading && (
-                            <p className="bg-emerald-950/10 p-2.5 rounded font-black text-[10px] text-emerald-900 leading-normal">
-                              🚀 Perfect! Your feed mix provides ideal nitrogen densities to foster active rumen bacteria fermentation, maximizing milk volumes.
+                            <p>
+                              • Base Feed CP: <strong className="font-mono text-sm">{currentProtein}% CP</strong>.
                             </p>
-                          )}
+                            {boosterCp > 0 && (
+                              <p>
+                                • Supplements Boost: <strong className="font-mono text-sm text-emerald-800">+{boosterCp}% CP</strong> from {tool3ActiveIngredients.length} ingredients.
+                              </p>
+                            )}
+                            <p className="border-t border-slate-200 pt-2 mt-2">
+                              • Total Adjusted Feed CP: <strong className="font-mono text-base text-slate-900">{totalCpCalculated}% CP</strong>.
+                            </p>
+                            {!isSatisfied && (
+                              <p className="bg-rose-950/10 p-2.5 rounded font-black text-[10px] text-rose-900 leading-normal">
+                                💡 Upgrade Advice: Incorporate more supplements (like cottonseed cake or brewer's grains) to satisfy the {requiredProtein}% CP protein threshold.
+                              </p>
+                            )}
+                            {isSatisfied && (
+                              <p className="bg-emerald-950/10 p-2.5 rounded font-black text-[10px] text-emerald-900 leading-normal">
+                                🚀 Perfect! Your feed mix provides ideal nitrogen densities to foster active rumen bacteria fermentation, maximizing milk volumes.
+                              </p>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Save Action Log button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const today = new Date().toISOString().replace('T', ' ').substring(0, 16);
+                            const newLog = {
+                              id: 'feed-formula-' + Date.now(),
+                              timestamp: today,
+                              taskTitle: 'Saved TMR Ration Formula',
+                              deductionText: `Calculated formula for ${currentMilk}L yield. Base CP: ${currentProtein}%, Supp CP: +${boosterCp}%, Total: ${totalCpCalculated}% CP. Ingredients: ${tool3ActiveIngredients.join(', ') || 'None'}. Status: ${isSatisfied ? 'Pass' : 'Deficient'}.`,
+                              success: true
+                            };
+                            setActionLogs(prev => {
+                              const updated = [newLog, ...prev];
+                              localStorage.setItem('jr_farm_academy_auto_deduct_logs', JSON.stringify(updated));
+                              return updated;
+                            });
+                            alert(`✓ Formulated TMR Ration saved successfully to Action Logs history!`);
+                          }}
+                          className="w-full bg-slate-900 hover:bg-slate-805 text-white font-black text-xs uppercase py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+                        >
+                          Save TMR Ration Formula to Logs
+                        </button>
                       </div>
                     );
                   })()}
@@ -1804,35 +2856,61 @@ export default function FarmerAcademy({
 
             {/* Tool 4: NPK & SSP Organic Planting Fertilizer Dosage Calculator */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs hover:shadow-sm space-y-4 md:col-span-1 lg:col-span-2">
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Calculator className="text-amber-600 font-bold" size={18} />
-                NPK & SSP Crop Fertilizer Dosage Calculator
-              </h3>
+              <div className="flex justify-between items-start">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Calculator className="text-amber-600 font-bold" size={18} />
+                  NPK & SSP Crop Fertilizer Dosage Calculator
+                </h3>
+                <span className="bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-200">
+                  Tool 4 Upgraded
+                </span>
+              </div>
               <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                Determine exactly how many 50kg bags of planting and top-dressing fertilizers are required based on your target crop type and acreage.
+                Determine exactly how many 50kg bags of planting and top-dressing fertilizers are required based on your target crop type and acreage. Deduct directly from your store inventory!
               </p>
 
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 block mb-1">
-                      Target Crop Name
-                    </label>
-                    <select
-                      value={calcCrop}
-                      onChange={(e) => setCalcCrop(e.target.value)}
-                      className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold cursor-pointer focus:border-amber-500 outline-none"
-                    >
-                      <option value="maize">Maize Staples</option>
-                      <option value="tea">Tea Highlands</option>
-                      <option value="avocado">Avocado Hass/Fuerte</option>
-                      <option value="banana">Banana Groves</option>
-                      <option value="sorghum">Sorghum Cereal</option>
-                      <option value="beans">Rotational Beans</option>
-                      <option value="vegetables">Drip Vegetables</option>
-                      <option value="napier">Napier Fodder grass</option>
-                      <option value="eucalyptus">Eucalyptus Woodlots</option>
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                        Target Crop Name
+                      </label>
+                      <select
+                        value={calcCrop}
+                        onChange={(e) => setCalcCrop(e.target.value)}
+                        className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold cursor-pointer focus:border-amber-500 outline-none"
+                      >
+                        <option value="maize">Maize Staples</option>
+                        <option value="tea">Tea Highlands</option>
+                        <option value="avocado">Avocado Hass/Fuerte</option>
+                        <option value="banana">Banana Groves</option>
+                        <option value="sorghum">Sorghum Cereal</option>
+                        <option value="beans">Rotational Beans</option>
+                        <option value="vegetables">Drip Vegetables</option>
+                        <option value="napier">Napier Fodder grass</option>
+                        <option value="eucalyptus">Eucalyptus Woodlots</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                        Link to Farm Block
+                      </label>
+                      <select
+                        value={selectedFieldId || 'Block Alpha'}
+                        onChange={(e) => setSelectedFieldId(e.target.value)}
+                        className="w-full bg-white border border-slate-200 text-xs px-3.5 py-2.5 rounded-xl font-bold cursor-pointer focus:border-amber-500 outline-none"
+                      >
+                        {((fieldRecords && fieldRecords.length > 0) ? fieldRecords : [
+                          { id: '1', blockName: 'Block Alpha (Tomatoes)' },
+                          { id: '2', blockName: 'Block Beta (Maize)' },
+                          { id: '3', blockName: 'West Orchard (Avocados)' }
+                        ]).map(f => (
+                          <option key={f.id} value={f.blockName || f.blockName}>{f.blockName || f.blockName}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -1855,41 +2933,62 @@ export default function FarmerAcademy({
                   </div>
                 </div>
 
-                <div className="flex flex-col justify-center">
+                <div className="flex flex-col justify-center space-y-4">
                   {(() => {
                     const data = fertilizerDb[calcCrop];
                     if (!data) return null;
                     return (
-                      <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/50 text-slate-800 space-y-3">
-                        <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
-                          <span className="text-base">🧪</span>
-                          <span className="text-[11px] font-black uppercase tracking-wider text-amber-900">
-                            Calculation results ({calcAcreage} Acre{calcAcreage !== 1 ? 's' : ''})
-                          </span>
-                        </div>
-                        
-                        <div className="text-xs space-y-2">
-                          <p>
-                            • <strong>Planting Requirement:</strong>
-                            <span className="block font-bold text-slate-900 font-mono mt-0.5 text-xs">
-                              {data.planting.includes('—') 
-                                ? `${data.planting.split('—')[0]}— ${(parseFloat(data.planting.split('—')[1]) * calcAcreage).toFixed(1)} bag(s)`
-                                : `${calcAcreage} crop dose volume equivalent`}
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/50 text-slate-800 space-y-3">
+                          <div className="flex items-center gap-2 border-b border-amber-200 pb-2">
+                            <span className="text-base">🧪</span>
+                            <span className="text-[11px] font-black uppercase tracking-wider text-amber-900">
+                              Calculation results ({calcAcreage} Acre{calcAcreage !== 1 ? 's' : ''})
                             </span>
-                          </p>
-                          <p>
-                            • <strong>Top-Dressing Requirement:</strong>
-                            <span className="block font-bold text-slate-900 font-mono mt-0.5 text-xs">
-                              {data.topDressing.includes('—') 
-                                ? `${data.topDressing.split('—')[0]}— ${(parseFloat(data.topDressing.split('—')[1]) * calcAcreage).toFixed(1)} bag(s)`
-                                : `${calcAcreage} crop top-dose equivalents`}
-                            </span>
-                          </p>
-                          <div className="bg-white p-2.5 rounded-xl border border-amber-200/50 mt-2 text-[10px] text-slate-505 font-semibold leading-normal">
-                            <span className="font-black text-amber-900 block mb-0.5">💡 APPLICATION SOP:</span>
-                            {data.notes}
+                          </div>
+                          
+                          <div className="text-xs space-y-2">
+                            <p>
+                              • <strong>Planting Requirement:</strong>
+                              <span className="block font-bold text-slate-900 font-mono mt-0.5 text-xs">
+                                {data.planting.includes('—') 
+                                  ? `${data.planting.split('—')[0]}— ${(parseFloat(data.planting.split('—')[1]) * calcAcreage).toFixed(1)} bag(s)`
+                                  : `${calcAcreage} crop dose volume equivalent`}
+                              </span>
+                            </p>
+                            <p>
+                              • <strong>Top-Dressing Requirement:</strong>
+                              <span className="block font-bold text-slate-900 font-mono mt-0.5 text-xs">
+                                {data.topDressing.includes('—') 
+                                  ? `${data.topDressing.split('—')[0]}— ${(parseFloat(data.topDressing.split('—')[1]) * calcAcreage).toFixed(1)} bag(s)`
+                                  : `${calcAcreage} crop top-dose equivalents`}
+                              </span>
+                            </p>
+                            <div className="bg-white p-2.5 rounded-xl border border-amber-200/50 mt-2 text-[10px] text-slate-505 font-semibold leading-normal">
+                              <span className="font-black text-amber-900 block mb-0.5">💡 APPLICATION SOP:</span>
+                              {data.notes}
+                            </div>
                           </div>
                         </div>
+
+                        {/* Deduct Stock Integration Trigger */}
+                        <button
+                          type="button"
+                          onClick={() => handleVerifyAndDeductFertilizer(calcCrop, calcAcreage, data)}
+                          className="w-full bg-amber-700 hover:bg-amber-850 text-white font-black text-xs uppercase py-3 rounded-xl border border-amber-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+                        >
+                          Verify & Deduct from Store Inventory
+                        </button>
+
+                        {tool4Message && (
+                          <div className={`p-3 rounded-xl border text-xs font-bold animate-fadeIn leading-relaxed ${
+                            tool4Message.type === 'error' 
+                              ? 'bg-rose-50 border-rose-200 text-rose-800' 
+                              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          }`}>
+                            {tool4Message.text}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
@@ -2099,6 +3198,22 @@ export default function FarmerAcademy({
                           "🚨 High Feed Deficit Expense! You are overfed on commercial concentrates relative to milk revenues. Limit dairy meal ration to 1kg per 2.5L yielded."
                         )}
                       </div>
+
+                      {/* Publish to Financial Ledger Trigger */}
+                      <button
+                        type="button"
+                        onClick={() => handlePublishFeedMarginProfit(revenue, feedCost)}
+                        className="w-full bg-emerald-700 hover:bg-emerald-850 text-white font-black text-xs uppercase py-3 rounded-xl border border-emerald-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+                      >
+                        <Plus size={14} />
+                        Publish to Financial Ledger
+                      </button>
+
+                      {tool5Message && (
+                        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] p-2.5 rounded-xl font-bold animate-fadeIn leading-relaxed">
+                          {tool5Message}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -2341,16 +3456,6 @@ export default function FarmerAcademy({
                             <span className="bg-rose-100 text-rose-800 font-extrabold text-[9px] tracking-wider uppercase px-2.5 py-1 rounded-md border border-rose-200/70">
                               {dObj.likelihood.toUpperCase()} LIKELIHOOD Diagnosis
                             </span>
-                            {dObj.isOffline && (
-                              <span className="bg-amber-100 text-amber-800 font-extrabold text-[9px] tracking-wider uppercase px-2 py-0.5 rounded-md border border-amber-200/70">
-                                🔌 Offline Heuristic
-                              </span>
-                            )}
-                            {!dObj.isOffline && !diagSelectedSymptom && (
-                              <span className="bg-emerald-100 text-emerald-800 font-extrabold text-[9px] tracking-wider uppercase px-2 py-0.5 rounded-md border border-emerald-200/70 animate-pulse">
-                                ✨ Live AI Engine
-                              </span>
-                            )}
                           </div>
                           <h4 className="text-lg font-black text-slate-900 mt-2">{dObj.conditionName}</h4>
                           <span className="text-[10px] font-mono text-slate-500 font-bold">Pathogen Structure: {dObj.pathogen}</span>
@@ -2530,16 +3635,29 @@ export default function FarmerAcademy({
               {/* Core Case History Archives (Improvement 4 component) */}
               <div className="lg:col-span-12 mt-6">
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                     <div className="flex items-center gap-2">
                       <Clock className="text-blue-600" size={18} />
                       <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none">
                         Clinical Cases Archive & Diagnostic History Log
                       </h4>
                     </div>
-                    <span className="text-[10px] font-mono bg-blue-100 text-blue-800 font-extrabold px-2.5 py-0.5 rounded-full uppercase">
-                      Local Sync Database Protected
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {diagnosticHistory.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleDownloadPdf}
+                          id="download-diagnostics-pdf-btn"
+                          className="text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-extrabold uppercase px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer m-0 border-none shadow-sm"
+                        >
+                          <Download size={11} />
+                          <span>Download PDF Report</span>
+                        </button>
+                      )}
+                      <span className="text-[10px] font-mono bg-blue-100 text-blue-800 font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                        Local Sync Database Protected
+                      </span>
+                    </div>
                   </div>
 
                   {diagnosticHistory.length === 0 ? (
@@ -2550,86 +3668,147 @@ export default function FarmerAcademy({
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-slate-100 text-slate-400 font-black uppercase text-[9px] tracking-wider">
-                            <th className="py-2">Date / Stamp</th>
-                            <th className="py-2">Specimen Cluster</th>
-                            <th className="py-2">Reported Symptom Footprint</th>
-                            <th className="py-2">Clinical Classification Outcome</th>
-                            <th className="py-2">Engine Mode</th>
-                            <th className="py-2 text-right">Quick View</th>
+                          <tr className="border-b border-slate-100 text-slate-450 font-black uppercase text-[9px] tracking-wider">
+                            <th className="py-3 px-1">Date / Stamp</th>
+                            <th className="py-3">Specimen Cluster</th>
+                            <th className="py-3">Reported Symptom Footprint</th>
+                            <th className="py-3">Clinical Classification Outcome</th>
+                            <th className="py-3 text-right">Quick View</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50 font-medium text-slate-700">
-                          {diagnosticHistory.map((historyItem) => (
-                            <tr key={historyItem.id} className="hover:bg-slate-550 hover:bg-slate-50/50 transition-colors">
-                              <td className="py-2 text-slate-550 font-mono text-[10px]">{historyItem.timestamp}</td>
-                              <td className="py-2">
-                                <span className="capitalize font-black text-slate-850 flex items-center gap-1.5">
-                                  {historyItem.specimen === 'cow' ? '🐄 Cow' :
-                                   historyItem.specimen === 'chicken' ? '🐓 Chicken' :
-                                   historyItem.specimen === 'tomato' ? '🍅 Tomato' :
-                                   historyItem.specimen === 'maize' ? '🌽 Maize' :
-                                   historyItem.specimen === 'avocado' ? '🥑 Avocado' :
-                                   historyItem.specimen === 'banana' ? '🍌 Banana' : '🌱 Generic'}
-                                </span>
-                              </td>
-                              <td className="py-2 max-w-[200px] truncate text-slate-550 italic font-normal text-slate-500">"{historyItem.symptom}"</td>
-                              <td className="py-2 font-black text-blue-900">{historyItem.conditionName}</td>
-                              <td className="py-2">
-                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${
-                                  historyItem.isOffline 
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200/50' 
-                                    : 'bg-indigo-100 text-indigo-800 border border-indigo-200/50'
-                                }`}>
-                                  {historyItem.isOffline ? 'Sovereign AI' : '✨ Gemini'}
-                                </span>
-                              </td>
-                              <td className="py-2 text-right">
-                                <div className="flex items-center justify-end gap-2 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (historyItem.id.startsWith('diag-init-1')) {
-                                        setDiagSelectedSymptom(historyItem.symptom);
-                                        setCustomDiagResult(null);
-                                      } else {
-                                        setDiagSelectedSymptom('');
-                                        setCustomDiagResult({
-                                          symptom: historyItem.symptom,
-                                          conditionName: historyItem.conditionName,
-                                          pathogen: "Retrieved Case History Record",
-                                          likelihood: 'High',
-                                          description: "Re-queried case diagnostic artifact. Open the original database record files for active medication details.",
-                                          treatment: "Refer to original clinical dossiers or query the Gemini live AI for updated schedules.",
-                                          quarantine: "Standard quarantine withholding periods apply.",
-                                          prevention: "Execute long-term biosecurity protocols.",
-                                          isOffline: historyItem.isOffline
-                                        });
-                                      }
-                                    }}
-                                    className="text-[10px] font-black text-blue-600 hover:text-blue-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase"
-                                  >
-                                    Load Case File
-                                  </button>
-                                  <span className="text-slate-350">|</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setDiagnosticHistory(prev => {
-                                        const updated = prev.filter(item => item.id !== historyItem.id);
-                                        localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
-                                        return updated;
-                                      });
-                                    }}
-                                    className="text-[10px] font-black text-rose-600 hover:text-rose-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase flex items-center gap-0.5"
-                                    title="Delete case log"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                        <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                          {diagnosticHistory.map((rawHistoryItem) => {
+                            const historyItem = getFullHistoryItem(rawHistoryItem);
+                            const isExpanded = expandedCaseId === historyItem.id;
+                            return (
+                              <React.Fragment key={historyItem.id}>
+                                <tr className="hover:bg-slate-50/50 transition-colors border-b border-slate-100">
+                                  <td className="py-3 px-1 text-slate-500 font-mono text-[10px]">{historyItem.timestamp}</td>
+                                  <td className="py-3">
+                                    <span className="capitalize font-black text-slate-800 flex items-center gap-1.5">
+                                      {historyItem.specimen === 'cow' ? '🐄 Cow' :
+                                       historyItem.specimen === 'chicken' ? '🐓 Chicken' :
+                                       historyItem.specimen === 'tomato' ? '🍅 Tomato' :
+                                       historyItem.specimen === 'maize' ? '🌽 Maize' :
+                                       historyItem.specimen === 'avocado' ? '🥑 Avocado' :
+                                       historyItem.specimen === 'banana' ? '🍌 Banana' : '🌱 Generic'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 max-w-[180px] truncate text-slate-500 italic font-normal">"{historyItem.symptom}"</td>
+                                  <td className="py-3 font-black text-blue-950">{historyItem.conditionName}</td>
+                                  <td className="py-3 text-right">
+                                    <div className="flex items-center justify-end gap-2 text-right">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (historyItem.id.startsWith('diag-init-1')) {
+                                            setDiagSelectedSymptom(historyItem.symptom);
+                                            setCustomDiagResult(null);
+                                          } else {
+                                            setDiagSelectedSymptom('');
+                                            setCustomDiagResult({
+                                              symptom: historyItem.symptom,
+                                              conditionName: historyItem.conditionName,
+                                              pathogen: historyItem.pathogen || "Retrieved Case History Record",
+                                              likelihood: historyItem.likelihood || 'High',
+                                              description: historyItem.description || "Re-queried case diagnostic artifact. Open the original database record files for active medication details.",
+                                              treatment: historyItem.treatment || "Refer to original clinical dossiers or query the Gemini live AI for updated schedules.",
+                                              quarantine: historyItem.quarantine || "Standard quarantine withholding periods apply.",
+                                              prevention: historyItem.prevention || "Execute long-term biosecurity protocols.",
+                                              isOffline: historyItem.isOffline
+                                            });
+                                          }
+                                        }}
+                                        className="text-[10px] font-black text-blue-600 hover:text-blue-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase"
+                                      >
+                                        Load
+                                      </button>
+                                      <span className="text-slate-300">|</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedCaseId(isExpanded ? null : historyItem.id)}
+                                        className="text-[10px] font-black text-slate-600 hover:text-slate-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase flex items-center gap-0.5"
+                                        title="Toggle details"
+                                      >
+                                        <span>{isExpanded ? 'Hide' : 'Expand'}</span>
+                                        {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                                      </button>
+                                      <span className="text-slate-300">|</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setDiagnosticHistory(prev => {
+                                            const updated = prev.filter(item => item.id !== historyItem.id);
+                                            localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+                                            return updated;
+                                          });
+                                          if (expandedCaseId === historyItem.id) {
+                                            setExpandedCaseId(null);
+                                          }
+                                        }}
+                                        className="text-[10px] font-black text-rose-600 hover:text-rose-800 cursor-pointer hover:underline border-0 bg-transparent p-0 uppercase flex items-center gap-0.5"
+                                        title="Delete case log"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="bg-slate-50/70 border-b border-slate-200/50">
+                                    <td colSpan={5} className="p-4">
+                                      <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-xs grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
+                                        
+                                        {/* Left Column: Symptoms and Deep Research */}
+                                        <div className="space-y-4 text-left">
+                                          <div>
+                                            <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Reported Symptom Footprint</span>
+                                            <p className="text-slate-700 italic bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 font-normal leading-relaxed">
+                                              "{historyItem.symptom}"
+                                            </p>
+                                          </div>
+                                          <div>
+                                            <span className="text-[9px] font-black uppercase text-blue-600 tracking-wider block mb-1">✨ DEEP RESEARCH & AGRONOMIC EPIDEMIOLOGY OVERVIEW</span>
+                                            <div className="text-slate-600 leading-relaxed bg-blue-50/40 p-4 rounded-xl border border-blue-100/40 space-y-2">
+                                              <p className="font-semibold text-blue-900 text-[11px] flex items-center gap-1">
+                                                <span>Pathogen Profile:</span>
+                                                <span className="font-mono text-[10px] text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded">{historyItem.pathogen}</span>
+                                              </p>
+                                              <p className="text-[11px] text-slate-700 leading-relaxed font-normal">
+                                                {historyItem.deepResearch}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Right Column: Remediation & Biosecurity SOP */}
+                                        <div className="space-y-4 text-left">
+                                          <div>
+                                            <span className="text-[9px] font-black uppercase text-emerald-600 tracking-wider block mb-1">🛠️ CLINICAL SOLUTION & MEDICATION PLAN</span>
+                                            <div className="bg-emerald-50/30 border border-emerald-100/50 p-4 rounded-xl space-y-3">
+                                              <div>
+                                                <span className="text-[9px] font-black uppercase text-emerald-800 block mb-0.5">Active Therapy SOP</span>
+                                                <p className="text-slate-700 text-[11px] leading-relaxed font-normal">{historyItem.treatment}</p>
+                                              </div>
+                                              <div>
+                                                <span className="text-[9px] font-black uppercase text-amber-800 block mb-0.5">Quarantine & Isolation Withholding</span>
+                                                <p className="text-slate-700 text-[11px] leading-relaxed font-normal">{historyItem.quarantine}</p>
+                                              </div>
+                                              <div>
+                                                <span className="text-[9px] font-black uppercase text-slate-800 block mb-0.5">Long-term Biosecurity Prevention Guidelines</span>
+                                                <p className="text-slate-700 text-[11px] leading-relaxed font-normal">{historyItem.prevention}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -2638,6 +3817,270 @@ export default function FarmerAcademy({
               </div>
 
             </div>
+
+            {/* INTERACTIVE PEST & DISEASE RECOGNITION SIMULATOR */}
+            <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-6 border-4 border-slate-700/50">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-800">
+                <div className="flex items-center gap-3.5 text-left">
+                  <span className="text-3xl bg-slate-800 p-2.5 rounded-2xl">🎓</span>
+                  <div>
+                    <h3 className="text-lg font-black text-white uppercase tracking-wider font-mono">Pest, Disease & Metabolic Recognition Simulator</h3>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-0.5">
+                      Test your agronomic diagnostic skills with real-world clinical veterinary and crop pathogen training scenarios.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 bg-slate-800 px-4 py-2 rounded-2xl border border-slate-700/60 font-mono text-xs text-left shrink-0">
+                  <div>
+                    <span className="text-[8.5px] text-slate-450 uppercase block font-black">Score (Reputation)</span>
+                    <span className="text-sm font-black text-emerald-400">{simScore} PTS</span>
+                  </div>
+                  <div className="border-l border-slate-700 h-6"></div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-450 uppercase block font-black">Streak</span>
+                    <span className="text-sm font-black text-amber-400">🔥 {simStreak} wins</span>
+                  </div>
+                  {simScore !== 100 && (
+                    <button
+                      onClick={() => {
+                        setSimScore(100);
+                        setSimStreak(0);
+                      }}
+                      className="text-[9px] bg-slate-750 text-slate-300 hover:text-white px-2 py-1 rounded-md uppercase font-black cursor-pointer border border-slate-700 hover:bg-slate-700 m-0 self-center"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {simActiveCaseIndex === null ? (
+                /* SIMULATOR CASE LIST SCREEN */
+                <div className="space-y-4">
+                  <div className="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 text-slate-355 text-xs text-left leading-relaxed">
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Training Objective</span>
+                    Inspect clinical signs, choose diagnostic tests to reveal physical symptoms, formulate accurate disease identifications, and prescribe direct scientifically approved treatments. Success increases your reputation score.
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {simCases.map((cs, index) => (
+                      <div
+                        key={cs.id}
+                        className="bg-slate-850 hover:bg-slate-800 rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between text-left space-y-4"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded-sm ${
+                              cs.category === 'livestock' ? 'bg-amber-900/40 text-amber-300 border border-amber-800/40' : 'bg-teal-900/40 text-teal-300 border border-teal-800/40'
+                            }`}>
+                              {cs.category === 'livestock' ? '🐄 Livestock Veterinary' : '🌱 Crop Agronomy'}
+                            </span>
+                            <span className="text-xs font-bold text-slate-550">Case #{cs.id}</span>
+                          </div>
+
+                          <h4 className="text-sm font-black text-white">{cs.specimen}</h4>
+                          <p className="text-[10.5px] text-slate-400 line-clamp-3 leading-relaxed">
+                            {cs.symptoms}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setSimActiveCaseIndex(index);
+                            setSimInspectedClues([]);
+                            setSimChosenDiagnosis(null);
+                            setSimChosenTreatment(null);
+                            setSimFeedback(null);
+                          }}
+                          className="w-full py-2.5 bg-indigo-650 hover:bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl transition-all cursor-pointer border-none shadow-sm"
+                        >
+                          Start Diagnostic Run
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* ACTIVE SIMULATION CASE RUN SCREEN */
+                (() => {
+                  const activeCase = simCases[simActiveCaseIndex];
+                  return (
+                    <div className="space-y-6 text-left">
+                      <div className="flex justify-between items-center flex-wrap gap-2">
+                        <span className="text-[10px] text-indigo-400 font-black uppercase tracking-widest font-mono">
+                          Active Clinical Evaluation Case #{activeCase.id}
+                        </span>
+                        <button
+                          onClick={() => setSimActiveCaseIndex(null)}
+                          className="text-[9px] bg-slate-800 text-slate-355 hover:text-white border border-slate-700 px-3 py-1.5 rounded-xl uppercase font-black cursor-pointer m-0"
+                        >
+                          ← Exit Training Session
+                        </button>
+                      </div>
+
+                      {/* Main case display */}
+                      <div className="bg-slate-850 border border-slate-800 rounded-3xl p-6 space-y-4">
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-slate-500 font-extrabold uppercase block tracking-wider">Specimen Target</span>
+                          <h4 className="text-base font-black text-white font-mono">{activeCase.specimen}</h4>
+                        </div>
+
+                        <div className="space-y-1 bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-slate-300 text-[11px] leading-relaxed">
+                          <span className="text-[9px] text-slate-500 font-extrabold uppercase block tracking-wider mb-1">Reported Symptoms</span>
+                          {activeCase.symptoms}
+                        </div>
+
+                        {/* Interactive inspection actions */}
+                        <div className="space-y-2.5">
+                          <span className="text-[9px] text-slate-500 font-extrabold uppercase block tracking-wider">Clinical Field Inspection Actions</span>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            {activeCase.inspectOptions.map((opt) => {
+                              const isInspected = simInspectedClues.includes(opt.key);
+                              return (
+                                <button
+                                  key={opt.key}
+                                  onClick={() => {
+                                    if (!isInspected) {
+                                      setSimInspectedClues([...simInspectedClues, opt.key]);
+                                    }
+                                  }}
+                                  className={`p-3 text-left rounded-xl border transition-all text-[10px] cursor-pointer font-bold ${
+                                    isInspected
+                                      ? 'bg-slate-900 text-emerald-400 border-slate-800'
+                                      : 'bg-slate-800 text-slate-300 border-slate-700/60 hover:bg-slate-750'
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-center font-black uppercase text-[8px] tracking-wider text-slate-450 mb-0.5">
+                                    <span>{opt.label}</span>
+                                    <span>{isInspected ? '✓ REVEALED' : '🔍 RUN'}</span>
+                                  </div>
+                                  <p className="text-[10px] leading-relaxed font-semibold mt-1">
+                                    {isInspected ? opt.clue : 'Click to perform diagnostics action...'}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Question Panel */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-slate-800">
+                          {/* Choose Diagnosis */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] text-slate-550 font-black uppercase tracking-wider block">Step 1: Disease / Pathogen Identification</span>
+                            <div className="space-y-2">
+                              {activeCase.diagnoses.map((diag) => {
+                                const isSelected = simChosenDiagnosis === diag;
+                                return (
+                                  <button
+                                    key={diag}
+                                    disabled={simFeedback !== null}
+                                    onClick={() => setSimChosenDiagnosis(diag)}
+                                    className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-black transition-all ${
+                                      isSelected
+                                        ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
+                                        : 'bg-slate-900/40 text-slate-300 border-slate-800 hover:bg-slate-800/40'
+                                    }`}
+                                  >
+                                    <span className="mr-2">{isSelected ? '●' : '○'}</span>
+                                    {diag}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Choose Treatment */}
+                          <div className="space-y-2">
+                            <span className="text-[9px] text-slate-550 font-black uppercase tracking-wider block">Step 2: Prescribe Science-Backed Treatment</span>
+                            <div className="space-y-2">
+                              {activeCase.treatments.map((tr) => {
+                                const isSelected = simChosenTreatment === tr;
+                                return (
+                                  <button
+                                    key={tr}
+                                    disabled={simFeedback !== null || simChosenDiagnosis === null}
+                                    onClick={() => setSimChosenTreatment(tr)}
+                                    className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-black transition-all ${
+                                      isSelected
+                                        ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
+                                        : 'bg-slate-900/40 text-slate-300 border-slate-800 hover:bg-slate-800/40 disabled:opacity-40 disabled:cursor-not-allowed'
+                                    }`}
+                                  >
+                                    <span className="mr-2">{isSelected ? '●' : '○'}</span>
+                                    {tr}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Submit Action */}
+                        {simFeedback === null ? (
+                          <div className="pt-4 border-t border-slate-800 text-right">
+                            <button
+                              onClick={() => {
+                                if (simChosenDiagnosis === null || simChosenTreatment === null) return;
+                                const isDiagCorrect = simChosenDiagnosis === activeCase.correctDiagnosis;
+                                const isTrCorrect = simChosenTreatment === activeCase.correctTreatment;
+                                const isCorrect = isDiagCorrect && isTrCorrect;
+
+                                if (isCorrect) {
+                                  setSimScore(prev => prev + 15);
+                                  setSimStreak(prev => prev + 1);
+                                  setSimFeedback({ success: true, text: activeCase.feedbackSuccess });
+                                } else {
+                                  setSimScore(prev => Math.max(0, prev - 10));
+                                  setSimStreak(0);
+                                  setSimFeedback({ success: false, text: isDiagCorrect ? 'Diagnosis was correct but chosen treatment was incorrect.' : activeCase.feedbackFail });
+                                }
+                              }}
+                              disabled={simChosenDiagnosis === null || simChosenTreatment === null}
+                              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] uppercase font-black tracking-wider rounded-xl cursor-pointer border-none transition-all shadow-md"
+                            >
+                              Submit Agronomic / Vet Diagnostic Report
+                            </button>
+                          </div>
+                        ) : (
+                          /* Feedback state */
+                          <div className="pt-4 border-t border-slate-800 space-y-4">
+                            <div className={`p-4 rounded-xl border ${
+                              simFeedback.success
+                                ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+                                : 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+                            } text-xs leading-relaxed font-semibold`}>
+                              <span className="font-black uppercase block text-[10px] mb-1">
+                                {simFeedback.success ? '🏆 ACCURATE DIAGNOSIS CERTIFIED' : '❌ DIAGNOSTIC CRITIQUE'}
+                              </span>
+                              {simFeedback.text}
+                            </div>
+
+                            <div className="text-right">
+                              <button
+                                onClick={() => {
+                                  setSimActiveCaseIndex(null);
+                                  setSimInspectedClues([]);
+                                  setSimChosenDiagnosis(null);
+                                  setSimChosenTreatment(null);
+                                  setSimFeedback(null);
+                                }}
+                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[10px] uppercase rounded-xl cursor-pointer border border-slate-700"
+                              >
+                                Try Another Case
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+
           </div>
         </div>
       )}
@@ -3009,6 +4452,167 @@ export default function FarmerAcademy({
 
           </div>
 
+        </div>
+      )}
+
+      {/* SUBTAB 8: Automatic Predictive Feed Intake & Milk Yield Forecasting */}
+      {activeTab === 'forecasting' && (
+        <div className="space-y-6 text-left animate-fadeIn">
+          <div className="bg-teal-50 border border-teal-100 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex items-start gap-3.5">
+              <span className="text-3xl bg-teal-100 p-2.5 rounded-2xl">📈</span>
+              <div>
+                <h3 className="text-lg font-black text-teal-950">AI Predictive Feed Intake & Lactation forecasting simulator</h3>
+                <p className="text-xs text-teal-800 font-medium leading-relaxed max-w-3xl mt-0.5">
+                  Model continuous 44-week lactation curves using biologically grounded Wood's models. Dynamically adjust cow weights, breeds, and feed quality rations to predict daily feed dry matter intake (DMI) and milk output.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+              {/* Controls Column */}
+              <div className="lg:col-span-4 space-y-5">
+                <div className="bg-white p-5 rounded-2xl border border-teal-150 shadow-xs space-y-4">
+                  <h4 className="text-[10px] font-black uppercase text-teal-900 tracking-wider">Simulation parameters</h4>
+                  
+                  {/* Breed Choice */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-slate-405 block">Cattle Breed Profile</label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['Friesian', 'Ayrshire', 'Jersey', 'Guernsey'] as const).map((b) => (
+                        <button
+                          key={b}
+                          onClick={() => setForecastBreed(b)}
+                          className={`py-2 px-3 rounded-lg border font-black text-[10px] uppercase cursor-pointer transition-all ${
+                            forecastBreed === b
+                              ? 'bg-teal-700 text-white border-teal-700'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Body Weight */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-bold uppercase text-slate-405">
+                      <span>Cow Body Weight</span>
+                      <span className="font-mono text-teal-700 font-black">{forecastWeight} kg</span>
+                    </div>
+                    <input
+                      type="range" min="350" max="750" step="10"
+                      value={forecastWeight}
+                      onChange={(e) => setForecastWeight(parseInt(e.target.value) || 550)}
+                      className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
+                    />
+                    <span className="text-[8.5px] text-slate-400 font-medium block">DMI baseline increases with weight maintenance requirements</span>
+                  </div>
+
+                  {/* BCS */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-bold uppercase text-slate-405">
+                      <span>Body Condition Score (BCS)</span>
+                      <span className="font-mono text-teal-700 font-black">{forecastBcs.toFixed(1)} / 5.0</span>
+                    </div>
+                    <input
+                      type="range" min="2.0" max="4.5" step="0.5"
+                      value={forecastBcs}
+                      onChange={(e) => setForecastBcs(parseFloat(e.target.value) || 3.0)}
+                      className="w-full h-1.5 bg-slate-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
+                    />
+                    <span className="text-[8.5px] text-slate-400 font-medium block">Optimal range: 3.0-3.5. Under/over-conditioning cuts peak yield.</span>
+                  </div>
+
+                  {/* Feed quality select */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-slate-405 block">Ration Quality Profile</label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'poor', label: 'Poor (Fiber)' },
+                        { id: 'average', label: 'Std (TMR)' },
+                        { id: 'premium', label: 'Premium' }
+                      ].map((f) => (
+                        <button
+                          key={f.id}
+                          onClick={() => setForecastFeedQuality(f.id as any)}
+                          className={`py-2 px-1 rounded-lg border font-black text-[9px] uppercase cursor-pointer transition-all ${
+                            forecastFeedQuality === f.id
+                              ? 'bg-teal-700 text-white border-teal-700'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Results panel */}
+                <div className="bg-teal-950 text-white p-5 rounded-2xl space-y-4 border border-teal-900 shadow-sm">
+                  <h4 className="text-[10px] font-black uppercase text-teal-300 tracking-wider">Predictive calculations (308d Cycle)</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                     <div>
+                       <span className="text-[8.5px] text-teal-200 font-bold uppercase tracking-wider block">Est. Lactation Output</span>
+                       <h3 className="text-xl font-black font-mono mt-0.5">{forecastingCurveData.totalMilk.toLocaleString(undefined, {maximumFractionDigits:0})} L</h3>
+                     </div>
+                     <div>
+                       <span className="text-[8.5px] text-teal-200 font-bold uppercase tracking-wider block">Predicted Peak Yield</span>
+                       <h3 className="text-xl font-black font-mono mt-0.5">{forecastingCurveData.adjustedPeak} L/day</h3>
+                     </div>
+                     <div className="col-span-2 border-t border-teal-900 pt-3">
+                       <span className="text-[8.5px] text-teal-200 font-bold uppercase tracking-wider block">Est. Total Feed Requirement (Dry Matter)</span>
+                       <h3 className="text-lg font-black font-mono mt-0.5">{forecastingCurveData.totalFeed.toLocaleString(undefined, {maximumFractionDigits:0})} kg</h3>
+                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Graph Column */}
+              <div className="lg:col-span-8 bg-white p-5 rounded-2xl border border-teal-150 shadow-xs flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xs font-black text-slate-900 uppercase">44-Week Wood's Lactation Curve & Dry Matter Intake Prediction</h4>
+                  <p className="text-[9.5px] text-slate-450 uppercase font-black tracking-wide mt-0.5">Dual-axis line charts depicting feed conversions over stages</p>
+                </div>
+
+                <div className="h-80 w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={forecastingCurveData.curve}
+                      margin={{ top: 15, right: 10, left: -10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="week" tick={{ fontSize: 9 }} interval={3} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 9 }} label={{ value: 'Milk Yield (L/day)', angle: -90, position: 'insideLeft', style: {fontSize: 9, fontWeight: 'bold', fill: '#0f766e'} }} />
+                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} label={{ value: 'Feed DMI (kg/day)', angle: 90, position: 'insideRight', style: {fontSize: 9, fontWeight: 'bold', fill: '#d97706'} }} />
+                      <Tooltip formatter={(value, name) => [value, name === 'milkYield' ? 'Forecasted Yield (L)' : 'Predicted DMI (kg)']} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} />
+                      <Line yAxisId="left" type="monotone" name="milkYield" dataKey="milkYield" stroke="#0f766e" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                      <Line yAxisId="right" type="monotone" name="feedIntake" dataKey="feedIntake" stroke="#d97706" strokeWidth={2.5} strokeDasharray="5 5" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 mt-4 text-[10px] leading-relaxed">
+                  <div className="space-y-1">
+                    <span className="font-bold text-teal-850 block uppercase text-[8px] tracking-wide">Weeks 1-10 (Early)</span>
+                    <p className="text-slate-500">Yield rises steeply. Feed intake is laggy, causing energy deficit. Must feed starch-dense rations to avoid rapid weight loss.</p>
+                  </div>
+                  <div className="space-y-1 border-l border-slate-200 pl-2.5">
+                    <span className="font-bold text-amber-800 block uppercase text-[8px] tracking-wide">Weeks 11-20 (Mid)</span>
+                    <p className="text-slate-500">DMI peaks, matching energy needs. Yield stabilizes. This represents the golden fertility and breeding re-insemination window.</p>
+                  </div>
+                  <div className="space-y-1 border-l border-slate-200 pl-2.5">
+                    <span className="font-bold text-slate-800 block uppercase text-[8px] tracking-wide">Weeks 21-44 (Late)</span>
+                    <p className="text-slate-500">Gradual yield decline. Shift feeds to high-roughage forage to prevent over-fattening, preparing cow for standard Dry-off.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

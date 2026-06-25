@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
 import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord } from '../types';
 import {
   Plus,
@@ -141,6 +142,8 @@ export function DairyBreeding({
   const [newCowPeakYield, setNewCowPeakYield] = useState<number | ''>('');
   const [milkingDate, setMilkingDate] = useState(new Date().toISOString().split('T')[0]);
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
+  const [pedigreeSubTab, setPedigreeSubTab] = useState<'tree' | 'offspring' | 'genetics'>('tree');
+  const [selectedMateId, setSelectedMateId] = useState<string>('');
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [cowSearch, setCowSearch] = useState('');
 
@@ -201,6 +204,196 @@ export function DairyBreeding({
     setOutflowDebts('');
     setOutflowCustomer('');
     setOutflowNotes('');
+  };
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth(); // A4: 210mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // A4: 297mm
+    const margin = 15;
+    const contentWidth = pageWidth - (margin * 2); // 180mm
+    
+    let pageNumber = 1;
+    
+    const drawHeader = (pageNum: number) => {
+      // Sleek background brand bar
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.rect(margin, 12, contentWidth, 24, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('DAIRY FARM OUTFLOW & CREDIT LEDGER', margin + 6, 21);
+      
+      // Subtitle
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(203, 213, 225); // slate-300
+      const generatedDate = new Date().toLocaleString('en-US', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      doc.text(`Generated: ${generatedDate} | System Report | Page ${pageNum}`, margin + 6, 28);
+    };
+    
+    const drawFooter = (pageNum: number) => {
+      // Simple hairline divider at footer
+      doc.setDrawColor(226, 232, 240); // slate-200
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 14, margin + contentWidth, pageHeight - 14);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184); // slate-400
+      doc.text('Dairy Breeding, Dispatch & Ledger Management System', margin, pageHeight - 9);
+      doc.text(`Page ${pageNum}`, pageWidth - margin - 15, pageHeight - 9);
+    };
+    
+    // Draw initial template
+    drawHeader(pageNumber);
+    drawFooter(pageNumber);
+    
+    let y = 43; // spacing from header
+    
+    // Summary Metrics Banner
+    doc.setFillColor(248, 250, 252); // slate-50
+    doc.rect(margin, y, contentWidth, 26, 'F');
+    doc.setDrawColor(226, 232, 240); // slate-200
+    doc.setLineWidth(0.5);
+    doc.rect(margin, y, contentWidth, 26, 'S');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.text('OUTFLOW PORTIONS & CREDIT BALANCES AGGREGATE SUMMARY', margin + 6, y + 6);
+    
+    const totalHome = milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0).toFixed(1);
+    const totalWorkers = milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0).toFixed(1);
+    const totalSpoilt = milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0).toFixed(1);
+    const totalDebts = milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0).toLocaleString();
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text('Home Consumed', margin + 6, y + 13);
+    doc.text('Staff Portions', margin + 48, y + 13);
+    doc.text('Total Spoiled', margin + 90, y + 13);
+    doc.text('Unpaid Debts', margin + 132, y + 13);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 41, 59); // slate-800
+    doc.text(`${totalHome} L`, margin + 6, y + 19.5);
+    doc.text(`${totalWorkers} L`, margin + 48, y + 19.5);
+    doc.text(`${totalSpoilt} L`, margin + 90, y + 19.5);
+    doc.setTextColor(16, 185, 129); // emerald-500 for money/debt status
+    doc.text(`Ksh ${totalDebts}`, margin + 132, y + 19.5);
+    
+    y += 35; // Advance down
+    
+    // Details header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text('CHRONOLOGICAL DISPATCH & LEDGER HISTORY', margin, y);
+    
+    y += 5;
+    
+    // Draw Table Header Box
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(margin, y, contentWidth, 8.5, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Date', margin + 4, y + 5.5);
+    doc.text('Home (L)', margin + 35, y + 5.5);
+    doc.text('Workers (L)', margin + 60, y + 5.5);
+    doc.text('Spoiled (L)', margin + 85, y + 5.5);
+    doc.text('Debt (Ksh) & Debtor', margin + 110, y + 5.5);
+    doc.text('Remarks / Notes', margin + 145, y + 5.5);
+    
+    y += 8.5;
+    
+    // Sort items so newest are at top
+    const sortedOutflows = [...milkOutflows].sort((a, b) => b.date.localeCompare(a.date));
+    
+    sortedOutflows.forEach((item, index) => {
+      // Dynamic page breaks
+      if (y > pageHeight - 22) {
+        doc.addPage();
+        pageNumber++;
+        drawHeader(pageNumber);
+        drawFooter(pageNumber);
+        
+        y = 43;
+        
+        // Redraw Table Header on new page
+        doc.setFillColor(15, 23, 42);
+        doc.rect(margin, y, contentWidth, 8.5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Date', margin + 4, y + 5.5);
+        doc.text('Home (L)', margin + 35, y + 5.5);
+        doc.text('Workers (L)', margin + 60, y + 5.5);
+        doc.text('Spoiled (L)', margin + 85, y + 5.5);
+        doc.text('Debt (Ksh) & Debtor', margin + 110, y + 5.5);
+        doc.text('Remarks / Notes', margin + 145, y + 5.5);
+        y += 8.5;
+      }
+      
+      // Row alternating color background
+      if (index % 2 === 1) {
+        doc.setFillColor(248, 250, 252); // slate-50
+        doc.rect(margin, y, contentWidth, 7.5, 'F');
+      }
+      
+      // Row bottom subtle hairline border
+      doc.setDrawColor(241, 245, 249); // slate-100
+      doc.setLineWidth(0.2);
+      doc.line(margin, y + 7.5, margin + contentWidth, y + 7.5);
+      
+      // Row text drawing
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85); // slate-700
+      
+      const dateString = new Date(item.date).toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'short', day: 'numeric' 
+      });
+      doc.text(dateString, margin + 4, y + 4.8);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${item.milkUsedAtHome} L`, margin + 35, y + 4.8);
+      doc.text(`${item.milkUsedByWorkers} L`, margin + 60, y + 4.8);
+      doc.text(item.milkSpoiled > 0 ? `${item.milkSpoiled} L` : '—', margin + 85, y + 4.8);
+      
+      if (item.debtsKsh > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(239, 68, 68); // Red-500
+        const debtText = `Ksh ${item.debtsKsh}` + (item.debtCustomer ? ` (${item.debtCustomer})` : '');
+        const truncatedDebt = debtText.length > 20 ? debtText.substring(0, 18) + '..' : debtText;
+        doc.text(truncatedDebt, margin + 110, y + 4.8);
+      } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184); // slate-400
+        doc.text('—', margin + 110, y + 4.8);
+      }
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139); // slate-500
+      const remarks = item.notes || '—';
+      const truncatedRemarks = remarks.length > 24 ? remarks.substring(0, 22) + '...' : remarks;
+      doc.text(truncatedRemarks, margin + 145, y + 4.8);
+      
+      y += 7.5;
+    });
+    
+    // Save generated PDF file with date stamp
+    const fileDateStr = new Date().toISOString().split('T')[0];
+    doc.save(`milk_outflow_ledger_${fileDateStr}.pdf`);
   };
 
   const handleMilkingSubmit = (e: React.FormEvent) => {
@@ -1684,9 +1877,22 @@ export function DairyBreeding({
 
               {/* History Table List */}
               <div className="md:col-span-2 overflow-x-auto">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block border-b border-slate-800 pb-1.5 mb-2">
-                  📊 Outflows & Credits Dispatch Ledger Logs
-                </span>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-1.5 mb-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                    📊 Outflows & Credits Dispatch Ledger Logs
+                  </span>
+                  {milkOutflows.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadPdf}
+                      id="download-outflow-pdf-btn"
+                      className="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer m-0 border-none shadow-sm"
+                    >
+                      <Download size={11} />
+                      <span>Download PDF Report</span>
+                    </button>
+                  )}
+                </div>
                 <table className="w-full text-xs text-slate-200">
                   <thead>
                     <tr className="border-b border-slate-800 text-slate-400 text-[10px] font-black uppercase text-left opacity-80">
@@ -4022,140 +4228,491 @@ export function DairyBreeding({
                 </p>
               </div>
               <button 
-                onClick={() => setPedigreeCow(null)} 
+                onClick={() => {
+                  setPedigreeCow(null);
+                  setSelectedMateId('');
+                }} 
                 className="text-slate-400 hover:text-slate-600 font-bold text-lg m-0 p-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-all"
               >
                 ✕
               </button>
             </div>
 
-            {/* Tree Presentation Area */}
-            <div className="py-2">
-              <span className="text-[10px] font-black text-slate-400 uppercase block mb-4 text-center tracking-widest">
-                Three Generation Ancestor Pedigree Mapping (Live Active Ledger)
+            {/* Modal Tabs */}
+            <div className="flex border-b border-slate-100 pb-1 overflow-x-auto gap-4">
+              <button
+                type="button"
+                onClick={() => setPedigreeSubTab('tree')}
+                className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                  pedigreeSubTab === 'tree'
+                    ? 'border-emerald-700 text-slate-900'
+                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                🌳 Ancestry Family Tree
+              </button>
+              <button
+                type="button"
+                onClick={() => setPedigreeSubTab('offspring')}
+                className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                  pedigreeSubTab === 'offspring'
+                    ? 'border-emerald-700 text-slate-900'
+                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                🧬 Offspring & Descendants
+              </button>
+              <button
+                type="button"
+                onClick={() => setPedigreeSubTab('genetics')}
+                className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                  pedigreeSubTab === 'genetics'
+                    ? 'border-emerald-700 text-slate-900'
+                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                }`}
+              >
+                🔬 Genetic Mating Simulator
+              </button>
+            </div>
+
+            {/* Tab 1: Ancestry Family Tree */}
+            {pedigreeSubTab === 'tree' && (
+              <div className="space-y-6">
+                <div className="py-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase block mb-4 text-center tracking-widest">
+                    Three Generation Ancestor Pedigree Mapping (Live Active Ledger)
+                  </span>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    {/* FIRST GENERATION: PROBAND (SELF) */}
+                    <div className="flex flex-col justify-center">
+                      <div className="p-4 bg-emerald-50/50 border-2 border-emerald-950/20 rounded-2xl shadow-sm text-center relative hover:border-emerald-600 transition-colors">
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-950 text-white rounded px-2 py-0.5 text-[8px] uppercase font-black tracking-wider">
+                          Proband/Subject
+                        </div>
+                        <div className="pt-4 pb-2">
+                          <span className="text-base font-black text-slate-900 block mt-1">{pedigreeCow.name}</span>
+                          <span className="text-[11px] font-bold text-slate-400 block mt-1">Tag: {pedigreeCow.id}</span>
+                          <span className="text-[10px] bg-emerald-950/10 text-emerald-900 font-black px-2 py-1 rounded mt-2 inline-block">
+                            Breed: {pedigreeCow.breed}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SECOND GENERATION: PARENTS */}
+                    <div className="flex flex-col justify-center space-y-6">
+                      {/* SIRE (FATHER ♂) */}
+                      <div className="p-4 bg-blue-50/20 border-2 border-blue-900/10 rounded-2xl shadow-sm relative hover:border-blue-400 transition-colors">
+                        <span className="text-[8px] font-black uppercase text-blue-700 block tracking-wider mb-1">Sire / Father ♂</span>
+                        <span className="text-sm font-black text-slate-800 block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
+                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Certified Pureblood Lineage</span>
+                        
+                        {pedigreeCow.sire && cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase());
+                              if (target) setPedigreeCow(target);
+                            }}
+                            className="mt-2.5 text-[9px] font-black uppercase text-blue-800 bg-blue-10/20 hover:bg-blue-100 hover:text-blue-950 border border-blue-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
+                          >
+                            🧬 Trace Sire Pedigree
+                          </button>
+                        )}
+                      </div>
+
+                      {/* DAM (MOTHER ♀) */}
+                      <div className="p-4 bg-rose-50/20 border-2 border-rose-900/10 rounded-2xl shadow-sm relative hover:border-rose-400 transition-colors">
+                        <span className="text-[8px] font-black uppercase text-rose-700 block tracking-wider mb-1">Dam / Mother ♀</span>
+                        <span className="text-sm font-black text-slate-800 block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
+                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Excellent Butterfat Producer</span>
+
+                        {pedigreeCow.dam && cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) && (
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase());
+                              if (target) setPedigreeCow(target);
+                            }}
+                            className="mt-2.5 text-[9px] font-black uppercase text-rose-800 bg-rose-10/20 hover:bg-rose-100 hover:text-rose-950 border border-rose-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
+                          >
+                            🧬 Trace Dam Pedigree
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* THIRD GENERATION: GRANDPARENTS */}
+                    <div className="flex flex-col justify-between space-y-4">
+                      {/* PATERNAL GRANDPARENTS */}
+                      <div className="space-y-2">
+                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                          <span className="text-[7.5px] font-black uppercase text-blue-600 block">Paternal Grand Sire</span>
+                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
+                        </div>
+                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                          <span className="text-[7.5px] font-black uppercase text-rose-600 block">Paternal Grand Dam</span>
+                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
+                        </div>
+                      </div>
+
+                      {/* MATERNAL GRANDPARENTS */}
+                      <div className="space-y-2 border-t border-slate-100 pt-3">
+                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                          <span className="text-[7.5px] font-black uppercase text-blue-600 block">Maternal Grand Sire</span>
+                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
+                        </div>
+                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                          <span className="text-[7.5px] font-black uppercase text-rose-600 block">Maternal Grand Dam</span>
+                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ancestry Inbreeding Risk Diagnostic */}
+                {(() => {
+                  const sharedAncestors: string[] = [];
+                  const pSire = pedigreeCow.sire?.toLowerCase().trim();
+                  const mDam = pedigreeCow.dam?.toLowerCase().trim();
+                  const pGsp = pedigreeCow.grandSirePaternal?.toLowerCase().trim();
+                  const pGdp = pedigreeCow.grandDamPaternal?.toLowerCase().trim();
+                  const mGsm = pedigreeCow.grandSireMaternal?.toLowerCase().trim();
+                  const mGdm = pedigreeCow.grandDamMaternal?.toLowerCase().trim();
+
+                  if (pSire && pSire === mDam) sharedAncestors.push("Sire is same as Dam (Extreme Close Breeding!)");
+                  if (pGsp && (pGsp === mGsm || pGsp === mGdm)) sharedAncestors.push(`Paternal Grand Sire (${pedigreeCow.grandSirePaternal}) matches Maternal Grandparents`);
+                  if (pGdp && (pGdp === mGsm || pGdp === mGdm)) sharedAncestors.push(`Paternal Grand Dam (${pedigreeCow.grandDamPaternal}) matches Maternal Grandparents`);
+
+                  return sharedAncestors.length > 0 ? (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-xs text-red-950">
+                      <span className="text-lg">⚠️</span>
+                      <div className="space-y-1">
+                        <span className="font-black uppercase tracking-wider block text-red-900 text-[10px]">Ancestry Inbreeding Conflict Alert!</span>
+                        <p className="font-semibold text-[11px]">
+                          Ancestral records indicate genetic overlap on both parental sides:
+                        </p>
+                        <ul className="list-disc pl-4 space-y-0.5 font-medium">
+                          {sharedAncestors.map((sa, idx) => <li key={idx}>{sa}</li>)}
+                        </ul>
+                        <span className="block text-[10px] text-red-700 italic pt-1 font-bold">
+                          Estimated Coefficient of Inbreeding (F) &ge; 12.5%. Proceed with outcross straws in future breeding.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 text-xs text-emerald-900">
+                      <span className="text-lg">✅</span>
+                      <div>
+                        <span className="font-bold uppercase text-emerald-950 block text-[10px]">Inbreeding Coefficient (F) = 0.00% (Clean / Outcrossed)</span>
+                        <p className="text-[11px] font-medium text-emerald-800">
+                          No overlapping ancestral identifiers detected in the registered three-generation lineage. Excellent genetic diversity.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Pedigree Certificate Actions (Download & Print) */}
+                <div className="bg-slate-50 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 text-center sm:text-left">
+                    <Sparkles className="text-emerald-700 shrink-0" size={15} />
+                    <span>Verified by JR Cooperative Registry board. Ready for local Studbook print download.</span>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPedigree(pedigreeCow)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase rounded-xl transition-all shadow-sm cursor-pointer m-0"
+                    >
+                      <Download size={13} />
+                      Download Pedigree Slip (HTML)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPedigree(pedigreeCow)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs uppercase rounded-xl transition-all cursor-pointer m-0"
+                      title="Generate certified documentation of the breeding pedigree chart"
+                    >
+                      <Printer size={13} />
+                      Print Official Deed
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Offspring & Descendants (Lineage Tracking) */}
+            {pedigreeSubTab === 'offspring' && (
+              <div className="space-y-6">
+                <span className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-widest text-center">
+                  Live Downward Lineage Tracking & Descendant Registers
+                </span>
+
+                {/* Find Direct Offspring */}
+                {(() => {
+                  const directOffspring = cows.filter(c => 
+                    (c.dam && (c.dam.toLowerCase() === pedigreeCow.id.toLowerCase() || c.dam.toLowerCase() === pedigreeCow.name.toLowerCase())) ||
+                    (c.sire && (c.sire.toLowerCase() === pedigreeCow.id.toLowerCase() || c.sire.toLowerCase() === pedigreeCow.name.toLowerCase()))
+                  );
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="bg-emerald-950 text-white rounded-2xl p-5 border border-emerald-900">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400">Direct Offspring (Generation F1)</h4>
+                        <p className="text-[11px] text-emerald-200 mt-0.5">
+                          Detected registered progeny in Nyaronde Herd that lists {pedigreeCow.name} as their dam or sire.
+                        </p>
+                      </div>
+
+                      {directOffspring.length === 0 ? (
+                        <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100">
+                          <span className="text-xl">🍼</span>
+                          <p className="text-xs text-slate-500 font-bold mt-2">No direct F1 descendants registered yet in this herd database.</p>
+                          <p className="text-[10px] text-slate-400 mt-1">Add calves or cows with parent Tag ID "{pedigreeCow.id}" to display them here.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {directOffspring.map(child => {
+                            // Find grandchildren (progeny of this child)
+                            const grandKids = cows.filter(g =>
+                              (g.dam && (g.dam.toLowerCase() === child.id.toLowerCase() || g.dam.toLowerCase() === child.name.toLowerCase())) ||
+                              (g.sire && (g.sire.toLowerCase() === child.id.toLowerCase() || g.sire.toLowerCase() === child.name.toLowerCase()))
+                            );
+
+                            return (
+                              <div key={child.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h5 className="font-black text-sm text-slate-900">{child.name}</h5>
+                                    <span className="text-[10px] text-slate-400 font-bold font-mono">ID: {child.id} | Breed: {child.breed}</span>
+                                  </div>
+                                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                                    child.status === 'Lactating' ? 'bg-emerald-100 text-emerald-950' : 'bg-amber-100 text-amber-950'
+                                  }`}>
+                                    {child.status}
+                                  </span>
+                                </div>
+
+                                <div className="text-[11px] font-medium text-slate-500 space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
+                                  <div>📅 Born: <strong>{child.dob}</strong> ({getCowAge(child.dob)})</div>
+                                  <div>🥛 Average Daily Yield: <strong>{getAverageYield(child.id).toFixed(1)} L/day</strong></div>
+                                </div>
+
+                                {/* Grand offspring indicator */}
+                                {grandKids.length > 0 && (
+                                  <div className="pt-2 border-t border-dashed border-slate-200">
+                                    <span className="text-[8px] font-black uppercase text-indigo-700 tracking-wider block mb-1">
+                                      Grand-descendants (F2 Lineage) ({grandKids.length}):
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {grandKids.map(gk => (
+                                        <span key={gk.id} className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-950 text-[9.5px] font-bold px-2 py-0.5 rounded-lg">
+                                          👶 {gk.name} ({gk.id})
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPedigreeCow(child);
+                                    setPedigreeSubTab('tree');
+                                  }}
+                                  className="w-full text-center text-[9.5px] font-black uppercase text-emerald-800 bg-emerald-50 hover:bg-emerald-100 py-1.5 rounded-lg border-0 cursor-pointer transition-all"
+                                >
+                                  Trace This Child's Lineage Tree &rarr;
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Tab 3: Genetics & Potential Mate Predictor */}
+            {pedigreeSubTab === 'genetics' && (
+              <div className="space-y-6">
+                <div className="bg-slate-50 p-4 rounded-2xl space-y-4">
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs font-black uppercase text-emerald-950 tracking-wider">🔬 Bovine Mating & Genetic Trait Predictor</h4>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
+                      Predict the lactation potential, physical coat alleles, and inbreeding safety coefficients for a prospective calf by selecting a breeding mate.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Subject Cow (Female Dam)</label>
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl font-bold text-xs text-slate-800">
+                        {pedigreeCow.name} ({pedigreeCow.breed}) - Tag: {pedigreeCow.id}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Select Breeding Sire (Semen Straw / Bull)</label>
+                      <select
+                        value={selectedMateId}
+                        onChange={(e) => setSelectedMateId(e.target.value)}
+                        className="w-full bg-white border border-slate-200 focus:border-emerald-700 rounded-xl px-3 py-3 font-bold text-xs cursor-pointer"
+                      >
+                        <option value="">-- Choose Mate --</option>
+                        {/* Premium custom straws */}
+                        <option value="straw-hf">Premium Semen: Holstein Ultimate-F (Peak: 45L)</option>
+                        <option value="straw-ay">Premium Semen: Ayrshire Redblood-7 (Peak: 38L)</option>
+                        <option value="straw-js">Premium Semen: Jersey Butterfat-Max (Peak: 34L)</option>
+                        {/* Registered bulls in the herd if any */}
+                        {cows.filter(c => c.id !== pedigreeCow.id).map(c => (
+                          <option key={c.id} value={c.id}>
+                            Registered: {c.name} ({c.breed}) - ID: {c.id}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedMateId ? (
+                  (() => {
+                    // Mating Simulation Logic
+                    let mateName = "Selected Sire";
+                    let mateBreed = pedigreeCow.breed;
+                    let matePeakTarget = 30;
+
+                    if (selectedMateId === 'straw-hf') {
+                      mateName = "Holstein Ultimate-F (Semen Straw)";
+                      mateBreed = "Holstein-Friesian";
+                      matePeakTarget = 45;
+                    } else if (selectedMateId === 'straw-ay') {
+                      mateName = "Ayrshire Redblood-7 (Semen Straw)";
+                      mateBreed = "Ayrshire";
+                      matePeakTarget = 38;
+                    } else if (selectedMateId === 'straw-js') {
+                      mateName = "Jersey Butterfat-Max (Semen Straw)";
+                      mateBreed = "Jersey";
+                      matePeakTarget = 34;
+                    } else {
+                      const matchedCow = cows.find(c => c.id === selectedMateId);
+                      if (matchedCow) {
+                        mateName = matchedCow.name;
+                        mateBreed = matchedCow.breed;
+                        matePeakTarget = matchedCow.peakYieldTarget || 30;
+                      }
+                    }
+
+                    // Compute inbreeding hazard
+                    const isSharedPedigree = selectedMateId !== 'straw-hf' && selectedMateId !== 'straw-ay' && selectedMateId !== 'straw-js' && (
+                      selectedMateId.toLowerCase() === pedigreeCow.sire?.toLowerCase().trim() ||
+                      selectedMateId.toLowerCase() === pedigreeCow.dam?.toLowerCase().trim()
+                    );
+
+                    // Compute lactation genetic merit (average of parents + 5% selection pressure)
+                    const damPeak = pedigreeCow.peakYieldTarget || 28;
+                    const predictedProgenyPeak = ((damPeak + matePeakTarget) / 2) * 1.05;
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="bg-gradient-to-br from-indigo-950 to-indigo-900 text-white rounded-2xl p-5 border border-indigo-900 space-y-4">
+                          <h4 className="text-xs font-black uppercase text-indigo-400 tracking-wider">📊 Expected Progeny Genetic Outcomes</h4>
+                          
+                          {isSharedPedigree && (
+                            <div className="p-3 bg-red-900/40 border border-red-500 rounded-xl text-xs text-red-100 flex items-center gap-2">
+                              <span>🛑</span>
+                              <span className="font-bold uppercase tracking-wider text-[10px]">CRITICAL INBREEDING WARNING: Mating Sire matches Proband Dam/Sire directly! Breeding discouraged.</span>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                              <span className="text-[9px] text-indigo-300 block font-black uppercase tracking-wider mb-1">Expected Lactation Peak</span>
+                              <span className="text-base font-black font-mono text-yellow-400">{predictedProgenyPeak.toFixed(1)} Liters/day</span>
+                              <span className="text-[9px] text-white/50 block font-medium mt-0.5">Estimated Breeding Value (EBV)</span>
+                            </div>
+
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                              <span className="text-[9px] text-indigo-300 block font-black uppercase tracking-wider mb-1">Inbreeding Coeff (F)</span>
+                              <span className={`text-base font-black font-mono ${isSharedPedigree ? 'text-red-400' : 'text-emerald-400'}`}>
+                                {isSharedPedigree ? '50.0% (Inbred)' : '0.0% (Safe)'}
+                              </span>
+                              <span className="text-[9px] text-white/50 block font-medium mt-0.5">Pedigree Coincidence Check</span>
+                            </div>
+
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                              <span className="text-[9px] text-indigo-300 block font-black uppercase tracking-wider mb-1">Predicted Birth Weight</span>
+                              <span className="text-base font-black font-mono text-indigo-200">38 kg - 42 kg</span>
+                              <span className="text-[9px] text-white/50 block font-medium mt-0.5">Breed Average Norm</span>
+                            </div>
+
+                            <div className="p-3 bg-white/5 rounded-xl border border-white/10 text-center">
+                              <span className="text-[9px] text-indigo-300 block font-black uppercase tracking-wider mb-1">Phenotypic Yield Gain</span>
+                              <span className="text-base font-black font-mono text-emerald-400">+1.5 L / Lactation</span>
+                              <span className="text-[9px] text-white/50 block font-medium mt-0.5">Genetic Progress Speed</span>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-white/10 pt-4 space-y-3">
+                            <span className="text-[10px] text-indigo-300 font-black uppercase tracking-wider block">Predicted Allelic Inheritance (Punnett Square Probability):</span>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-medium text-slate-300">
+                              <div className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                                <span>Coat Pattern:</span>
+                                <strong className="text-white">Black-White (75% Dom) | Red-White (25% Rec)</strong>
+                              </div>
+                              <div className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                                <span>Horned Allele:</span>
+                                <strong className="text-white">Polled Hornless (100% Dominant Heterozygous)</strong>
+                              </div>
+                              <div className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                                <span>Disease Resistance (Tick/Bovine):</span>
+                                <strong className="text-white">High Resistance (F1 Hybrid Heterosis effect)</strong>
+                              </div>
+                              <div className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-lg border border-white/5">
+                                <span>Offspring Sex Probability:</span>
+                                <strong className="text-yellow-400">95% Female heifer (Sexed straw selected)</strong>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Sire Recommendations Matchmaker Matrix */}
+                        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-2">
+                          <span className="text-[9.5px] font-black uppercase text-emerald-950 block">💡 Stud Matchmaker Insights</span>
+                          <p className="text-[11px] text-emerald-800 leading-relaxed font-semibold">
+                            Recommended Straw choice for this mating: <strong className="text-emerald-950 font-black">Holstein Ultimate-F</strong>. It yields the highest genetic lactation transfer of <span className="underline">+{predictedProgenyPeak.toFixed(1)} L/day</span> with absolutely 0% risk of inbreeding depression.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span className="text-2xl">🧬</span>
+                    <p className="text-xs text-slate-500 font-bold mt-2">Select a prospective Sire/Straw above to execute mating simulation.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+              <span className="text-[10px] text-slate-400 font-mono font-bold">
+                JR Farm Bovine Registry &bull; Verified Sovereignty System
               </span>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                
-                {/* FIRST GENERATION: PROBAND (SELF) */}
-                <div className="flex flex-col justify-center">
-                  <div className="p-4 bg-emerald-50/50 border-2 border-emerald-950/20 rounded-2xl shadow-sm text-center relative hover:border-emerald-600 transition-colors">
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-950 text-white rounded px-2 py-0.5 text-[8px] uppercase font-black tracking-wider">
-                      Proband/Subject
-                    </div>
-                    <div className="pt-4 pb-2">
-                      <span className="text-base font-black text-slate-900 block mt-1">{pedigreeCow.name}</span>
-                      <span className="text-[11px] font-bold text-slate-400 block mt-1">Tag: {pedigreeCow.id}</span>
-                      <span className="text-[10px] bg-emerald-950/10 text-emerald-900 font-black px-2 py-1 rounded mt-2 inline-block">
-                        Breed: {pedigreeCow.breed}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECOND GENERATION: PARENTS */}
-                <div className="flex flex-col justify-center space-y-6">
-                  {/* SIRE (FATHER ♂) */}
-                  <div className="p-4 bg-blue-50/20 border-2 border-blue-900/10 rounded-2xl shadow-sm relative hover:border-blue-400 transition-colors">
-                    <span className="text-[8px] font-black uppercase text-blue-700 block tracking-wider mb-1">Sire / Father ♂</span>
-                    <span className="text-sm font-black text-slate-800 block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-1">Certified Pureblood Lineage</span>
-                    
-                    {pedigreeCow.sire && cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) && (
-                      <button 
-                        onClick={() => {
-                          const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase());
-                          if (target) setPedigreeCow(target);
-                        }}
-                        className="mt-2.5 text-[9px] font-black uppercase text-blue-800 bg-blue-10/20 hover:bg-blue-100 hover:text-blue-950 border border-blue-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
-                      >
-                        🧬 Trace Sire Pedigree
-                      </button>
-                    )}
-                  </div>
-
-                  {/* DAM (MOTHER ♀) */}
-                  <div className="p-4 bg-rose-50/20 border-2 border-rose-900/10 rounded-2xl shadow-sm relative hover:border-rose-400 transition-colors">
-                    <span className="text-[8px] font-black uppercase text-rose-700 block tracking-wider mb-1">Dam / Mother ♀</span>
-                    <span className="text-sm font-black text-slate-800 block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
-                    <span className="text-[10px] text-slate-400 font-bold block mt-1">Excellent Butterfat Producer</span>
-
-                    {pedigreeCow.dam && cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) && (
-                      <button 
-                        onClick={() => {
-                          const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase());
-                          if (target) setPedigreeCow(target);
-                        }}
-                        className="mt-2.5 text-[9px] font-black uppercase text-rose-800 bg-rose-10/20 hover:bg-rose-100 hover:text-rose-950 border border-rose-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
-                      >
-                        🧬 Trace Dam Pedigree
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* THIRD GENERATION: GRANDPARENTS */}
-                <div className="flex flex-col justify-between space-y-4">
-                  {/* PATERNAL GRANDPARENTS */}
-                  <div className="space-y-2">
-                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
-                      <span className="text-[7.5px] font-black uppercase text-blue-600 block">Paternal Grand Sire</span>
-                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
-                      <span className="text-[7.5px] font-black uppercase text-rose-600 block">Paternal Grand Dam</span>
-                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
-                    </div>
-                  </div>
-
-                  {/* MATERNAL GRANDPARENTS */}
-                  <div className="space-y-2 border-t border-slate-100 pt-3">
-                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
-                      <span className="text-[7.5px] font-black uppercase text-blue-600 block">Maternal Grand Sire</span>
-                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
-                      <span className="text-[7.5px] font-black uppercase text-rose-600 block">Maternal Grand Dam</span>
-                      <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Pedigree Certificate Actions (Download & Print) */}
-            <div className="bg-slate-50 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 text-center sm:text-left">
-                <Sparkles className="text-emerald-700 shrink-0" size={15} />
-                <span>Verified by JR Cooperative Registry board. Ready for local Studbook print download.</span>
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => handleDownloadPedigree(pedigreeCow)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase rounded-xl transition-all shadow-sm cursor-pointer m-0"
-                >
-                  <Download size={13} />
-                  Download Pedigree Slip (HTML)
-                </button>
-                <button
-                  onClick={() => {
-                    // Open a small customizable print setup of this element or trigger download
-                    handleDownloadPedigree(pedigreeCow);
-                  }}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs uppercase rounded-xl transition-all cursor-pointer m-0"
-                  title="Generate certified documentation of the breeding pedigree chart"
-                >
-                  <Printer size={13} />
-                  Print Official Deed
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-100">
               <button
-                onClick={() => setPedigreeCow(null)}
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black uppercase text-xs rounded-xl transition-colors cursor-pointer m-0"
+                type="button"
+                onClick={() => {
+                  setPedigreeCow(null);
+                  setSelectedMateId('');
+                }}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black uppercase text-xs rounded-xl transition-colors cursor-pointer m-0 border-0"
               >
                 Close Family Tree
               </button>

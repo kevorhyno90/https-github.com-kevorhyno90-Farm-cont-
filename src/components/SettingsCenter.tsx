@@ -425,6 +425,9 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     <option value="portrait">📱 Lock Portrait (No Auto-Turn)</option>
                     <option value="landscape">📐 Lock Landscape (Wide View)</option>
                   </select>
+                  <p className="text-[9px] text-amber-700 font-semibold leading-normal mt-1.5 bg-amber-50 border border-amber-200 p-2 rounded-lg">
+                    ⚠️ <strong>Iframe Preview Note:</strong> Browsers prevent webpage orientation locking when running inside sandboxed frames (like this AI Studio preview panel). Once you install the app on your phone as a standalone PWA, <strong>"Lock Portrait" will strictly override and stop auto-rotation.</strong> For this preview, please disable your device's auto-rotate setting in the OS control panel.
+                  </p>
                 </div>
               </div>
 

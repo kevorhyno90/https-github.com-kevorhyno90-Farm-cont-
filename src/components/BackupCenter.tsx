@@ -41,6 +41,258 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
   const [isSyncLoading, setIsSyncLoading] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string>(() => localStorage.getItem('jr_farm_cloud_last_synced_at') || '');
 
+  // Conflict States
+  const [cloudPayload, setCloudPayload] = useState<Record<string, any> | null>(null);
+  const [conflicts, setConflicts] = useState<Array<{
+    key: string;
+    label: string;
+    localOnlyCount: number;
+    cloudOnlyCount: number;
+    idConflicts: Array<{
+      id: string;
+      localVal: any;
+      cloudVal: any;
+      selectedSource: 'local' | 'cloud';
+    }>;
+  }>>([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+
+  const analyzeAndShowConflicts = (retrievedDb: Record<string, any>): boolean => {
+    const keys = [
+      'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+      'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+      'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+      'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+      'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
+      'jr_farm_estate_settings'
+    ];
+
+    const foundConflicts: any[] = [];
+
+    keys.forEach(k => {
+      const localRaw = localStorage.getItem(k);
+      const cloudRaw = retrievedDb[k];
+
+      if (!cloudRaw) return;
+
+      let localData: any = null;
+      if (localRaw) {
+        try {
+          localData = JSON.parse(localRaw);
+        } catch {
+          localData = localRaw;
+        }
+      }
+
+      const cloudData = cloudRaw;
+      const label = k.replace('jr_farm_', '').replace(/_/g, ' ').toUpperCase();
+
+      if (Array.isArray(localData) && Array.isArray(cloudData)) {
+        const localMap = new Map<string, any>();
+        localData.forEach(item => {
+          const id = item.id || item.code || item.name || JSON.stringify(item);
+          localMap.set(String(id), item);
+        });
+
+        const cloudMap = new Map<string, any>();
+        cloudData.forEach(item => {
+          const id = item.id || item.code || item.name || JSON.stringify(item);
+          cloudMap.set(String(id), item);
+        });
+
+        let localOnlyCount = 0;
+        let cloudOnlyCount = 0;
+        const idConflictsList: any[] = [];
+
+        localMap.forEach((val, id) => {
+          if (!cloudMap.has(id)) {
+            localOnlyCount++;
+          } else {
+            const cloudVal = cloudMap.get(id);
+            if (JSON.stringify(val) !== JSON.stringify(cloudVal)) {
+              idConflictsList.push({
+                id,
+                localVal: val,
+                cloudVal,
+                selectedSource: 'cloud'
+              });
+            }
+          }
+        });
+
+        cloudMap.forEach((val, id) => {
+          if (!localMap.has(id)) {
+            cloudOnlyCount++;
+          }
+        });
+
+        if (localOnlyCount > 0 || cloudOnlyCount > 0 || idConflictsList.length > 0) {
+          foundConflicts.push({
+            key: k,
+            label,
+            localOnlyCount,
+            cloudOnlyCount,
+            idConflicts: idConflictsList
+          });
+        }
+      } else {
+        if (JSON.stringify(localData) !== JSON.stringify(cloudData)) {
+          foundConflicts.push({
+            key: k,
+            label,
+            localOnlyCount: localData ? 1 : 0,
+            cloudOnlyCount: 1,
+            idConflicts: [{
+              id: 'CONFIG',
+              localVal: localData,
+              cloudVal: cloudData,
+              selectedSource: 'cloud'
+            }]
+          });
+        }
+      }
+    });
+
+    if (foundConflicts.length > 0) {
+      setConflicts(foundConflicts);
+      setCloudPayload(retrievedDb);
+      setShowConflictModal(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handleExecuteMerge = async (strategy: 'merge' | 'cloud' | 'local') => {
+    if (!cloudPayload) return;
+
+    const keys = [
+      'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+      'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+      'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+      'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+      'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
+      'jr_farm_estate_settings'
+    ];
+
+    const mergedPayload: Record<string, any> = {};
+
+    keys.forEach(k => {
+      const localRaw = localStorage.getItem(k);
+      const cloudRaw = cloudPayload[k];
+
+      if (!localRaw && !cloudRaw) return;
+
+      let localData: any = null;
+      if (localRaw) {
+        try { localData = JSON.parse(localRaw); } catch { localData = localRaw; }
+      }
+
+      const cloudData = cloudRaw;
+
+      if (!localData) {
+        mergedPayload[k] = cloudData;
+        return;
+      }
+      if (!cloudData) {
+        mergedPayload[k] = localData;
+        return;
+      }
+
+      if (strategy === 'cloud') {
+        mergedPayload[k] = cloudData;
+        return;
+      }
+      if (strategy === 'local') {
+        mergedPayload[k] = localData;
+        return;
+      }
+
+      if (Array.isArray(localData) && Array.isArray(cloudData)) {
+        const itemConflicts = conflicts.find(c => c.key === k)?.idConflicts || [];
+        const conflictResolutions = new Map<string, 'local' | 'cloud'>();
+        itemConflicts.forEach(item => {
+          conflictResolutions.set(item.id, item.selectedSource);
+        });
+
+        const mergedArray: any[] = [];
+        const localMap = new Map<string, any>();
+        localData.forEach(item => {
+          const id = item.id || item.code || item.name || JSON.stringify(item);
+          localMap.set(String(id), item);
+        });
+
+        const cloudMap = new Map<string, any>();
+        cloudData.forEach(item => {
+          const id = item.id || item.code || item.name || JSON.stringify(item);
+          cloudMap.set(String(id), item);
+        });
+
+        localMap.forEach((val, id) => {
+          if (!cloudMap.has(id)) {
+            mergedArray.push(val);
+          } else {
+            const resolution = conflictResolutions.get(id) || 'cloud';
+            if (resolution === 'local') {
+              mergedArray.push(val);
+            } else {
+              mergedArray.push(cloudMap.get(id));
+            }
+          }
+        });
+
+        cloudMap.forEach((val, id) => {
+          if (!localMap.has(id)) {
+            mergedArray.push(val);
+          }
+        });
+
+        mergedPayload[k] = mergedArray;
+      } else {
+        const configConflict = conflicts.find(c => c.key === k)?.idConflicts?.[0];
+        if (configConflict) {
+          mergedPayload[k] = configConflict.selectedSource === 'local' ? localData : cloudData;
+        } else {
+          mergedPayload[k] = cloudData;
+        }
+      }
+    });
+
+    const success = onImportFullBackup(mergedPayload);
+    if (success) {
+      try {
+        const cleanKey = syncKey.trim().toLowerCase();
+        await fetch('/api/sync/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ syncKey: cleanKey, database: mergedPayload })
+        });
+      } catch (e) {
+        console.error("Auto backup save failed after merge", e);
+      }
+
+      const nowStr = new Date().toLocaleString();
+      localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
+      setLastSyncedAt(nowStr);
+      setShowConflictModal(false);
+
+      setStatusMsg({
+        type: 'success',
+        text: `📡 Multi-Device Merge Successful! Resolved conflicts and uploaded unified database state to Cloud Sync Room "${syncKey.trim().toLowerCase()}". Reloading system...`
+      });
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      setStatusMsg({
+        type: 'error',
+        text: 'Merged database rejected by system integrity validators.'
+      });
+    }
+  };
+
   const [isForcedOffline, setIsForcedOffline] = useState<boolean>(() => {
     return localStorage.getItem('jr_farm_forced_offline') === 'true';
   });
@@ -192,6 +444,16 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
       if (!reply.database || typeof reply.database !== 'object') {
         throw new Error('Retrieved sync room contains corrupted databases.');
+      }
+
+      // Check for conflicts first
+      const hasConflicts = analyzeAndShowConflicts(reply.database);
+      if (hasConflicts) {
+        setStatusMsg({
+          type: 'success',
+          text: `📡 Cloud state retrieved. Differences or potential sync conflicts detected. Multi-device merge controls activated below.`
+        });
+        return;
       }
 
       // Import the retrieved database state
@@ -503,6 +765,133 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
               </p>
             )}
           </div>
+
+          {/* ACTIVE CONFLICT RESOLUTION & MERGE BOARD */}
+          {showConflictModal && conflicts.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-4 text-left animate-fadeIn">
+              <div className="flex items-center gap-3 pb-3 border-b border-amber-100">
+                <span className="text-2xl">⚠️</span>
+                <div>
+                  <h3 className="text-sm font-black uppercase text-amber-950 font-mono tracking-wide">Multi-Device Database Sync Conflicts Detected</h3>
+                  <p className="text-[11px] text-amber-800 font-medium">
+                    The cloud room database has different records compared to this device. Please select a merge or resolution strategy below.
+                  </p>
+                </div>
+              </div>
+
+              {/* Conflict list */}
+              <div className="space-y-4">
+                {conflicts.map((c, cIndex) => (
+                  <div key={c.key} className="bg-white p-4 rounded-xl border border-amber-200/60 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
+                        {c.label} Module
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        Local: {c.localOnlyCount} uniquely | Cloud: {c.cloudOnlyCount} uniquely
+                      </span>
+                    </div>
+
+                    {c.idConflicts.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[9px] text-slate-400 block font-bold uppercase tracking-wider">
+                          Conflicting records (Shared IDs with different details):
+                        </span>
+                        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 divide-y divide-slate-100">
+                          {c.idConflicts.map((ic, icIndex) => (
+                            <div key={ic.id} className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[10.5px]">
+                              <div>
+                                <span className="font-bold text-slate-800 font-mono">Record ID: {ic.id}</span>
+                                <span className="text-[9px] text-slate-400 block font-medium">
+                                  Detects differing attributes. Choose which version to preserve.
+                                </span>
+                              </div>
+
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setConflicts(prev => {
+                                      const updated = [...prev];
+                                      updated[cIndex].idConflicts[icIndex].selectedSource = 'cloud';
+                                      return updated;
+                                    });
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide cursor-pointer border transition-all ${
+                                    ic.selectedSource === 'cloud'
+                                      ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  Use Cloud
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setConflicts(prev => {
+                                      const updated = [...prev];
+                                      updated[cIndex].idConflicts[icIndex].selectedSource = 'local';
+                                      return updated;
+                                    });
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide cursor-pointer border transition-all ${
+                                    ic.selectedSource === 'local'
+                                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  Keep Local
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Strategies */}
+              <div className="bg-amber-100/30 p-4 rounded-xl border border-amber-200 text-left space-y-4 pt-4">
+                <h4 className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Select Resolution Strategy</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleExecuteMerge('merge')}
+                    className="p-3 bg-teal-850 hover:bg-teal-800 text-white rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer border-none shadow-sm transition-all"
+                  >
+                    🤝 Smart Merge Record-By-ID
+                    <span className="block text-[8px] font-normal text-teal-200 lowercase mt-0.5">Keeps all unique items; resolves conflicting IDs above</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleExecuteMerge('cloud')}
+                    className="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer border border-slate-700 shadow-sm transition-all"
+                  >
+                    📥 Cloud Overwrite
+                    <span className="block text-[8px] font-normal text-slate-300 lowercase mt-0.5">Completely replace this local device state with cloud</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowConflictModal(false);
+                      setConflicts([]);
+                      setCloudPayload(null);
+                      setStatusMsg({ type: null, text: '' });
+                    }}
+                    className="p-3 bg-white hover:bg-slate-55 border border-amber-250 text-amber-950 rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer transition-all"
+                  >
+                    🚫 Abandon Pull
+                    <span className="block text-[8px] font-normal text-amber-800 lowercase mt-0.5">Keep current local data as is and close merge dashboard</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Export */}

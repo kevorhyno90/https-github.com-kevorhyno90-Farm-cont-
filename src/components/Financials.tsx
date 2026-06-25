@@ -4,12 +4,12 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { FinancialRecord, AIRecord, Cow } from '../types';
+import { FinancialRecord, AIRecord, Cow, FieldRecord } from '../types';
 import { 
   Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
   BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
   AlertTriangle, DollarSign, BrainCircuit, Activity, Settings, Target, 
-  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table, Printer
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table, Printer, Sliders
 } from 'lucide-react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -22,6 +22,8 @@ interface FinancialsProps {
   onDeleteTransaction: (id: string) => void;
   onEditFinancialRecord?: (id: string, updated: FinancialRecord) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  cows?: Cow[];
+  fields?: FieldRecord[];
 }
 
 export function Financials({ 
@@ -29,10 +31,12 @@ export function Financials({
   onAddTransaction, 
   onDeleteTransaction, 
   onEditFinancialRecord, 
-  onTriggerSectionReport 
+  onTriggerSectionReport,
+  cows = [],
+  fields = []
 }: FinancialsProps) {
   // Navigation tabs for Financials view
-  const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi'>('ledger');
+  const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi' | 'granular_analysis'>('ledger');
 
   // Income form state
   const [incAmt, setIncAmt] = useState<number | ''>('');
@@ -91,6 +95,7 @@ export function Financials({
 
   // State to simulate or adjust active milk price/day in ROI calculations
   const [activeMarketMilkPrice, setActiveMarketMilkPrice] = useState<number>(65);
+  const [granularViewMode, setGranularViewMode] = useState<'cow' | 'block'>('cow');
 
   // Standard submit actions
   const handleIncomeSubmit = (e: React.FormEvent) => {
@@ -353,6 +358,215 @@ export function Financials({
     };
   }, [activeMarketMilkPrice]);
 
+  const granularPnlData = useMemo(() => {
+    let vetRecords: any[] = [];
+    let milkRecords: any[] = [];
+    let aiRecords: any[] = [];
+    try {
+      const savedVets = localStorage.getItem('jr_farm_vets');
+      if (savedVets) vetRecords = JSON.parse(savedVets);
+      const savedMilk = localStorage.getItem('jr_farm_milk');
+      if (savedMilk) milkRecords = JSON.parse(savedMilk);
+      const savedAI = localStorage.getItem('jr_farm_ai');
+      if (savedAI) aiRecords = JSON.parse(savedAI);
+    } catch (e) {
+      console.error(e);
+    }
+
+    const animalList = (cows && cows.length > 0) ? cows : [
+      { id: 'COW-01', name: 'Zesta', breed: 'Friesian Pure', dob: '2021-04-12', status: 'Lactating', notes: 'Peak producer' },
+      { id: 'COW-02', name: 'Goldie', breed: 'Jersey Grade', dob: '2022-01-05', status: 'Lactating', notes: 'High butterfat content' },
+      { id: 'COW-03', name: 'Asha', breed: 'Ayrshire Cross', dob: '2022-06-18', status: 'In-Calf', notes: 'Due soon' },
+      { id: 'COW-04', name: 'Ruby', breed: 'Guernsey', dob: '2023-03-22', status: 'Heifer', notes: 'Replacement stock' }
+    ];
+
+    const blockList = (fields && fields.length > 0) ? fields : [
+      { id: '1', blockName: 'Block Alpha', cropType: 'Maize', acreage: 5, status: 'Growing', notes: 'Planted hybrid' },
+      { id: '2', blockName: 'Block Beta', cropType: 'Napier', acreage: 3, status: 'Growing', notes: 'Under drip irrigation' },
+      { id: '3', blockName: 'West Orchard', cropType: 'Avocado', acreage: 4, status: 'Growing', notes: 'Organic Hass variety' }
+    ];
+
+    const totalFeedLedgerExpense = financialRecords
+      .filter(f => f.type === 'expense' && (f.category.toLowerCase().includes('feed') || f.description.toLowerCase().includes('feed')))
+      .reduce((sum, f) => sum + f.amount, 0);
+
+    const milkByCow: Record<string, number> = {};
+    milkRecords.forEach(rec => {
+      const tag = rec.id || rec.cowId;
+      if (tag) {
+        const liters = (Number(rec.am) || 0) + (Number(rec.pm) || 0);
+        milkByCow[tag] = (milkByCow[tag] || 0) + liters;
+      }
+    });
+
+    const vetByCow: Record<string, number> = {};
+    vetRecords.forEach(rec => {
+      const tag = rec.cowId;
+      if (tag) {
+        vetByCow[tag] = (vetByCow[tag] || 0) + (Number(rec.cost) || 0);
+      }
+    });
+
+    const aiByCow: Record<string, number> = {};
+    aiRecords.forEach(rec => {
+      const tag = rec.cowId;
+      if (tag) {
+        aiByCow[tag] = (aiByCow[tag] || 0) + 1;
+      }
+    });
+
+    const computedCows = animalList.map(cow => {
+      const cowId = cow.id;
+      
+      let milkLiters = milkByCow[cowId] || 0;
+      let isEstimated = false;
+      if (milkLiters === 0 && cow.status === 'Lactating') {
+        const dailyEst = cow.breed.toLowerCase().includes('friesian') ? 22 : (cow.breed.toLowerCase().includes('jersey') ? 14 : 18);
+        milkLiters = dailyEst * 30;
+        isEstimated = true;
+      }
+
+      const vetCost = vetByCow[cowId] || 0;
+      const aiServices = aiByCow[cowId] || 0;
+      const breedingCost = aiServices * 3000;
+
+      let feedCost = 0;
+      if (cow.status !== 'Dry') {
+        if (totalFeedLedgerExpense > 0) {
+          const totalCohortYield = animalList
+            .filter(c => c.status === 'Lactating')
+            .reduce((sum, c) => {
+              let l = milkByCow[c.id] || 0;
+              if (l === 0) {
+                const dailyEst = c.breed.toLowerCase().includes('friesian') ? 22 : (c.breed.toLowerCase().includes('jersey') ? 14 : 18);
+                l = dailyEst * 30;
+              }
+              return sum + l;
+            }, 0);
+          const share = totalCohortYield > 0 ? (milkLiters / totalCohortYield) : (1 / animalList.length);
+          feedCost = totalFeedLedgerExpense * share;
+        } else {
+          const daysAnalyzed = 30;
+          const baselineCostPerDay = cow.breed.toLowerCase().includes('friesian') ? 320 : (cow.breed.toLowerCase().includes('jersey') ? 220 : 270);
+          feedCost = baselineCostPerDay * daysAnalyzed;
+        }
+      } else {
+        feedCost = 150 * 30;
+      }
+
+      const totalCost = vetCost + feedCost + breedingCost;
+      const totalRevenue = milkLiters * activeMarketMilkPrice;
+      const profit = totalRevenue - totalCost;
+      const copPerLiter = milkLiters > 0 ? totalCost / milkLiters : 0;
+      const marginPercent = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+
+      let efficiencyRating = 'Stable';
+      if (cow.status === 'Lactating') {
+        if (copPerLiter < 38) efficiencyRating = 'Highly Efficient (Optimal converter)';
+        else if (copPerLiter <= 52) efficiencyRating = 'Acceptable (Moderate margins)';
+        else efficiencyRating = 'Low Profitability (High feed overhead)';
+      } else if (cow.status === 'Heifer') {
+        efficiencyRating = 'Heifer (Future asset investment)';
+      } else {
+        efficiencyRating = 'Dry (Resting period)';
+      }
+
+      return {
+        ...cow,
+        milkLiters,
+        vetCost,
+        breedingCost,
+        feedCost,
+        totalCost,
+        totalRevenue,
+        profit,
+        copPerLiter,
+        marginPercent,
+        efficiencyRating,
+        isEstimated
+      };
+    });
+
+    const computedBlocks = blockList.map(block => {
+      const nameLower = block.blockName.toLowerCase();
+      const cropLower = block.cropType.toLowerCase();
+
+      let revenue = financialRecords
+        .filter(f => f.type === 'income' && (
+          f.description.toLowerCase().includes(nameLower) || 
+          f.category.toLowerCase().includes(nameLower) ||
+          f.description.toLowerCase().includes(cropLower) || 
+          f.category.toLowerCase().includes(cropLower)
+        ))
+        .reduce((sum, f) => sum + f.amount, 0);
+
+      let isEstimated = false;
+      if (revenue === 0) {
+        let revenuePerAcre = 35000;
+        if (cropLower.includes('avocado')) revenuePerAcre = 110000;
+        else if (cropLower.includes('napier')) revenuePerAcre = 16000;
+        else if (cropLower.includes('vegetable') || cropLower.includes('tomato')) revenuePerAcre = 175000;
+        else if (cropLower.includes('eucalyptus') || cropLower.includes('wood')) revenuePerAcre = 85000;
+        else if (cropLower.includes('tea')) revenuePerAcre = 130000;
+
+        revenue = revenuePerAcre * block.acreage;
+        isEstimated = true;
+      }
+
+      let costs = financialRecords
+        .filter(f => f.type === 'expense' && (
+          f.description.toLowerCase().includes(nameLower) || 
+          f.category.toLowerCase().includes(nameLower) ||
+          f.description.toLowerCase().includes(cropLower) || 
+          f.category.toLowerCase().includes(cropLower)
+        ))
+        .reduce((sum, f) => sum + f.amount, 0);
+
+      if (costs === 0) {
+        let costPerAcre = 16000;
+        if (cropLower.includes('avocado')) costPerAcre = 30000;
+        else if (cropLower.includes('napier')) costPerAcre = 8000;
+        else if (cropLower.includes('vegetable') || cropLower.includes('tomato')) costPerAcre = 45000;
+        else if (cropLower.includes('tea')) costPerAcre = 35000;
+
+        costs = costPerAcre * block.acreage;
+        isEstimated = true;
+      }
+
+      const profit = revenue - costs;
+      const copPerAcre = block.acreage > 0 ? costs / block.acreage : 0;
+      const marginPercent = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+      let efficiencyRating = 'Profitable';
+      if (marginPercent > 50) efficiencyRating = 'Outstanding (Optimal yield)';
+      else if (marginPercent >= 15) efficiencyRating = 'Healthy (Standard farm margin)';
+      else if (marginPercent >= 0) efficiencyRating = 'Tight Break-even';
+      else efficiencyRating = 'Operating at Deficit';
+
+      return {
+        ...block,
+        revenue,
+        costs,
+        profit,
+        copPerAcre,
+        marginPercent,
+        efficiencyRating,
+        isEstimated
+      };
+    });
+
+    return {
+      cows: computedCows,
+      blocks: computedBlocks,
+      totalCowProfit: computedCows.reduce((sum, c) => sum + c.profit, 0),
+      totalCowCost: computedCows.reduce((sum, c) => sum + c.totalCost, 0),
+      totalCowRevenue: computedCows.reduce((sum, c) => sum + c.totalRevenue, 0),
+      totalBlockProfit: computedBlocks.reduce((sum, b) => sum + b.profit, 0),
+      totalBlockCost: computedBlocks.reduce((sum, b) => sum + b.costs, 0),
+      totalBlockRevenue: computedBlocks.reduce((sum, b) => sum + b.revenue, 0)
+    };
+  }, [cows, fields, financialRecords, activeMarketMilkPrice]);
+
   const downloadFinancialsCSV = () => {
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'NYARONDE FARM ACCOUNTING LEDGER\n';
@@ -443,6 +657,16 @@ export function Financials({
         >
           <BrainCircuit size={14} className="text-amber-800" />
           <span>Breeding Predictions</span>
+        </button>
+
+        <button
+          onClick={() => setSubTab('granular_analysis')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
+            subTab === 'granular_analysis' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Sliders size={14} className="text-teal-700" />
+          <span>Granular Cost / P&L</span>
         </button>
       </div>
 
@@ -1167,6 +1391,270 @@ export function Financials({
                     })}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUBTAB 5: Granular Cost of Production & Profitability per Block / Animal */}
+      {subTab === 'granular_analysis' && (
+        <div className="space-y-8 text-left animate-fadeIn">
+          {/* Dashboard Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
+                {granularViewMode === 'cow' ? 'Total Dairy Revenue' : 'Total Crop Revenue'}
+              </span>
+              <h3 className="text-xl font-black text-emerald-900 font-mono mt-1">
+                Ksh {granularViewMode === 'cow' 
+                  ? granularPnlData.totalCowRevenue.toLocaleString() 
+                  : granularPnlData.totalBlockRevenue.toLocaleString()}
+              </h3>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">
+                Based on active {granularViewMode === 'cow' ? `Ksh ${activeMarketMilkPrice}/L price` : 'block sales'}
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
+                {granularViewMode === 'cow' ? 'Total Cattle Cost' : 'Total Agronomy Cost'}
+              </span>
+              <h3 className="text-xl font-black text-rose-800 font-mono mt-1">
+                Ksh {granularViewMode === 'cow' 
+                  ? granularPnlData.totalCowCost.toLocaleString() 
+                  : granularPnlData.totalBlockCost.toLocaleString()}
+              </h3>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">
+                Includes {granularViewMode === 'cow' ? 'vet, feed & AI' : 'tillage, seeds & fertilizer'}
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
+                Net Profitability
+              </span>
+              <h3 className="text-xl font-black text-emerald-950 font-mono mt-1">
+                Ksh {granularViewMode === 'cow' 
+                  ? granularPnlData.totalCowProfit.toLocaleString() 
+                  : granularPnlData.totalBlockProfit.toLocaleString()}
+              </h3>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">
+                Net operating margin
+              </p>
+            </div>
+
+            <div className="bg-teal-950 text-white rounded-2xl p-5 border border-teal-900 shadow-sm">
+              <span className="text-[10px] text-teal-300 font-extrabold uppercase tracking-wider block">
+                Average Cost Efficiency
+              </span>
+              <h3 className="text-xl font-black font-mono mt-1">
+                {granularViewMode === 'cow' ? (
+                  <>Ksh {(granularPnlData.totalCowRevenue > 0 ? (granularPnlData.totalCowCost / (granularPnlData.totalCowRevenue / activeMarketMilkPrice)) : 0).toFixed(1)} <span className="text-[10px] text-teal-300 font-mono font-black">/ Liter</span></>
+                ) : (
+                  <>Ksh {(fields.length > 0 ? (granularPnlData.totalBlockCost / fields.reduce((sum, f) => sum + f.acreage, 0)) : 0).toLocaleString(undefined, {maximumFractionDigits:0})} <span className="text-[10px] text-teal-300 font-mono font-black">/ Acre</span></>
+                )}
+              </h3>
+              <p className="text-[9px] text-teal-200 font-bold uppercase tracking-wide mt-1">
+                Average Cost of Production (CoP)
+              </p>
+            </div>
+          </div>
+
+          {/* Mode Switcher Buttons */}
+          <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/50 flex w-full max-w-md">
+            <button
+              onClick={() => setGranularViewMode('cow')}
+              className={`flex-1 py-3 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all m-0 cursor-pointer border-none ${
+                granularViewMode === 'cow' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🐄 Individual Cattle (Dairy P&L)
+            </button>
+            <button
+              onClick={() => setGranularViewMode('block')}
+              className={`flex-1 py-3 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all m-0 cursor-pointer border-none ${
+                granularViewMode === 'block' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🌱 Farm Blocks (Agronomy CoP)
+            </button>
+          </div>
+
+          {/* Analysis View Panels */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Data Table */}
+            <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 uppercase">
+                    {granularViewMode === 'cow' ? 'Cattle Profitability Ledger' : 'Block & Crop Cost of Production Ledger'}
+                  </h4>
+                  <p className="text-[10.5px] text-slate-400 font-bold uppercase">
+                    {granularViewMode === 'cow' ? 'Individual cow margins (past 30 days)' : 'Acreage-adjusted seasonal agronomic margins'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-150 text-[9.5px] uppercase font-black text-slate-400">
+                      <th className="py-3">Name / Identifier</th>
+                      <th className="py-3">{granularViewMode === 'cow' ? 'Yield (L)' : 'Acreage / Crop'}</th>
+                      <th className="py-3 text-right">Production Cost</th>
+                      <th className="py-3 text-right">Gross revenue</th>
+                      <th className="py-3 text-right">Net Profit</th>
+                      <th className="py-3 text-right">Cost unit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-650">
+                    {granularViewMode === 'cow' ? (
+                      granularPnlData.cows.map((c, i) => {
+                        const isProfit = c.profit >= 0;
+                        const copColor = c.copPerLiter < 38 ? 'text-emerald-700 font-black' : (c.copPerLiter <= 52 ? 'text-slate-805 font-bold' : 'text-rose-700 font-black');
+
+                        return (
+                          <tr key={i} className="hover:bg-slate-50/50">
+                            <td className="py-3.5 flex flex-col">
+                              <span className="font-bold text-slate-900">{c.name}</span>
+                              <span className="text-[9.5px] text-slate-450 font-mono uppercase">{c.id} | {c.breed}</span>
+                              <span className="text-[8px] bg-slate-100 text-slate-500 font-extrabold uppercase px-1.5 py-0.5 rounded-sm mt-1 self-start">
+                                {c.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 font-mono text-slate-700">
+                              {c.status === 'Lactating' ? (
+                                <span className="font-bold text-slate-800">{c.milkLiters.toFixed(1)} L</span>
+                              ) : (
+                                <span className="text-slate-400">—</span>
+                              )}
+                              {c.isEstimated && (
+                                <span className="block text-[8px] text-teal-655 font-black uppercase">Estimated</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 text-right font-mono text-rose-805">
+                              Ksh {c.totalCost.toLocaleString(undefined, {maximumFractionDigits:0})}
+                              <span className="block text-[8.5px] text-slate-400 font-bold uppercase tracking-wider">
+                                Feed: {c.feedCost.toLocaleString(undefined, {maximumFractionDigits:0})} | Vet: {c.vetCost}
+                              </span>
+                            </td>
+                            <td className="py-3.5 text-right font-mono text-emerald-800">
+                              Ksh {c.totalRevenue.toLocaleString(undefined, {maximumFractionDigits:0})}
+                            </td>
+                            <td className={`py-3.5 text-right font-mono font-black ${isProfit ? 'text-emerald-900' : 'text-rose-850'}`}>
+                              {isProfit ? '+' : ''}Ksh {c.profit.toLocaleString(undefined, {maximumFractionDigits:0})}
+                              <span className="block text-[9px] font-bold">
+                                {c.totalRevenue > 0 ? `${c.marginPercent.toFixed(1)}% Margin` : '—'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 text-right font-mono font-bold">
+                              <span className={copColor}>Ksh {c.copPerLiter.toFixed(1)}</span>
+                              <span className="block text-[8px] text-slate-450 font-black uppercase">per liter</span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      granularPnlData.blocks.map((b, i) => {
+                        const isProfit = b.profit >= 0;
+                        const copColor = b.copPerAcre < 15000 ? 'text-emerald-700 font-black' : (b.copPerAcre <= 30000 ? 'text-slate-805 font-bold' : 'text-rose-700 font-black');
+
+                        return (
+                          <tr key={i} className="hover:bg-slate-50/50">
+                            <td className="py-3.5 flex flex-col">
+                              <span className="font-bold text-slate-900">{b.blockName}</span>
+                              <span className="text-[9.5px] text-slate-455 font-mono uppercase">{b.cropType}</span>
+                              <span className="text-[8px] bg-indigo-55 text-indigo-700 font-extrabold uppercase px-1.5 py-0.5 rounded-sm mt-1 self-start">
+                                {b.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 font-mono text-slate-700">
+                              <span className="font-bold text-slate-800">{b.acreage} Acres</span>
+                              {b.isEstimated && (
+                                <span className="block text-[8px] text-teal-655 font-black uppercase">Estimated</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 text-right font-mono text-rose-805">
+                              Ksh {b.costs.toLocaleString(undefined, {maximumFractionDigits:0})}
+                            </td>
+                            <td className="py-3.5 text-right font-mono text-emerald-800">
+                              Ksh {b.revenue.toLocaleString(undefined, {maximumFractionDigits:0})}
+                            </td>
+                            <td className={`py-3.5 text-right font-mono font-black ${isProfit ? 'text-emerald-900' : 'text-rose-850'}`}>
+                              {isProfit ? '+' : ''}Ksh {b.profit.toLocaleString(undefined, {maximumFractionDigits:0})}
+                              <span className="block text-[9px] font-bold">
+                                {b.revenue > 0 ? `${b.marginPercent.toFixed(1)}% Margin` : '—'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 text-right font-mono font-bold">
+                              <span className={copColor}>Ksh {b.copPerAcre.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                              <span className="block text-[8px] text-slate-455 font-black uppercase">per acre</span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Right Column: Visual Charts & AI Advice */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Chart Comparison */}
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+                <h4 className="text-xs font-black text-slate-900 uppercase">
+                  {granularViewMode === 'cow' ? 'Revenue vs Cost Comparison' : 'Block Financial Allocation'}
+                </h4>
+
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={granularViewMode === 'cow' ? granularPnlData.cows.slice(0, 5) : granularPnlData.blocks}
+                      margin={{ top: 10, right: 5, left: -20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey={granularViewMode === 'cow' ? 'name' : 'blockName'} tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 9 }} />
+                      <Tooltip formatter={(value) => `Ksh ${Number(value).toLocaleString()}`} />
+                      <Legend wrapperStyle={{ fontSize: 10 }} />
+                      <Bar name="Revenue" dataKey={granularViewMode === 'cow' ? 'totalRevenue' : 'revenue'} fill="#0f766e" radius={[4, 4, 0, 0]} />
+                      <Bar name="Cost" dataKey={granularViewMode === 'cow' ? 'totalCost' : 'costs'} fill="#be123c" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Diagnostic AI advice panel */}
+              <div className="bg-[#0f2e1e]/5 border border-[#0f2e1e]/15 rounded-3xl p-5 space-y-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💡</span>
+                  <span className="text-[10px] font-black text-emerald-950 uppercase tracking-wider">
+                    Granular P&L Advisor Recommendation
+                  </span>
+                </div>
+                <div className="text-xs text-emerald-950 space-y-2.5 font-semibold leading-relaxed">
+                  {granularViewMode === 'cow' ? (
+                    <>
+                      <p>
+                        • <strong>Feed Optimization Strategy:</strong> Friesian cows yielding under 18L/day should have their dairy meal limited to 4kg per day. Higher rations raise Cost of Production above the target <strong>Ksh 38/Liter</strong>.
+                      </p>
+                      <p>
+                        • <strong>Jersey High Solids Benefit:</strong> Cows like <em>Goldie</em> have lower absolute yields but lower maintenance costs. If marketing direct to high-value processors or yoghurt markets, Jersey milk commands a 15% price premium.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        • <strong>Acreage Return Warning:</strong> Crop blocks with high nitrogen fertilizer demands (like hybrid Maize) must yield over 22 bags/acre to break even against planting costs.
+                      </p>
+                      <p>
+                        • <strong>Drip-irrigated Napier blocks:</strong> Fodder blocks are high-yielding and serve as a cost-offsetting agent. Sourcing fodder internally reduces dairy cost of production by up to <strong>35%</strong>.
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

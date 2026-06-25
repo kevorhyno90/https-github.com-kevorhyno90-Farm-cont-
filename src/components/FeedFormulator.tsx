@@ -404,6 +404,15 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
   } | null>(null);
   const [isLcfSolving, setIsLcfSolving] = useState(false);
 
+  // LCF sub mode: 'simplex' (Multi-Ingredient LP) vs 'pearsons' (Pearson's Square)
+  const [lcfSubMode, setLcfSubMode] = useState<'simplex' | 'pearsons'>('simplex');
+
+  // Pearson's Square States
+  const [pearsonsIngA, setPearsonsIngA] = useState<string>('Soya Bean Meal (Solvent)');
+  const [pearsonsIngB, setPearsonsIngB] = useState<string>('Maize Germ Meal');
+  const [pearsonsTargetCp, setPearsonsTargetCp] = useState<number>(16.0);
+  const [pearsonsTotalWeight, setPearsonsTotalWeight] = useState<number>(100);
+
   const [lcfSearchQuery, setLcfSearchQuery] = useState('');
   const [isLcfSearchDropdownOpen, setIsLcfSearchDropdownOpen] = useState(false);
 
@@ -411,6 +420,91 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
   const allIngredients = React.useMemo(() => {
     return generate500Ingredients(ingredients);
   }, [ingredients]);
+
+  // Pearson's Square Solver logic
+  const pearsonsResult = React.useMemo(() => {
+    const aObj = allIngredients.find(i => i.name === pearsonsIngA) || { name: 'Soya Bean Meal (Solvent)', cp: 44, me: 13.5, cost: 95 };
+    const bObj = allIngredients.find(i => i.name === pearsonsIngB) || { name: 'Maize Germ Meal', cp: 11, me: 12.0, cost: 35 };
+
+    const cpA = aObj.cp;
+    const cpB = bObj.cp;
+    const target = pearsonsTargetCp;
+
+    // We need target to be strictly between cpA and cpB.
+    const isFeasible = (target > cpA && target < cpB) || (target > cpB && target < cpA);
+
+    if (!isFeasible) {
+      return {
+        isFeasible: false,
+        msg: `Infeasible: Target CP (${target}%) must be between the Crude Protein levels of the two selected ingredients (A: ${cpA}%, B: ${cpB}%).`,
+        aObj,
+        bObj,
+        partsA: 0,
+        partsB: 0,
+        totalParts: 0,
+        pctA: 0,
+        pctB: 0,
+        kgA: 0,
+        kgB: 0,
+        totalCost: 0,
+        avgCostPerKg: 0,
+        avgMe: 0
+      };
+    }
+
+    // Parts are calculated diagonally
+    const partsA = Math.abs(cpB - target);
+    const partsB = Math.abs(cpA - target);
+    const totalParts = partsA + partsB;
+
+    const pctA = (partsA / totalParts) * 100;
+    const pctB = (partsB / totalParts) * 100;
+
+    const kgA = (pctA / 100) * pearsonsTotalWeight;
+    const kgB = (pctB / 100) * pearsonsTotalWeight;
+
+    const costA = kgA * (aObj.cost || 0);
+    const costB = kgB * (bObj.cost || 0);
+    const totalCost = costA + costB;
+    const avgCostPerKg = totalCost / pearsonsTotalWeight;
+
+    const avgMe = (pctA * aObj.me + pctB * bObj.me) / 100;
+
+    return {
+      isFeasible: true,
+      aObj,
+      bObj,
+      partsA,
+      partsB,
+      totalParts,
+      pctA,
+      pctB,
+      kgA,
+      kgB,
+      totalCost,
+      avgCostPerKg,
+      avgMe
+    };
+  }, [allIngredients, pearsonsIngA, pearsonsIngB, pearsonsTargetCp, pearsonsTotalWeight]);
+
+  const handleApplyPearsonsToBatch = () => {
+    if (!pearsonsResult.isFeasible) return;
+    const newItems = [
+      {
+        id: `b-pearsons-a-${Date.now()}`,
+        name: pearsonsResult.aObj.name,
+        amount: parseFloat(pearsonsResult.kgA.toFixed(1))
+      },
+      {
+        id: `b-pearsons-b-${Date.now()}`,
+        name: pearsonsResult.bObj.name,
+        amount: parseFloat(pearsonsResult.kgB.toFixed(1))
+      }
+    ];
+    setBatchItems(newItems);
+    setFormulationMode('sandbox');
+    alert(`🎯 Applied Pearson's Square formulation (${pearsonsResult.pctA.toFixed(1)}% / ${pearsonsResult.pctB.toFixed(1)}%) to the Compounding Board!`);
+  };
 
   // Available candidates that can be added (not already in candidates list)
   const availableCandidatesToAdd = React.useMemo(() => {
@@ -1334,324 +1428,562 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
                 </div>
                 <h4 className="text-sm font-black text-white uppercase tracking-wider">Minimize formulation costs mathematically</h4>
                 <p className="text-xs text-slate-300 leading-normal font-medium">
-                  Specify available ingredients from the raw materials list below, adjust targeted nutrient boundaries, and compute the absolute most cost-effective ratio proportions instantly!
+                  Optimize your feed formulations using advanced mathematical calculators. Choose between classical Pearson's Square (for 2-ingredient blends) or Multi-Ingredient Simplex LP.
                 </p>
               </div>
 
-              {/* Targets Setup */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 border rounded-2xl border-slate-100">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 block">
-                    🎯 Target Crude Protein Score: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetCp}% CP</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="40"
-                    step="0.5"
-                    value={lcfTargetCp}
-                    onChange={(e) => setLcfTargetCp(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
-                  />
-                  <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
-                    <span>10% CP (MAINTENANCE)</span>
-                    <span>40% CP (HIGH NITROGEN)</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 block">
-                    ⚡ Target Metabolizable Energy: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetMe} MJ/kg</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="7"
-                    max="14"
-                    step="0.1"
-                    value={lcfTargetMe}
-                    onChange={(e) => setLcfTargetMe(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
-                  />
-                  <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
-                    <span>7 MJ (ROUGHAGE)</span>
-                    <span>14 MJ (HIGH ENERGY FAT)</span>
-                  </div>
-                </div>
+              {/* LCF Sub-Tabs Selector */}
+              <div className="flex border-b border-slate-200 pb-1 gap-6">
+                <button
+                  type="button"
+                  onClick={() => setLcfSubMode('simplex')}
+                  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                    lcfSubMode === 'simplex'
+                      ? 'border-emerald-700 text-slate-800 font-black'
+                      : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  📊 Multi-Ingredient Simplex LP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLcfSubMode('pearsons')}
+                  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+                    lcfSubMode === 'pearsons'
+                      ? 'border-emerald-700 text-slate-800 font-black'
+                      : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  📐 Pearson's Square (2-Ingredients)
+                </button>
               </div>
 
-              {/* Candidates Inventory Header */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                  <span className="text-[10.5px] uppercase font-black text-slate-800 tracking-wider">Candidate Feedstuffs list & inclusion bounds</span>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase">Toggle / Buy Price (KSH)</span>
-                </div>
+              {lcfSubMode === 'pearsons' ? (
+                /* Pearson's Square Interface */
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="bg-slate-50 p-5 border rounded-2xl border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Controls */}
+                    <div className="space-y-4">
+                      <div className="border-b border-slate-200 pb-2">
+                        <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">Formulation Ratios Controls</h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Select your basal and protein concentrates</p>
+                      </div>
 
-                {/* Search & Add candidates section */}
-                <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl space-y-3 relative">
-                  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
-                    <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
-                      <span>➕</span> Add candidate raw materials to matrix
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase">
-                      Select below or search the 500+ material library
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* Quick select dropdown */}
-                    <div>
-                      <select
-                        onChange={(e) => {
-                          if (!e.target.value) return;
-                          const found = allIngredients.find(ing => ing.name === e.target.value);
-                          if (found) {
-                            handleAddLcfCandidate(found);
-                          }
-                          e.target.value = '';
-                        }}
-                        className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
-                        defaultValue=""
-                      >
-                        <option value="" disabled>--- Quick Add Popular Material ---</option>
-                        {availableCandidatesToAdd.slice(0, 30).map((ing) => (
-                          <option key={ing.name} value={ing.name}>
-                            {ing.name} ({ing.cp}% CP, {ing.me} MJ)
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Filtered Search input */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search & add from 550+ ingredients..."
-                        value={lcfSearchQuery}
-                        onChange={(e) => {
-                          setLcfSearchQuery(e.target.value);
-                          setIsLcfSearchDropdownOpen(true);
-                        }}
-                        onFocus={() => setIsLcfSearchDropdownOpen(true)}
-                        className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-800 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                      {lcfSearchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLcfSearchQuery('');
-                            setIsLcfSearchDropdownOpen(false);
-                          }}
-                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold"
-                        >
-                          ✕
-                        </button>
-                      )}
-
-                      {/* Dropdown search results */}
-                      {isLcfSearchDropdownOpen && filteredCandidatesToAdd.length > 0 && (
-                        <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
-                          {filteredCandidatesToAdd.map((ing) => (
-                            <button
-                              key={ing.name}
-                              type="button"
-                              onClick={() => {
-                                handleAddLcfCandidate(ing);
-                              }}
-                              className="w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex justify-between items-center text-xs"
-                            >
-                              <div className="min-w-0 pr-2">
-                                <span className="font-extrabold text-slate-800 block truncate">{ing.name}</span>
-                                {ing.category && (
-                                  <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
-                                    {ing.category}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-right shrink-0 flex items-center gap-1.5">
-                                <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
-                                  {ing.cp}% CP
-                                </span>
-                                <span className="text-[9px] text-slate-400 font-semibold mt-0.5 font-mono">
-                                  {ing.me} MJ
-                                </span>
-                              </div>
-                            </button>
-                          ))}
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                            🥩 Ingredient A (High Protein/Concentrate)
+                          </label>
+                          <select
+                            value={pearsonsIngA}
+                            onChange={(e) => setPearsonsIngA(e.target.value)}
+                            className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
+                          >
+                            {allIngredients.filter(i => i.cp >= 15).map((ing) => (
+                              <option key={`p-a-${ing.name}`} value={ing.name}>
+                                {ing.name} ({ing.cp}% CP, Ksh {ing.cost || 0}/kg)
+                              </option>
+                            ))}
+                          </select>
                         </div>
-                      )}
-                      {isLcfSearchDropdownOpen && lcfSearchQuery && filteredCandidatesToAdd.length === 0 && (
-                        <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-400 italic">
-                          No matching unadded library materials.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
-                  {lcfCandidates.map((cand, idx) => (
-                    <div key={cand.name} className={`p-4 border rounded-2xl flex flex-col justify-between transition-all ${
-                      cand.enabled ? 'bg-white border-slate-200 ring-1 ring-emerald-500/5' : 'bg-slate-50/50 border-slate-100 opacity-60'
-                    }`}>
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex items-start gap-2.5">
-                          <input
-                            type="checkbox"
-                            checked={cand.enabled}
-                            onChange={(e) => {
-                              const updated = [...lcfCandidates];
-                              updated[idx].enabled = e.target.checked;
-                              setLcfCandidates(updated);
-                            }}
-                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-505 accent-emerald-800 mt-0.5 shrink-0 cursor-pointer"
-                          />
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                            🌽 Ingredient B (Low Protein/Basal Feed)
+                          </label>
+                          <select
+                            value={pearsonsIngB}
+                            onChange={(e) => setPearsonsIngB(e.target.value)}
+                            className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
+                          >
+                            {allIngredients.filter(i => i.cp < 15).map((ing) => (
+                              <option key={`p-b-${ing.name}`} value={ing.name}>
+                                {ing.name} ({ing.cp}% CP, Ksh {ing.cost || 0}/kg)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-800 block truncate leading-tight max-w-[140px]" title={cand.name}>{cand.name}</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const updated = lcfCandidates.filter((_, cIdx) => cIdx !== idx);
-                                  setLcfCandidates(updated);
-                                }}
-                                className="text-slate-350 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
-                                title="Remove Candidate"
-                              >
-                                <Trash2 size={11} />
-                              </button>
-                            </div>
-                            <span className="text-[9px] text-slate-400 font-bold block mt-1 font-mono uppercase">
-                              {cand.cp}% CP • {cand.me} MJ
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <span className="text-[9px] text-slate-400 font-black uppercase block leading-none">Price/kg</span>
-                          <div className="flex items-center gap-1 mt-1 font-mono">
-                            <span className="text-[9px] text-slate-400 font-bold">Ksh</span>
+                            <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                              🎯 Target CP %: <span className="text-emerald-800 font-extrabold font-mono">{pearsonsTargetCp}%</span>
+                            </label>
                             <input
                               type="number"
-                              value={cand.cost}
-                              onChange={(e) => {
-                                const updated = [...lcfCandidates];
-                                updated[idx].cost = parseFloat(e.target.value) || 0;
-                                setLcfCandidates(updated);
-                              }}
-                              className="text-xs w-11 bg-slate-50 border p-1 rounded font-mono font-black text-right outline-none focus:border-emerald-500"
+                              min="5"
+                              max="50"
+                              step="0.5"
+                              value={pearsonsTargetCp}
+                              onChange={(e) => setPearsonsTargetCp(parseFloat(e.target.value) || 16)}
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                              ⚖️ Total Batch Size (kg):
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10000"
+                              value={pearsonsTotalWeight}
+                              onChange={(e) => setPearsonsTotalWeight(parseFloat(e.target.value) || 100)}
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
                             />
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {cand.enabled && (
-                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-slate-100 text-[10px] font-semibold text-slate-500">
-                          <div>
-                            <span className="text-slate-400 block uppercase text-[8px] font-bold">Min inclusion %</span>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={cand.minLimit}
-                              onChange={(e) => {
-                                const updated = [...lcfCandidates];
-                                updated[idx].minLimit = parseFloat(e.target.value) || 0;
-                                setLcfCandidates(updated);
-                              }}
-                              className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
-                            />
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block uppercase text-[8px] font-bold">Max inclusion %</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={cand.maxLimit}
-                              onChange={(e) => {
-                                const updated = [...lcfCandidates];
-                                updated[idx].maxLimit = parseFloat(e.target.value) || 0;
-                                setLcfCandidates(updated);
-                              }}
-                              className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none"
-                            />
-                          </div>
+                    {/* SVG Square Diagram */}
+                    <div className="flex items-center justify-center bg-slate-900 rounded-2xl p-4 border border-slate-800">
+                      <svg width="100%" height="220" viewBox="0 0 450 220" className="font-mono text-[10px] font-bold max-w-full">
+                        {/* Diagonals */}
+                        <line x1="120" x2="330" y1="30" y2="190" stroke="#475569" strokeWidth="2" strokeDasharray="3 3" />
+                        <line x1="120" x2="330" y1="190" y2="30" stroke="#475569" strokeWidth="2" strokeDasharray="3 3" />
+
+                        {/* Top-Left Box: Ingredient A */}
+                        <g transform="translate(10, 10)">
+                          <rect width="110" height="40" rx="6" fill="#0f172a" stroke="#059669" strokeWidth="1.5" />
+                          <text x="55" y="15" fill="#34d399" textAnchor="middle" fontSize="9" fontWeight="black">A: {pearsonsResult.aObj.name.substring(0, 15)}...</text>
+                          <text x="55" y="30" fill="#f59e0b" textAnchor="middle" fontSize="11" fontWeight="black">{pearsonsResult.aObj.cp}% CP</text>
+                        </g>
+
+                        {/* Bottom-Left Box: Ingredient B */}
+                        <g transform="translate(10, 170)">
+                          <rect width="110" height="40" rx="6" fill="#0f172a" stroke="#3b82f6" strokeWidth="1.5" />
+                          <text x="55" y="15" fill="#60a5fa" textAnchor="middle" fontSize="9" fontWeight="black">B: {pearsonsResult.bObj.name.substring(0, 15)}...</text>
+                          <text x="55" y="30" fill="#f59e0b" textAnchor="middle" fontSize="11" fontWeight="black">{pearsonsResult.bObj.cp}% CP</text>
+                        </g>
+
+                        {/* Center Circle: Target CP */}
+                        <g transform="translate(195, 85)">
+                          <rect width="60" height="48" rx="24" fill="#1e293b" stroke="#10b981" strokeWidth="2.5" />
+                          <text x="30" y="20" fill="#10b981" textAnchor="middle" fontSize="8" fontWeight="extrabold">TARGET</text>
+                          <text x="30" y="36" fill="#ffffff" textAnchor="middle" fontSize="14" fontWeight="black">{pearsonsTargetCp}%</text>
+                        </g>
+
+                        {/* Top-Right Box: Parts of A */}
+                        <g transform="translate(330, 10)">
+                          <rect width="110" height="40" rx="6" fill="#0f172a" stroke="#059669" strokeWidth="1.5" />
+                          <text x="55" y="15" fill="#34d399" textAnchor="middle" fontSize="9" fontWeight="black">PARTS OF A</text>
+                          <text x="55" y="30" fill="#ffffff" textAnchor="middle" fontSize="11" fontWeight="black">{pearsonsResult.partsA.toFixed(1)} Parts</text>
+                        </g>
+
+                        {/* Bottom-Right Box: Parts of B */}
+                        <g transform="translate(330, 170)">
+                          <rect width="110" height="40" rx="6" fill="#0f172a" stroke="#3b82f6" strokeWidth="1.5" />
+                          <text x="55" y="15" fill="#60a5fa" textAnchor="middle" fontSize="9" fontWeight="black">PARTS OF B</text>
+                          <text x="55" y="30" fill="#ffffff" textAnchor="middle" fontSize="11" fontWeight="black">{pearsonsResult.partsB.toFixed(1)} Parts</text>
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Calculations Details Output */}
+                  {pearsonsResult.isFeasible ? (
+                    <div className="bg-[#0f172a] text-slate-100 p-6 rounded-3xl space-y-5 border border-slate-800">
+                      <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                        <div>
+                          <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">Pearson's Square Formulation Result</span>
+                          <h4 className="text-sm font-black text-white mt-0.5 uppercase">Exact 2-Ingredient Balancing Complete</h4>
                         </div>
-                      )}
+                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded bg-emerald-500 text-slate-950">
+                          100% Balanced CP% Target
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Ingredient A details */}
+                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
+                          <span className="text-[9px] text-emerald-400 block uppercase font-bold truncate max-w-full">{pearsonsResult.aObj.name}</span>
+                          <h3 className="text-xl font-black text-white font-mono">{pearsonsResult.pctA.toFixed(1)}%</h3>
+                          <p className="text-xs text-slate-400 font-semibold font-mono">
+                            {pearsonsResult.kgA.toFixed(1)} kg of formula
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-semibold font-mono">
+                            Cost: Ksh {(pearsonsResult.kgA * (pearsonsResult.aObj.cost || 0)).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                          </p>
+                        </div>
+
+                        {/* Ingredient B details */}
+                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
+                          <span className="text-[9px] text-sky-400 block uppercase font-bold truncate max-w-full">{pearsonsResult.bObj.name}</span>
+                          <h3 className="text-xl font-black text-white font-mono">{pearsonsResult.pctB.toFixed(1)}%</h3>
+                          <p className="text-xs text-slate-400 font-semibold font-mono">
+                            {pearsonsResult.kgB.toFixed(1)} kg of formula
+                          </p>
+                          <p className="text-[10px] text-slate-500 font-semibold font-mono">
+                            Cost: Ksh {(pearsonsResult.kgB * (pearsonsResult.bObj.cost || 0)).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                          </p>
+                        </div>
+
+                        {/* Aggregates */}
+                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
+                          <span className="text-[9px] text-amber-400 block uppercase font-bold">Combined Feed Metrics</span>
+                          <h3 className="text-sm font-black text-white font-mono">Total: Ksh {pearsonsResult.totalCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</h3>
+                          <p className="text-xs text-slate-400 font-semibold font-mono">
+                            Unit Cost: Ksh {pearsonsResult.avgCostPerKg.toFixed(1)}/kg
+                          </p>
+                          <p className="text-[10px] text-sky-400 font-extrabold font-mono uppercase tracking-wide">
+                            Energy: {pearsonsResult.avgMe.toFixed(1)} MJ/kg
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-950/80 p-4 rounded-xl border border-white/5 text-[11px] space-y-1">
+                        <span className="font-extrabold text-slate-400 uppercase tracking-wider block text-left">🎓 Mathematical Steps of Pearson Square formulation:</span>
+                        <p className="text-slate-350 leading-relaxed font-semibold text-left">
+                          1. Subtract diagonally: Ingredient A parts = |{pearsonsResult.bObj.cp}% - {pearsonsTargetCp}%| = {pearsonsResult.partsA.toFixed(1)} parts.<br />
+                          2. Subtract diagonally: Ingredient B parts = |{pearsonsResult.aObj.cp}% - {pearsonsTargetCp}%| = {pearsonsResult.partsB.toFixed(1)} parts.<br />
+                          3. Sum of parts: {pearsonsResult.partsA.toFixed(1)} + {pearsonsResult.partsB.toFixed(1)} = {pearsonsResult.totalParts.toFixed(1)} total parts.<br />
+                          4. Ingredient A percentage: ({pearsonsResult.partsA.toFixed(1)} / {pearsonsResult.totalParts.toFixed(1)}) * 100 = {pearsonsResult.pctA.toFixed(1)}%.<br />
+                          5. Ingredient B percentage: ({pearsonsResult.partsB.toFixed(1)} / {pearsonsResult.totalParts.toFixed(1)}) * 100 = {pearsonsResult.pctB.toFixed(1)}%.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyPearsonsToBatch}
+                        className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md text-center cursor-pointer m-0 border-none"
+                      >
+                        ⚡ APPLY PEARSON BLEND TO RECIPE COMPOUNDING BOARD
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="bg-red-950/40 text-red-200 border border-red-900/50 p-6 rounded-2xl space-y-2 text-left">
+                      <h5 className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-2">
+                        ⚠️ Mathematical Constraint Violated
+                      </h5>
+                      <p className="text-xs leading-relaxed font-medium">
+                        {pearsonsResult.msg}
+                      </p>
+                      <p className="text-[11px] text-slate-400 italic">
+                        Tip: To formulate a {pearsonsTargetCp}% protein blend, one ingredient must have a protein level HIGHER than {pearsonsTargetCp}% (e.g., Soya at {pearsonsResult.aObj.cp}%), and the other must be LOWER (e.g., Maize at {pearsonsResult.bObj.cp}%). Adjust your selections to resolve this constraint.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Action Solve Button */}
-              <button
-                type="button"
-                onClick={handleSolveLCF}
-                disabled={isLcfSolving}
-                className="w-full bg-[#0d3621] hover:bg-[#0c2f1e] text-white font-extrabold text-xs uppercase py-4 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
-              >
-                {isLcfSolving ? '⌛ SOLVING MATHEMATICAL MATRIX COMBINATIONS...' : '🚀 CALIBRATE LEAST-COST FORMULATION (LCF)'}
-              </button>
-
-              {/* Solver Output Results */}
-              {lcfResult && (
-                <div className="bg-[#0f172a] text-white p-5 rounded-3xl space-y-4 border border-slate-800 animate-fadeIn text-left">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                    <div>
-                      <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Optimization Engine Report</span>
-                      <h4 className="text-xs font-black text-white mt-0.5">MATRIX SOLUTION REQUISITES MET</h4>
+              ) : (
+                /* Original Multi-Ingredient Solver Interface */
+                <div className="space-y-6 animate-fadeIn">
+                  {/* Targets Setup */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 border rounded-2xl border-slate-100">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-500 block">
+                        🎯 Target Crude Protein Score: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetCp}% CP</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="10"
+                        max="40"
+                        step="0.5"
+                        value={lcfTargetCp}
+                        onChange={(e) => setLcfTargetCp(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
+                        <span>10% CP (MAINTENANCE)</span>
+                        <span>40% CP (HIGH NITROGEN)</span>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950">
-                      Feasible & Cost-Optimized
-                    </span>
-                  </div>
 
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Optimal Cost/kg</span>
-                      <span className="text-lg font-mono font-black text-white mt-1 block">
-                        Ksh {lcfResult.cost.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Crude Protein</span>
-                      <span className="text-lg font-mono font-black text-amber-400 mt-1 block">
-                        {lcfResult.cp.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
-                      <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Metabolizable Energy</span>
-                      <span className="text-lg font-mono font-black text-sky-400 mt-1 block">
-                        {lcfResult.me.toFixed(1)} <span className="text-[9px] font-normal font-sans">MJ</span>
-                      </span>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-500 block">
+                        ⚡ Target Metabolizable Energy: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetMe} MJ/kg</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="7"
+                        max="14"
+                        step="0.1"
+                        value={lcfTargetMe}
+                        onChange={(e) => setLcfTargetMe(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-slate-200 rounded-lg cursor-pointer accent-emerald-800"
+                      />
+                      <div className="flex justify-between text-[9px] text-slate-400 font-extrabold">
+                        <span>7 MJ (ROUGHAGE)</span>
+                        <span>14 MJ (HIGH ENERGY FAT)</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Formulation Ratios:</span>
-                    <div className="space-y-1">
-                      {lcfCandidates.filter(c => c.enabled).map((cand, idx) => {
-                        const weight = lcfResult.weights[idx] || 0;
-                        if (weight <= 0) return null;
-                        return (
-                          <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-950/80 p-2 rounded-lg border border-white/5">
-                            <span className="text-slate-300 font-sans">{cand.name}</span>
-                            <div className="flex gap-3">
-                              <span className="text-emerald-400 font-bold">{weight.toFixed(1)}%</span>
-                              <span className="text-slate-500">({weight.toFixed(1)} kg)</span>
+                  {/* Candidates Inventory Header */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                      <span className="text-[10.5px] uppercase font-black text-slate-800 tracking-wider">Candidate Feedstuffs list & inclusion bounds</span>
+                      <span className="text-[9px] text-slate-400 font-bold uppercase">Toggle / Buy Price (KSH)</span>
+                    </div>
+
+                    {/* Search & Add candidates section */}
+                    <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl space-y-3 relative">
+                      <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
+                        <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
+                          <span>➕</span> Add candidate raw materials to matrix
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase">
+                          Select below or search the 500+ material library
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* Quick select dropdown */}
+                        <div>
+                          <select
+                            onChange={(e) => {
+                              if (!e.target.value) return;
+                              const found = allIngredients.find(ing => ing.name === e.target.value);
+                              if (found) {
+                                handleAddLcfCandidate(found);
+                              }
+                              e.target.value = '';
+                            }}
+                            className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-700 outline-none cursor-pointer"
+                            defaultValue=""
+                          >
+                            <option value="" disabled>--- Quick Add Popular Material ---</option>
+                            {availableCandidatesToAdd.slice(0, 30).map((ing) => (
+                              <option key={ing.name} value={ing.name}>
+                                {ing.name} ({ing.cp}% CP, {ing.me} MJ)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Filtered Search input */}
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Search & add from 550+ ingredients..."
+                            value={lcfSearchQuery}
+                            onChange={(e) => {
+                              setLcfSearchQuery(e.target.value);
+                              setIsLcfSearchDropdownOpen(true);
+                            }}
+                            onFocus={() => setIsLcfSearchDropdownOpen(true)}
+                            className="text-xs bg-white border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-800 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                          {lcfSearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLcfSearchQuery('');
+                                setIsLcfSearchDropdownOpen(false);
+                              }}
+                              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                            >
+                              ✕
+                            </button>
+                          )}
+
+                          {/* Dropdown search results */}
+                          {isLcfSearchDropdownOpen && filteredCandidatesToAdd.length > 0 && (
+                            <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+                              {filteredCandidatesToAdd.map((ing) => (
+                                <button
+                                  key={ing.name}
+                                  type="button"
+                                  onClick={() => {
+                                    handleAddLcfCandidate(ing);
+                                  }}
+                                  className="w-full text-left p-2.5 hover:bg-slate-50 transition-colors flex justify-between items-center text-xs"
+                                >
+                                  <div className="min-w-0 pr-2">
+                                    <span className="font-extrabold text-slate-800 block truncate">{ing.name}</span>
+                                    {ing.category && (
+                                      <span className="text-[8px] bg-indigo-50 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
+                                        {ing.category}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-right shrink-0 flex items-center gap-1.5">
+                                    <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
+                                      {ing.cp}% CP
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-semibold mt-0.5 font-mono">
+                                      {ing.me} MJ
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {isLcfSearchDropdownOpen && lcfSearchQuery && filteredCandidatesToAdd.length === 0 && (
+                            <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-400 italic">
+                              No matching unadded library materials.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                      {lcfCandidates.map((cand, idx) => (
+                        <div key={cand.name} className={`p-4 border rounded-2xl flex flex-col justify-between transition-all ${
+                          cand.enabled ? 'bg-white border-slate-200 ring-1 ring-emerald-500/5' : 'bg-slate-50/50 border-slate-100 opacity-60'
+                        }`}>
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex items-start gap-2.5">
+                              <input
+                                type="checkbox"
+                                checked={cand.enabled}
+                                onChange={(e) => {
+                                  const updated = [...lcfCandidates];
+                                  updated[idx].enabled = e.target.checked;
+                                  setLcfCandidates(updated);
+                                }}
+                                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-505 accent-emerald-800 mt-0.5 shrink-0 cursor-pointer"
+                              />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-800 block truncate leading-tight max-w-[140px]" title={cand.name}>{cand.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = lcfCandidates.filter((_, cIdx) => cIdx !== idx);
+                                      setLcfCandidates(updated);
+                                    }}
+                                    className="text-slate-350 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors cursor-pointer"
+                                    title="Remove Candidate"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                </div>
+                                <span className="text-[9px] text-slate-400 font-bold block mt-1 font-mono uppercase">
+                                  {cand.cp}% CP • {cand.me} MJ
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-[9px] text-slate-400 font-black uppercase block leading-none">Price/kg</span>
+                              <div className="flex items-center gap-1 mt-1 font-mono">
+                                <span className="text-[9px] text-slate-400 font-bold">Ksh</span>
+                                <input
+                                  type="number"
+                                  value={cand.cost}
+                                  onChange={(e) => {
+                                    const updated = [...lcfCandidates];
+                                    updated[idx].cost = parseFloat(e.target.value) || 0;
+                                    setLcfCandidates(updated);
+                                  }}
+                                  className="text-xs w-11 bg-slate-50 border p-1 rounded font-mono font-black text-right outline-none focus:border-emerald-500"
+                                />
+                              </div>
                             </div>
                           </div>
-                        );
-                      })}
+
+                          {cand.enabled && (
+                            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-slate-100 text-[10px] font-semibold text-slate-500">
+                              <div>
+                                <span className="text-slate-400 block uppercase text-[8px] font-bold">Min inclusion %</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={cand.minLimit}
+                                  onChange={(e) => {
+                                    const updated = [...lcfCandidates];
+                                    updated[idx].minLimit = parseFloat(e.target.value) || 0;
+                                    setLcfCandidates(updated);
+                                  }}
+                                  className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
+                                />
+                              </div>
+                              <div>
+                                <span className="text-slate-400 block uppercase text-[8px] font-bold">Max inclusion %</span>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="100"
+                                  value={cand.maxLimit}
+                                  onChange={(e) => {
+                                    const updated = [...lcfCandidates];
+                                    updated[idx].maxLimit = parseFloat(e.target.value) || 0;
+                                    setLcfCandidates(updated);
+                                  }}
+                                  className="text-[11px] font-mono font-bold w-full border bg-slate-50/50 p-1.5 rounded-lg text-center mt-1 outline-none"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
+                  {/* Action Solve Button */}
                   <button
                     type="button"
-                    onClick={handleApplyLcfToBatch}
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md text-center"
+                    onClick={handleSolveLCF}
+                    disabled={isLcfSolving}
+                    className="w-full bg-[#0d3621] hover:bg-[#0c2f1e] text-white font-extrabold text-xs uppercase py-4 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
                   >
-                    ⚡ APPLY OPTIMIZED MIX TO MANUAL COMPOUNDING RECIPE
+                    {isLcfSolving ? '⌛ SOLVING MATHEMATICAL MATRIX COMBINATIONS...' : '🚀 CALIBRATE LEAST-COST FORMULATION (LCF)'}
                   </button>
+
+                  {/* Solver Output Results */}
+                  {lcfResult && (
+                    <div className="bg-[#0f172a] text-white p-5 rounded-3xl space-y-4 border border-slate-800 animate-fadeIn text-left">
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
+                        <div>
+                          <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Optimization Engine Report</span>
+                          <h4 className="text-xs font-black text-white mt-0.5">MATRIX SOLUTION REQUISITES MET</h4>
+                        </div>
+                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950">
+                          Feasible & Cost-Optimized
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                          <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Optimal Cost/kg</span>
+                          <span className="text-lg font-mono font-black text-white mt-1 block">
+                            Ksh {lcfResult.cost.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                          <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Crude Protein</span>
+                          <span className="text-lg font-mono font-black text-amber-400 mt-1 block">
+                            {lcfResult.cp.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
+                          <span className="text-[8.5px] text-slate-400 block uppercase font-bold">Metabolizable Energy</span>
+                          <span className="text-lg font-mono font-black text-sky-400 mt-1 block">
+                            {lcfResult.me.toFixed(1)} <span className="text-[9px] font-normal font-sans">MJ</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 pt-1">
+                        <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Formulation Ratios:</span>
+                        <div className="space-y-1">
+                          {lcfCandidates.filter(c => c.enabled).map((cand, idx) => {
+                            const weight = lcfResult.weights[idx] || 0;
+                            if (weight <= 0) return null;
+                            return (
+                              <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-950/80 p-2 rounded-lg border border-white/5">
+                                <span className="text-slate-300 font-sans">{cand.name}</span>
+                                <div className="flex gap-3">
+                                  <span className="text-emerald-400 font-bold">{weight.toFixed(1)}%</span>
+                                  <span className="text-slate-500">({weight.toFixed(1)} kg)</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyLcfToBatch}
+                        className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md text-center"
+                      >
+                        ⚡ APPLY OPTIMIZED MIX TO MANUAL COMPOUNDING RECIPE
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -647,9 +647,12 @@ How can I assist you in livestock or crop management today?`;
 
       res.json({ text: response.text });
     } catch (err: any) {
-      console.error("AI chat error:", err);
+      console.error("AI chat cloud failure, transitioning to robust local rules engine:", err);
+      // Fallback to the beautiful, unlimited, localized knowledge base so the user's quizzes always receive expert answers!
+      const fallbackResponse = generateFreeAgroAdvisorResponse(message, farmState, settings);
       res.json({ 
-        text: `An error occurred with the Gemini API (${err.message}). Falling back to Offline Rulebook:\n- Check that your key is active.\n- Keep soil ph between 5.5 and 6.5.\n- Monitor pre/post milking hygiene carefully.`
+        text: `⚠️ **Cloud Gateway offline (Status ${err.status || '500'} - ${err.message || 'Limit reached'})**. Transitioning smoothly to the localized offline rulebook for JR Farm:\n\n${fallbackResponse}`,
+        isFreeAdvisor: true
       });
     }
   });
