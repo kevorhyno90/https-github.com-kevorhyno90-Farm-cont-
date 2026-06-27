@@ -15,9 +15,11 @@ export interface MilkingRecord {
   // Dispatch details included inside milk log record
   milkUsedAtHome?: number;
   milkUsedByWorkers?: number;
+  milkUsedByCalf?: number;
   milkSpoiled?: number;
   debtsKsh?: number;
   debtCustomer?: string;
+  debtsList?: { debtor: string; amount: number }[];
   notes?: string;
 }
 
@@ -315,9 +317,11 @@ export interface MilkOutflowRecord {
   totalMilkedOverride?: number; // Total milked per day
   milkUsedAtHome: number; // Liters used/reserved at home
   milkUsedByWorkers: number; // Liters given/sold to workers
+  milkUsedByCalf?: number; // Liters consumed by calves
   milkSpoiled: number; // Liters spoiled or discarded
   debtsKsh: number; // Value of milk sold on credit (debts) Ksh or Outstanding debt quantity description
   debtCustomer?: string; // Debtor Name / Account
+  debtsList?: { debtor: string; amount: number }[]; // List of multiple debtors
   notes?: string;
 }
 

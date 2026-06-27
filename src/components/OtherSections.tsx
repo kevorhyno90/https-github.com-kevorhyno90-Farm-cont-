@@ -113,6 +113,7 @@ interface OtherSectionsProps {
   onAddQuarantine?: (rec: QuarantineRecord) => void;
   onDeleteQuarantine?: (id: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  activeSubModule?: string;
 }
 
 export function OtherSections({
@@ -123,6 +124,7 @@ export function OtherSections({
   onAddFields,
   onAddLivestock,
   onUpdateInventoryStock,
+  activeSubModule,
   onAddInventoryItem,
   onDeleteFields,
   onDeleteLivestock,
@@ -177,6 +179,24 @@ export function OtherSections({
   // Toggle for livestock sub segments
   const [livestockSubTab, setLivestockSubTab] = useState<'poultry' | 'poultry_dogs' | 'goats' | 'calves' | 'heifers' | 'quarantine' | 'bsf' | 'operations' | 'sales_mortality' | 'biogas_optimizer'>('poultry');
   const [agronomySubTab, setAgronomySubTab] = useState<'blocks' | 'silage' | 'crop_ops' | 'sales'>('blocks');
+
+  React.useEffect(() => {
+    if (activeSubModule === 'goats') {
+      setLivestockSubTab('goats');
+    } else if (activeSubModule === 'calves') {
+      setLivestockSubTab('calves');
+    } else if (activeSubModule === 'heifers') {
+      setLivestockSubTab('heifers');
+    } else if (activeSubModule === 'poultry') {
+      setLivestockSubTab('poultry');
+    } else if (activeSubModule === 'canines') {
+      setLivestockSubTab('poultry_dogs');
+    } else if (activeSubModule === 'bsf') {
+      setLivestockSubTab('bsf');
+    } else if (activeSubModule === 'biogas') {
+      setLivestockSubTab('biogas_optimizer');
+    }
+  }, [activeSubModule]);
 
   // Interactive Geospatial Farm Layout Map States
   const [selectedMapFieldId, setSelectedMapFieldId] = useState<string | null>(null);
@@ -453,6 +473,328 @@ export function OtherSections({
   const [lsActivity, setLsActivity] = useState('');
   const [lsNotes, setLsNotes] = useState('');
   const [lsDate, setLsDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // K-9 Veterinary Health Card generator states & logic
+  const [showVetCardModal, setShowVetCardModal] = useState(false);
+  const [selectedCanineId, setSelectedCanineId] = useState<string>('');
+  const [vetCardName, setVetCardName] = useState('');
+  const [vetCardBreed, setVetCardBreed] = useState('');
+  const [vetCardDob, setVetCardDob] = useState('');
+  const [vetCardChip, setVetCardChip] = useState('');
+  const [vetCardGender, setVetCardGender] = useState('Male');
+  const [vetCardSire, setVetCardSire] = useState('');
+  const [vetCardDam, setVetCardDam] = useState('');
+  const [vetCardHandler, setVetCardHandler] = useState('');
+  const [vetCardVet, setVetCardVet] = useState('Dr. Devin Omwenga, DVM');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleSelectCanineToPreFill = (canineId: string) => {
+    setSelectedCanineId(canineId);
+    if (!canineId) {
+      setVetCardName('');
+      setVetCardBreed('');
+      setVetCardDob('');
+      setVetCardChip('');
+      setVetCardGender('Male');
+      setVetCardSire('');
+      setVetCardDam('');
+      setVetCardHandler('');
+      return;
+    }
+    const found = livestock.find(item => item.id === canineId);
+    if (found) {
+      setVetCardName(found.name);
+      setVetCardBreed(found.countOrBreed);
+      // Sensible defaults to populate a premium medical card
+      setVetCardDob('2024-05-15');
+      setVetCardChip(`K9-CHIP-${found.id.slice(0, 4).toUpperCase()}`);
+      setVetCardGender('Male');
+      setVetCardSire('Rocky (K9 Alpha)');
+      setVetCardDam('Bella (K9 Beta)');
+      setVetCardHandler('Sector 4 Security Patrol');
+    }
+  };
+
+  const downloadCanineVetCardPdf = async (isEmpty: boolean) => {
+    setIsGeneratingPdf(true);
+    try {
+      const loadScript = (url: string) => {
+        return new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = url;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error(`Failed to load ${url}`));
+          document.head.appendChild(script);
+        });
+      };
+
+      if (!(window as any).html2pdf) {
+        try {
+          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+        } catch (err1) {
+          await loadScript("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
+        }
+      }
+
+      const name = isEmpty ? "" : (vetCardName || "Unnamed Canine");
+      const breed = isEmpty ? "" : (vetCardBreed || "N/A");
+      const dob = isEmpty ? "" : (vetCardDob || "N/A");
+      const chip = isEmpty ? "" : (vetCardChip || "N/A");
+      const gender = isEmpty ? "" : (vetCardGender || "Male");
+      const sire = isEmpty ? "" : (vetCardSire || "N/A");
+      const dam = isEmpty ? "" : (vetCardDam || "N/A");
+      const handler = isEmpty ? "" : (vetCardHandler || "N/A");
+      const vetName = isEmpty ? "" : (vetCardVet || "Dr. Devin Omwenga, DVM");
+
+      // Pull matching logs if not empty
+      let matchingLogs: any[] = [];
+      if (!isEmpty && vetCardName) {
+        matchingLogs = livestock.filter(item => 
+          item.type === 'Dogs' && 
+          item.name.toLowerCase().includes(vetCardName.toLowerCase())
+        );
+      }
+
+      // Render hidden container
+      const pdfWrapper = document.createElement('div');
+      pdfWrapper.style.width = '750px';
+      pdfWrapper.style.padding = '35px';
+      pdfWrapper.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      pdfWrapper.style.color = '#1e293b';
+      pdfWrapper.style.backgroundColor = '#ffffff';
+
+      pdfWrapper.innerHTML = `
+        <div style="border: 2px solid #0f172a; border-radius: 16px; padding: 30px; position: relative; background: #ffffff; box-sizing: border-box;">
+          
+          <!-- Green top ribbon -->
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #10b981 0%, #047857 50%, #0f172a 100%); border-top-left-radius: 14px; border-top-right-radius: 14px;"></div>
+          
+          <!-- Header Block -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 18px; margin-bottom: 22px; margin-top: 5px;">
+            <div>
+              <span style="font-size: 9px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 4px;">Sovereign Agri-Security K-9 Squad</span>
+              <h1 style="font-size: 23px; font-weight: 900; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: -0.5px;">Veterinary Health Passport</h1>
+              <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0; font-weight: 600;">Official Pedigree & Immunization Medical Record</p>
+            </div>
+            <div style="text-align: right; font-family: monospace; font-size: 10px; font-weight: bold; color: #475569; background: #f1f5f9; padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1;">
+              <div>REGISTRY: SEC-K9-UNIT</div>
+              <div style="margin-top: 2px;">PLOT NO: KT-205A</div>
+              <div style="margin-top: 2px; color: #047857;">STATUS: VERIFIED</div>
+            </div>
+          </div>
+
+          <!-- Section A: Pedigree & Identity -->
+          <div style="margin-bottom: 22px;">
+            <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; margin-top: 0;">
+              <span style="background: #0f172a; color: #ffffff; padding: 2px 7px; font-size: 10px; border-radius: 4px; margin-right: 8px;">A</span> 
+              Canine Identification & Pedigree Registry
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; line-height: 1.4;">
+              <tr>
+                <td style="width: 25%; padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Official K-9 Name:</td>
+                <td style="width: 25%; padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${name || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+                <td style="width: 25%; padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Breed / Phenotype:</td>
+                <td style="width: 25%; padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${breed || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Microchip / Tag ID:</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold; color: #047857;">${chip || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Date of Birth / Age:</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold; color: #0f172a;">${dob || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Gender / Sex:</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${gender || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Assigned Handler:</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #475569;">${handler || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Sire (Father):</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #475569;">${sire || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+                <td style="padding: 6px 10px; background: #f8fafc; border: 1px solid #cbd5e1; font-weight: bold; color: #334155;">Dam (Mother):</td>
+                <td style="padding: 6px 10px; border: 1px solid #cbd5e1; font-weight: bold; color: #475569;">${dam || '<span style="color: #cbd5e1;">_________________</span>'}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Section B: Core Immunizations -->
+          <div style="margin-bottom: 22px;">
+            <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; margin-top: 0;">
+              <span style="background: #0f172a; color: #ffffff; padding: 2px 7px; font-size: 10px; border-radius: 4px; margin-right: 8px;">B</span>
+              I. Mandatory Core Immunization Tracker
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+              <thead>
+                <tr style="background: #0f172a; color: #ffffff;">
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 32%;">Antigen Type / Vaccination Target</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">Date Injected</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 18%;">Serial / Batch No.</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 22%;">Booster Due Date</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">DVM Stamp / Sign</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: #fff;">
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">Rabies Prophylaxis (Mandatory)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace;">${!isEmpty ? 'Annual cycle' : ''}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #64748b;">${!isEmpty ? 'RB-COOP-921A' : '[Seal Stamp]'}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #b91c1c;">${!isEmpty ? 'Annual Booster' : ''}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${!isEmpty ? 'D. Omwenga' : ''}</td>
+                </tr>
+                <tr style="background: #f8fafc;">
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">DHLPP (Parvovirus, Distemper, Hepatitis)</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace;"></td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #64748b;">[Seal Stamp]</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #b91c1c;"></td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;"></td>
+                </tr>
+                <tr style="background: #fff;">
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">Canine Coronavirus / Giardia Booster</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace;"></td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; color: #64748b;">[Seal Stamp]</td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #b91c1c;"></td>
+                  <td style="padding: 6px 8px; border: 1px solid #cbd5e1;"></td>
+                </tr>
+                ${Array.from({ length: 3 }).map(() => `
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">__________________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">__________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">_______________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">__________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">_______</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section C: Parasite Control & Deworming -->
+          <div style="margin-bottom: 22px;">
+            <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; margin-top: 0;">
+              <span style="background: #0f172a; color: #ffffff; padding: 2px 7px; font-size: 10px; border-radius: 4px; margin-right: 8px;">C</span>
+              II. Clinical Deworming & Parasite Control Protocols
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+              <thead>
+                <tr style="background: #0f172a; color: #ffffff;">
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">Admin Date</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 32%;">Product / Brand Administered</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 20%;">Dosage / Method</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">Weight (kg)</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 20%;">Attending Officer / Vet</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${matchingLogs.length > 0 ? matchingLogs.slice(0, 2).map(item => `
+                  <tr style="background: #fff;">
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">${item.date}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #047857;">${item.activity}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">Oral Broad-spectrum</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">32 kg</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${vetName}</td>
+                  </tr>
+                `).join('') : `
+                  <tr style="background: #fff;">
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace;">${!isEmpty ? new Date().toLocaleDateString() : ''}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #047857;">${!isEmpty ? 'Praziquantel De-wormer (Endoguard)' : '__________________________________'}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${!isEmpty ? '1 tab per 10kg body weight' : ''}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${!isEmpty ? '30 kg' : ''}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${!isEmpty ? 'Dr. D. Omwenga' : ''}</td>
+                  </tr>
+                `}
+                ${Array.from({ length: 3 }).map(() => `
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1; font-family: monospace;">__/__/____</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">______________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">_______________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">______</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">____________</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section D: Medical Treatment History -->
+          <div style="margin-bottom: 22px;">
+            <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #0f172a; border-bottom: 1.5px solid #0f172a; padding-bottom: 6px; margin-bottom: 10px; display: flex; align-items: center; margin-top: 0;">
+              <span style="background: #0f172a; color: #ffffff; padding: 2px 7px; font-size: 10px; border-radius: 4px; margin-right: 8px;">D</span>
+              III. Veterinary Treatment, Diagnostic & Physical Records
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+              <thead>
+                <tr style="background: #0f172a; color: #ffffff;">
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">Log Date</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 44%;">Symptom Diagnosis / Clinical Notes</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 28%;">Prescription / Active Compound Administered</th>
+                  <th style="padding: 6px 8px; border: 1px solid #0f172a; width: 14%;">DVM Signature</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${matchingLogs.length > 0 ? matchingLogs.map(item => `
+                  <tr style="background: #fff;">
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-family: monospace; font-weight: bold;">${item.date}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">${item.notes || 'Routine guard patrol fitness check'}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${item.activity}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-size: 9px; font-weight: bold;">Dr. Omwenga</td>
+                  </tr>
+                `).join('') : `
+                  <tr style="background: #fff;">
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1; font-family: monospace;">___/__/____</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">__________________________________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">_________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">______</td>
+                  </tr>
+                `}
+                ${Array.from({ length: 3 }).map(() => `
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1; font-family: monospace;">__/__/____</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">__________________________________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">_________________________</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #cbd5e1;">______</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Official Signatures -->
+          <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div style="width: 44%; border-top: 1px dashed #475569; padding-top: 6px; text-align: center;">
+              <span style="font-size: 10px; font-weight: bold; color: #475569; display: block;">Authorized Attending Veterinarian</span>
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; display: block; margin-top: 2px;">DVM License Seal & Stamp</span>
+            </div>
+            
+            <div style="width: 44%; border-top: 1px dashed #475569; padding-top: 6px; text-align: center;">
+              <span style="font-size: 10px; font-weight: bold; color: #475569; display: block;">Authorized Estate Comptroller</span>
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; display: block; margin-top: 2px;">Dr. Devin Omwenga, DVM / Comptroller</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 22px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            <p style="font-size: 9px; color: #94a3b8; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+              Sovereign Agricultural Compliance • GlobalGAP Registered Plot No. KT-205A
+            </p>
+          </div>
+        </div>
+      `;
+
+      const opt = {
+        margin: [0.25, 0.25, 0.25, 0.25],
+        filename: isEmpty ? 'Empty_Canine_Veterinary_Card.pdf' : `Canine_Health_Passport_${name.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      await (window as any).html2pdf().set(opt).from(pdfWrapper).save();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   // Goat Form
   const [gtTag, setGtTag] = useState('');
@@ -2334,94 +2676,114 @@ export function OtherSections({
                 <Heart size={24} className="text-amber-700" />
               </div>
               <div>
-                <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">Diverse Livestock & BSF center</h4>
-                <p className="text-xs text-slate-400 font-medium">Log records for poultry vaccine grids, dairy goats, wet milk-fed calves, organic Black Soldier Fly protein bins, and guard dog boosters.</p>
+                <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">
+                  {activeSubModule === 'goats' ? 'Caprine Dairy Goat Logs' :
+                   activeSubModule === 'calves' ? 'Liquidfed Calf Pipelines' :
+                   activeSubModule === 'heifers' ? 'Heifer Progeny Board' :
+                   activeSubModule === 'poultry' ? 'Avian Poultry Hub' :
+                   activeSubModule === 'canines' ? 'Security Canine Patrol Logs' :
+                   activeSubModule === 'bsf' ? 'Organic BSF Protein Batches' :
+                   activeSubModule === 'biogas' ? 'Sovereign Biogas Optimizer' :
+                   'Diverse Livestock & BSF center'}
+                </h4>
+                <p className="text-xs text-slate-400 font-medium">
+                  {activeSubModule === 'goats' ? 'Log and track goat milk weights, kidding cycles, breeds, and veterinary records.' :
+                   activeSubModule === 'calves' ? 'Monitor daily liquid milk-fed amounts, growth milestones, health statuses, and weaning schedules.' :
+                   activeSubModule === 'heifers' ? 'Manage heifer pedigree, growth rates, insemination schedules, and future progeny projections.' :
+                   activeSubModule === 'poultry' ? 'Log and track poultry vaccine grids, daily egg collections, feed intakes, mortality, and flock batches.' :
+                   activeSubModule === 'canines' ? 'Track guard canine checkups, Rabies & deworming vaccines, health parameters, and routine patrol schedules.' :
+                   activeSubModule === 'bsf' ? 'Track organic waste-to-BSF feedstocks, batch weights, harvest milestones, and protein production logs.' :
+                   activeSubModule === 'biogas' ? 'Optimize anaerobic digester slurry ratios, loader feeds, water additions, and pressure metrics.' :
+                   'Log records for poultry vaccine grids, dairy goats, wet milk-fed calves, organic Black Soldier Fly protein bins, and guard dog boosters.'}
+                </p>
               </div>
             </div>
 
             {/* Sub segments selector tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto gap-0.5">
-              <button
-                onClick={() => { setLivestockSubTab('poultry'); setShowAddForm(false); }}
-                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'poultry' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                🐔 Poultry Hub (Chicks/Layers)
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('heifers'); setShowAddForm(false); }}
-                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'heifers' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                🐄 Heifers Board
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('quarantine'); setShowAddForm(false); }}
-                className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'quarantine' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                🩺 Quarantine Isolation
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('poultry_dogs'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'poultry_dogs' ? 'bg-slate-200/50 text-slate-700' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                Dogs & Other
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('goats'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'goats' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                Dairy Goats
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('calves'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'calves' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                Calf Section
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('bsf'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'bsf' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                BSF Protein
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('operations'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'operations' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                Animal Operations Log
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('sales_mortality'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  livestockSubTab === 'sales_mortality' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
-                }`}
-              >
-                Sales & Mortality Ledger
-              </button>
-              <button
-                onClick={() => { setLivestockSubTab('biogas_optimizer'); setShowAddForm(false); }}
-                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-indigo-950 ${
-                  livestockSubTab === 'biogas_optimizer' ? 'bg-amber-500/20 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'text-slate-505 hover:text-slate-850'
-                }`}
-              >
-                🔥 Biogas Digester Loader
-              </button>
-            </div>
+            {!activeSubModule && (
+              <div className="flex bg-slate-100 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto gap-0.5">
+                <button
+                  onClick={() => { setLivestockSubTab('poultry'); setShowAddForm(false); }}
+                  className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'poultry' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  🐔 Poultry Hub (Chicks/Layers)
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('heifers'); setShowAddForm(false); }}
+                  className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'heifers' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  🐄 Heifers Board
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('quarantine'); setShowAddForm(false); }}
+                  className={`px-3.5 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'quarantine' ? 'bg-white text-slate-950 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  🩺 Quarantine Isolation
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('poultry_dogs'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'poultry_dogs' ? 'bg-slate-200/50 text-slate-700' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  🐶 Security Canines
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('goats'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'goats' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  Dairy Goats
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('calves'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'calves' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  Calf Section
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('bsf'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'bsf' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  BSF Protein
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('operations'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'operations' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  Animal Operations Log
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('sales_mortality'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                    livestockSubTab === 'sales_mortality' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-850'
+                  }`}
+                >
+                  Sales & Mortality Ledger
+                </button>
+                <button
+                  onClick={() => { setLivestockSubTab('biogas_optimizer'); setShowAddForm(false); }}
+                  className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 text-indigo-950 ${
+                    livestockSubTab === 'biogas_optimizer' ? 'bg-amber-500/20 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'text-slate-505 hover:text-slate-850'
+                  }`}
+                >
+                  🔥 Biogas Digester Loader
+                </button>
+              </div>
+            )}
           </div>
 
           {/* NEW SUBTAB: ADVANCED POULTRY LIFECYCLE HUB & ADVISORY SYSTEM */}
@@ -2969,6 +3331,186 @@ export function OtherSections({
                       </div>
                     ))
                   )}
+                </div>
+
+                {/* 🐣 IMPERATIVE POULTRY VACCINATION & MANAGEMENT SCHEDULE */}
+                <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl space-y-3 shadow-xs">
+                  <div className="flex items-center gap-2 text-amber-950">
+                    <BookOpen size={16} className="text-amber-800" />
+                    <h5 className="text-[11px] font-black tracking-widest uppercase">IMPERATIVE POULTRY VACCINATION & BIOSAFETY PROTOCOLS</h5>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-2">
+                      <span className="font-extrabold text-[#7d5600] uppercase tracking-wide block">🐣 Laying Avian Schedule (Newcastle / Gumboro):</span>
+                      <ul className="list-disc list-inside space-y-1 text-slate-600 font-semibold">
+                        <li>Week 1: Newcastle Vaccine (drinking water/drops)</li>
+                        <li>Week 2: Gumboro First Dose (Immunity booster)</li>
+                        <li>Week 4: Newcastle & Bronchitis Booster</li>
+                        <li>Week 8: Fowl Pox (wing web injection)</li>
+                        <li>Week 18/Lay: Newcastle booster every 8 weeks</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="font-extrabold text-slate-705 uppercase tracking-wide block">🛡️ Standard Biosecurity Guardrails:</span>
+                      <ul className="list-disc list-inside space-y-1 text-slate-600 font-semibold">
+                        <li>Footbaths: Disinfectant footbaths must be installed at all entrance doors.</li>
+                        <li>Litter Management: Change wood shavings regularly to prevent ammonia accumulation.</li>
+                        <li>Water Sanitation: Sanitize water lines weekly to eliminate bacterial pathogens.</li>
+                        <li>Flock Isolation: Strictly prohibit unauthorized staff or visitor entries.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🐔 Avian Activity Ledger & Historical Logs */}
+                <div className="pt-6 border-t border-slate-200 space-y-4">
+                  <div className="flex justify-between items-center bg-white/30 px-2 font-bold select-none">
+                    <div>
+                      <h5 className="font-extrabold text-[13.5px] uppercase text-[#0b251a]">🐔 Avian Activity Ledger & Historical Logs</h5>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Historical flock vaccinations, treatments, and daily collections</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowAddForm(!showAddForm);
+                        setLsType('Poultry');
+                      }}
+                      className="bg-amber-900 text-white font-black text-xs uppercase px-4 py-2 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 cursor-pointer shadow-xs"
+                    >
+                      <Plus size={13} /> Add Activity Log
+                    </button>
+                  </div>
+
+                  {showAddForm && lsType === 'Poultry' && (
+                    <form onSubmit={handleLivestockSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4 font-sans text-left">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Unit Type</label>
+                          <input
+                            type="text"
+                            readOnly
+                            value="Poultry / Avian"
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-slate-50 text-slate-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Group ID / Breed / Name</label>
+                          <input
+                            type="text"
+                            required
+                            value={lsName}
+                            onChange={(e) => setLsName(e.target.value)}
+                            placeholder="E.g. Layers Flock A or Broilers Batch 2"
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Count or Pedigree Details</label>
+                          <input
+                            type="text"
+                            required
+                            value={lsCount}
+                            onChange={(e) => setLsCount(e.target.value)}
+                            placeholder="E.g. 350 birds, Kenbro"
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black text-amber-800 uppercase block mb-1">Record Log Date (Historical)</label>
+                          <input
+                            type="date"
+                            required
+                            value={lsDate}
+                            onChange={(e) => setLsDate(e.target.value)}
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                          />
+                        </div>
+                        <div className="col-span-1 md:col-span-4">
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Logged Activity</label>
+                          <input
+                            type="text"
+                            required
+                            value={lsActivity}
+                            onChange={(e) => setLsActivity(e.target.value)}
+                            placeholder="E.g. Administered Deworming, checked feed intake"
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                          />
+                        </div>
+                        <div className="col-span-1 md:col-span-4">
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Additional Observations / Notes</label>
+                          <input
+                            type="text"
+                            value={lsNotes}
+                            onChange={(e) => setLsNotes(e.target.value)}
+                            placeholder="E.g. Active, high energy, normal eggshell quality"
+                            className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 text-right border-t border-slate-100 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddForm(false)}
+                          className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 m-0"
+                        >
+                          Cancel
+                        </button>
+                        <button type="submit" className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 text-white font-black text-xs uppercase rounded-lg m-0 shadow">
+                          Save Activity
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  <div className="space-y-4">
+                    {livestock.filter(item => item.type === 'Poultry').length === 0 ? (
+                      <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                        No poultry activity log entries registered yet.
+                      </div>
+                    ) : (
+                      livestock.filter(item => item.type === 'Poultry').map((item) => (
+                        <div key={item.id} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-slate-200">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-amber-100 border-amber-200 text-amber-800">
+                                {item.type} Section
+                              </span>
+                              <h5 className="font-extrabold text-[13.5px] uppercase text-[#0b251a]">{item.name}</h5>
+                              <span className="text-xs font-mono font-bold text-slate-400">({item.countOrBreed})</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs font-black text-slate-705 leading-relaxed bg-slate-50 shrink-0 px-2 py-1 rounded inline-block">
+                              <Activity size={12} className="text-amber-700 shrink-0 inline-block mr-1" />
+                              <span>Activity: {item.activity}</span>
+                            </div>
+                            <p className="text-xs font-medium text-slate-505 italic leading-normal">
+                              Observational diagnostics: "{item.notes}"
+                            </p>
+                          </div>
+                          <div className="text-left md:text-right shrink-0 flex items-center gap-4">
+                            <div>
+                              <span className="text-[9px] uppercase font-black text-slate-400 block font-bold">Compiled Timestamp</span>
+                              <span className="text-xs font-black font-mono text-slate-705 block mt-1">{item.date}</span>
+                            </div>
+                            {onEditLivestock && (
+                              <button
+                                onClick={() => setEditingLivestock(item)}
+                                className="text-slate-305 hover:text-indigo-850 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-indigo-105 bg-white shadow-xs"
+                              >
+                                <PenSquare size={13} />
+                              </button>
+                            )}
+                            {onDeleteLivestock && (
+                              <button
+                                onClick={() => onDeleteLivestock(item.id)}
+                                className="text-slate-305 hover:text-rose-850 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-rose-105 bg-white shadow-xs"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -3880,28 +4422,18 @@ export function OtherSections({
             </div>
           )}
 
-          {/* SUBTAB 2A: POULTRY & CANINES COOPERATIVE */}
+          {/* SUBTAB 2A: SECURITY CANINES COOPERATIVE */}
           {livestockSubTab === 'poultry_dogs' && (
             <div className="space-y-6">
-              {/* Poultry immunization schedule guide */}
-              <div className="bg-amber-50 border border-amber-200 p-5 rounded-3xl space-y-3 shadow-xs">
-                <div className="flex items-center gap-2 text-amber-950">
-                  <BookOpen size={16} className="text-amber-800" />
-                  <h5 className="text-[11px] font-black tracking-widest uppercase">IMPERATIVE POULTRY VACCINATION & CANINE REMINDERS</h5>
+              {/* Canine immunization & checkup guide */}
+              <div className="bg-slate-50 border border-slate-200 p-5 rounded-3xl space-y-3 shadow-xs">
+                <div className="flex items-center gap-2 text-slate-900">
+                  <Shield size={16} className="text-emerald-700" />
+                  <h5 className="text-[11px] font-black tracking-widest uppercase">MANDATORY SECURITY CANINE PROTOCOLS & REMINDERS</h5>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-2">
-                    <span className="font-extrabold text-[#7d5600] uppercase tracking-wide block">🐣 Laying Avian Schedule (Newcastle / Gumboro):</span>
-                    <ul className="list-disc list-inside space-y-1 text-slate-600 font-semibold">
-                      <li>Week 1: Newcastle Vaccine (drinking water/drops)</li>
-                      <li>Week 2: Gumboro First Dose (Immunity booster)</li>
-                      <li>Week 4: Newcastle & Bronchitis Booster</li>
-                      <li>Week 8: Fowl Pox (wing web injection)</li>
-                      <li>Week 18/Lay: Newcastle booster every 8 weeks</li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="font-extrabold text-slate-700 uppercase tracking-wide block">🐕 Guard Canine Checkups (Rabies & Deworming):</span>
+                    <span className="font-extrabold text-emerald-800 uppercase tracking-wide block">🐕 Guard Canine Checkups & Vaccine Routine:</span>
                     <ul className="list-disc list-inside space-y-1 text-slate-600 font-semibold">
                       <li>Deworming: Every 3 months (Praziquantel compounds)</li>
                       <li>Rabies Booster: Annual mandatory vaccination</li>
@@ -3909,17 +4441,34 @@ export function OtherSections({
                       <li>Tick/Flea prevention: Monthly veterinary collars check</li>
                     </ul>
                   </div>
+                  <div className="space-y-2">
+                    <span className="font-extrabold text-slate-700 uppercase tracking-wide block">👮 Patrol Guard Duties & Parameters:</span>
+                    <ul className="list-disc list-inside space-y-1 text-slate-600 font-semibold">
+                      <li>Log all perimeter patrol rounds, gate checks, and kennel cleanings.</li>
+                      <li>Report any physical symptoms, changes in energy level, or diet refusal immediately.</li>
+                      <li>Record veterinary visits and routine deworming events accurately.</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
 
               <div className="flex justify-between items-center bg-white/30 px-2 font-bold select-none">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Poultry Eggs & canine vaccination ledger</span>
-                <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Security Canine patrol & medical ledger</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setShowVetCardModal(true)}
+                    type="button"
+                    className="flex items-center gap-1.5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-950 hover:bg-emerald-100 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                    title="Generate Vet Canine Health Passport PDF"
+                  >
+                    <Shield size={13} className="text-emerald-700" />
+                    🐶 Vet Passport PDF
+                  </button>
                   <button
                     onClick={downloadLivestockCSV}
                     type="button"
                     className="flex items-center gap-1.5 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-950 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                    title="Export Poultry & Canine Records CSV"
+                    title="Export Canine Records CSV"
                   >
                     <FileSpreadsheet size={13} />
                     Export CSV
@@ -3936,7 +4485,10 @@ export function OtherSections({
                     </button>
                   )}
                   <button
-                    onClick={() => setShowAddForm(!showAddForm)}
+                    onClick={() => {
+                      setShowAddForm(!showAddForm);
+                      setLsType('Dogs');
+                    }}
                     className="bg-amber-900 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0"
                   >
                     <Plus size={14} /> Add Ledger Log
@@ -3944,19 +4496,17 @@ export function OtherSections({
                 </div>
               </div>
 
-              {showAddForm && (
+              {showAddForm && lsType === 'Dogs' && (
                 <form onSubmit={handleLivestockSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4 font-sans text-left">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Livestock Unit Type</label>
-                      <select
-                        value={lsType}
-                        onChange={(e) => setLsType(e.target.value as any)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-medium text-slate-650 cursor-pointer"
-                      >
-                        <option value="Poultry">Poultry / Layers / Chicks</option>
-                        <option value="Dogs">Security Guard Canines</option>
-                      </select>
+                      <input
+                        type="text"
+                        readOnly
+                        value="Security Guard Canines"
+                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-slate-50 text-slate-500"
+                      />
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Group ID / Breed / Name</label>
@@ -3965,7 +4515,7 @@ export function OtherSections({
                         required
                         value={lsName}
                         onChange={(e) => setLsName(e.target.value)}
-                        placeholder="E.g. Flock A (Lay) or Canine Major"
+                        placeholder="E.g. Canine Rex or Patrol Pack"
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                       />
                     </div>
@@ -3976,7 +4526,7 @@ export function OtherSections({
                         required
                         value={lsCount}
                         onChange={(e) => setLsCount(e.target.value)}
-                        placeholder="E.g. 520 birds, German Shepherd"
+                        placeholder="E.g. German Shepherd"
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
                       />
                     </div>
@@ -3997,7 +4547,7 @@ export function OtherSections({
                         required
                         value={lsActivity}
                         onChange={(e) => setLsActivity(e.target.value)}
-                        placeholder="E.g. Administered typhoid vaccine, collected 12 crates eggs"
+                        placeholder="E.g. Deworming & annual rabies jab, night patrol round completed"
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
                       />
                     </div>
@@ -4007,7 +4557,7 @@ export function OtherSections({
                         type="text"
                         value={lsNotes}
                         onChange={(e) => setLsNotes(e.target.value)}
-                        placeholder="E.g. Feed intake robust, normal weight curves..."
+                        placeholder="E.g. Active, high alertness, verified gate sensors..."
                         className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
                       />
                     </div>
@@ -4028,49 +4578,262 @@ export function OtherSections({
               )}
 
               <div className="space-y-4">
-                {livestock.map((item) => (
-                  <div key={item.id} className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-slate-200">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
-                          item.type === 'Poultry' ? 'bg-amber-100 border-amber-200 text-amber-800' : 'bg-slate-100 border-slate-200 text-slate-800'
-                        }`}>
-                          {item.type} Section
-                        </span>
-                        <h5 className="font-extrabold text-[13.5px] uppercase text-[#0b251a]">{item.name}</h5>
-                        <span className="text-xs font-mono font-bold text-slate-400">({item.countOrBreed})</span>
+                {livestock.filter(item => item.type === 'Dogs').length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 border border-dashed rounded-2xl text-slate-400 font-bold uppercase text-[10.5px]">
+                    No canine patrol log entries registered yet.
+                  </div>
+                ) : (
+                  livestock.filter(item => item.type === 'Dogs').map((item) => (
+                    <div key={item.id} className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-slate-200">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded border bg-slate-100 border-slate-200 text-slate-800">
+                            {item.type} Section
+                          </span>
+                          <h5 className="font-extrabold text-[13.5px] uppercase text-[#0b251a]">{item.name}</h5>
+                          <span className="text-xs font-mono font-bold text-slate-400">({item.countOrBreed})</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-black text-slate-705 leading-relaxed bg-slate-50 shrink-0 px-2 py-1 rounded inline-block">
+                          <Activity size={12} className="text-amber-700 shrink-0 inline-block mr-1" />
+                          <span>Activity: {item.activity}</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-505 italic leading-normal">
+                          Observational diagnostics: "{item.notes}"
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-black text-slate-705 leading-relaxed bg-slate-50 shrink-0 px-2 py-1 rounded inline-block">
-                        <Activity size={12} className="text-amber-700 shrink-0 inline-block mr-1" />
-                        <span>Activity: {item.activity}</span>
+                      <div className="text-left md:text-right shrink-0 flex items-center gap-4">
+                        <div>
+                          <span className="text-[9px] uppercase font-black text-slate-400 block font-bold">Compiled Timestamp</span>
+                          <span className="text-xs font-black font-mono text-slate-705 block mt-1">{item.date}</span>
+                        </div>
+                        {onEditLivestock && (
+                          <button
+                            onClick={() => setEditingLivestock(item)}
+                            className="text-slate-305 hover:text-indigo-850 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-indigo-105 bg-white shadow-xs"
+                          >
+                            <PenSquare size={13} />
+                          </button>
+                        )}
+                        {onDeleteLivestock && (
+                          <button
+                            onClick={() => onDeleteLivestock(item.id)}
+                            className="text-slate-305 hover:text-rose-650 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-rose-105 bg-white shadow-xs"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs font-medium text-slate-500 italic leading-normal">
-                        Observational diagnostics: "{item.notes}"
-                      </p>
                     </div>
-                    <div className="text-left md:text-right shrink-0 flex items-center gap-4">
-                      <div>
-                        <span className="text-[9px] uppercase font-black text-slate-400 block font-bold">Compiled Timestamp</span>
-                        <span className="text-xs font-black font-mono text-slate-705 block mt-1">{item.date}</span>
+                  ))
+                )}
+              </div>
+
+              {/* 🐕 VETERINARY CANINE HEALTH PASSPORT MODAL */}
+              {showVetCardModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-300">
+                  <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    {/* Header */}
+                    <div className="bg-slate-950 p-6 text-white flex justify-between items-center shrink-0">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/30">
+                          <Shield size={20} className="text-emerald-400 animate-pulse" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-[15px] tracking-tight uppercase">🐕 Veterinary Canine Health Passport</h4>
+                          <p className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider mt-0.5">Professional K-9 Pedigree & Treatment Ledger Engine</p>
+                        </div>
                       </div>
-                      {onEditLivestock && (
-                        <button
-                          onClick={() => setEditingLivestock(item)}
-                          className="text-slate-305 hover:text-indigo-850 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-indigo-105 bg-white shadow-xs"
-                        >
-                          <PenSquare size={13} />
-                        </button>
-                      )}
                       <button
-                        onClick={() => onDeleteLivestock(item.id)}
-                        className="text-slate-305 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-red-105 bg-white shadow-xs"
+                        onClick={() => setShowVetCardModal(false)}
+                        className="text-slate-400 hover:text-white transition-colors text-lg font-bold p-1 cursor-pointer m-0"
                       >
-                        <Trash2 size={13} />
+                        ✕
                       </button>
                     </div>
+
+                    {/* Content */}
+                    <div className="p-6 overflow-y-auto space-y-5 text-left font-sans text-xs">
+                      
+                      <div className="bg-emerald-50/70 border border-emerald-150 p-4 rounded-2xl text-emerald-950 flex flex-col gap-1.5">
+                        <span className="font-black text-[10.5px] uppercase tracking-wide text-emerald-900">📄 Generate High-Standard Vet Records</span>
+                        <p className="text-slate-650 font-medium leading-relaxed">
+                          This module produces an official, clean single-page PDF Canine Health Passport. You can download an 
+                          <strong> Empty Template</strong> to fill out manually in the kennels, or 
+                          <strong> Pre-populate</strong> the card with a dog's active historical patrol logs.
+                        </p>
+                      </div>
+
+                      {/* Dropdown to auto-fill */}
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-black text-slate-500 uppercase">Pre-populate from Active Canine Registry</label>
+                          <span className="text-[9px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">Optional Helper</span>
+                        </div>
+                        <select
+                          value={selectedCanineId}
+                          onChange={(e) => handleSelectCanineToPreFill(e.target.value)}
+                          className="w-full text-xs border border-slate-200 rounded-xl p-3 font-bold bg-white focus:ring-2 focus:ring-emerald-500/20"
+                        >
+                          <option value="">-- [Blank Template / Manual Input] --</option>
+                          {livestock
+                            .filter((item, idx, self) => 
+                              item.type === 'Dogs' && 
+                              self.findIndex(t => t.name === item.name) === idx
+                            )
+                            .map((item) => (
+                              <option key={item.id} value={item.id}>
+                                🐾 {item.name} ({item.countOrBreed})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      {/* Custom input fields */}
+                      <div className="space-y-4">
+                        <span className="font-black text-[10.5px] text-slate-500 uppercase tracking-widest block border-b border-slate-100 pb-1.5">
+                          Canine Credentials & Pedigree Info
+                        </span>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Official Name</label>
+                            <input
+                              type="text"
+                              value={vetCardName}
+                              onChange={(e) => setVetCardName(e.target.value)}
+                              placeholder="E.g. Canine Rex"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Breed / Phenotype</label>
+                            <input
+                              type="text"
+                              value={vetCardBreed}
+                              onChange={(e) => setVetCardBreed(e.target.value)}
+                              placeholder="E.g. German Shepherd (GSD)"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Microchip or Tag ID</label>
+                            <input
+                              type="text"
+                              value={vetCardChip}
+                              onChange={(e) => setVetCardChip(e.target.value)}
+                              placeholder="E.g. K9-CHIP-821A"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white font-mono text-emerald-800"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Date of Birth / Est. Age</label>
+                            <input
+                              type="date"
+                              value={vetCardDob}
+                              onChange={(e) => setVetCardDob(e.target.value)}
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Gender / Sex</label>
+                            <select
+                              value={vetCardGender}
+                              onChange={(e) => setVetCardGender(e.target.value)}
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            >
+                              <option value="Male">Male (Intact)</option>
+                              <option value="Neutered Male">Neutered Male</option>
+                              <option value="Female">Female (Intact)</option>
+                              <option value="Spayed Female">Spayed Female</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Primary Handler Assigned</label>
+                            <input
+                              type="text"
+                              value={vetCardHandler}
+                              onChange={(e) => setVetCardHandler(e.target.value)}
+                              placeholder="E.g. Corporal Charles Ngetich"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Sire (Father)</label>
+                            <input
+                              type="text"
+                              value={vetCardSire}
+                              onChange={(e) => setVetCardSire(e.target.value)}
+                              placeholder="E.g. Rocky (Alpha Pack)"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dam (Mother)</label>
+                            <input
+                              type="text"
+                              value={vetCardDam}
+                              onChange={(e) => setVetCardDam(e.target.value)}
+                              placeholder="E.g. Duchess (Bravo Pack)"
+                              className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Attending Surgeon / DVM</label>
+                          <input
+                            type="text"
+                            value={vetCardVet}
+                            onChange={(e) => setVetCardVet(e.target.value)}
+                            placeholder="Dr. Devin Omwenga, DVM"
+                            className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold bg-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="bg-slate-50 p-6 border-t border-slate-150 flex flex-col sm:flex-row sm:justify-between items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => downloadCanineVetCardPdf(true)}
+                        disabled={isGeneratingPdf}
+                        className="w-full sm:w-auto px-5 py-3 border border-slate-300 hover:border-slate-400 rounded-xl text-slate-700 font-extrabold text-xs uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        📄 Download Empty Card
+                      </button>
+
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={() => setShowVetCardModal(false)}
+                          className="px-5 py-3 border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-100 font-bold text-xs uppercase m-0 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => downloadCanineVetCardPdf(false)}
+                          disabled={isGeneratingPdf || !vetCardName}
+                          className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md flex items-center justify-center gap-2 m-0 disabled:opacity-50"
+                        >
+                          {isGeneratingPdf ? (
+                            <span className="flex items-center gap-1.5">
+                              <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Compiling...
+                            </span>
+                          ) : (
+                            "✨ Download Pre-filled Card"
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 

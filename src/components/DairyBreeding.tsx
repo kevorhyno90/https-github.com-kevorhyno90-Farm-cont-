@@ -39,6 +39,7 @@ interface DairyBreedingProps {
   milkOutflows: MilkOutflowRecord[];
   onAddMilkOutflow: (rec: MilkOutflowRecord) => void;
   onDeleteMilkOutflow: (id: string) => void;
+  onEditMilkOutflow?: (id: string, updated: MilkOutflowRecord) => void;
   staffList: StaffMember[];
   onAddMilkRecord: (rec: MilkingRecord) => void;
   onAddAIRecord: (rec: AIRecord) => void;
@@ -66,6 +67,7 @@ interface DairyBreedingProps {
   semenInventory?: SemenInventoryItem[];
   setSemenInventory?: React.Dispatch<React.SetStateAction<SemenInventoryItem[]>>;
   onAddCalfRecord?: (rec: CalfRecord) => void;
+  activeSubModule?: 'milk' | 'breeding' | 'veterinary' | 'cows';
 }
 
 export function DairyBreeding({
@@ -74,6 +76,7 @@ export function DairyBreeding({
   milkOutflows = [],
   onAddMilkOutflow,
   onDeleteMilkOutflow,
+  onEditMilkOutflow,
   staffList,
   onAddMilkRecord,
   onAddAIRecord,
@@ -100,10 +103,23 @@ export function DairyBreeding({
   onTriggerSectionReport,
   semenInventory = [],
   setSemenInventory,
-  onAddCalfRecord
+  onAddCalfRecord,
+  activeSubModule
 }: DairyBreedingProps) {
   // Sub-tabs state inside Dairy module
-  const [subTab, setSubTab] = useState<'lactation' | 'registry' | 'veterinary' | 'life_ledger' | 'breeding_wheel' | 'semen_inventory'>('lactation');
+  const [subTab, setSubTab] = useState<'lactation' | 'breeding_ledger' | 'registry' | 'veterinary' | 'life_ledger' | 'breeding_wheel' | 'semen_inventory'>('lactation');
+
+  React.useEffect(() => {
+    if (activeSubModule === 'milk') {
+      setSubTab('lactation');
+    } else if (activeSubModule === 'breeding') {
+      setSubTab('breeding_ledger');
+    } else if (activeSubModule === 'veterinary') {
+      setSubTab('veterinary');
+    } else if (activeSubModule === 'cows') {
+      setSubTab('registry');
+    }
+  }, [activeSubModule]);
 
   // Breeding Wheel states
   const [selectedWheelCow, setSelectedWheelCow] = useState<string>('');
@@ -115,6 +131,9 @@ export function DairyBreeding({
   const [editingAI, setEditingAI] = useState<AIRecord | null>(null);
   const [editingCow, setEditingCow] = useState<Cow | null>(null);
   const [editingVet, setEditingVet] = useState<VetRecord | null>(null);
+  const [editingOutflow, setEditingOutflow] = useState<MilkOutflowRecord | null>(null);
+  const [editNewDebtorName, setEditNewDebtorName] = useState('');
+  const [editNewDebtorAmount, setEditNewDebtorAmount] = useState<number | ''>('');
 
   // Milking record states
   const [cowTag, setCowTag] = useState('');
@@ -125,13 +144,11 @@ export function DairyBreeding({
   const [milkPrice, setMilkPrice] = useState<number | ''>(52);
   const [milkBuyer, setMilkBuyer] = useState('Brookside Dairy Ltd');
 
-  // Included dispatch fields
-  const [milkUsedAtHomeVal, setMilkUsedAtHomeVal] = useState<number | ''>('');
-  const [milkUsedByWorkersVal, setMilkUsedByWorkersVal] = useState<number | ''>('');
-  const [milkSpoiledVal, setMilkSpoiledVal] = useState<number | ''>('');
-  const [debtsKshVal, setDebtsKshVal] = useState<number | ''>('');
-  const [debtCustomerVal, setDebtCustomerVal] = useState('');
-  const [dispatchNotesVal, setDispatchNotesVal] = useState('');
+  // Standalone Daily Outflow entry states
+  const [outflowCalf, setOutflowCalf] = useState<number | ''>('');
+  const [outflowDebtsList, setOutflowDebtsList] = useState<{ debtor: string; amount: number }[]>([]);
+  const [outflowDebtorName, setOutflowDebtorName] = useState('');
+  const [outflowDebtorAmount, setOutflowDebtorAmount] = useState<number | ''>('');
 
   // AI record states
   const [aiCowId, setAiCowId] = useState('');
@@ -209,21 +226,39 @@ export function DairyBreeding({
   const handleOutflowSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!outflowDate) return;
+
+    // Compile multiple debtors
+    const finalDebts = [...outflowDebtsList];
+    if (outflowCustomer.trim() && outflowDebts !== '') {
+      finalDebts.push({
+        debtor: outflowCustomer.trim(),
+        amount: Number(outflowDebts)
+      });
+    }
+
+    const totalDebtsVal = finalDebts.reduce((sum, d) => sum + d.amount, 0);
+    const combinedDebtorNames = finalDebts.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ');
+
     onAddMilkOutflow({
       id: `mo-${Date.now()}`,
       date: outflowDate,
       milkUsedAtHome: outflowHome === '' ? 0 : Number(outflowHome),
       milkUsedByWorkers: outflowWorkers === '' ? 0 : Number(outflowWorkers),
+      milkUsedByCalf: outflowCalf === '' ? 0 : Number(outflowCalf),
       milkSpoiled: outflowSpoiled === '' ? 0 : Number(outflowSpoiled),
-      debtsKsh: outflowDebts === '' ? 0 : Number(outflowDebts),
-      debtCustomer: outflowCustomer.trim() || undefined,
+      debtsKsh: finalDebts.length > 0 ? totalDebtsVal : 0,
+      debtCustomer: finalDebts.length > 0 ? combinedDebtorNames : undefined,
+      debtsList: finalDebts.length > 0 ? finalDebts : undefined,
       notes: outflowNotes.trim() || undefined
     });
+
     setOutflowHome('');
     setOutflowWorkers('');
+    setOutflowCalf('');
     setOutflowSpoiled('');
     setOutflowDebts('');
     setOutflowCustomer('');
+    setOutflowDebtsList([]);
     setOutflowNotes('');
   };
 
@@ -231,8 +266,8 @@ export function DairyBreeding({
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth(); // A4: 210mm
     const pageHeight = doc.internal.pageSize.getHeight(); // A4: 297mm
-    const margin = 15;
-    const contentWidth = pageWidth - (margin * 2); // 180mm
+    const margin = 12;
+    const contentWidth = pageWidth - (margin * 2); // 186mm
     
     let pageNumber = 1;
     
@@ -244,18 +279,18 @@ export function DairyBreeding({
       // Title
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.text('DAIRY FARM OUTFLOW & CREDIT LEDGER', margin + 6, 21);
+      doc.setFontSize(13);
+      doc.text('CONSOLIDATED MILK LOG & DISPATCH LEDGER', margin + 6, 21);
       
       // Subtitle
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setTextColor(203, 213, 225); // slate-300
       const generatedDate = new Date().toLocaleString('en-US', { 
         weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
         hour: '2-digit', minute: '2-digit'
       });
-      doc.text(`Generated: ${generatedDate} | System Report | Page ${pageNum}`, margin + 6, 28);
+      doc.text(`Generated: ${generatedDate} | Combined Yield & Outflow Registry | Page ${pageNum}`, margin + 6, 28);
     };
     
     const drawFooter = (pageNum: number) => {
@@ -265,9 +300,9 @@ export function DairyBreeding({
       doc.line(margin, pageHeight - 14, margin + contentWidth, pageHeight - 14);
 
       doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setTextColor(148, 163, 184); // slate-400
-      doc.text('Dairy Breeding, Dispatch & Ledger Management System', margin, pageHeight - 9);
+      doc.text('Sovereign Dairy Milk Log & Dispatch Ledger System', margin, pageHeight - 9);
       doc.text(`Page ${pageNum}`, pageWidth - margin - 15, pageHeight - 9);
     };
     
@@ -277,47 +312,59 @@ export function DairyBreeding({
     
     let y = 43; // spacing from header
     
+    // Aggregate Summary calculation
+    const totalHarvest = milkRecords.reduce((sum, r) => sum + (r.am + r.pm), 0);
+    const totalHome = milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0);
+    const totalWorkers = milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0);
+    const totalCalves = milkOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0);
+    const totalSpoilt = milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0);
+    const totalDebts = milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0);
+    const totalSales = milkRecords.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 52))), 0);
+
     // Summary Metrics Banner
     doc.setFillColor(248, 250, 252); // slate-50
-    doc.rect(margin, y, contentWidth, 26, 'F');
+    doc.rect(margin, y, contentWidth, 28, 'F');
     doc.setDrawColor(226, 232, 240); // slate-200
     doc.setLineWidth(0.5);
-    doc.rect(margin, y, contentWidth, 26, 'S');
+    doc.rect(margin, y, contentWidth, 28, 'S');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.text('CONSOLIDATED HERD PRODUCTION & DISPATCH YIELD SUMMARY', margin + 6, y + 6);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text('Total Harvested', margin + 6, y + 13);
+    doc.text('Home Consumed', margin + 36, y + 13);
+    doc.text('Staff Portions', margin + 66, y + 13);
+    doc.text('Calf Consumed', margin + 96, y + 13);
+    doc.text('Total Spoilt', margin + 124, y + 13);
+    doc.text('Total Debts', margin + 148, y + 13);
+    doc.text('Total Sales', margin + 168, y + 13);
     
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
-    doc.setTextColor(51, 65, 85); // slate-700
-    doc.text('OUTFLOW PORTIONS & CREDIT BALANCES AGGREGATE SUMMARY', margin + 6, y + 6);
-    
-    const totalHome = milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0).toFixed(1);
-    const totalWorkers = milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0).toFixed(1);
-    const totalSpoilt = milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0).toFixed(1);
-    const totalDebts = milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0).toLocaleString();
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139); // slate-500
-    doc.text('Home Consumed', margin + 6, y + 13);
-    doc.text('Staff Portions', margin + 48, y + 13);
-    doc.text('Total Spoiled', margin + 90, y + 13);
-    doc.text('Unpaid Debts', margin + 132, y + 13);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
     doc.setTextColor(30, 41, 59); // slate-800
-    doc.text(`${totalHome} L`, margin + 6, y + 19.5);
-    doc.text(`${totalWorkers} L`, margin + 48, y + 19.5);
-    doc.text(`${totalSpoilt} L`, margin + 90, y + 19.5);
-    doc.setTextColor(16, 185, 129); // emerald-500 for money/debt status
-    doc.text(`Ksh ${totalDebts}`, margin + 132, y + 19.5);
+    doc.text(`${totalHarvest.toFixed(1)} L`, margin + 6, y + 21);
+    doc.text(`${totalHome.toFixed(1)} L`, margin + 36, y + 21);
+    doc.text(`${totalWorkers.toFixed(1)} L`, margin + 66, y + 21);
+    doc.text(`${totalCalves.toFixed(1)} L`, margin + 96, y + 21);
+    doc.setTextColor(239, 68, 68); // red for spoiled
+    doc.text(`${totalSpoilt.toFixed(1)} L`, margin + 124, y + 21);
+    doc.setTextColor(245, 158, 11); // amber for debts
+    doc.text(`Ksh ${totalDebts.toLocaleString()}`, margin + 148, y + 21);
+    doc.setTextColor(16, 185, 129); // emerald-500 for total sales
+    doc.text(`Ksh ${totalSales.toLocaleString()}`, margin + 168, y + 21);
     
-    y += 35; // Advance down
+    y += 37; // Advance down
     
     // Details header
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
+    doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
-    doc.text('CHRONOLOGICAL DISPATCH & LEDGER HISTORY', margin, y);
+    doc.text('CONSOLIDATED DAILY PRODUCTION YIELDS & DISPATCH ENTRIES', margin, y);
     
     y += 5;
     
@@ -326,21 +373,26 @@ export function DairyBreeding({
     doc.rect(margin, y, contentWidth, 8.5, 'F');
     
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
+    doc.setFontSize(7.5);
     doc.setTextColor(255, 255, 255);
-    doc.text('Date', margin + 4, y + 5.5);
-    doc.text('Home (L)', margin + 35, y + 5.5);
-    doc.text('Workers (L)', margin + 60, y + 5.5);
-    doc.text('Spoiled (L)', margin + 85, y + 5.5);
-    doc.text('Debt (Ksh) & Debtor', margin + 110, y + 5.5);
-    doc.text('Remarks / Notes', margin + 145, y + 5.5);
+    doc.text('Date', margin + 3, y + 5.5);
+    doc.text('Harvested', margin + 28, y + 5.5);
+    doc.text('Home (L)', margin + 49, y + 5.5);
+    doc.text('Staff (L)', margin + 67, y + 5.5);
+    doc.text('Calf (L)', margin + 85, y + 5.5);
+    doc.text('Spoiled (L)', margin + 103, y + 5.5);
+    doc.text('Unpaid Debts (Ksh) & Debtor', margin + 121, y + 5.5);
+    doc.text('Est. Sales', margin + 160, y + 5.5);
     
     y += 8.5;
     
-    // Sort items so newest are at top
-    const sortedOutflows = [...milkOutflows].sort((a, b) => b.date.localeCompare(a.date));
+    // Sort items newest first
+    const allDatesSet = new Set<string>();
+    milkRecords.forEach(r => allDatesSet.add(r.date));
+    milkOutflows.forEach(o => allDatesSet.add(o.date));
+    const sortedDates = Array.from(allDatesSet).sort((a, b) => b.localeCompare(a));
     
-    sortedOutflows.forEach((item, index) => {
+    sortedDates.forEach((dateKey, index) => {
       // Dynamic page breaks
       if (y > pageHeight - 22) {
         doc.addPage();
@@ -354,16 +406,30 @@ export function DairyBreeding({
         doc.setFillColor(15, 23, 42);
         doc.rect(margin, y, contentWidth, 8.5, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8.5);
+        doc.setFontSize(7.5);
         doc.setTextColor(255, 255, 255);
-        doc.text('Date', margin + 4, y + 5.5);
-        doc.text('Home (L)', margin + 35, y + 5.5);
-        doc.text('Workers (L)', margin + 60, y + 5.5);
-        doc.text('Spoiled (L)', margin + 85, y + 5.5);
-        doc.text('Debt (Ksh) & Debtor', margin + 110, y + 5.5);
-        doc.text('Remarks / Notes', margin + 145, y + 5.5);
+        doc.text('Date', margin + 3, y + 5.5);
+        doc.text('Harvested', margin + 28, y + 5.5);
+        doc.text('Home (L)', margin + 49, y + 5.5);
+        doc.text('Staff (L)', margin + 67, y + 5.5);
+        doc.text('Calf (L)', margin + 85, y + 5.5);
+        doc.text('Spoiled (L)', margin + 103, y + 5.5);
+        doc.text('Unpaid Debts (Ksh) & Debtor', margin + 121, y + 5.5);
+        doc.text('Est. Sales', margin + 160, y + 5.5);
         y += 8.5;
       }
+      
+      const dayMilks = milkRecords.filter(r => r.date === dateKey);
+      const dayOutflow = milkOutflows.find(o => o.date === dateKey);
+      
+      const yieldVol = dayMilks.reduce((sum, r) => sum + (r.am + r.pm), 0);
+      const homeL = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
+      const workersL = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
+      const calfL = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
+      const spoiledL = dayOutflow ? dayOutflow.milkSpoiled : 0;
+      const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
+      const debtCustomer = dayOutflow ? dayOutflow.debtCustomer : '';
+      const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 52))), 0);
       
       // Row alternating color background
       if (index % 2 === 1) {
@@ -378,43 +444,276 @@ export function DairyBreeding({
       
       // Row text drawing
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setTextColor(51, 65, 85); // slate-700
       
-      const dateString = new Date(item.date).toLocaleDateString('en-US', { 
+      const dateString = new Date(dateKey).toLocaleDateString('en-US', { 
         year: 'numeric', month: 'short', day: 'numeric' 
       });
-      doc.text(dateString, margin + 4, y + 4.8);
+      doc.text(dateString, margin + 3, y + 4.8);
       
       doc.setFont('helvetica', 'normal');
-      doc.text(`${item.milkUsedAtHome} L`, margin + 35, y + 4.8);
-      doc.text(`${item.milkUsedByWorkers} L`, margin + 60, y + 4.8);
-      doc.text(item.milkSpoiled > 0 ? `${item.milkSpoiled} L` : '—', margin + 85, y + 4.8);
+      doc.text(yieldVol > 0 ? `${yieldVol.toFixed(1)} L` : '—', margin + 28, y + 4.8);
+      doc.text(homeL > 0 ? `${homeL.toFixed(1)} L` : '—', margin + 49, y + 4.8);
+      doc.text(workersL > 0 ? `${workersL.toFixed(1)} L` : '—', margin + 67, y + 4.8);
+      doc.text(calfL > 0 ? `${calfL.toFixed(1)} L` : '—', margin + 85, y + 4.8);
       
-      if (item.debtsKsh > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(239, 68, 68); // Red-500
-        const debtText = `Ksh ${item.debtsKsh}` + (item.debtCustomer ? ` (${item.debtCustomer})` : '');
-        const truncatedDebt = debtText.length > 20 ? debtText.substring(0, 18) + '..' : debtText;
-        doc.text(truncatedDebt, margin + 110, y + 4.8);
+      if (spoiledL > 0) {
+        doc.setTextColor(239, 68, 68);
+        doc.text(`${spoiledL.toFixed(1)} L`, margin + 103, y + 4.8);
+        doc.setTextColor(51, 65, 85);
       } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(148, 163, 184); // slate-400
-        doc.text('—', margin + 110, y + 4.8);
+        doc.text('—', margin + 103, y + 4.8);
       }
       
+      if (debtsKsh > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(220, 38, 38); // Crimson red
+        const debtText = `Ksh ${debtsKsh.toLocaleString()}` + (debtCustomer ? ` (${debtCustomer})` : '');
+        const truncatedDebt = debtText.length > 25 ? debtText.substring(0, 23) + '..' : debtText;
+        doc.text(truncatedDebt, margin + 121, y + 4.8);
+        doc.setTextColor(51, 65, 85);
+        doc.setFont('helvetica', 'normal');
+      } else {
+        doc.text('—', margin + 121, y + 4.8);
+      }
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 185, 129); // emerald
+      doc.text(daySales > 0 ? `Ksh ${daySales.toLocaleString()}` : '—', margin + 160, y + 4.8);
+      doc.setTextColor(51, 65, 85);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 116, 139); // slate-500
-      const remarks = item.notes || '—';
-      const truncatedRemarks = remarks.length > 24 ? remarks.substring(0, 22) + '...' : remarks;
-      doc.text(truncatedRemarks, margin + 145, y + 4.8);
       
       y += 7.5;
     });
     
     // Save generated PDF file with date stamp
     const fileDateStr = new Date().toISOString().split('T')[0];
-    doc.save(`milk_outflow_ledger_${fileDateStr}.pdf`);
+    doc.save(`milk_production_and_dispatch_ledger_${fileDateStr}.pdf`);
+  };
+
+  const handleDownloadAIPdf = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth(); // A4: 210mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // A4: 297mm
+    const margin = 12;
+    const contentWidth = pageWidth - (margin * 2); // 186mm
+    
+    let pageNumber = 1;
+    
+    const drawHeader = (pageNum: number) => {
+      // Elegant breeding-crimson background brand bar
+      doc.setFillColor(153, 27, 27); // red-800
+      doc.rect(margin, 12, contentWidth, 24, 'F');
+      
+      // Title
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('ARTIFICIAL INSEMINATION & BREEDING LEDGER', margin + 6, 21);
+      
+      // Subtitle
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(254, 226, 226); // red-100
+      const generatedDate = new Date().toLocaleString('en-US', { 
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+      doc.text(`Generated: ${generatedDate} | Straw Usage & Gestation Timetable | Page ${pageNum}`, margin + 6, 28);
+    };
+    
+    const drawFooter = (pageNum: number) => {
+      // Simple hairline divider at footer
+      doc.setDrawColor(254, 226, 226); // red-100
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 14, margin + contentWidth, pageHeight - 14);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184); // slate-400
+      doc.text('Sovereign Breeding, Gestation & AI Registry System', margin, pageHeight - 9);
+      doc.text(`Page ${pageNum}`, pageWidth - margin - 15, pageHeight - 9);
+    };
+    
+    // Draw initial template
+    drawHeader(pageNumber);
+    drawFooter(pageNumber);
+    
+    let y = 43; // spacing from header
+    
+    // Aggregate Summary counters
+    const totalAI = aiRecords.length;
+    const confirmedPreg = aiRecords.filter(r => r.status === 'Confirmed Pregnant').length;
+    const pendingScan = aiRecords.filter(r => r.status === 'Pending').length;
+    const calvedCount = aiRecords.filter(r => r.status === 'Calved').length;
+    const failedCount = aiRecords.filter(r => r.status === 'Failed').length;
+    const totalStrawCost = aiRecords.reduce((sum, r) => sum + (r.cost || 0), 0);
+
+    // Summary Metrics Banner
+    doc.setFillColor(254, 242, 242); // red-50
+    doc.rect(margin, y, contentWidth, 28, 'F');
+    doc.setDrawColor(252, 165, 165); // red-300
+    doc.setLineWidth(0.5);
+    doc.rect(margin, y, contentWidth, 28, 'S');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(153, 27, 27); // red-800
+    doc.text('GENETIC REPRODUCTIVE SERVICES AGGREGATE SUMMARY', margin + 6, y + 6);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(185, 28, 28); // red-700
+    doc.text('Total Inseminations', margin + 6, y + 13);
+    doc.text('Confirmed Pregnant', margin + 40, y + 13);
+    doc.text('Pending Check', margin + 74, y + 13);
+    doc.text('Calved Successful', margin + 104, y + 13);
+    doc.text('Failed Straws', margin + 134, y + 13);
+    doc.text('Straw Inv Investment', margin + 158, y + 13);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(30, 41, 59); // slate-800
+    doc.text(`${totalAI} Straws`, margin + 6, y + 21);
+    doc.setTextColor(22, 101, 52); // green-800
+    doc.text(`${confirmedPreg} Pregnant`, margin + 40, y + 21);
+    doc.setTextColor(29, 78, 216); // blue-700
+    doc.text(`${pendingScan} Pending`, margin + 74, y + 21);
+    doc.setTextColor(107, 33, 168); // purple-800
+    doc.text(`${calvedCount} Calved`, margin + 104, y + 21);
+    doc.setTextColor(185, 28, 28); // red-700
+    doc.text(`${failedCount} Failed`, margin + 134, y + 21);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Ksh ${totalStrawCost.toLocaleString()}`, margin + 158, y + 21);
+    
+    y += 37; // Advance down
+    
+    // Details header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(153, 27, 27);
+    doc.text('CHRONOLOGICAL ARTIFICIAL INSEMINATION (AI) LOG REGISTRY', margin, y);
+    
+    y += 5;
+    
+    // Draw Table Header Box
+    doc.setFillColor(153, 27, 27); // red-800
+    doc.rect(margin, y, contentWidth, 8.5, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Date Service', margin + 3, y + 5.5);
+    doc.text('Cow ID', margin + 28, y + 5.5);
+    doc.text('Sire Bull / Straw', margin + 50, y + 5.5);
+    doc.text('Breeding Status', margin + 90, y + 5.5);
+    doc.text('Return Heat', margin + 120, y + 5.5);
+    doc.text('Expected Calving Due', margin + 148, y + 5.5);
+    
+    y += 8.5;
+    
+    // Sort items newest first
+    const sortedAI = [...aiRecords].sort((a, b) => b.date.localeCompare(a.date));
+    
+    sortedAI.forEach((item, index) => {
+      // Dynamic page breaks
+      if (y > pageHeight - 22) {
+        doc.addPage();
+        pageNumber++;
+        drawHeader(pageNumber);
+        drawFooter(pageNumber);
+        
+        y = 43;
+        
+        // Redraw Table Header on new page
+        doc.setFillColor(153, 27, 27);
+        doc.rect(margin, y, contentWidth, 8.5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Date Service', margin + 3, y + 5.5);
+        doc.text('Cow ID', margin + 28, y + 5.5);
+        doc.text('Sire Bull / Straw', margin + 50, y + 5.5);
+        doc.text('Breeding Status', margin + 90, y + 5.5);
+        doc.text('Return Heat', margin + 120, y + 5.5);
+        doc.text('Expected Calving Due', margin + 148, y + 5.5);
+        y += 8.5;
+      }
+      
+      // Row alternating color background
+      if (index % 2 === 1) {
+        doc.setFillColor(254, 252, 252); // red-50/20 alternate
+        doc.rect(margin, y, contentWidth, 7.5, 'F');
+      }
+      
+      // Row bottom subtle hairline border
+      doc.setDrawColor(254, 242, 242); // red-50
+      doc.setLineWidth(0.2);
+      doc.line(margin, y + 7.5, margin + contentWidth, y + 7.5);
+      
+      // Row text drawing
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(51, 65, 85); // slate-700
+      
+      const serviceDate = new Date(item.date).toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'short', day: 'numeric' 
+      });
+      doc.text(serviceDate, margin + 3, y + 4.8);
+      
+      doc.text(item.cowId, margin + 28, y + 4.8);
+      
+      doc.setFont('helvetica', 'normal');
+      const bullDetails = `${item.bull} ${item.semenType ? `(${item.semenType})` : ''}`;
+      const truncatedBull = bullDetails.length > 22 ? bullDetails.substring(0, 20) + '..' : bullDetails;
+      doc.text(truncatedBull, margin + 50, y + 4.8);
+      
+      doc.setFont('helvetica', 'bold');
+      if (item.status === 'Confirmed Pregnant') {
+        doc.setTextColor(22, 101, 52); // green
+        doc.text('Pregnant', margin + 90, y + 4.8);
+      } else if (item.status === 'Pending') {
+        doc.setTextColor(29, 78, 216); // blue
+        doc.text('Pending Scan', margin + 90, y + 4.8);
+      } else if (item.status === 'Calved') {
+        doc.setTextColor(107, 33, 168); // purple
+        doc.text('Calved 🍼', margin + 90, y + 4.8);
+      } else {
+        doc.setTextColor(185, 28, 28); // red
+        doc.text('Failed Straw', margin + 90, y + 4.8);
+      }
+      doc.setTextColor(51, 65, 85);
+      doc.setFont('helvetica', 'normal');
+      
+      const heatStr = item.returnHeatDate ? new Date(item.returnHeatDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+      doc.text(heatStr, margin + 120, y + 4.8);
+      
+      const dueStr = item.due ? new Date(item.due).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+      doc.setFont('helvetica', 'bold');
+      doc.text(dueStr, margin + 148, y + 4.8);
+      doc.setFont('helvetica', 'normal');
+      
+      y += 7.5;
+    });
+    
+    // Save generated PDF file with date stamp
+    const fileDateStr = new Date().toISOString().split('T')[0];
+    doc.save(`artificial_insemination_breeding_report_${fileDateStr}.pdf`);
+  };
+
+  const handleAddDebtorToList = () => {
+    if (!outflowDebtorName.trim() || outflowDebtorAmount === '') return;
+    setOutflowDebtsList([
+      ...outflowDebtsList,
+      { debtor: outflowDebtorName.trim(), amount: Number(outflowDebtorAmount) }
+    ]);
+    setOutflowDebtorName('');
+    setOutflowDebtorAmount('');
+  };
+
+  const handleRemoveDebtorFromList = (index: number) => {
+    setOutflowDebtsList(outflowDebtsList.filter((_, idx) => idx !== index));
   };
 
   const handleMilkingSubmit = (e: React.FormEvent) => {
@@ -435,23 +734,12 @@ export function DairyBreeding({
       date: milkingDate,
       pricePerLiter: prVal,
       buyer: buyVal,
-      totalSales: isMilkSold ? (totalVol * prVal) : 0,
-      milkUsedAtHome: milkUsedAtHomeVal === '' ? undefined : Number(milkUsedAtHomeVal),
-      milkUsedByWorkers: milkUsedByWorkersVal === '' ? undefined : Number(milkUsedByWorkersVal),
-      milkSpoiled: milkSpoiledVal === '' ? undefined : Number(milkSpoiledVal),
-      debtsKsh: debtsKshVal === '' ? undefined : Number(debtsKshVal),
-      debtCustomer: debtCustomerVal.trim() || undefined,
-      notes: dispatchNotesVal.trim() || undefined
+      totalSales: isMilkSold ? (totalVol * prVal) : 0
     });
+
     setCowTag('');
     setAmLiters('');
     setPmLiters('');
-    setMilkUsedAtHomeVal('');
-    setMilkUsedByWorkersVal('');
-    setMilkSpoiledVal('');
-    setDebtsKshVal('');
-    setDebtCustomerVal('');
-    setDispatchNotesVal('');
     setMilkingDate(new Date().toISOString().split('T')[0]);
   };
 
@@ -1042,67 +1330,101 @@ export function DairyBreeding({
             <Activity size={24} className="text-emerald-800" />
           </div>
           <div>
-            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">Premium Dairy & Lactation Hub</h4>
+            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">
+              {activeSubModule === 'milk' ? 'Daily Milking & Milk Sales' :
+               activeSubModule === 'breeding' ? 'Artificial Insemination & Breeding' :
+               activeSubModule === 'veterinary' ? 'Veterinary Treatment Clinic' :
+               activeSubModule === 'cows' ? 'Cattle Pedigree & Registry' :
+               'Premium Dairy & Lactation Hub'}
+            </h4>
             <p className="text-xs text-slate-400 font-medium">
-              Monitor individual calf pipelines, genetic straws, milk scales, deworming calendars, and health indicators at Nyaronde.
+              {activeSubModule === 'milk' ? 'Track daily cow milking volumes, sales, home usage, and customer outflows.' :
+               activeSubModule === 'breeding' ? 'Monitor cow heat events, inseminations, pregnancy status, and semen straw reserves.' :
+               activeSubModule === 'veterinary' ? 'Record deworming, vaccines, mastitis treatments, and milk safety withdrawal calendars.' :
+               activeSubModule === 'cows' ? 'Access cow directories, breed statistics, pedigree tracking, mortalities, and sales logs.' :
+               'Monitor individual calf pipelines, genetic straws, milk scales, deworming calendars, and health indicators.'}
             </p>
           </div>
         </div>
 
         {/* Dynamic sub navigation tabs */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
-          <button
-            onClick={() => setSubTab('lactation')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-              subTab === 'lactation' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Lactation & AI
-          </button>
-          <button
-            onClick={() => setSubTab('registry')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-              subTab === 'registry' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-805'
-            }`}
-          >
-            Cow Directory
-          </button>
-          <button
-            onClick={() => setSubTab('breeding_wheel')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-              subTab === 'breeding_wheel' ? 'bg-white text-slate-950 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
-            }`}
-          >
-            🎡 Breeding Wheel
-          </button>
-          <button
-            onClick={() => setSubTab('veterinary')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 relative ${
-              subTab === 'veterinary' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Vet & Deworming
-            {activeRemindersCount > 0 && (
-              <span className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping absolute -top-0.5 -right-0.5" />
+        {(!activeSubModule || activeSubModule === 'breeding' || activeSubModule === 'cows') && (
+          <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
+            {(!activeSubModule) && (
+              <button
+                onClick={() => setSubTab('lactation')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
+                  subTab === 'lactation' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Lactation & AI
+              </button>
             )}
-          </button>
-          <button
-            onClick={() => setSubTab('life_ledger')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-              subTab === 'life_ledger' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Sales & Loss
-          </button>
-          <button
-            onClick={() => setSubTab('semen_inventory')}
-            className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-              subTab === 'semen_inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            🧬 Semen Straws
-          </button>
-        </div>
+            {(!activeSubModule || activeSubModule === 'cows') && (
+              <button
+                onClick={() => setSubTab('registry')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+                  subTab === 'registry' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-805'
+                }`}
+              >
+                Cow Directory
+              </button>
+            )}
+            {(!activeSubModule || activeSubModule === 'breeding') && (
+              <button
+                onClick={() => setSubTab('breeding_ledger')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+                  subTab === 'breeding_ledger' ? 'bg-white text-slate-955 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
+                }`}
+              >
+                📋 Breeding Ledger
+              </button>
+            )}
+            {(!activeSubModule || activeSubModule === 'breeding') && (
+              <button
+                onClick={() => setSubTab('breeding_wheel')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+                  subTab === 'breeding_wheel' ? 'bg-white text-slate-950 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
+                }`}
+              >
+                🎡 Breeding Wheel
+              </button>
+            )}
+            {(!activeSubModule) && (
+              <button
+                onClick={() => setSubTab('veterinary')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 relative ${
+                  subTab === 'veterinary' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Vet & Deworming
+                {activeRemindersCount > 0 && (
+                  <span className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping absolute -top-0.5 -right-0.5" />
+                )}
+              </button>
+            )}
+            {(!activeSubModule || activeSubModule === 'cows') && (
+              <button
+                onClick={() => setSubTab('life_ledger')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+                  subTab === 'life_ledger' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Sales & Loss
+              </button>
+            )}
+            {(!activeSubModule || activeSubModule === 'breeding') && (
+              <button
+                onClick={() => setSubTab('semen_inventory')}
+                className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
+                  subTab === 'semen_inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                🧬 Semen Straws
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* SUB-TAB: GENETIC SEMEN INVENTORY */}
@@ -1604,9 +1926,9 @@ export function DairyBreeding({
         </div>
       )}
 
-      {/* SUB-TAB 1: LACTATION & AI BREEDING */}
+      {/* SUB-TAB 1: LACTATION */}
       {subTab === 'lactation' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-8">
           {/* Production Console (Milking Yield Logging) */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
             <div className="border-b border-slate-100 pb-3">
@@ -1737,85 +2059,7 @@ export function DairyBreeding({
                 </select>
               </div>
 
-              {/* Optional Dispatch integration fields */}
-              <div className="col-span-2 border-t border-slate-100 pt-3 space-y-3">
-                <span className="text-[10px] font-black text-indigo-900 uppercase block tracking-wider">
-                  🚛 Integrated Dispatch & Allocation (Optional)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Home Consumption (L)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={milkUsedAtHomeVal}
-                      onChange={(e) => setMilkUsedAtHomeVal(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="Liters"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Worker Allocation (L)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={milkUsedByWorkersVal}
-                      onChange={(e) => setMilkUsedByWorkersVal(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="Liters"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Spoilt / Lost (L)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={milkSpoiledVal}
-                      onChange={(e) => setMilkSpoiledVal(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="Liters"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Debts / Unpaid Sales Value (Ksh)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={debtsKshVal}
-                      onChange={(e) => setDebtsKshVal(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="E.g. 1500"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Debtor Customer Name</label>
-                    <input
-                      type="text"
-                      value={debtCustomerVal}
-                      onChange={(e) => setDebtCustomerVal(e.target.value)}
-                      placeholder="E.g. Mama Amara"
-                      className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dispatch Notes & Remarks</label>
-                  <input
-                    type="text"
-                    value={dispatchNotesVal}
-                    onChange={(e) => setDispatchNotesVal(e.target.value)}
-                    placeholder="E.g. Unlocked home intake, morning batch dispatch details..."
-                    className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-medium text-slate-700"
-                  />
-                </div>
-              </div>
 
               <button
                 type="submit"
@@ -1861,78 +2105,376 @@ export function DairyBreeding({
                 </div>
               </div>
 
-              <div className="max-h-60 overflow-y-auto pr-1">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-slate-500 text-[9px] uppercase font-black">
-                      <td className="p-2 font-black uppercase">Cow / Date</td>
-                      <td className="p-2 font-black uppercase text-right">Yield AM/PM</td>
-                      <td className="p-2 font-black uppercase text-right">Commercials / Buyer</td>
-                      <td className="p-2 font-black uppercase">Staff</td>
-                      <td className="p-2 font-black uppercase text-center">Actions</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredMilk.map((m, idx) => {
-                      const price = m.pricePerLiter ?? 0;
-                      const sales = m.totalSales ?? ((m.am + m.pm) * price);
-                      const buyer = m.buyer ?? '';
-                      return (
-                        <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/40">
-                          <td className="p-2">
-                            <div className="flex items-center gap-1">
-                              <span className="font-black text-slate-800">{m.id}</span>
-                              {isHighProducer(m.am, m.pm, m.id) && (
-                                <span className="ml-1 inline-block text-[8px] bg-amber-100 text-amber-700 px-1 py-0.2 rounded font-black uppercase">
-                                  Peak
-                                </span>
-                              )}
-                            </div>
-                            <span className="font-medium text-slate-400 text-[9px] font-mono block">
-                              {new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              <div className="max-h-[500px] overflow-y-auto pr-1">
+                {(() => {
+                  const groupedMilkByDate = filteredMilk.reduce((groups, record) => {
+                    const dateKey = record.date;
+                    if (!groups[dateKey]) {
+                      groups[dateKey] = [];
+                    }
+                    groups[dateKey].push(record);
+                    return groups;
+                  }, {} as Record<string, MilkingRecord[]>);
+
+                  const sortedDates = Object.keys(groupedMilkByDate).sort((a, b) => b.localeCompare(a));
+
+                  if (sortedDates.length === 0) {
+                    return (
+                      <div className="text-center py-6 text-slate-400 font-bold uppercase text-[10px]">
+                        No milking records found
+                      </div>
+                    );
+                  }
+
+                  return sortedDates.map((dateString) => {
+                    const dayRecords = groupedMilkByDate[dateString];
+                    const dayTotalYield = dayRecords.reduce((sum, r) => sum + (r.am + r.pm), 0);
+                    const dayTotalMoney = dayRecords.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 0))), 0);
+                    const dayTotalDispatch = dayRecords.reduce((sum, r) => sum + (r.milkUsedAtHome ?? 0) + (r.milkUsedByWorkers ?? 0) + (r.milkSpoiled ?? 0), 0);
+                    const dayTotalDebt = dayRecords.reduce((sum, r) => sum + (r.debtsKsh ?? 0), 0);
+
+                    return (
+                      <div key={dateString} className="mb-4 bg-slate-50/60 border border-slate-100 rounded-2xl p-3.5 space-y-3">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/80 pb-2">
+                          <div>
+                            <span className="font-extrabold text-slate-800 text-xs uppercase tracking-wider block">
+                              📅 {new Date(dateString).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
-                          </td>
-                          <td className="p-2 text-right font-mono">
-                            <span className="font-black text-emerald-800 block">{(m.am + m.pm).toFixed(1)} L</span>
-                            <span className="text-[9px] text-slate-400 block">{m.am} / {m.pm} L</span>
-                          </td>
-                          <td className="p-2 text-right font-mono">
-                            {price > 0 ? (
-                              <>
-                                <span className="font-black text-slate-800 block">Ksh {sales.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>
-                                <span className="text-[9px] text-slate-400 italic block truncate max-w-[125px]">{buyer}</span>
-                              </>
-                            ) : (
-                              <span className="text-slate-400 font-extrabold text-[9px] uppercase block">Domestic Use</span>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">
+                              {dayRecords.length} Cow{dayRecords.length > 1 ? 's' : ''} Milked
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 text-[9px] font-black uppercase tracking-wider">
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-1 rounded-md font-mono">
+                              Yield: {dayTotalYield.toFixed(1)} L
+                            </span>
+                            <span className="bg-indigo-50 text-indigo-800 border border-indigo-100 px-2 py-1 rounded-md font-mono">
+                              Money: Ksh {dayTotalMoney.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            </span>
+                            {dayTotalDispatch > 0 && (
+                              <span className="bg-amber-50 text-amber-800 border border-amber-100 px-2 py-1 rounded-md font-mono">
+                                Dispatched: {dayTotalDispatch.toFixed(1)} L
+                              </span>
                             )}
-                          </td>
-                          <td className="p-2 font-semibold text-slate-500 text-[10px] max-w-[80px] truncate">{m.staff}</td>
-                          <td className="p-2 text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              {onEditMilkRecord && (
-                                <button
-                                  onClick={() => setEditingMilk(m)}
-                                  className="text-slate-300 hover:text-emerald-900 p-1 rounded transition-colors cursor-pointer m-0 inline-block align-middle border border-transparent hover:border-slate-100 hover:bg-slate-50"
-                                  title="Edit Record"
-                                >
-                                  <PenSquare size={12} />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => onDeleteMilkRecord(m.id, m.date)}
-                                className="text-slate-300 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 inline-block align-middle border border-transparent hover:border-slate-100 hover:bg-slate-50"
-                                title="Delete Record"
-                              >
-                                <Trash2 size={12} />
-                              </button>
+                            {dayTotalDebt > 0 && (
+                              <span className="bg-rose-50 text-rose-800 border border-rose-100 px-2 py-1 rounded-md font-mono">
+                                Debts: Ksh {dayTotalDebt.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {dayRecords.map((m, idx) => {
+                            const price = m.pricePerLiter ?? 0;
+                            const sales = m.totalSales ?? ((m.am + m.pm) * price);
+                            const buyer = m.buyer ?? '';
+                            const totalCowYield = m.am + m.pm;
+                            const dispatchedCow = (m.milkUsedAtHome ?? 0) + (m.milkUsedByWorkers ?? 0) + (m.milkUsedByCalf ?? 0) + (m.milkSpoiled ?? 0);
+                            const isHigh = isHighProducer(m.am, m.pm, m.id);
+
+                            return (
+                              <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs space-y-2 hover:bg-slate-50/20 transition-all">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="space-y-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-black text-slate-800 text-xs">{m.id}</span>
+                                      {isHigh && (
+                                        <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded font-black uppercase tracking-wider">
+                                          Peak
+                                        </span>
+                                      )}
+                                      <span className="text-[9px] text-slate-400 font-semibold italic">Recorded by {m.staff}</span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 font-bold font-mono">
+                                      <span>AM: {m.am.toFixed(1)}L | PM: {m.pm.toFixed(1)}L | </span>
+                                      <strong className="text-emerald-800">Total: {totalCowYield.toFixed(1)} L</strong>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-right space-y-0.5">
+                                    {price > 0 ? (
+                                      <>
+                                        <span className="font-black text-slate-800 text-xs font-mono block">Ksh {sales.toLocaleString()}</span>
+                                        <span className="text-[8.5px] text-slate-400 font-medium block truncate max-w-[120px]" title={buyer}>{buyer}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-slate-400 font-black text-[9px] uppercase tracking-wide block">Domestic Use</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Dispatch specifics inside each record */}
+                                {(dispatchedCow > 0 || m.debtsKsh || m.notes) && (
+                                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-150/50 text-[9.5px] text-slate-600 font-medium grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+                                    {dispatchedCow > 0 && (
+                                      <div className="col-span-1 sm:col-span-2 flex flex-wrap gap-x-2 text-slate-500 font-bold">
+                                        <span>🚛 Dispatch Breakdown:</span>
+                                        {m.milkUsedAtHome ? <span className="text-blue-700 font-mono">Home Use: {m.milkUsedAtHome}L</span> : null}
+                                        {m.milkUsedByWorkers ? <span className="text-amber-700 font-mono">Workers: {m.milkUsedByWorkers}L</span> : null}
+                                        {m.milkUsedByCalf ? <span className="text-purple-700 font-mono">Calves: {m.milkUsedByCalf}L</span> : null}
+                                        {m.milkSpoiled ? <span className="text-rose-700 font-mono">Spoilt: {m.milkSpoiled}L</span> : null}
+                                      </div>
+                                    )}
+                                    {m.debtsList && m.debtsList.length > 0 ? (
+                                      <div className="text-rose-700 font-bold col-span-1 sm:col-span-2 space-y-0.5">
+                                        <span>🚨 Unpaid Debts:</span>
+                                        <div className="pl-2 border-l border-rose-250 flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[8.5px]">
+                                          {m.debtsList.map((d, dIdx) => (
+                                            <span key={dIdx} className="bg-rose-50 text-rose-950 px-1.5 py-0.5 rounded font-mono">
+                                              👤 {d.debtor}: <strong>Ksh {d.amount.toLocaleString()}</strong>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : m.debtsKsh ? (
+                                      <div className="text-rose-700 font-bold">
+                                        🚨 Unpaid Debt: Ksh {m.debtsKsh.toLocaleString()} ({m.debtCustomer || 'Anonymous'})
+                                      </div>
+                                    ) : null}
+                                    {m.notes && (
+                                      <div className="text-slate-500 col-span-1 sm:col-span-2 italic font-sans">
+                                        📝 {m.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                <div className="flex justify-end gap-1 border-t border-slate-100 pt-1.5 mt-1.5">
+                                  {onEditMilkRecord && (
+                                    <button
+                                      onClick={() => setEditingMilk(m)}
+                                      className="text-slate-400 hover:text-emerald-900 p-1 rounded transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-100 hover:bg-slate-50 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-transparent"
+                                      title="Edit Record"
+                                    >
+                                      <PenSquare size={11} />
+                                      <span>Edit</span>
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => onDeleteMilkRecord(m.id, m.date)}
+                                    className="text-slate-400 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-100 hover:bg-slate-50 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-transparent"
+                                    title="Delete Record"
+                                  >
+                                    <Trash2 size={11} />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Daily Automatic Summary Card */}
+                        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-4 space-y-3.5 shadow-md mt-3 border border-indigo-900 font-sans">
+                          <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-200">
+                              📊 Daily Automatic Valuation & Allocation
+                            </span>
+                            <span className="text-[10px] font-mono font-bold bg-white/10 text-white px-2 py-0.5 rounded-full">
+                              {dateString}
+                            </span>
+                          </div>
+
+                          {/* 5-Column Bento Allocation Liters & Value */}
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-center">
+                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
+                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🥛 Commercial Sales</span>
+                              <span className="block font-black text-xs text-emerald-400 font-mono">
+                                {dayRecords.reduce((sum, r) => {
+                                  const home = r.milkUsedAtHome ?? 0;
+                                  const workers = r.milkUsedByWorkers ?? 0;
+                                  const calf = r.milkUsedByCalf ?? 0;
+                                  const spoiled = r.milkSpoiled ?? 0;
+                                  const yieldVal = r.am + r.pm;
+                                  return sum + Math.max(0, yieldVal - (home + workers + calf + spoiled));
+                                }, 0).toFixed(1)} L
+                              </span>
+                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
+                                Ksh {dayRecords.reduce((sum, r) => {
+                                  const home = r.milkUsedAtHome ?? 0;
+                                  const workers = r.milkUsedByWorkers ?? 0;
+                                  const calf = r.milkUsedByCalf ?? 0;
+                                  const spoiled = r.milkSpoiled ?? 0;
+                                  const yieldVal = r.am + r.pm;
+                                  const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
+                                  return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
+                                }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+
+                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
+                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🏠 Home Use</span>
+                              <span className="block font-black text-xs text-blue-300 font-mono">
+                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedAtHome ?? 0), 0).toFixed(1)} L
+                              </span>
+                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
+                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedAtHome ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
+                            </div>
+
+                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
+                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">👥 Workers Use</span>
+                              <span className="block font-black text-xs text-amber-300 font-mono">
+                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedByWorkers ?? 0), 0).toFixed(1)} L
+                              </span>
+                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
+                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedByWorkers ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
+                            </div>
+
+                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
+                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🐮 Calf Intake</span>
+                              <span className="block font-black text-xs text-purple-300 font-mono">
+                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedByCalf ?? 0), 0).toFixed(1)} L
+                              </span>
+                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
+                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedByCalf ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
+                            </div>
+
+                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 col-span-2 md:col-span-1 space-y-0.5">
+                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">⚠️ Spoilt / Lost</span>
+                              <span className="block font-black text-xs text-rose-300 font-mono">
+                                {dayRecords.reduce((sum, r) => sum + (r.milkSpoiled ?? 0), 0).toFixed(1)} L
+                              </span>
+                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
+                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkSpoiled ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Debt Summary Area */}
+                          {(() => {
+                            const debtorsList: { debtor: string; amount: number }[] = [];
+                            dayRecords.forEach(r => {
+                              if (r.debtsList && r.debtsList.length > 0) {
+                                r.debtsList.forEach(d => {
+                                  debtorsList.push({ debtor: d.debtor, amount: d.amount });
+                                });
+                              } else if (r.debtsKsh) {
+                                debtorsList.push({ debtor: r.debtCustomer || 'Anonymous', amount: r.debtsKsh });
+                              }
+                            });
+
+                            const totalUnpaidDebts = debtorsList.reduce((sum, d) => sum + d.amount, 0);
+
+                            return (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-white/10 text-xs font-sans">
+                                {/* Left side: Unpaid Debtor List */}
+                                <div className="space-y-1 bg-white/5 p-2.5 rounded-xl border border-white/5">
+                                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-rose-300">
+                                    <span>🚨 Debts from All Debtors</span>
+                                    <span>Total: Ksh {totalUnpaidDebts.toLocaleString()}</span>
+                                  </div>
+                                  {debtorsList.length > 0 ? (
+                                    <div className="space-y-1 max-h-[75px] overflow-y-auto pr-1">
+                                      {debtorsList.map((d, dIdx) => (
+                                        <div key={dIdx} className="flex justify-between text-[10px] bg-white/5 px-2 py-1 rounded font-mono">
+                                          <span className="text-slate-200">👤 {d.debtor}</span>
+                                          <span className="text-rose-300 font-bold">Ksh {d.amount.toLocaleString()}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-2 text-slate-400 font-bold text-[9px] uppercase italic">
+                                      No unpaid debts recorded for today
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Right side: Realized & Grand Totals */}
+                                <div className="flex flex-col justify-between space-y-1 bg-white/5 p-2.5 rounded-xl border border-white/5">
+                                  <div className="text-[10px] font-black uppercase text-indigo-300">
+                                    💰 Realized Cash vs Grand Total Valuation
+                                  </div>
+                                  <div className="space-y-1 font-mono text-[10px]">
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-400 font-bold">Total Harvest Vol:</span>
+                                      <span className="text-white font-bold">{dayTotalYield.toFixed(1)} L</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-400 font-bold">Recorded Sales Revenue:</span>
+                                      <span className="text-emerald-400 font-bold">
+                                        Ksh {dayRecords.reduce((sum, r) => {
+                                          const home = r.milkUsedAtHome ?? 0;
+                                          const workers = r.milkUsedByWorkers ?? 0;
+                                          const calf = r.milkUsedByCalf ?? 0;
+                                          const spoiled = r.milkSpoiled ?? 0;
+                                          const yieldVal = r.am + r.pm;
+                                          const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
+                                          return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
+                                        }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-white/10 pt-1">
+                                      <span className="text-slate-300 font-black uppercase">Grand Total Day Value:</span>
+                                      <span className="text-amber-400 font-black text-xs">
+                                        Ksh {dayRecords.reduce((sum, r) => {
+                                          const price = r.pricePerLiter ?? 52;
+                                          const yieldVal = r.am + r.pm;
+                                          return sum + (yieldVal * price);
+                                        }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB: BREEDING LEDGER */}
+      {subTab === 'breeding_ledger' && (
+        <div className="space-y-6">
+          {/* Header Actions for Breeding Ledger */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                <FlaskConical size={16} className="text-[#8b0000]" />
+                Breeding Registry & AI Ledger
+              </h4>
+              <p className="text-xs text-slate-400 font-medium">Download artificial insemination logs, gestation timetables, and PDF reports.</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+              <button
+                onClick={downloadAICyclesCSV}
+                type="button"
+                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-950 hover:bg-rose-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 font-bold"
+                title="Download AI Records CSV"
+              >
+                <FileSpreadsheet size={13} />
+                Export AI Logs
+              </button>
+              <button
+                onClick={handleDownloadAIPdf}
+                type="button"
+                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border-none font-bold"
+                title="Download Artificial Insemination PDF Report"
+              >
+                <Download size={13} />
+                AI PDF Report
+              </button>
+              {onTriggerSectionReport && (
+                <button
+                  onClick={() => onTriggerSectionReport('ai')}
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                  title="Export Inseminations Report in HTML"
+                >
+                  <FileDown size={13} />
+                  Insemination Reports (HTML)
+                </button>
+              )}
             </div>
           </div>
 
@@ -2280,9 +2822,13 @@ export function DairyBreeding({
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Daily Milk Distribution / Outflows, Spoils & Debts Ledger */}
-          <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 p-6 md:p-8 rounded-3xl border border-slate-800 text-white space-y-6 mt-8">
+      {/* Daily Milk Distribution / Outflows, Spoils & Debts Ledger */}
+      {subTab === 'lactation' && (
+        <div>
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-6 md:p-8 rounded-3xl border border-slate-800 text-white space-y-6 mt-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-805 pb-4">
               <div>
                 <span className="bg-emerald-500/10 text-emerald-400 font-black tracking-widest text-[10px] uppercase px-2.5 py-1 rounded-full border border-emerald-500/20">
@@ -2300,7 +2846,11 @@ export function DairyBreeding({
                 </div>
                 <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
                   <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block font-bold">Staff Portions</span>
-                  <span className="text-xs font-black text-amber-550 text-amber-400">{milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0).toFixed(1)} L</span>
+                  <span className="text-xs font-black text-amber-400">{milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0).toFixed(1)} L</span>
+                </div>
+                <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block font-bold">Calves Consumed</span>
+                  <span className="text-xs font-black text-violet-400">{milkOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0).toFixed(1)} L</span>
                 </div>
                 <div className="bg-slate-900/80 px-3.5 py-2 rounded-xl text-center border border-slate-800 min-w-[100px]">
                   <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">Total Spoilt</span>
@@ -2331,7 +2881,7 @@ export function DairyBreeding({
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Used at Home">Home (L)</label>
                     <input
@@ -2357,6 +2907,18 @@ export function DairyBreeding({
                     />
                   </div>
                   <div>
+                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Consumed by Calf">Calf Consumed (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowCalf}
+                      onChange={(e) => setOutflowCalf(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                    />
+                  </div>
+                  <div>
                     <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Spoiled Milk">Spoilt (L)</label>
                     <input
                       type="number"
@@ -2370,28 +2932,73 @@ export function DairyBreeding({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1" title="Unpaid bills from local sales">Debt (Ksh)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={outflowDebts}
-                      onChange={(e) => setOutflowDebts(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="E.g. 150"
-                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
-                    />
+                {/* Multiple Debtors Section inside Daily Outflow */}
+                <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9.5px] font-black text-rose-400 uppercase tracking-wide">
+                      🚨 Track Multiple Milk Debts / Unpaid Sales
+                    </span>
+                    {outflowDebtsList.length > 0 && (
+                      <span className="text-[9px] font-mono font-black text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                        Total Debts: Ksh {outflowDebtsList.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <label className="text-[9px] font-black text-slate-300 uppercase tracking-wider block mb-1">Debtor</label>
-                    <input
-                      type="text"
-                      value={outflowCustomer}
-                      onChange={(e) => setOutflowCustomer(e.target.value)}
-                      placeholder="Customer"
-                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
-                    />
+
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Debtor Customer Name</label>
+                      <input
+                        type="text"
+                        value={outflowCustomer}
+                        onChange={(e) => setOutflowCustomer(e.target.value)}
+                        placeholder="E.g. Mama Amara"
+                        className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold text-white outline-none"
+                      />
+                    </div>
+                    <div className="w-24">
+                      <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Debt (Ksh)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={outflowDebts}
+                        onChange={(e) => setOutflowDebts(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="0"
+                        className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold font-mono text-white outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddDebtorToList}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] uppercase px-3 py-2 rounded-lg transition-all m-0 cursor-pointer h-[32px] flex items-center justify-center shrink-0 border-none shadow-sm"
+                    >
+                      + Add
+                    </button>
                   </div>
+
+                  {outflowDebtsList.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {outflowDebtsList.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-1 bg-slate-900 border border-rose-950 text-rose-300 px-2 py-1 rounded-lg font-bold text-[9px] font-mono shadow-inner">
+                          <span>👤 {item.debtor}:</span>
+                          <span className="font-extrabold text-rose-400">Ksh {item.amount.toLocaleString()}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDebtorFromList(idx)}
+                            className="text-slate-500 hover:text-red-400 font-black ml-1 cursor-pointer bg-transparent border-none p-0"
+                            title="Remove debtor"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {outflowCustomer.trim() && outflowDebts !== '' && (
+                    <p className="text-[8.5px] text-slate-400 italic">
+                      💡 Tip: Submitting now will automatically include <strong>{outflowCustomer.trim()} (Ksh {Number(outflowDebts).toLocaleString()})</strong>.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -2407,7 +3014,7 @@ export function DairyBreeding({
 
                 <button
                   type="submit"
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase p-3 rounded-lg transition-all shadow-md m-0 cursor-pointer"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase p-3 rounded-lg transition-all shadow-md m-0 cursor-pointer border-none"
                 >
                   Log Outflow & Credits
                 </button>
@@ -2435,59 +3042,90 @@ export function DairyBreeding({
                   <thead>
                     <tr className="border-b border-slate-800 text-slate-400 text-[10px] font-black uppercase text-left opacity-80">
                       <th className="py-2.5 px-2">Date</th>
+                      <th className="py-2.5 px-2 text-center text-emerald-400 font-bold">Harvest Vol (L)</th>
                       <th className="py-2.5 px-2 text-center text-blue-300">Home Use</th>
                       <th className="py-2.5 px-2 text-center text-amber-300">Workers</th>
+                      <th className="py-2.5 px-2 text-center text-violet-300">Calf Intake</th>
                       <th className="py-2.5 px-2 text-center text-red-300">Spoiled</th>
-                      <th className="py-2.5 px-2 text-slate-300 font-bold">Debt & Customer</th>
+                      <th className="py-2.5 px-2 text-slate-300 font-bold">Unpaid Debts</th>
+                      <th className="py-2.5 px-2 text-right text-emerald-400 font-bold">Grand Value</th>
                       <th className="py-2.5 px-2">Notes</th>
-                      <th className="py-2.5 px-2 text-right">Delete</th>
+                      <th className="py-2.5 px-2 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {milkOutflows.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-xs text-slate-500 font-bold">
-                          No daily outflow records logged yet. Use the form to record home use, worker portions, and debts.
+                        <td colSpan={10} className="py-8 text-center text-xs text-slate-500 font-bold">
+                          No daily outflow records logged yet. Use the form to record home use, worker portions, calf consumption, and debts.
                         </td>
                       </tr>
                     ) : (
-                      milkOutflows.map((item, index) => (
-                        <tr key={index} className="border-b border-slate-800/60 hover:bg-slate-900/30">
-                          <td className="py-2.5 px-2 font-black font-mono text-slate-300">
-                            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </td>
-                          <td className="py-2.5 px-2 text-center text-blue-400 font-bold">{item.milkUsedAtHome} L</td>
-                          <td className="py-2.5 px-2 text-center text-amber-500 font-bold">{item.milkUsedByWorkers} L</td>
-                          <td className="py-2.5 px-2 text-center font-bold text-red-400">
-                            {item.milkSpoiled > 0 ? `${item.milkSpoiled} L` : '—'}
-                          </td>
-                          <td className="py-2.5 px-2 font-semibold">
-                            {item.debtsKsh > 0 ? (
-                              <div className="flex flex-col">
-                                <span className="text-lime-400 font-black">Ksh {item.debtsKsh}</span>
-                                {item.debtCustomer && (
-                                  <span className="text-[10px] text-slate-400">({item.debtCustomer})</span>
+                      milkOutflows.map((item, index) => {
+                        // Calculate total harvest volume and total sales value dynamically for that date from all milk records
+                        const dayRecs = milkRecords.filter(r => r.date === item.date);
+                        const totalHarvestVol = dayRecs.reduce((sum, r) => sum + (r.am + r.pm), 0);
+                        const totalSalesVal = dayRecs.reduce((sum, r) => sum + (r.totalSales || ((r.am + r.pm) * (r.pricePerLiter || 52))), 0);
+
+                        return (
+                          <tr key={index} className="border-b border-slate-800/60 hover:bg-slate-900/30">
+                            <td className="py-2.5 px-2 font-black font-mono text-slate-300">
+                              {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
+                            <td className="py-2.5 px-2 text-center text-emerald-400 font-black font-mono">
+                              {totalHarvestVol > 0 ? `${totalHarvestVol.toFixed(1)} L` : '—'}
+                            </td>
+                            <td className="py-2.5 px-2 text-center text-blue-400 font-bold">{item.milkUsedAtHome} L</td>
+                            <td className="py-2.5 px-2 text-center text-amber-500 font-bold">{item.milkUsedByWorkers} L</td>
+                            <td className="py-2.5 px-2 text-center text-violet-400 font-bold">
+                              {item.milkUsedByCalf !== undefined ? `${item.milkUsedByCalf} L` : '0.0 L'}
+                            </td>
+                            <td className="py-2.5 px-2 text-center font-bold text-red-400">
+                              {item.milkSpoiled > 0 ? `${item.milkSpoiled} L` : '—'}
+                            </td>
+                            <td className="py-2.5 px-2 font-semibold">
+                              {item.debtsKsh > 0 ? (
+                                <div className="flex flex-col">
+                                  <span className="text-lime-400 font-black">Ksh {item.debtsKsh}</span>
+                                  {item.debtCustomer && (
+                                    <span className="text-[10px] text-slate-400">({item.debtCustomer})</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-500 font-bold">No Debts</span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-2 text-right text-emerald-400 font-black font-mono">
+                              {totalSalesVal > 0 ? `Ksh ${totalSalesVal.toLocaleString()}` : '—'}
+                            </td>
+                            <td className="py-2.5 px-2 text-slate-400 font-medium max-w-[150px] truncate" title={item.notes}>
+                              {item.notes || '—'}
+                            </td>
+                            <td className="py-2.5 px-2 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {onEditMilkOutflow && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingOutflow(item)}
+                                    className="text-slate-500 hover:text-emerald-400 p-1 rounded-md transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-800 bg-transparent"
+                                    title="Edit dispatch log"
+                                  >
+                                    <PenSquare size={12} />
+                                  </button>
                                 )}
+                                <button
+                                  type="button"
+                                  onClick={() => onDeleteMilkOutflow(item.id)}
+                                  className="text-slate-500 hover:text-red-400 p-1 rounded-md transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-800 bg-transparent"
+                                  title="Delete outflow log"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
                               </div>
-                            ) : (
-                              <span className="text-slate-500 font-bold">No Debts</span>
-                            )}
-                          </td>
-                          <td className="py-2.5 px-2 text-slate-450 text-slate-400 font-medium max-w-[150px] truncate" title={item.notes}>
-                            {item.notes || '—'}
-                          </td>
-                          <td className="py-2.5 px-2 text-right">
-                            <button
-                              type="button"
-                              onClick={() => onDeleteMilkOutflow(item.id)}
-                              className="text-slate-500 hover:text-red-400 p-1 rounded-md transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-800"
-                              title="Delete outflow log"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -2529,6 +3167,15 @@ export function DairyBreeding({
               >
                 <FileSpreadsheet size={13} />
                 Export AI Logs
+              </button>
+              <button
+                onClick={handleDownloadAIPdf}
+                type="button"
+                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border-none"
+                title="Download Artificial Insemination PDF Report"
+              >
+                <Download size={13} />
+                AI PDF Report
               </button>
               {onTriggerSectionReport && (
                 <button
@@ -4121,76 +4768,118 @@ export function DairyBreeding({
       {/* Edit Milking Record Modal */}
       {editingMilk && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Milk Record</h3>
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Milk Record & Dispatch</h3>
               <button onClick={() => setEditingMilk(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
             </div>
-            <div className="space-y-3 font-sans">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cow / Tag ID</label>
-                  <input
-                    type="text"
-                    value={editingMilk.id}
-                    disabled
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 text-slate-500 font-mono"
-                  />
+            <div className="space-y-3 font-sans text-xs">
+              
+              {/* Primary details */}
+              <div className="bg-slate-50 p-2.5 rounded-2xl space-y-2.5 border border-slate-100">
+                <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">1. Production Yield</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Cow / Tag ID</label>
+                    <input
+                      type="text"
+                      value={editingMilk.id}
+                      disabled
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Record Date</label>
+                    <input
+                      type="date"
+                      value={editingMilk.date}
+                      disabled
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Record Date</label>
-                  <input
-                    type="date"
-                    value={editingMilk.date}
-                    disabled
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 text-slate-500 font-mono"
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">AM Yield Details (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingMilk.am}
+                      onChange={(e) => setEditingMilk({ ...editingMilk, am: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">PM Yield Details (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingMilk.pm}
+                      onChange={(e) => setEditingMilk({ ...editingMilk, pm: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">AM Yield Details (L)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={editingMilk.am}
-                    onChange={(e) => setEditingMilk({ ...editingMilk, am: parseFloat(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
-                  />
+
+              {/* Commercial and Staff details */}
+              <div className="bg-slate-50 p-2.5 rounded-2xl space-y-2.5 border border-slate-100">
+                <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">2. Commercial & Buyer</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Price per Liter (Ksh)</label>
+                    <input
+                      type="number"
+                      value={editingMilk.pricePerLiter ?? ''}
+                      placeholder="e.g. 52"
+                      onChange={(e) => setEditingMilk({ ...editingMilk, pricePerLiter: parseFloat(e.target.value) || undefined })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Buyer / Processor</label>
+                    <input
+                      type="text"
+                      value={editingMilk.buyer ?? ''}
+                      placeholder="e.g. Brookside Dairy"
+                      onChange={(e) => setEditingMilk({ ...editingMilk, buyer: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">PM Yield Details (L)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={editingMilk.pm}
-                    onChange={(e) => setEditingMilk({ ...editingMilk, pm: parseFloat(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
-                  />
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Supervising Operator</label>
+                  <select
+                    value={editingMilk.staff}
+                    onChange={(e) => setEditingMilk({ ...editingMilk, staff: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold"
+                  >
+                    {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
+                  </select>
                 </div>
               </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Supervising Operator</label>
-                <select
-                  value={editingMilk.staff}
-                  onChange={(e) => setEditingMilk({ ...editingMilk, staff: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
-                >
-                  {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
-                </select>
-              </div>
+
+
+
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
               <button
                 onClick={() => setEditingMilk(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-white"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
                   if (onEditMilkRecord) {
-                    onEditMilkRecord(editingMilk.id, editingMilk.date, editingMilk);
+                    const price = editingMilk.pricePerLiter ?? 0;
+                    const totalVol = (editingMilk.am || 0) + (editingMilk.pm || 0);
+                    const recalculatedSales = totalVol * price;
+                    const finalRecord = {
+                      ...editingMilk,
+                      totalSales: recalculatedSales
+                    };
+                    onEditMilkRecord(editingMilk.id, editingMilk.date, finalRecord);
                   }
                   setEditingMilk(null);
                 }}
@@ -4199,6 +4888,199 @@ export function DairyBreeding({
                 Save Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Milk Outflow & Dispatch Record Modal */}
+      {editingOutflow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Milk Outflow & Dispatch</h3>
+              <button onClick={() => setEditingOutflow(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
+            </div>
+            
+            <div className="space-y-3.5 text-xs">
+              {/* Date */}
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dispatch Date</label>
+                <input
+                  type="date"
+                  value={editingOutflow.date}
+                  disabled
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                />
+              </div>
+
+              {/* Volumes Section */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-3">
+                <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">1. Milk Allocation Volumes (Liters)</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Home Consumed (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingOutflow.milkUsedAtHome}
+                      onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedAtHome: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Workers / Staff Portions (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingOutflow.milkUsedByWorkers}
+                      onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByWorkers: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Calves Intake (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingOutflow.milkUsedByCalf ?? 0}
+                      onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByCalf: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Spoiled / Spilt (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingOutflow.milkSpoiled}
+                      onChange={(e) => setEditingOutflow({ ...editingOutflow, milkSpoiled: parseFloat(e.target.value) || 0 })}
+                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Debtors list and entry */}
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">2. Unpaid Credit / Debts (Ksh)</h4>
+                  <span className="text-[9px] font-black text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+                    Total: Ksh {(editingOutflow.debtsKsh || 0).toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Existing Debtors List */}
+                <div className="space-y-1.5 max-h-24 overflow-y-auto">
+                  {(editingOutflow.debtsList || []).length === 0 ? (
+                    <div className="text-[10px] text-slate-400 font-bold italic py-1">No debtors recorded for this dispatch date.</div>
+                  ) : (
+                    (editingOutflow.debtsList || []).map((debt, dIdx) => (
+                      <div key={dIdx} className="flex justify-between items-center bg-white border border-slate-150 rounded-lg px-2.5 py-1 text-[11px] font-bold">
+                        <span className="text-slate-700">{debt.debtor}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-emerald-700">Ksh {debt.amount}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedList = (editingOutflow.debtsList || []).filter((_, i) => i !== dIdx);
+                              setEditingOutflow({
+                                ...editingOutflow,
+                                debtsList: updatedList,
+                                debtsKsh: updatedList.reduce((sum, d) => sum + d.amount, 0),
+                                debtCustomer: updatedList.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ')
+                              });
+                            }}
+                            className="text-red-500 hover:text-red-700 font-extrabold text-[10px] m-0 p-0 cursor-pointer bg-transparent border-none"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add Debt Input Form inside Edit Modal */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                  <div>
+                    <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Add Debtor Customer</label>
+                    <input
+                      type="text"
+                      value={editNewDebtorName}
+                      onChange={(e) => setEditNewDebtorName(e.target.value)}
+                      placeholder="E.g. Mama Amara"
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-white"
+                    />
+                  </div>
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Debt Ksh</label>
+                      <input
+                        type="number"
+                        value={editNewDebtorAmount}
+                        onChange={(e) => setEditNewDebtorAmount(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
+                        placeholder="Amount"
+                        className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono bg-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!editNewDebtorName.trim() || editNewDebtorAmount === '') return;
+                        const list = editingOutflow.debtsList || [];
+                        const updatedList = [...list, { debtor: editNewDebtorName.trim(), amount: Number(editNewDebtorAmount) }];
+                        setEditingOutflow({
+                          ...editingOutflow,
+                          debtsList: updatedList,
+                          debtsKsh: updatedList.reduce((sum, d) => sum + d.amount, 0),
+                          debtCustomer: updatedList.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ')
+                        });
+                        setEditNewDebtorName('');
+                        setEditNewDebtorAmount('');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] uppercase px-3 py-2 rounded-lg transition-all m-0 cursor-pointer h-[32px] border-none"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Remarks / Dispatch Notes</label>
+                <textarea
+                  value={editingOutflow.notes || ''}
+                  onChange={(e) => setEditingOutflow({ ...editingOutflow, notes: e.target.value })}
+                  placeholder="Notes or descriptions about the dispatch allocation..."
+                  rows={2}
+                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-medium"
+                />
+              </div>
+
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+              <button
+                onClick={() => setEditingOutflow(null)}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditMilkOutflow) {
+                    onEditMilkOutflow(editingOutflow.id, editingOutflow);
+                  }
+                  setEditingOutflow(null);
+                }}
+                className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer border-none"
+              >
+                Save Changes
+              </button>
+            </div>
+
           </div>
         </div>
       )}

@@ -17,6 +17,7 @@ interface HorticultureProps {
   onEditTea?: (oldRef: string, updated: TeaRecord) => void;
   onEditAvo?: (oldRef: string, updated: AvocadoRecord) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  activeSubModule?: 'tea' | 'avo';
 }
 
 // Pure SVG Real-Time Finder Block QR Generator matching Version 1 standard
@@ -82,7 +83,18 @@ function QRGenerator({ value }: { value: string }) {
   );
 }
 
-export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDeleteTea, onDeleteAvo, onEditTea, onEditAvo, onTriggerSectionReport }: HorticultureProps) {
+export function Horticulture({
+  teaRecords,
+  avoRecords,
+  onAddTea,
+  onAddAvo,
+  onDeleteTea,
+  onDeleteAvo,
+  onEditTea,
+  onEditAvo,
+  onTriggerSectionReport,
+  activeSubModule
+}: HorticultureProps) {
   // Tea state
   const [teaQty, setTeaQty] = useState<number | ''>('');
   const [teaRef, setTeaRef] = useState('');
@@ -227,16 +239,23 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
           <Leaf size={24} className="text-emerald-800" />
         </div>
         <div>
-          <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">Horticulture Export Ledger</h4>
+          <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">
+            {activeSubModule === 'tea' ? 'KTDA Tea Delivery Ledger' :
+             activeSubModule === 'avo' ? 'Avocado Export Ledger' :
+             'Horticulture Export Ledger'}
+          </h4>
           <p className="text-xs text-slate-400 font-medium">
-            Register daily tea leaf weights and avocado grading crates. Keep export records in absolute alignment with KEPHIS & GlobalGAP frameworks.
+            {activeSubModule === 'tea' ? 'Register daily green leaf tea weights, buyer details, and KTDA dispatches.' :
+             activeSubModule === 'avo' ? 'Monitor export avocado grades, reject counts, KEPHIS Class 1 certification, and shipping reefs.' :
+             'Register daily tea leaf weights and avocado grading crates. Keep export records in absolute alignment with KEPHIS & GlobalGAP frameworks.'}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className={activeSubModule ? "space-y-8" : "grid grid-cols-1 lg:grid-cols-2 gap-8"}>
         {/* Tea plucking ledger */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+        {(!activeSubModule || activeSubModule === 'tea') && (
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-3">
             <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Tea KTDA Deliveries</h5>
             <p className="text-xs text-slate-400 mt-1 font-medium">Record daily pluck weight delivered to factory</p>
@@ -398,14 +417,16 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               </table>
             </div>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Avocado packing graded ledger */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Avocado Export & Graded Ledger</h5>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Record and track Grade 1 shipments, rejects, buyers, payment terms, and debts</p>
-          </div>
+        {(!activeSubModule || activeSubModule === 'avo') && (
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 pb-3">
+              <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Avocado Export & Graded Ledger</h5>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Record and track Grade 1 shipments, rejects, buyers, payment terms, and debts</p>
+            </div>
 
           <form onSubmit={handleAvoSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -665,11 +686,13 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
               })}
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* GlobalGAP / KEPHIS Export Phytosanitary Traceability Passport Hub */}
-      <div className="bg-slate-900 text-slate-100 p-6 rounded-3xl border border-slate-950 shadow-xl space-y-6">
+      {(!activeSubModule || activeSubModule === 'avo') && (
+        <div className="bg-slate-900 text-slate-100 p-6 rounded-3xl border border-slate-950 shadow-xl space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-4">
           <div className="flex items-center gap-2.5 text-left">
             <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
@@ -926,7 +949,8 @@ export function Horticulture({ teaRecords, avoRecords, onAddTea, onAddAvo, onDel
 
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Editing Tea Modal */}
       {editingTea && (

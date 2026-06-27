@@ -29,7 +29,13 @@ import {
   BookOpen,
   CalendarDays,
   Settings,
-  DollarSign
+  DollarSign,
+  Award,
+  Droplets,
+  HeartPulse,
+  Sparkles,
+  Compass,
+  Shield
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -240,6 +246,154 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
 
+  // Reports composer filter states
+  const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
+  const [reportCategoryFilter, setReportCategoryFilter] = useState<string>('ALL');
+  const [reportDateFilter, setReportDateFilter] = useState<string>('all'); // all, today, week, month, last3months, last6months, specific_month, month_interval, year, custom
+  const [reportStartDate, setReportStartDate] = useState<string>('');
+  const [reportEndDate, setReportEndDate] = useState<string>('');
+  const [reportSpecificMonth, setReportSpecificMonth] = useState<string>('2026-06');
+  const [reportStartMonth, setReportStartMonth] = useState<string>('2026-01');
+  const [reportEndMonth, setReportEndMonth] = useState<string>('2026-06');
+
+  const isRecordInSelectedDateRange = (dateInput: string | Date | undefined | null): boolean => {
+    if (!dateInput) return true;
+    
+    let recordDate: Date;
+    if (typeof dateInput === 'string') {
+      const datePart = dateInput.split(' ')[0];
+      recordDate = new Date(datePart);
+    } else {
+      recordDate = dateInput;
+    }
+
+    if (isNaN(recordDate.getTime())) return true;
+
+    const rDate = new Date(recordDate.getFullYear(), recordDate.getMonth(), recordDate.getDate());
+    
+    const today = new Date();
+    const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (reportDateFilter === 'all') {
+      return true;
+    }
+    
+    if (reportDateFilter === 'today') {
+      return rDate.getTime() === tDate.getTime();
+    }
+    
+    if (reportDateFilter === 'week') {
+      const oneWeekAgo = new Date(tDate);
+      oneWeekAgo.setDate(tDate.getDate() - 7);
+      return rDate >= oneWeekAgo && rDate <= tDate;
+    }
+    
+    if (reportDateFilter === 'month') {
+      const oneMonthAgo = new Date(tDate);
+      oneMonthAgo.setDate(tDate.getDate() - 30);
+      return rDate >= oneMonthAgo && rDate <= tDate;
+    }
+
+    if (reportDateFilter === 'last3months') {
+      const startLimit = new Date(tDate);
+      startLimit.setMonth(tDate.getMonth() - 3);
+      return rDate >= startLimit && rDate <= tDate;
+    }
+
+    if (reportDateFilter === 'last6months') {
+      const startLimit = new Date(tDate);
+      startLimit.setMonth(tDate.getMonth() - 6);
+      return rDate >= startLimit && rDate <= tDate;
+    }
+
+    if (reportDateFilter === 'specific_month' && reportSpecificMonth) {
+      const [yearStr, monthStr] = reportSpecificMonth.split('-');
+      const targetYear = parseInt(yearStr, 10);
+      const targetMonth = parseInt(monthStr, 10) - 1; // 0-indexed month
+      return rDate.getFullYear() === targetYear && rDate.getMonth() === targetMonth;
+    }
+
+    if (reportDateFilter === 'month_interval') {
+      const startStr = reportStartMonth || '';
+      const endStr = reportEndMonth || '';
+      
+      let sDate: Date | null = null;
+      let eDate: Date | null = null;
+      
+      if (startStr) {
+        const [sy, sm] = startStr.split('-');
+        sDate = new Date(parseInt(sy, 10), parseInt(sm, 10) - 1, 1);
+      }
+      if (endStr) {
+        const [ey, em] = endStr.split('-');
+        // set to the last day of that month
+        eDate = new Date(parseInt(ey, 10), parseInt(em, 10), 0);
+      }
+      
+      if (sDate && eDate) {
+        return rDate >= sDate && rDate <= eDate;
+      } else if (sDate) {
+        return rDate >= sDate;
+      } else if (eDate) {
+        return rDate <= eDate;
+      }
+      return true;
+    }
+    
+    if (reportDateFilter === 'year') {
+      const oneYearAgo = new Date(tDate);
+      oneYearAgo.setDate(tDate.getDate() - 365);
+      return rDate >= oneYearAgo && rDate <= tDate;
+    }
+    
+    if (reportDateFilter === 'custom') {
+      const start = reportStartDate ? new Date(reportStartDate) : null;
+      const end = reportEndDate ? new Date(reportEndDate) : null;
+      
+      const sDate = start ? new Date(start.getFullYear(), start.getMonth(), start.getDate()) : null;
+      const eDate = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate()) : null;
+
+      if (sDate && eDate) {
+        return rDate >= sDate && rDate <= eDate;
+      } else if (sDate) {
+        return rDate >= sDate;
+      } else if (eDate) {
+        return rDate <= eDate;
+      }
+      return true;
+    }
+
+    return true;
+  };
+
+  const getReportPeriodString = (): string => {
+    if (reportDateFilter === 'all') return 'All-Time Historical';
+    if (reportDateFilter === 'today') return `Today (${new Date().toLocaleDateString()})`;
+    if (reportDateFilter === 'week') return 'Past 7 Days';
+    if (reportDateFilter === 'month') return 'Past 30 Days';
+    if (reportDateFilter === 'last3months') return 'Past 3 Months';
+    if (reportDateFilter === 'last6months') return 'Past 6 Months';
+    if (reportDateFilter === 'specific_month' && reportSpecificMonth) {
+      const [y, m] = reportSpecificMonth.split('-');
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      return `${monthNames[parseInt(m, 10) - 1]} ${y}`;
+    }
+    if (reportDateFilter === 'month_interval') {
+      const formatMonth = (str: string) => {
+        if (!str) return '?';
+        const [y, m] = str.split('-');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${monthNames[parseInt(m, 10) - 1]} ${y}`;
+      };
+      return `${formatMonth(reportStartMonth)} to ${formatMonth(reportEndMonth)}`;
+    }
+    if (reportDateFilter === 'year') return 'Past 12 Months';
+    if (reportDateFilter === 'custom') {
+      return `${reportStartDate || '?'} to ${reportEndDate || '?'}`;
+    }
+    return 'Selected Interval';
+  };
+
   // Unified Sensitive Alarms Notification engine states
   const [bellNotificationTrayOpen, setBellNotificationTrayOpen] = useState<boolean>(false);
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermission>('default');
@@ -309,7 +463,20 @@ export default function App() {
 
   const [milkRecords, setMilkRecords] = useState<MilkingRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_milk');
-    return saved ? JSON.parse(saved) : INITIAL_MILK_RECORDS;
+    const parsed = saved ? JSON.parse(saved) : INITIAL_MILK_RECORDS;
+    if (Array.isArray(parsed)) {
+      return parsed.map((item: any) => {
+        const debtsList = item.debtsList || (item.debtsKsh && item.debtCustomer ? [{ debtor: item.debtCustomer, amount: Number(item.debtsKsh) }] : []);
+        const debtsKsh = debtsList.reduce((sum: number, d: any) => sum + (Number(d.amount) || 0), 0) || Number(item.debtsKsh || 0);
+        return {
+          ...item,
+          debtsList,
+          debtsKsh,
+          milkUsedByCalf: item.milkUsedByCalf !== undefined ? Number(item.milkUsedByCalf) : undefined
+        };
+      });
+    }
+    return INITIAL_MILK_RECORDS;
   });
 
   const [aiRecords, setAiRecords] = useState<AIRecord[]>(() => {
@@ -704,6 +871,33 @@ export default function App() {
   };
 
   const generateHtmlReportContent = (sections: Record<string, boolean>): string => {
+    // Override raw records with the filtered records in the scope of this function
+    const milkRecords = filteredMilkRecords;
+    const milkOutflows = filteredMilkOutflows;
+    const aiRecords = filteredAiRecords;
+    const silageRecords = filteredSilageRecords;
+    const heiferRecords = filteredHeiferRecords;
+    const teaRecords = filteredTeaRecords;
+    const avoRecords = filteredAvoRecords;
+    const cropSales = filteredCropSales;
+    const financials = filteredFinancials;
+    const sprayRecords = filteredSprayRecords;
+    const quarantineRecords = filteredQuarantineRecords;
+    const goatRecords = filteredGoatRecords;
+    const calfRecords = filteredCalfRecords;
+    const bsfRecords = filteredBsfRecords;
+    const inventory = filteredInventory;
+    const vetRecords = filteredVetRecords;
+    const poultryRecords = filteredPoultryRecords;
+    
+    const getStoredDiagHistory = () => filteredDiagHistory;
+    const getStoredTimetable = () => filteredTimetable;
+    
+    // Calculated aggregates for financials inside this scope
+    const activeIncome = reportIncome;
+    const activeExpense = reportExpense;
+    const activeNet = reportNetBalance;
+
     let sectionsHtml = '';
     
     // Helper for table header & body
@@ -748,7 +942,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>1. Staff Deployment Schedule</span>
+            <span>Staff Deployment Schedule</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${staffList.length} staff)</span>
           </h3>
           ${buildTableHtml(['Name', 'Section', 'Morning Shift', 'Afternoon Shift', 'Duty Status'], rows)}
@@ -770,7 +964,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>2. Dairy Production Log</span>
+            <span>Dairy Production Log</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${milkRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date', 'Cow Tag ID', 'AM Liters', 'PM Liters', 'Total Yield', 'Milker'], rows)}
@@ -790,7 +984,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>3. Artificial Insemination & Breeding</span>
+            <span>Artificial Insemination & Breeding</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${aiRecords.length} cycles)</span>
           </h3>
           ${buildTableHtml(['Cow Tag ID', 'Service Date', 'Bull Name/Semen Ref', 'Expected Due', 'Pregnancy Status'], rows)}
@@ -810,7 +1004,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>4. Tea Exports Harvest & Deliveries</span>
+            <span>Tea Exports Harvest & Deliveries</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${teaRecords.length} dispatches)</span>
           </h3>
           ${buildTableHtml(['Date', 'Plucking Ref', 'Factory Buyer', 'Harvest Weight', 'Gross Revenue'], rows)}
@@ -836,7 +1030,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>5. Avocado Export Grading & Logistics</span>
+            <span>Avocado Export Grading & Logistics</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${avoRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date', 'Ref', 'Grade 1 KG', 'Price/KG', 'Reject KG', 'Reject Price/KG', 'G1 Buyer', 'Reject Buyer', 'Payment Mode', 'Debts', 'Total Money Got'], rows)}
@@ -857,7 +1051,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>6. Local Commodities Cash Transactions</span>
+            <span>Local Commodities Cash Transactions</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${cropSales.length} trades)</span>
           </h3>
           ${buildTableHtml(['Date', 'Commodity Crop', 'Quantity', 'Price per Unit', 'Gross Revenue', 'Buyer Name'], rows)}
@@ -867,19 +1061,103 @@ export default function App() {
 
     // 7. Financial Ledger
     if (sections.financials) {
-      const rows = financials.map(f => [
-        `<span style="font-family: monospace;">${f.date}</span>`,
-        `<strong>${f.category}</strong> <span style="font-size: 10px; color: #64748b;">(${f.description})</span>`,
-        `<span style="text-transform: uppercase; font-weight: bold; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">${f.type}</span>`,
-        `<span style="font-weight: bold; font-family: monospace; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">Ksh ${f.amount.toLocaleString()}</span>`
-      ]);
+      // Group financials by Category
+      const grouped: Record<string, typeof financials> = {};
+      financials.forEach(f => {
+        const cat = f.category ? f.category.trim() : 'Uncategorized';
+        if (!grouped[cat]) {
+          grouped[cat] = [];
+        }
+        grouped[cat].push(f);
+      });
+
+      let tableBodyHtml = '';
+      Object.entries(grouped).forEach(([catName, items]) => {
+        // Calculate Category totals
+        const catIncome = items.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
+        const catExpense = items.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+        const catNet = catIncome - catExpense;
+
+        // Add Category Section Header Row
+        tableBodyHtml += `
+          <tr style="background-color: #f1f5f9; font-weight: bold;">
+            <td colspan="4" style="padding: 8px 10px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; color: #1e293b; border-bottom: 1.5px solid #cbd5e1; font-family: sans-serif;">
+              Category: ${catName}
+            </td>
+          </tr>
+        `;
+
+        // Add item rows
+        items.forEach(f => {
+          tableBodyHtml += `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px 10px; font-family: monospace; font-size: 12px;">${f.date}</td>
+              <td style="padding: 8px 10px; font-family: sans-serif; font-size: 12px;">
+                <strong>${f.category}</strong> <span style="font-size: 10px; color: #64748b;">(${f.description})</span>
+              </td>
+              <td style="padding: 8px 10px; font-family: sans-serif; font-size: 12px;">
+                <span style="text-transform: uppercase; font-weight: bold; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">${f.type}</span>
+              </td>
+              <td style="padding: 8px 10px; font-family: monospace; font-size: 12px;">
+                <span style="font-weight: bold; color: ${f.type === 'income' ? '#166534' : '#9a3412'};">Ksh ${f.amount.toLocaleString()}</span>
+              </td>
+            </tr>
+          `;
+        });
+
+        // Add Category Subtotal Row
+        tableBodyHtml += `
+          <tr style="background-color: #f8fafc; font-weight: bold; border-bottom: 2.5px solid #cbd5e1;">
+            <td style="padding: 10px; color: #475569; font-family: sans-serif; font-size: 11px;">${catName} Subtotal</td>
+            <td style="padding: 10px; color: #475569; font-family: sans-serif; font-size: 11px;" colspan="2">
+              Income: <span style="color: #166534;">Ksh ${catIncome.toLocaleString()}</span> &bull; 
+              Expense: <span style="color: #9a3412;">Ksh ${catExpense.toLocaleString()}</span>
+            </td>
+            <td style="padding: 10px; color: ${catNet >= 0 ? '#166534' : '#b91c1c'}; font-family: monospace; font-size: 12px;">
+              Net: Ksh ${catNet.toLocaleString()}
+            </td>
+          </tr>
+        `;
+      });
+
+      const tableHtml = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; margin-bottom: 25px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-weight: bold; font-family: sans-serif;">Date</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-weight: bold; font-family: sans-serif;">Reference & Description</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-weight: bold; font-family: sans-serif;">Type</th>
+              <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1; background-color: #f8fafc; color: #475569; font-weight: bold; font-family: sans-serif;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableBodyHtml}
+          </tbody>
+        </table>
+      `;
+
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>7. Operational Accounting General Ledger</span>
+            <span>Operational Accounting General Ledger</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${financials.length} journals)</span>
           </h3>
-          ${buildTableHtml(['Date', 'Reference & Description', 'Type', 'Amount'], rows)}
+          ${tableHtml}
+          
+          <div style="margin-top: 10px; background-color: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: sans-serif; font-size: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+            <div>
+              <span style="color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 10px; display: block;">Period Income (Inflow)</span>
+              <strong style="color: #166534; font-size: 14px; font-family: monospace;">Ksh ${activeIncome.toLocaleString()}</strong>
+            </div>
+            <div>
+              <span style="color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 10px; display: block;">Period Expense (Outflow)</span>
+              <strong style="color: #9a3412; font-size: 14px; font-family: monospace;">Ksh ${activeExpense.toLocaleString()}</strong>
+            </div>
+            <div>
+              <span style="color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 10px; display: block;">Period Net Subtotal</span>
+              <strong style="color: ${activeNet >= 0 ? '#166534' : '#b91c1c'}; font-size: 14px; font-family: monospace;">Ksh ${activeNet.toLocaleString()}</strong>
+            </div>
+          </div>
         </div>
       `;
     }
@@ -898,7 +1176,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>8. Agrochemical Spray Compliance & Quarantines</span>
+            <span>Agrochemical Spray Compliance & Quarantines</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${sprayRecords.length} treatments)</span>
           </h3>
           ${buildTableHtml(['Plot Section', 'Chemical Brand', 'PHI Quarantine', 'Target Pest', 'Safe Pick Date', 'Next Spray Date', 'Repeat Interval'], rows)}
@@ -940,7 +1218,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 850;">
-            <span>9. Registered Blocks & Silage Fields Directory</span>
+            <span>Registered Blocks & Silage Fields Directory</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${fields.length} plots)</span>
           </h3>
           ${buildTableHtml(['Plot ID', 'Block Name', 'Primary Feed Crop', 'Size', 'Audit Status'], rows)}
@@ -951,9 +1229,9 @@ export default function App() {
 
     // 10. Livestock
     if (sections.livestock) {
-      const rows = livestock.map(item => [
+      const rows = livestock.filter(item => item.type === 'Dogs').map(item => [
         `<span style="font-family: monospace;">${item.date}</span>`,
-        `<strong>${item.name}</strong> <span style="font-size: 10px; color: #64748b;">(${item.type})</span>`,
+        `<strong>${item.name}</strong>`,
         item.countOrBreed,
         `<strong>${item.activity}</strong>`,
         `<span style="font-style: italic; color: #64748b;">${item.notes}</span>`
@@ -995,10 +1273,10 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>10. Poultry Eggs & Canine Protection Assets</span>
-            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.length} records)</span>
+            <span>Security Canine Logs</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.filter(item => item.type === 'Dogs').length} canines)</span>
           </h3>
-          ${buildTableHtml(['Date Logged', 'Asset Group', 'Details Classification', 'Activity', 'Notes'], rows)}
+          ${buildTableHtml(['Date Logged', 'Canine Name', 'Breed Classification', 'Activity', 'Notes'], rows)}
           ${livestockExtraHtml}
         </div>
       `;
@@ -1017,7 +1295,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>11. Goats Dairy Herd & Lactation Logs</span>
+            <span>Goats Dairy Herd & Lactation Logs</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${goatRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date', 'Tag/Collar ID', 'Breed Class', 'Classification', 'Yield', 'Observations'], rows)}
@@ -1038,7 +1316,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>12. Nursery Young Calf Nutrition Logs</span>
+            <span>Nursery Young Calf Nutrition Logs</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${calfRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date Logged', 'Calf ID', 'Mother Cow ID', 'Liquid Milk Intake', 'Weaned Status', 'Clinical Note'], rows)}
@@ -1059,7 +1337,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>13. Organic Black Soldier Fly (BSF) Larval Cycles</span>
+            <span>Organic Black Soldier Fly (BSF) Larval Cycles</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${bsfRecords.length} batches)</span>
           </h3>
           ${buildTableHtml(['Date', 'Batch ID', 'Substrate Type', 'Inoculated', 'Larvae Harvested', 'Stage Status'], rows)}
@@ -1139,7 +1417,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>14. Optimized Feed Formulation & Compounding Board (Formula Made)</span>
+            <span>Optimized Feed Formulation & Compounding Board (Formula Made)</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${fItems.length} recipe ingredients)</span>
           </h3>
           ${summaryHtml}
@@ -1164,7 +1442,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>14. Storage Warehouse Stocks Reserves</span>
+            <span>Storage Warehouse Stocks Reserves</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${inventory.length} items)</span>
           </h3>
           ${buildTableHtml(['Item ID', 'Name', 'Category Classification', 'Available Stock', 'Safety Level', 'Alert Status'], rows)}
@@ -1185,7 +1463,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>15. Clinical Veterinary Treatments & Diagnostics</span>
+            <span>Clinical Veterinary Treatments & Diagnostics</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${vetRecords.length} entries)</span>
           </h3>
           ${buildTableHtml(['Incident Date', 'Animal Cow Tag', 'Treatment Type', 'Clinical Diagnosis', 'Authorized Cost', 'Vet'], rows)}
@@ -1251,14 +1529,14 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>16. Farmer's Academy Clinical Cases History Archive</span>
+            <span>Farmer's Academy Clinical Cases History Archive</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${diagHistList.length} cases)</span>
           </h3>
           ${buildTableHtml(['Timestamp', 'Specimen Type', 'Active Symptoms', 'Clinical Condition Name', 'Confidence', 'Diagnostic Method'], rowsDiag)}
         </div>
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>16b. Auto-Deduct SOP Actions Audit Ledger</span>
+            <span>Auto-Deduct SOP Actions Audit Ledger</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${deductLogs.length} events)</span>
           </h3>
           ${buildTableHtml(['Timestamp', 'SOP Task Action', 'Automated Inventory & Financial Deduction Text', 'Ledger Integrity'], rowsDeduct)}
@@ -1378,7 +1656,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>17. Operations & Timetable Schedule Calendar</span>
+            <span>Operations & Timetable Schedule Calendar</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${timetableList.length} tasks)</span>
           </h3>
           ${buildTableHtml(['Target Date', 'Category/Group', 'Task Operation', 'Interval/Intervals', 'SOP Directions & Objective', 'Status', 'Assigned Specialist'], rows)}
@@ -1387,7 +1665,7 @@ export default function App() {
     }
 
     // 18. Silage
-    if (sections.silage) {
+    if (sections.silage || sections.ai_silage) {
       const rows = silageRecords.map(item => [
         `<span style="font-family: monospace; font-weight: bold;">${item.dateMade}</span>`,
         `<strong>${item.rawMaterial}</strong>`,
@@ -1400,7 +1678,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>18. Silage Preservation & Feed Rations Audit</span>
+            <span>Silage Preservation & Feed Rations Audit</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${silageRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date Made', 'Raw Crop Material', 'Acres Area', 'Silage Weight (KG)', 'Quality Diagnosis', 'Livestock Feed Projections', 'Compaction Notes'], rows)}
@@ -1409,7 +1687,7 @@ export default function App() {
     }
 
     // 19. Heifers
-    if (sections.heifers) {
+    if (sections.heifers || sections.ai_heifers) {
       const rows = heiferRecords.map(item => [
         `<span style="font-family: monospace; font-weight: bold;">${item.dateLogged}</span>`,
         `<strong>${item.cowId}</strong>`,
@@ -1421,7 +1699,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>19. Heifer Progressive Growth & Puberty Monitors</span>
+            <span>Heifer Progressive Growth & Puberty Monitors</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${heiferRecords.length} animals)</span>
           </h3>
           ${buildTableHtml(['Date Logged', 'Heifer Ear Tag ID', 'Liveweight & Chest Girth', 'Average Daily Gain (ADG)', 'Puberty/Breeding Status', 'Feeding & Ration Details'], rows)}
@@ -1430,7 +1708,7 @@ export default function App() {
     }
 
     // 20. Poultry
-    if (sections.poultry) {
+    if (sections.poultry || sections.live_poultry) {
       const rows = poultryRecords.map(item => [
         `<span style="font-family: monospace; font-weight: bold;">${item.dateLogged}</span>`,
         `<strong>${item.batchName}</strong> (${item.stage})`,
@@ -1444,7 +1722,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>20. Poultry Flock Development Ledger & Egg Harvesting</span>
+            <span>Poultry Flock Development Ledger & Egg Harvesting</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${poultryRecords.length} reports)</span>
           </h3>
           ${buildTableHtml(['Date Logged', 'Cohort Group Name', 'Flock Count', 'Daily Feed Ration', 'Egg Crates Yield', 'Mortality Rate', 'Hen-Day Production %', 'Operational Notes'], rows)}
@@ -1453,7 +1731,7 @@ export default function App() {
     }
 
     // 21. Quarantine
-    if (sections.quarantine) {
+    if (sections.quarantine || sections.spray_quarantine || sections.vet_withdrawal) {
       const rows = quarantineRecords.map(item => [
         `<span style="font-family: monospace; font-weight: bold;">${item.dateStarted}</span>`,
         `<strong>${item.animalTagOrBatch}</strong> (${item.animalType})`,
@@ -1466,7 +1744,7 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>21. Biosecurity Vet Isolation & Quarantine Protocols</span>
+            <span>Biosecurity Vet Isolation & Quarantine Protocols</span>
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${quarantineRecords.length} active quarantines)</span>
           </h3>
           ${buildTableHtml(['Isolation Start', 'Animal Tag ID / Specimen', 'Quarantine Reason', 'Symptoms Tracked', 'Release Status', 'Attending Veterinarian', 'Prescription Notes'], rows)}
@@ -1636,7 +1914,7 @@ export default function App() {
       <h1>${getStoredSettings()?.estateName || "JR FARM COOPERATIVE ESTATE"}</h1>
       <p>Sovereign Agricultural Compliance &bull; GlobalGAP Registered Plot No. ${getStoredSettings()?.locationCode || "KT-205A"}</p>
       <div class="meta-line">
-        <span>Authorized Comptroller: ${getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> &bull; <span>Generated: ${new Date().toLocaleString()}</span>
+        <span>Authorized Comptroller: ${getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> &bull; <span style="background-color: #fef08a; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #854d0e;">Report Period: ${getReportPeriodString()}</span> &bull; <span>Generated: ${new Date().toLocaleString()}</span>
       </div>
     </div>
 
@@ -1683,169 +1961,216 @@ export default function App() {
     return [
       {
         key: 'staff',
-        label: '1. Staff Deployment Roster',
+        label: 'Staff Deployment Roster',
         count: staffList.length,
         subsections: [
-          { key: 'staff_shifts', label: '1a. Daily Shift Assignments', count: staffList.length },
-          { key: 'staff_offs', label: '1b. Shift Offs & Leaves Ledger', count: staffOffRecords?.length || 0 }
+          { key: 'staff_shifts', label: 'Daily Shift Assignments', count: staffList.length },
+          { key: 'staff_offs', label: 'Shift Offs & Leaves Ledger', count: staffOffRecords?.length || 0 }
         ]
       },
       {
         key: 'milk',
-        label: '2. Daily Milking Records',
-        count: milkRecords.length,
+        label: 'Daily Milking Records',
+        count: filteredMilkRecords.length,
         subsections: [
-          { key: 'milk_production', label: '2a. Daily Cow Milking Logs', count: milkRecords.length },
-          { key: 'milk_outflows', label: '2b. Bulk Sales & Dispatches', count: milkOutflows?.length || 0 }
+          { key: 'milk_production', label: 'Daily Cow Milking Logs', count: filteredMilkRecords.length },
+          { key: 'milk_outflows', label: 'Bulk Sales & Dispatches', count: filteredMilkOutflows.length }
         ]
       },
       {
         key: 'ai',
-        label: '3. Insemination & Breeding',
-        count: aiRecords.length,
+        label: 'Insemination & Breeding',
+        count: filteredAiRecords.length,
         subsections: [
-          { key: 'ai_breeding', label: '3a. Breeding Cycles Log', count: aiRecords.length },
-          { key: 'ai_silage', label: '3b. Bulk Silage Pits Inventory', count: silageRecords?.length || 0 },
-          { key: 'ai_heifers', label: '3c. Heifer Progeny Growth tracker', count: heiferRecords?.length || 0 }
+          { key: 'ai_breeding', label: 'Breeding Cycles Log', count: filteredAiRecords.length },
+          { key: 'ai_silage', label: 'Bulk Silage Pits Inventory', count: filteredSilageRecords.length },
+          { key: 'ai_heifers', label: 'Heifer Progeny Growth tracker', count: filteredHeiferRecords.length }
         ]
       },
       {
         key: 'tea',
-        label: '4. KTDA Tea Deliveries',
-        count: teaRecords.length,
+        label: 'KTDA Tea Deliveries',
+        count: filteredTeaRecords.length,
         subsections: [
-          { key: 'tea_dispatches', label: '4a. Green Leaf Dispatches Log', count: teaRecords.length },
-          { key: 'tea_grading', label: '4b. Tea Factory Buyer Grader Audits', count: 4 }
+          { key: 'tea_dispatches', label: 'Green Leaf Dispatches Log', count: filteredTeaRecords.length },
+          { key: 'tea_grading', label: 'Tea Factory Buyer Grader Audits', count: 4 }
         ]
       },
       {
         key: 'avo',
-        label: '5. Avocado Exports Logs',
-        count: avoRecords.length,
+        label: 'Avocado Exports Logs',
+        count: filteredAvoRecords.length,
         subsections: [
-          { key: 'avo_shipments', label: '5a. Container Shipment Dispatches', count: avoRecords.length },
-          { key: 'avo_packhouse', label: '5b. Packhouse Grading Check', count: 3 }
+          { key: 'avo_shipments', label: 'Container Shipment Dispatches', count: filteredAvoRecords.length },
+          { key: 'avo_packhouse', label: 'Packhouse Grading Check', count: 3 }
         ]
       },
       {
         key: 'cropSales',
-        label: '6. Commodities Cash Sales',
-        count: cropSales.length,
+        label: 'Commodities Cash Sales',
+        count: filteredCropSales.length,
         subsections: [
-          { key: 'crop_cash_sales', label: '6a. Commodities Direct Cash Sales', count: cropSales.length },
-          { key: 'crop_ops', label: '6b. Crop Field Care Operations', count: cropOps?.length || 0 }
+          { key: 'crop_cash_sales', label: 'Commodities Direct Cash Sales', count: filteredCropSales.length },
+          { key: 'crop_ops', label: 'Crop Field Care Operations', count: cropOps?.length || 0 }
         ]
       },
       {
         key: 'financials',
-        label: '7. Operational Ledger',
-        count: financials.length,
+        label: 'Operational Ledger',
+        count: filteredFinancials.length,
         subsections: [
-          { key: 'fin_revenues', label: '7a. Direct Operating Revenues', count: financials.filter(f => f.type === 'income').length },
-          { key: 'fin_expenses', label: '7b. Operating Expenses & Incurrence', count: financials.filter(f => f.type === 'expense').length },
-          { key: 'fin_capital', label: '7c. Capital Budgets & Cash Outflows', count: financials.filter(f => f.type === 'capital_budget').length }
+          { key: 'fin_revenues', label: 'Direct Operating Revenues', count: filteredFinancials.filter(f => f.type === 'income').length },
+          { key: 'fin_expenses', label: 'Operating Expenses & Incurrence', count: filteredFinancials.filter(f => f.type === 'expense').length },
+          { key: 'fin_capital', label: 'Capital Budgets & Cash Outflows', count: filteredFinancials.filter(f => f.type === 'capital_budget').length }
         ]
       },
       {
         key: 'spray',
-        label: '8. GlobalGAP Spray Logs',
-        count: sprayRecords.length,
+        label: 'GlobalGAP Spray Logs',
+        count: filteredSprayRecords.length,
         subsections: [
-          { key: 'spray_logs', label: '8a. Insecticide & Anti-Fungal Sprays', count: sprayRecords.length },
-          { key: 'spray_quarantine', label: '8b. Safe PHI Harvest Withholding Warnings', count: quarantineRecords?.length || 0 }
+          { key: 'spray_logs', label: 'Insecticide & Anti-Fungal Sprays', count: filteredSprayRecords.length },
+          { key: 'spray_quarantine', label: 'Safe PHI Harvest Withholding Warnings', count: filteredQuarantineRecords.length }
         ]
       },
       {
         key: 'fields',
-        label: '9. Registered Field plots',
+        label: 'Registered Field plots',
         count: fields.length,
         subsections: [
-          { key: 'fields_registry', label: '9a. Active Farm Plot Allocations', count: fields.length },
-          { key: 'fields_agroforestry', label: '9b. Agroforestry Conservation Trees Index', count: fields.filter(f => f.conservationTreeCount > 0).length }
+          { key: 'fields_registry', label: 'Active Farm Plot Allocations', count: fields.length },
+          { key: 'fields_agroforestry', label: 'Agroforestry Conservation Trees Index', count: fields.filter(f => f.conservationTreeCount > 0).length }
         ]
       },
       {
         key: 'livestock',
-        label: '10. Poultry & Canine Assets',
-        count: livestock.length,
+        label: 'Security Canine Logs',
+        count: livestock.filter(l => l.type === 'Dogs' || l.category === 'Canine').length,
         subsections: [
-          { key: 'live_canines', label: '10a. Canine Guard Patrol Logs', count: livestock.filter(l => l.category === 'Canine').length },
-          { key: 'live_poultry', label: '10b. Layer Bird Flock Monitor', count: poultryRecords?.length || 0 }
+          { key: 'live_canines', label: 'Canine Guard Patrol Logs', count: livestock.filter(l => l.type === 'Dogs' || l.category === 'Canine').length }
+        ]
+      },
+      {
+        key: 'poultry',
+        label: 'Poultry Hub & Egg Logs',
+        count: filteredPoultryRecords.length,
+        subsections: [
+          { key: 'live_poultry', label: 'Layer Bird Flock Monitor', count: filteredPoultryRecords.length }
         ]
       },
       {
         key: 'goats',
-        label: '11. Goat Milk Registers',
-        count: goatRecords.length,
+        label: 'Goat Milk Registers',
+        count: filteredGoatRecords.length,
         subsections: [
-          { key: 'goats_milk', label: '11a. Milking Doe Daily Yields', count: goatRecords.length },
-          { key: 'goats_herd', label: '11b. Breeding Bucks & Does Register', count: 2 }
+          { key: 'goats_milk', label: 'Milking Doe Daily Yields', count: filteredGoatRecords.length },
+          { key: 'goats_herd', label: 'Breeding Bucks & Does Register', count: 2 }
         ]
       },
       {
         key: 'calves',
-        label: '12. Liquidfed Calves log',
-        count: calfRecords.length,
+        label: 'Liquidfed Calves log',
+        count: filteredCalfRecords.length,
         subsections: [
-          { key: 'calves_log', label: '12a. Milk Replacer Feeding Schedule', count: calfRecords.length },
-          { key: 'calves_health', label: '12b. Deworming and Standard Vaccination Meds', count: calfRecords.filter(c => c.dosageHistory && c.dosageHistory.length > 0).length }
+          { key: 'calves_log', label: 'Milk Replacer Feeding Schedule', count: filteredCalfRecords.length },
+          { key: 'calves_health', label: 'Deworming and Standard Vaccination Meds', count: filteredCalfRecords.filter(c => c.dosageHistory && c.dosageHistory.length > 0).length }
         ]
       },
       {
         key: 'bsf',
-        label: '13. Organic BSF Batches',
-        count: bsfRecords.length,
+        label: 'Organic BSF Batches',
+        count: filteredBsfRecords.length,
         subsections: [
-          { key: 'bsf_rearing', label: '13a. Organic Substrate Rearing Stages', count: bsfRecords.length },
-          { key: 'bsf_harvest', label: '13b. High Protein Larvae Harvest Records', count: bsfRecords.filter(b => b.harvestedYield > 0).length }
+          { key: 'bsf_rearing', label: 'Organic Substrate Rearing Stages', count: filteredBsfRecords.length },
+          { key: 'bsf_harvest', label: 'High Protein Larvae Harvest Records', count: filteredBsfRecords.filter(b => b.harvestedYield > 0).length }
         ]
       },
       {
         key: 'formula',
-        label: '14. Feed Formulation Recipe',
+        label: 'Feed Formulation Recipe',
         count: getStoredFeedFormula().length,
         subsections: [
-          { key: 'formula_recipe', label: '14a. Compounded Diet Matrix', count: getStoredFeedFormula().length },
-          { key: 'formula_nutrients', label: '14b. Target Nutrient Standard Check', count: 6 }
+          { key: 'formula_recipe', label: 'Compounded Diet Matrix', count: getStoredFeedFormula().length },
+          { key: 'formula_nutrients', label: 'Target Nutrient Standard Check', count: 6 }
         ]
       },
       {
         key: 'inventory',
-        label: '15. Storage Stocks reserves',
-        count: inventory.length,
+        label: 'Storage Stocks reserves',
+        count: filteredInventory.length,
         subsections: [
-          { key: 'inventory_reserves', label: '15a. Warehouse Commodity Materials', count: inventory.length },
-          { key: 'inventory_alerts', label: '15b. Critical Low Stock Reorder Alarms', count: inventory.filter(i => i.qty <= i.reorderLevel).length }
+          { key: 'inventory_reserves', label: 'Warehouse Commodity Materials', count: filteredInventory.length },
+          { key: 'inventory_alerts', label: 'Critical Low Stock Reorder Alarms', count: filteredInventory.filter(i => i.qty <= i.reorderLevel).length }
         ]
       },
       {
         key: 'vet',
-        label: '16. Clinical Treatments',
-        count: vetRecords.length,
+        label: 'Clinical Treatments',
+        count: filteredVetRecords.length,
         subsections: [
-          { key: 'vet_treatments', label: '16a. Clinical Treatment Protocols Log', count: vetRecords.length },
-          { key: 'vet_withdrawal', label: '16b. Bio-hazard Withdrawal Safe Period Audits', count: quarantineRecords ? quarantineRecords.length : 0 }
+          { key: 'vet_treatments', label: 'Clinical Treatment Protocols Log', count: filteredVetRecords.length },
+          { key: 'vet_withdrawal', label: 'Bio-hazard Withdrawal Safe Period Audits', count: filteredQuarantineRecords.length }
         ]
       },
       {
         key: 'academy',
-        label: "17. Academy Diag History",
-        count: getStoredDiagHistory().length,
+        label: "Academy Diag History",
+        count: filteredDiagHistory.length,
         subsections: [
-          { key: 'academy_casebook', label: '17a. Clinical Cases Diagnosis Cases Log', count: getStoredDiagHistory().length },
-          { key: 'academy_sop_logs', label: '17b. Auto-Deducted Policy Failure Audits', count: getStoredDeductLogs().length }
+          { key: 'academy_casebook', label: 'Clinical Cases Diagnosis Cases Log', count: filteredDiagHistory.length },
+          { key: 'academy_sop_logs', label: 'Auto-Deducted Policy Failure Audits', count: getStoredDeductLogs().length }
         ]
       },
       {
         key: 'timetable',
-        label: '18. Operations Calendar Tasks',
-        count: getStoredTimetable().length,
+        label: 'Operations Calendar Tasks',
+        count: filteredTimetable.length,
         subsections: [
-          { key: 'timetable_schedule', label: '18a. Operations Calendar Tasks Scheduled', count: getStoredTimetable().length },
-          { key: 'timetable_protocols', label: '18b. Standard SOP Protocols & Check drills', count: 18 }
+          { key: 'timetable_schedule', label: 'Operations Calendar Tasks Scheduled', count: filteredTimetable.length },
+          { key: 'timetable_protocols', label: 'Standard SOP Protocols & Check drills', count: 18 }
         ]
       }
     ];
+  };
+
+  const getFilteredSectionsMetadata = () => {
+    const rawSections = getSectionsMetadata();
+    const sectionCategories: Record<string, string> = {
+      staff: 'Staff',
+      milk: 'Livestock',
+      ai: 'Livestock',
+      tea: 'Crop Exports',
+      avo: 'Crop Exports',
+      cropSales: 'Crop Exports',
+      financials: 'Operations',
+      spray: 'Crop Exports',
+      fields: 'Main',
+      livestock: 'Livestock',
+      goats: 'Livestock',
+      calves: 'Livestock',
+      bsf: 'Feed & Factory',
+      formula: 'Feed & Factory',
+      inventory: 'Operations',
+      vet: 'Livestock',
+      academy: 'Academy',
+      timetable: 'Operations'
+    };
+
+    return rawSections.filter(sec => {
+      // 1. Category Filter
+      const cat = sectionCategories[sec.key] || 'Other';
+      if (reportCategoryFilter !== 'ALL' && cat !== reportCategoryFilter) {
+        return false;
+      }
+      // 2. Search query filter
+      if (reportSearchQuery.trim()) {
+        const query = reportSearchQuery.toLowerCase();
+        const matchesLabel = sec.label.toLowerCase().includes(query);
+        const matchesSubsections = sec.subsections.some(s => s.label.toLowerCase().includes(query));
+        return matchesLabel || matchesSubsections;
+      }
+      return true;
+    });
   };
 
   const handleSelectAllSections = (status: boolean) => {
@@ -2214,7 +2539,8 @@ export default function App() {
         financials: financials.length > 0,
         spray: sprayRecords.length > 0,
         fields: fields.length > 0,
-        livestock: livestock.length > 0,
+        livestock: livestock.filter(item => item.type === 'Dogs' || item.category === 'Canine').length > 0,
+        poultry: poultryRecords.length > 0,
         goats: goatRecords.length > 0,
         calves: calfRecords.length > 0,
         bsf: bsfRecords.length > 0,
@@ -2234,6 +2560,7 @@ export default function App() {
       if (activeTab === 'finance') withRecs.financials = true;
       if (activeTab === 'fields') withRecs.fields = true;
       if (activeTab === 'livestock') { withRecs.livestock = true; withRecs.goats = true; }
+      if (activeTab === 'poultry') { withRecs.poultry = true; }
       if (activeTab === 'inventory') withRecs.inventory = true;
       if (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') withRecs.academy = true;
       if (activeTab === 'timetable') withRecs.timetable = true;
@@ -2248,7 +2575,8 @@ export default function App() {
         financials: withRecs.financials, fin_revenues: withRecs.financials, fin_expenses: withRecs.financials, fin_capital: withRecs.financials,
         spray: withRecs.spray, spray_logs: withRecs.spray, spray_quarantine: withRecs.spray,
         fields: withRecs.fields, fields_registry: withRecs.fields, fields_agroforestry: withRecs.fields,
-        livestock: withRecs.livestock, live_canines: withRecs.livestock, live_poultry: withRecs.livestock,
+        livestock: withRecs.livestock, live_canines: withRecs.livestock,
+        poultry: withRecs.poultry, live_poultry: withRecs.poultry,
         goats: withRecs.goats, goats_milk: withRecs.goats, goats_herd: withRecs.goats,
         calves: withRecs.calves, calves_log: withRecs.calves, calves_health: withRecs.calves,
         bsf: withRecs.bsf, bsf_rearing: withRecs.bsf, bsf_harvest: withRecs.bsf,
@@ -2259,7 +2587,7 @@ export default function App() {
         timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
       });
     }
-  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, goatRecords, calfRecords, bsfRecords, inventory, vetRecords]);
+  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords]);
 
   // Synchronize localStorage
   useEffect(() => {
@@ -2398,6 +2726,34 @@ export default function App() {
   const netPl = totalIncome - totalExpense;
 
   const totalTeaQty = teaRecords.reduce((sum, r) => sum + r.qty, 0);
+
+  // Dynamic filtered lists and aggregates for report custom date filter
+  const filteredMilkRecords = milkRecords.filter(m => isRecordInSelectedDateRange(m.date));
+  const filteredMilkOutflows = (milkOutflows || []).filter(mo => isRecordInSelectedDateRange(mo.date));
+  const filteredAiRecords = aiRecords.filter(ai => isRecordInSelectedDateRange(ai.date));
+  const filteredTeaRecords = teaRecords.filter(tea => isRecordInSelectedDateRange(tea.date));
+  const filteredAvoRecords = avoRecords.filter(avo => isRecordInSelectedDateRange(avo.date));
+  const filteredCropSales = cropSales.filter(cs => isRecordInSelectedDateRange(cs.date));
+  const filteredFinancials = financials.filter(f => isRecordInSelectedDateRange(f.date));
+  const filteredSprayRecords = sprayRecords.filter(s => isRecordInSelectedDateRange(s.date));
+  const filteredGoatRecords = goatRecords.filter(g => isRecordInSelectedDateRange(g.date));
+  const filteredCalfRecords = calfRecords.filter(c => isRecordInSelectedDateRange(c.dateAdded || c.date));
+  const filteredBsfRecords = bsfRecords.filter(b => isRecordInSelectedDateRange(b.date || b.dateLogged));
+  const filteredInventory = inventory.filter(i => isRecordInSelectedDateRange(i.lastStockedDate || i.date));
+  const filteredVetRecords = vetRecords.filter(v => isRecordInSelectedDateRange(v.date));
+  const filteredDiagHistory = getStoredDiagHistory().filter((d: any) => isRecordInSelectedDateRange(d.date || d.timestamp));
+  const filteredTimetable = getStoredTimetable().filter((t: any) => isRecordInSelectedDateRange(t.targetDate || t.date));
+  const filteredSilageRecords = silageRecords.filter(s => isRecordInSelectedDateRange(s.dateMade));
+  const filteredHeiferRecords = heiferRecords.filter(h => isRecordInSelectedDateRange(h.dateLogged));
+  const filteredPoultryRecords = poultryRecords.filter(p => isRecordInSelectedDateRange(p.dateLogged));
+  const filteredQuarantineRecords = quarantineRecords.filter(q => isRecordInSelectedDateRange(q.dateStarted));
+
+  const reportIncome = filteredFinancials.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
+  const reportExpense = filteredFinancials.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+  const reportNetBalance = reportIncome - reportExpense;
+
+  const reportMilkVolume = filteredMilkRecords.reduce((sum, r) => sum + r.am + r.pm, 0);
+  const reportTeaVolume = filteredTeaRecords.reduce((sum, r) => sum + r.qty, 0);
 
   const activeAlarmsCount = aiRecords.filter(
     (cycle) => cycle.status === 'Confirmed Pregnant' || cycle.status === 'Pending'
@@ -3289,6 +3645,10 @@ export default function App() {
     setMilkRecords((prev) => prev.map((m) => (m.id === id && m.date === date) ? updated : m));
   };
 
+  const handleEditMilkOutflow = (id: string, updated: MilkOutflowRecord) => {
+    setMilkOutflows((prev) => prev.map((m) => m.id === id ? updated : m));
+  };
+
   const handleEditAIRecord = (cowId: string, date: string, updated: AIRecord) => {
     setAiRecords((prev) => prev.map((a) => (a.cowId === cowId && a.date === date) ? updated : a));
   };
@@ -3355,12 +3715,15 @@ export default function App() {
 
   // CSV Exporter helper
   const handleExportCSV = () => {
-    // Shadow selectedSections to ensure the Master CSV exports ALL 15 sections every time
+    // Shadow selectedSections to ensure the Master CSV exports ALL sections every time
     const selectedSections = {
       staff: true, milk: true, ai: true, tea: true, avo: true,
       cropSales: true, financials: true, spray: true, fields: true,
       livestock: true, goats: true, calves: true, bsf: true,
-      formula: true, inventory: true, vet: true
+      formula: true, inventory: true, vet: true, academy: true,
+      timetable: true, silage: true, ai_silage: true, heifers: true,
+      ai_heifers: true, poultry: true, live_poultry: true,
+      quarantine: true, spray_quarantine: true, vet_withdrawal: true
     };
 
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -3464,12 +3827,12 @@ export default function App() {
       csvContent += '\n';
     }
 
-    // 10. Livestock Canine / Poultry Log Section
+    // 10. Livestock Canine Log Section
     if (selectedSections.livestock) {
-      csvContent += '--- AGRICULTURAL CANINE & POULTRY STATUS MANAGER ---\n';
-      csvContent += 'Date,Asset Name,Category Type,Quantity/Breed details,Current Activity,Observational Log\n';
-      livestock.forEach((item) => {
-        csvContent += `"${item.date}","${item.name}","${item.type}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
+      csvContent += '--- AGRICULTURAL SECURITY CANINE STATUS LEDGER ---\n';
+      csvContent += 'Date,Canine Name,Quantity/Breed details,Current Activity,Observational Log\n';
+      livestock.filter(item => item.type === 'Dogs').forEach((item) => {
+        csvContent += `"${item.date}","${item.name}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
       });
       csvContent += '\n';
     }
@@ -3541,6 +3904,75 @@ export default function App() {
       csvContent += '\n';
     }
 
+    // 16. Academy Cases and SOP Logs
+    if (selectedSections.academy) {
+      csvContent += '--- FARMER\'S ACADEMY CLINICAL DIAGNOSTICS & AUDIT LOGS ---\n';
+      csvContent += 'Timestamp,Case Date,Patient Specimen,Clinical Signs,Clinical Suggested Diagnosis,Isolation SOP Guide\n';
+      getStoredDiagHistory().forEach((item: any) => {
+        csvContent += `"${item.timestamp || item.date}","${item.date}","${item.specimen || item.animalType}","${item.symptom || item.symptoms}","${item.conditionName || item.diagnosisSuggested}","${item.sop || item.isolationGuide || 'Strict bio-security isolation immediately'}"\n`;
+      });
+      csvContent += '\n';
+
+      if (getStoredDeductLogs().length > 0) {
+        csvContent += '--- AUTO-DEDUCT SOP ACTIONS INVENTORY AUDIT LEDGER ---\n';
+        csvContent += 'Timestamp/Date,Task Title / Item,Deduction Text / Material,Comptroller Staff,Status\n';
+        getStoredDeductLogs().forEach((log: any) => {
+          csvContent += `"${log.timestamp || log.date}","${log.taskTitle || log.itemId}","${log.deductionText || log.action || log.qty}","${log.staff || ''}","${log.success ? 'PASSED' : 'FAILED'}"\n`;
+        });
+        csvContent += '\n';
+      }
+    }
+
+    // 17. Timetable Schedule
+    if (selectedSections.timetable) {
+      csvContent += '--- OPERATIONS & TIMETABLE SCHEDULE CALENDAR ---\n';
+      csvContent += 'Target Date,Category Group,Standard Operation Description,Timing Interval,Protocol SOP Directions,Specialist Assigned\n';
+      getStoredTimetable().forEach((t: any) => {
+        csvContent += `${t.targetDate || t.date},"${t.category}","${t.operation || t.title}","${t.when || t.frequency}","SOP: ${t.how} (${t.why})","${t.assignedTo || 'Unassigned'}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 18. Silage Preservation
+    if (selectedSections.silage || selectedSections.ai_silage) {
+      csvContent += '--- SILAGE PRESERVATION & FEED RATIONS AUDIT ---\n';
+      csvContent += 'Date Made,Raw Crop Material,Area (Acres),Silage Weight (KG),Quality Diagnosis,Animals Fed Count,Days Feed Available,Notes\n';
+      silageRecords.forEach((item) => {
+        csvContent += `${item.dateMade},"${item.rawMaterial}",${item.acres},${item.calculatedWeightKg},"${item.quality}",${item.animalsFedCount},${item.daysOfFeedAvailable},"${item.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 19. Heifers Progeny Growth
+    if (selectedSections.heifers || selectedSections.ai_heifers) {
+      csvContent += '--- HEIFER PROGRESSIVE GROWTH & PUBERTY MONITORS ---\n';
+      csvContent += 'Date Logged,Heifer Ear Tag ID,Weight (KG),Chest Girth (cm),Avg Daily Gain (grams),Breeding Ready,Notes\n';
+      heiferRecords.forEach((item) => {
+        csvContent += `${item.dateLogged},"${item.cowId}",${item.weightKg},${item.girthCm || 0},${item.averageDailyGainGrams},"${item.breedingReady ? 'READY (AI Eligible)' : 'Growing'}","${item.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 20. Poultry Flock Monitor
+    if (selectedSections.poultry || selectedSections.live_poultry) {
+      csvContent += '--- POULTRY FLOCK DEVELOPMENT LEDGER & EGG YIELDS ---\n';
+      csvContent += 'Date Logged,Cohort Group Name,Stage,Count (Birds),Feed Type,Feed Given (KG),Egg Crates Harvested,Cracked Eggs Count,Mortality Count,Notes\n';
+      poultryRecords.forEach((item) => {
+        csvContent += `${item.dateLogged},"${item.batchName}","${item.stage}",${item.count || 0},"${item.feedType}",${item.feedGivenKg},${item.eggCratesHarvested || 0},${item.crackedEggsCount || 0},${item.mortalityCount || 0},"${item.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
+    // 21. Quarantine Protocols
+    if (selectedSections.quarantine || selectedSections.spray_quarantine || selectedSections.vet_withdrawal) {
+      csvContent += '--- BIOSECURITY VET ISOLATION & QUARANTINE PROTOCOLS ---\n';
+      csvContent += 'Date Started,Animal Tag/Batch,Animal Type,Quarantine Reason,Symptoms Observed,Quarantine Status,Vet In Charge,Notes\n';
+      quarantineRecords.forEach((item) => {
+        csvContent += `${item.dateStarted},"${item.animalTagOrBatch}","${item.animalType}","${item.quarantineReason}","${item.symptomsObserved || 'None'}","${item.quarantineStatus}","Dr. ${item.vetInCharge}","${item.notes}"\n`;
+      });
+      csvContent += '\n';
+    }
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -3557,16 +3989,26 @@ export default function App() {
 
     { id: 'factory', label: 'Feed Formulator', icon: FlaskConical, category: 'Feed & Factory' },
     { id: 'tmr', label: 'TMR Mixing', icon: Truck, category: 'Feed & Factory' },
+    { id: 'bsf', label: 'Organic BSF Batches', icon: Leaf, category: 'Feed & Factory' },
 
-    { id: 'dairy', label: 'Dairy & AI', icon: Activity, category: 'Livestock' },
-    { id: 'livestock', label: 'Livestock & BSF', icon: Heart, category: 'Livestock' },
+    { id: 'dairy_milk', label: 'Dairy Milking', icon: Activity, category: 'Livestock' },
+    { id: 'breeding', label: 'AI & Breeding Cycles', icon: CalendarDays, category: 'Livestock' },
+    { id: 'veterinary', label: 'Veterinary Clinic', icon: HeartPulse, category: 'Livestock' },
+    { id: 'cows', label: 'Cattle Registry', icon: Award, category: 'Livestock' },
+    { id: 'goats', label: 'Caprine Goat Logs', icon: Sparkles, category: 'Livestock' },
+    { id: 'calves', label: 'Liquidfed Calves', icon: Compass, category: 'Livestock' },
+    { id: 'heifers', label: 'Heifer Progeny', icon: Award, category: 'Livestock' },
+    { id: 'poultry', label: 'Poultry Hub', icon: ClipboardList, category: 'Livestock' },
+    { id: 'canines', label: 'Security Canines', icon: Shield, category: 'Livestock' },
 
-    { id: 'horti', label: 'Tea & Avocado', icon: Leaf, category: 'Crop Exports' },
+    { id: 'tea', label: 'KTDA Tea Deliveries', icon: Leaf, category: 'Crop Exports' },
+    { id: 'avo', label: 'Avocado Export Shipments', icon: Sprout, category: 'Crop Exports' },
     { id: 'fields', label: 'Fields & Trees', icon: Sprout, category: 'Crop Exports' },
     { id: 'spray', label: 'GlobalGAP Spray', icon: FlaskConical, category: 'Crop Exports' },
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
+    { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
 
     { id: 'education', label: "Farmer's Academy", icon: BookOpen, category: 'Academy' },
@@ -3592,29 +4034,29 @@ export default function App() {
           <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
             Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
           </p>
-          <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-            <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
+          <div className="pt-2 text-xs text-slate-500 font-bold font-mono flex flex-wrap items-center justify-center gap-2">
+            <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span className="bg-yellow-100 text-yellow-900 px-2 py-0.5 rounded font-black">Report Period: {getReportPeriodString()}</span> • <span>Generated: {new Date().toLocaleString()}</span>
           </div>
         </div>
 
         {/* High-Level P&L Summary Cards for print */}
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-            <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Milk Compiled</span>
+            <span className="text-[9px] uppercase font-black text-slate-400 block">Milk Compiled in Period</span>
             <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
-              {milkRecords.reduce((sum, r) => sum + r.am + r.pm, 0).toFixed(1)} L
+              {reportMilkVolume.toFixed(1)} L
             </h3>
           </div>
           <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-            <span className="text-[9px] uppercase font-black text-slate-400 block">All-time Tea Volumes</span>
+            <span className="text-[9px] uppercase font-black text-slate-400 block">Tea Volumes in Period</span>
             <h3 className="text-xl font-black font-mono text-slate-800 mt-1">
-              {totalTeaQty.toLocaleString()} KG
+              {reportTeaVolume.toLocaleString()} KG
             </h3>
           </div>
           <div className="border border-slate-300 p-4 rounded-xl bg-slate-50">
-            <span className="text-[9px] uppercase font-black text-slate-400 block">P&L Operating Balance</span>
-            <h3 className="text-xl font-black font-mono text-emerald-850 mt-1">
-              Ksh {netPl.toLocaleString()}
+            <span className="text-[9px] uppercase font-black text-slate-400 block">Operating Balance in Period</span>
+            <h3 className={`text-xl font-black font-mono mt-1 ${reportNetBalance >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+              Ksh {reportNetBalance.toLocaleString()}
             </h3>
           </div>
         </div>
@@ -3856,7 +4298,7 @@ export default function App() {
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
                 <span>7. Operational accounting General Ledger</span>
-                <span className="text-[9px] font-mono text-slate-400 font-bold">({financials.length} journals)</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({filteredFinancials.length} journals)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
@@ -3868,7 +4310,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(forPdf ? financials : financials.slice(0, 10)).map((f) => (
+                  {(forPdf ? filteredFinancials : filteredFinancials.slice(0, 10)).map((f) => (
                     <tr key={f.id} className="border-b border-slate-100">
                       <td className="p-1.5 font-mono text-slate-700 font-bold">{f.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">
@@ -3886,6 +4328,23 @@ export default function App() {
                   ))}
                 </tbody>
               </table>
+
+              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center text-[10px] font-sans mt-2">
+                <div>
+                  <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Income</span>
+                  <strong className="text-emerald-800 font-mono font-bold text-xs">Ksh {reportIncome.toLocaleString()}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Expense</span>
+                  <strong className="text-amber-800 font-mono font-bold text-xs">Ksh {reportExpense.toLocaleString()}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Net Subtotal</span>
+                  <strong className={`font-mono font-bold text-xs ${reportNetBalance >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                    Ksh {reportNetBalance.toLocaleString()}
+                  </strong>
+                </div>
+              </div>
             </div>
           )}
 
@@ -4750,13 +5209,14 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'dairy' && (
+          {(activeTab === 'dairy' || activeTab === 'dairy_milk' || activeTab === 'breeding' || activeTab === 'veterinary' || activeTab === 'cows') && (
             <DairyBreeding
               milkRecords={milkRecords}
               aiRecords={aiRecords}
               milkOutflows={milkOutflows}
               onAddMilkOutflow={handleAddMilkOutflow}
               onDeleteMilkOutflow={handleDeleteMilkOutflow}
+              onEditMilkOutflow={handleEditMilkOutflow}
               staffList={staffList}
               onAddMilkRecord={handleAddMilkRecord}
               onAddAIRecord={handleAddAIRecord}
@@ -4784,10 +5244,17 @@ export default function App() {
               semenInventory={semenInventory}
               setSemenInventory={setSemenInventory}
               onAddCalfRecord={handleAddCalfRecord}
+              activeSubModule={
+                activeTab === 'dairy_milk' ? 'milk' :
+                activeTab === 'breeding' ? 'breeding' :
+                activeTab === 'veterinary' ? 'veterinary' :
+                activeTab === 'cows' ? 'cows' :
+                undefined
+              }
             />
           )}
 
-          {activeTab === 'horti' && (
+          {(activeTab === 'horti' || activeTab === 'tea' || activeTab === 'avo') && (
             <Horticulture
               teaRecords={teaRecords}
               avoRecords={avoRecords}
@@ -4798,6 +5265,11 @@ export default function App() {
               onEditTea={handleEditTea}
               onEditAvo={handleEditAvo}
               onTriggerSectionReport={handleTriggerSectionReport}
+              activeSubModule={
+                activeTab === 'tea' ? 'tea' :
+                activeTab === 'avo' ? 'avo' :
+                undefined
+              }
             />
           )}
 
@@ -4824,9 +5296,23 @@ export default function App() {
           )}
 
           {/* Sub-view switcher for agronomy / canine logs / warehouse */}
-          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory') && (
+          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'canines' || activeTab === 'bsf' || activeTab === 'biogas') && (
             <OtherSections
-              viewType={activeTab as any}
+              viewType={
+                activeTab === 'fields' ? 'fields' :
+                activeTab === 'inventory' ? 'inventory' :
+                'livestock'
+              }
+              activeSubModule={
+                activeTab === 'goats' ? 'goats' :
+                activeTab === 'calves' ? 'calves' :
+                activeTab === 'heifers' ? 'heifers' :
+                activeTab === 'poultry' ? 'poultry' :
+                activeTab === 'canines' ? 'canines' :
+                activeTab === 'bsf' ? 'bsf' :
+                activeTab === 'biogas' ? 'biogas' :
+                undefined
+              }
               fields={fields}
               livestock={livestock}
               inventory={inventory}
@@ -4972,13 +5458,127 @@ export default function App() {
                 <div className="w-full lg:w-80 bg-slate-50 border-r border-slate-200 p-6 overflow-y-auto flex flex-col justify-between print:hidden gap-5 shrink-0">
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">18-Module Compiler Index</h4>
+                      <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">Estate Compiler Index</h4>
                       <p className="text-[10px] text-slate-405 font-bold uppercase tracking-wider mt-0.5">Toggle sections to customize report</p>
+                    </div>
+
+                    {/* Module Filter & Search Bar */}
+                    <div className="space-y-2 bg-white p-3 rounded-2xl border border-slate-200">
+                      <div>
+                        <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                          Search Sections
+                        </label>
+                        <input
+                          type="text"
+                          value={reportSearchQuery}
+                          onChange={(e) => setReportSearchQuery(e.target.value)}
+                          placeholder="Type to search modules..."
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:bg-white text-slate-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                          Module Category
+                        </label>
+                        <select
+                          value={reportCategoryFilter}
+                          onChange={(e) => setReportCategoryFilter(e.target.value)}
+                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                        >
+                          <option value="ALL">All Modules</option>
+                          <option value="Main">Main / Geography</option>
+                          <option value="Staff">Staff Deployment</option>
+                          <option value="Livestock">Livestock Systems</option>
+                          <option value="Crop Exports">Crop & Fruit Exports</option>
+                          <option value="Feed & Factory">Feed & BSF Protein</option>
+                          <option value="Operations">Operating Logs</option>
+                          <option value="Academy">Academy & Diagnostics</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                          Date Period Filter
+                        </label>
+                        <select
+                          value={reportDateFilter}
+                          onChange={(e) => setReportDateFilter(e.target.value)}
+                          className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                        >
+                          <option value="all">All Time</option>
+                          <option value="today">Today</option>
+                          <option value="week">This Week (Last 7 Days)</option>
+                          <option value="month">This Month (Last 30 Days)</option>
+                          <option value="last3months">Last 3 Months</option>
+                          <option value="last6months">Last 6 Months</option>
+                          <option value="specific_month">Specific Month</option>
+                          <option value="month_interval">Month Interval / Range</option>
+                          <option value="year">This Year (Last 365 Days)</option>
+                          <option value="custom">Custom Date Range</option>
+                        </select>
+                      </div>
+
+                      {reportDateFilter === 'specific_month' && (
+                        <div className="pt-1">
+                          <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Select Specific Month</label>
+                          <input
+                            type="month"
+                            value={reportSpecificMonth}
+                            onChange={(e) => setReportSpecificMonth(e.target.value)}
+                            className="w-full px-2 py-1.5 text-xs rounded border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                          />
+                        </div>
+                      )}
+
+                      {reportDateFilter === 'month_interval' && (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Start Month</label>
+                            <input
+                              type="month"
+                              value={reportStartMonth}
+                              onChange={(e) => setReportStartMonth(e.target.value)}
+                              className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">End Month</label>
+                            <input
+                              type="month"
+                              value={reportEndMonth}
+                              onChange={(e) => setReportEndMonth(e.target.value)}
+                              className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {reportDateFilter === 'custom' && (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Start Date</label>
+                            <input
+                              type="date"
+                              value={reportStartDate}
+                              onChange={(e) => setReportStartDate(e.target.value)}
+                              className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">End Date</label>
+                            <input
+                              type="date"
+                              value={reportEndDate}
+                              onChange={(e) => setReportEndDate(e.target.value)}
+                              className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
  
                      {/* Section list with record counts as checkbox buttons */}
-                    <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                      {getSectionsMetadata().map((sec) => {
+                    <div className="space-y-2 max-h-[40vh] lg:max-h-[50vh] overflow-y-auto pr-1">
+                      {getFilteredSectionsMetadata().map((sec) => {
                         const isExpanded = !!expandedSections[sec.key];
                         const isChecked = !!selectedSections[sec.key];
                         const subKeys = sec.subsections.map(s => s.key);
@@ -5097,8 +5697,8 @@ export default function App() {
                     <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
                       Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
                     </p>
-                    <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-                      <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
+                    <div className="pt-2 text-xs text-slate-500 font-bold font-mono flex flex-wrap items-center justify-center gap-2">
+                      <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span className="bg-yellow-100 text-yellow-900 px-2 py-0.5 rounded font-black">Report Period: {getReportPeriodString()}</span> • <span>Generated: {new Date().toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -5138,7 +5738,7 @@ export default function App() {
                     {selectedSections.staff && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>1. Staff Deployment Schedule</span>
+                          <span>Staff Deployment Schedule</span>
                           <span className="text-[9px] font-mono text-slate-400">({staffList.length} staff)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
@@ -5169,8 +5769,8 @@ export default function App() {
                     {/* 2. Milk harvest yields */}
                     {selectedSections.milk && (
                       <div className="space-y-2">
-                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>2. Dairy Production Log</span>
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Dairy Production Log</span>
                           <span className="text-[9px] font-mono text-slate-400">({milkRecords.length} records)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5185,7 +5785,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {milkRecords.slice(0, 30).map((m, idx) => (
+                            {milkRecords.map((m, idx) => (
                               <tr key={idx} className="border-b border-slate-100">
                                 <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
                                 <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
@@ -5197,9 +5797,6 @@ export default function App() {
                             ))}
                           </tbody>
                         </table>
-                        {milkRecords.length > 30 && (
-                          <p className="text-[9px] text-slate-400 italic">* Previewing first 30 yield logs. Total dataset holds {milkRecords.length} lines.</p>
-                        )}
                       </div>
                     )}
 
@@ -5207,7 +5804,7 @@ export default function App() {
                     {selectedSections.ai && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>3. Insemination Breeding Status Index</span>
+                          <span>Insemination Breeding Status Index</span>
                           <span className="text-[9px] font-mono text-slate-400">({aiRecords.length} records)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5239,7 +5836,7 @@ export default function App() {
                     {selectedSections.tea && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>4. Green Leaf Tea Dispatches</span>
+                          <span>Green Leaf Tea Dispatches</span>
                           <span className="text-[9px] font-mono text-slate-400">({teaRecords.length} blocks)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5271,7 +5868,7 @@ export default function App() {
                     {selectedSections.avo && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>5. Export-Grade Avocado Logs</span>
+                          <span>Export-Grade Avocado Logs</span>
                           <span className="text-[9px] font-mono text-slate-400">({avoRecords.length} shipments)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
@@ -5315,7 +5912,7 @@ export default function App() {
                     {selectedSections.cropSales && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>6. Commodity Spot Trade Outflows</span>
+                          <span>Commodity Spot Trade Outflows</span>
                           <span className="text-[9px] font-mono text-slate-400">({cropSales.length} items)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5348,9 +5945,9 @@ export default function App() {
                     {/* 7. Financial Ledgers */}
                     {selectedSections.financials && (
                       <div className="space-y-2">
-                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>7. Farm Operations Account Book Ledger</span>
-                          <span className="text-[9px] font-mono text-slate-400">({financials.length} entries)</span>
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Farm Operations Account Book Ledger</span>
+                          <span className="text-[9px] font-mono text-slate-400">({filteredFinancials.length} entries)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
                           <thead>
@@ -5363,7 +5960,7 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {financials.slice(0, 30).map((item, idx) => (
+                            {filteredFinancials.map((item, idx) => (
                               <tr key={idx} className="border-b border-slate-100">
                                 <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
                                 <td className="p-1.5 font-semibold text-slate-800">{item.desc}</td>
@@ -5378,6 +5975,23 @@ export default function App() {
                             ))}
                           </tbody>
                         </table>
+
+                        <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center text-[10px] font-sans mt-2">
+                          <div>
+                            <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Income</span>
+                            <strong className="text-emerald-800 font-mono font-bold text-xs">Ksh {reportIncome.toLocaleString()}</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Expense</span>
+                            <strong className="text-amber-800 font-mono font-bold text-xs">Ksh {reportExpense.toLocaleString()}</strong>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Net Subtotal</span>
+                            <strong className={`font-mono font-bold text-xs ${reportNetBalance >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                              Ksh {reportNetBalance.toLocaleString()}
+                            </strong>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -5385,7 +5999,7 @@ export default function App() {
                     {selectedSections.spray && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>8. GlobalGAP Registered Spray Applications</span>
+                          <span>GlobalGAP Registered Spray Applications</span>
                           <span className="text-[9px] font-mono text-slate-400">({sprayRecords.length} sessions)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5422,7 +6036,7 @@ export default function App() {
                     {selectedSections.fields && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>9. Fields registered under production</span>
+                          <span>Fields registered under production</span>
                           <span className="text-[9px] font-mono text-slate-400 font-bold">({fields.length} plots)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5450,31 +6064,31 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* 10. Poultry & Canines */}
+                    {/* 10. Security Canines */}
                     {selectedSections.livestock && (
                       <div className="space-y-2">
-                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>10. Poultry & Canine Asset Register</span>
-                          <span className="text-[9px] font-mono text-slate-400">({livestock.length} animals)</span>
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Security Canine Logs</span>
+                          <span className="text-[9px] font-mono text-slate-400">({livestock.filter(item => item.type === 'Dogs').length} canines)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
                           <thead>
-                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-503 font-bold">
-                              <th className="p-1">Asset Tag ID</th>
-                              <th className="p-1">Breed/Family Class</th>
-                              <th className="p-1">Acquisition Date</th>
-                              <th className="p-1">Breed line Parentage</th>
-                              <th className="p-1 text-center">Current Status</th>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-bold">
+                              <th className="p-1">Date Logged</th>
+                              <th className="p-1">Canine Name</th>
+                              <th className="p-1">Breed Classification</th>
+                              <th className="p-1">Activity</th>
+                              <th className="p-1">Notes</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {livestock.map((item) => (
+                            {livestock.filter(item => item.type === 'Dogs').map((item) => (
                               <tr key={item.id} className="border-b border-slate-100">
-                                <td className="p-1.5 font-mono font-bold text-slate-800">{item.id}</td>
-                                <td className="p-1.5 font-bold">{item.breed}</td>
-                                <td className="p-1.5 font-mono">{item.arrivalDate}</td>
-                                <td className="p-1.5 italic text-slate-500">{item.parentage || 'N/A'}</td>
-                                <td className="p-1.5 text-center font-bold text-[10px]">{item.status}</td>
+                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
+                                <td className="p-1.5">{item.countOrBreed}</td>
+                                <td className="p-1.5 font-bold text-slate-700">{item.activity}</td>
+                                <td className="p-1.5 text-slate-500 italic">{item.notes}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -5486,7 +6100,7 @@ export default function App() {
                     {selectedSections.goats && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>11. Caprine (Goat) Milk yield logs</span>
+                          <span>Caprine (Goat) Milk yield logs</span>
                           <span className="text-[9px] font-mono text-slate-400">({goatRecords.length} entries)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5516,7 +6130,7 @@ export default function App() {
                     {selectedSections.calves && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>12. Calf Liquid Nutrition & Rearing log</span>
+                          <span>Calf Liquid Nutrition & Rearing log</span>
                           <span className="text-[9px] font-mono text-slate-400">({calfRecords.length} feeds)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5546,7 +6160,7 @@ export default function App() {
                     {selectedSections.bsf && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>13. Black Soldier Fly (BSF) Larvae harvest logs</span>
+                          <span>Black Soldier Fly (BSF) Larvae harvest logs</span>
                           <span className="text-[9px] font-mono text-slate-400">({bsfRecords.length} batches)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
@@ -5608,7 +6222,7 @@ export default function App() {
                       return (
                         <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
                           <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                            <span>14. Active Best Feed Formulation Recipe Made</span>
+                            <span>Active Best Feed Formulation Recipe Made</span>
                             <span className="text-[9px] font-mono text-slate-400 font-bold">({fItems.length} recipe ingredients)</span>
                           </h5>
 
@@ -5671,7 +6285,7 @@ export default function App() {
                     {selectedSections.inventory && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>15. Warehouse Materials & Storage stock reserves</span>
+                          <span>Warehouse Materials & Storage stock reserves</span>
                           <span className="text-[9px] font-mono text-slate-400 font-bold">({inventory.length} commodities)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5703,7 +6317,7 @@ export default function App() {
                     {selectedSections.vet && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>15. Clinical Veterinary Diagnoses & Therapies</span>
+                          <span>Clinical Veterinary Diagnoses & Therapies</span>
                           <span className="text-[9px] font-mono text-slate-400 font-bold">({vetRecords.length} diagnoses)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -5738,7 +6352,7 @@ export default function App() {
                     {selectedSections.academy && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>16. Farmer's Academy Clinical Archive Historical Casebook</span>
+                          <span>Farmer's Academy Clinical Archive Historical Casebook</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredDiagHistory().length} cases)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
@@ -5770,7 +6384,7 @@ export default function App() {
                     {selectedSections.timetable && (
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>17. Operations Calendar Tasks Schedule</span>
+                          <span>Operations Calendar Tasks Schedule</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredTimetable().length} tasks)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse font-sans">
@@ -5793,6 +6407,156 @@ export default function App() {
                                 <td className="p-1.5 italic text-slate-505">{t.when}</td>
                                 <td className="p-1.5 text-slate-600">SOP: {t.how} ({t.why})</td>
                                 <td className="p-1.5 italic text-slate-505">{t.assignedTo || 'Unassigned'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 18. Silage Preservation */}
+                    {(selectedSections.silage || selectedSections.ai_silage) && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Silage Preservation & Feed Rations Audit</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({silageRecords.length} pits)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Date Made</th>
+                              <th className="p-1">Raw Crop Material</th>
+                              <th className="p-1">Area (Acres)</th>
+                              <th className="p-1 text-right">Silage Weight (KG)</th>
+                              <th className="p-1">Quality Diagnosis</th>
+                              <th className="p-1">Feed Projections (Days)</th>
+                              <th className="p-1">Compaction Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {silageRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.dateMade}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.rawMaterial}</td>
+                                <td className="p-1.5">{item.acres} Acres</td>
+                                <td className="p-1.5 text-right font-mono">{item.calculatedWeightKg.toLocaleString()} KG</td>
+                                <td className="p-1.5 italic font-semibold text-emerald-800">{item.quality}</td>
+                                <td className="p-1.5 text-slate-600 text-[10px]">{item.animalsFedCount} head for {item.daysOfFeedAvailable} Days</td>
+                                <td className="p-1.5 text-slate-500 font-sans italic">{item.notes}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 19. Heifers Progeny Growth */}
+                    {(selectedSections.heifers || selectedSections.ai_heifers) && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Heifer Progressive Growth & Puberty Monitors</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({heiferRecords.length} animals)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Date Logged</th>
+                              <th className="p-1">Heifer Ear Tag ID</th>
+                              <th className="p-1">Liveweight</th>
+                              <th className="p-1">Chest Girth (cm)</th>
+                              <th className="p-1">Avg Daily Gain (ADG)</th>
+                              <th className="p-1 text-center">Breeding Status</th>
+                              <th className="p-1">Operational Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {heiferRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.dateLogged}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.cowId}</td>
+                                <td className="p-1.5 font-semibold text-slate-800">{item.weightKg} KG</td>
+                                <td className="p-1.5 font-mono">{item.girthCm || 'N/A'} cm</td>
+                                <td className="p-1.5 font-mono text-emerald-800">+{item.averageDailyGainGrams}g / Day</td>
+                                <td className="p-1.5 text-center font-bold text-slate-700">{item.breedingReady ? 'READY (AI Eligible)' : 'Growing'}</td>
+                                <td className="p-1.5 text-slate-505 font-sans italic">{item.notes}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 20. Poultry Flock Monitor */}
+                    {(selectedSections.poultry || selectedSections.live_poultry) && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Poultry Flock Development Ledger & Egg Harvesting</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({poultryRecords.length} batches)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-555 font-bold">
+                              <th className="p-1">Date Logged</th>
+                              <th className="p-1">Cohort Group Name</th>
+                              <th className="p-1">Bird Count</th>
+                              <th className="p-1">Daily Feed Ration</th>
+                              <th className="p-1">Egg Crates Yield</th>
+                              <th className="p-1">Hen-Day Production %</th>
+                              <th className="p-1 text-center">Mortality Rate</th>
+                              <th className="p-1">Operational Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {poultryRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.dateLogged}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.batchName} <span className="text-[10px] text-slate-500">({item.stage})</span></td>
+                                <td className="p-1.5 font-semibold text-slate-800">{item.count || 'N/A'} Birds</td>
+                                <td className="p-1.5 font-mono">{item.feedGivenKg} KG ({item.feedType})</td>
+                                <td className="p-1.5 font-mono font-bold text-emerald-800">{item.eggCratesHarvested || 0} Cr <span className="text-[10px] text-slate-500 block">cracked: {item.crackedEggsCount || 0}</span></td>
+                                <td className="p-1.5 font-mono text-slate-600 font-bold">{item.percentageProduction}%</td>
+                                <td className="p-1.5 text-center text-rose-800 font-bold">{item.mortalityCount || 0} death(s)</td>
+                                <td className="p-1.5 text-slate-505 font-sans italic">{item.notes}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* 21. Biosecurity Vet Isolation & Quarantine Protocols */}
+                    {(selectedSections.quarantine || selectedSections.spray_quarantine || selectedSections.vet_withdrawal) && (
+                      <div className="space-y-2">
+                        <h5 className="text-[11px] font-black text-slate-955 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                          <span>Biosecurity Vet Isolation & Quarantine Protocols</span>
+                          <span className="text-[9px] font-mono text-slate-400 font-bold">({quarantineRecords.length} records)</span>
+                        </h5>
+                        <table className="w-full text-[11px] text-left border-collapse font-sans">
+                          <thead>
+                            <tr className="border-b border-slate-300 bg-slate-50 text-slate-505 font-bold">
+                              <th className="p-1">Isolation Start</th>
+                              <th className="p-1">Animal Tag ID / Specimen</th>
+                              <th className="p-1">Quarantine Reason</th>
+                              <th className="p-1">Symptoms Tracked</th>
+                              <th className="p-1">Release Status</th>
+                              <th className="p-1">Attending Veterinarian</th>
+                              <th className="p-1">Prescription Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {quarantineRecords.map((item, idx) => (
+                              <tr key={idx} className="border-b border-slate-100">
+                                <td className="p-1.5 font-mono text-slate-400">{item.dateStarted}</td>
+                                <td className="p-1.5 font-bold text-slate-800">{item.animalTagOrBatch} <span className="text-[10px] text-slate-500">({item.animalType})</span></td>
+                                <td className="p-1.5 italic text-slate-600">{item.quarantineReason}</td>
+                                <td className="p-1.5 font-sans text-slate-600">{item.symptomsObserved || 'None'}</td>
+                                <td className="p-1.5 font-bold text-center">
+                                  <span className={item.quarantineStatus === 'Cleared & Released' ? 'text-emerald-800' : 'text-rose-800'}>
+                                    {item.quarantineStatus}
+                                  </span>
+                                </td>
+                                <td className="p-1.5 font-semibold text-slate-700">Dr. {item.vetInCharge}</td>
+                                <td className="p-1.5 text-slate-505 font-sans italic">{item.notes}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -5878,12 +6642,126 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-black text-xs uppercase tracking-wider text-slate-800">Master Volume Index</h4>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All 18 estate sections are auto-included</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">All estate sections are auto-included</p>
+                  </div>
+
+                  {/* Module Filter & Search Bar */}
+                  <div className="space-y-2 bg-white p-3 rounded-2xl border border-slate-200">
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                        Search Sections
+                      </label>
+                      <input
+                        type="text"
+                        value={reportSearchQuery}
+                        onChange={(e) => setReportSearchQuery(e.target.value)}
+                        placeholder="Type to search modules..."
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:bg-white text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                        Module Category
+                      </label>
+                      <select
+                        value={reportCategoryFilter}
+                        onChange={(e) => setReportCategoryFilter(e.target.value)}
+                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                      >
+                        <option value="ALL">All Modules</option>
+                        <option value="Main">Main / Geography</option>
+                        <option value="Staff">Staff Deployment</option>
+                        <option value="Livestock">Livestock Systems</option>
+                        <option value="Crop Exports">Crop & Fruit Exports</option>
+                        <option value="Feed & Factory">Feed & BSF Protein</option>
+                        <option value="Operations">Operating Logs</option>
+                        <option value="Academy">Academy & Diagnostics</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">
+                        Date Period Filter
+                      </label>
+                      <select
+                        value={reportDateFilter}
+                        onChange={(e) => setReportDateFilter(e.target.value)}
+                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                      >
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week (Last 7 Days)</option>
+                        <option value="month">This Month (Last 30 Days)</option>
+                        <option value="last3months">Last 3 Months</option>
+                        <option value="last6months">Last 6 Months</option>
+                        <option value="specific_month">Specific Month</option>
+                        <option value="month_interval">Month Interval / Range</option>
+                        <option value="year">This Year (Last 365 Days)</option>
+                        <option value="custom">Custom Date Range</option>
+                      </select>
+                    </div>
+
+                    {reportDateFilter === 'specific_month' && (
+                      <div className="pt-1">
+                        <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Select Specific Month</label>
+                        <input
+                          type="month"
+                          value={reportSpecificMonth}
+                          onChange={(e) => setReportSpecificMonth(e.target.value)}
+                          className="w-full px-2 py-1.5 text-xs rounded border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-emerald-600 text-slate-800"
+                        />
+                      </div>
+                    )}
+
+                    {reportDateFilter === 'month_interval' && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Start Month</label>
+                          <input
+                            type="month"
+                            value={reportStartMonth}
+                            onChange={(e) => setReportStartMonth(e.target.value)}
+                            className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">End Month</label>
+                          <input
+                            type="month"
+                            value={reportEndMonth}
+                            onChange={(e) => setReportEndMonth(e.target.value)}
+                            className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {reportDateFilter === 'custom' && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Start Date</label>
+                          <input
+                            type="date"
+                            value={reportStartDate}
+                            onChange={(e) => setReportStartDate(e.target.value)}
+                            className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">End Date</label>
+                          <input
+                            type="date"
+                            value={reportEndDate}
+                            onChange={(e) => setReportEndDate(e.target.value)}
+                            className="w-full px-1.5 py-1 text-[11px] rounded border border-slate-200 focus:outline-none text-slate-800 bg-slate-50"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Interactive Section list with record counts as checklists */}
-                  <div className="space-y-2 max-h-[50vh] lg:max-h-[55vh] overflow-y-auto pr-1">
-                    {getSectionsMetadata().map((sec) => {
+                  <div className="space-y-2 max-h-[35vh] lg:max-h-[40vh] overflow-y-auto pr-1">
+                    {getFilteredSectionsMetadata().map((sec) => {
                       const isExpanded = !!expandedSections[sec.key];
                       const isChecked = !!selectedSections[sec.key];
                       const subKeys = sec.subsections.map(s => s.key);
@@ -6003,8 +6881,8 @@ export default function App() {
                   <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">
                     Sovereign Agricultural compliance. GlobalGAP Registered Plot No. {getStoredSettings()?.locationCode || "KT-205A"}
                   </p>
-                  <div className="pt-2 text-xs text-slate-500 font-bold font-mono">
-                    <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span>Generated: {new Date().toLocaleString()}</span>
+                  <div className="pt-2 text-xs text-slate-500 font-bold font-mono flex flex-wrap items-center justify-center gap-2">
+                    <span>Authorized Comptroller: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}</span> • <span className="bg-yellow-100 text-yellow-900 px-2 py-0.5 rounded font-black">Report Period: {getReportPeriodString()}</span> • <span>Generated: {new Date().toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -6044,7 +6922,7 @@ export default function App() {
                   {selectedSections.staff && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>1. Staff Deployment Schedule</span>
+                        <span>Staff Deployment Schedule</span>
                         <span className="text-[9px] font-mono text-slate-400">({staffList.length} staff)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6076,7 +6954,7 @@ export default function App() {
                   {selectedSections.milk && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>2. Dairy Production Log</span>
+                        <span>Dairy Production Log</span>
                         <span className="text-[9px] font-mono text-slate-400">({milkRecords.length} records)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6091,7 +6969,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {milkRecords.slice(0, 10).map((m, idx) => (
+                          {milkRecords.map((m, idx) => (
                             <tr key={idx} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{m.date}</td>
                               <td className="p-1.5 font-bold text-slate-800">{m.id}</td>
@@ -6103,9 +6981,6 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
-                      {milkRecords.length > 10 && (
-                        <p className="text-[9px] text-slate-400 italic font-mono">* Only showing the 10 most recent milking trials of {milkRecords.length} total.</p>
-                      )}
                     </div>
                   )}
 
@@ -6113,7 +6988,7 @@ export default function App() {
                   {selectedSections.ai && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>3. Artificial Insemination & Breeding</span>
+                        <span>Artificial Insemination & Breeding</span>
                         <span className="text-[9px] font-mono text-slate-400">({aiRecords.length} cycles)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6127,7 +7002,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {aiRecords.slice(0, 10).map((ai, idx) => (
+                          {aiRecords.map((ai, idx) => (
                             <tr key={idx} className="border-b border-slate-100">
                               <td className="p-1.5 font-bold text-slate-800">{ai.cowId}</td>
                               <td className="p-1.5 font-mono text-slate-400">{ai.date}</td>
@@ -6138,9 +7013,6 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
-                      {aiRecords.length > 10 && (
-                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {aiRecords.length} AI cycles.</p>
-                      )}
                     </div>
                   )}
 
@@ -6148,7 +7020,7 @@ export default function App() {
                   {selectedSections.tea && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>4. Tea Exports Harvest & Deliveries</span>
+                        <span>Tea Exports Harvest & Deliveries</span>
                         <span className="text-[9px] font-mono text-slate-400">({teaRecords.length} dispatches)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6162,7 +7034,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {teaRecords.slice(0, 10).map((t, idx) => (
+                          {teaRecords.map((t, idx) => (
                             <tr key={idx} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{t.date}</td>
                               <td className="p-1.5 font-bold text-slate-850">{t.ref}</td>
@@ -6173,9 +7045,6 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
-                      {teaRecords.length > 10 && (
-                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent records of {teaRecords.length} total.</p>
-                      )}
                     </div>
                   )}
 
@@ -6183,7 +7052,7 @@ export default function App() {
                   {selectedSections.avo && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>5. Avocado Export Grading & Logistics</span>
+                        <span>Avocado Export Grading & Logistics</span>
                         <span className="text-[9px] font-mono text-slate-400">({avoRecords.length} records)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6203,7 +7072,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {avoRecords.slice(0, 10).map((item, idx) => (
+                          {avoRecords.map((item, idx) => (
                             <tr key={idx} className="border-b border-slate-100 text-[10px]">
                               <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
                               <td className="p-1.5 font-bold text-slate-850">{item.ref}</td>
@@ -6222,9 +7091,6 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
-                      {avoRecords.length > 10 && (
-                        <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {avoRecords.length} Avocado shipments.</p>
-                      )}
                     </div>
                   )}
 
@@ -6232,7 +7098,7 @@ export default function App() {
                   {selectedSections.cropSales && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>6. Local Commodities cash transactions</span>
+                        <span>Local Commodities cash transactions</span>
                         <span className="text-[9px] font-mono text-slate-400">({cropSales.length} trades)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6247,7 +7113,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {cropSales.slice(0, 10).map((cs, idx) => (
+                          {cropSales.map((cs, idx) => (
                             <tr key={idx} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{cs.date}</td>
                               <td className="p-1.5 font-bold text-slate-800">{cs.crop}</td>
@@ -6266,8 +7132,8 @@ export default function App() {
                   {selectedSections.financials && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>7. Operational accounting General Ledger</span>
-                        <span className="text-[9px] font-mono text-slate-400">({financials.length} journals)</span>
+                        <span>Operational accounting General Ledger</span>
+                        <span className="text-[9px] font-mono text-slate-400">({filteredFinancials.length} journals)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
                         <thead>
@@ -6279,7 +7145,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {financials.slice(0, 10).map((f) => (
+                          {filteredFinancials.map((f) => (
                             <tr key={f.id} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{f.date}</td>
                               <td className="p-1.5 font-bold text-slate-800">
@@ -6297,6 +7163,23 @@ export default function App() {
                           ))}
                         </tbody>
                       </table>
+
+                      <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center text-[10px] font-sans mt-2">
+                        <div>
+                          <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Income</span>
+                          <strong className="text-emerald-800 font-mono font-bold text-xs">Ksh {reportIncome.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Expense</span>
+                          <strong className="text-amber-800 font-mono font-bold text-xs">Ksh {reportExpense.toLocaleString()}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 font-bold uppercase tracking-wider block text-[9px]">Period Net Subtotal</span>
+                          <strong className={`font-mono font-bold text-xs ${reportNetBalance >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                            Ksh {reportNetBalance.toLocaleString()}
+                          </strong>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -6304,7 +7187,7 @@ export default function App() {
                   {selectedSections.spray && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>8. Agrochemical Spray Compliance & Quarantines</span>
+                        <span>Agrochemical Spray Compliance & Quarantines</span>
                         <span className="text-[9px] font-mono text-slate-400">({sprayRecords.length} treatments)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6340,7 +7223,7 @@ export default function App() {
                   {selectedSections.fields && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>9. Registered Blocks & Silage Fields Directory</span>
+                        <span>Registered Blocks & Silage Fields Directory</span>
                         <span className="text-[9px] font-mono text-slate-400">({fields.length} plots)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6368,28 +7251,28 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* 10. Poultry & Canines */}
+                  {/* 10. Security Canines */}
                   {selectedSections.livestock && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>10. Poultry Eggs & Canine Protection assets</span>
-                        <span className="text-[9px] font-mono text-slate-400">({livestock.length} records)</span>
+                        <span>Security Canine Logs</span>
+                        <span className="text-[9px] font-mono text-slate-400">({livestock.filter(item => item.type === 'Dogs').length} canines)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
                         <thead>
                           <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
                             <th className="p-1">Date Logged</th>
-                            <th className="p-1">Asset Group</th>
-                            <th className="p-1">Details Classification</th>
+                            <th className="p-1">Canine Name</th>
+                            <th className="p-1">Breed Classification</th>
                             <th className="p-1">Activity</th>
                             <th className="p-1">Notes</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {livestock.map((item) => (
+                          {livestock.filter(item => item.type === 'Dogs').map((item) => (
                             <tr key={item.id} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
-                              <td className="p-1.5 font-bold text-slate-800">{item.name} <span className="text-[10px] text-slate-450 italic">({item.type})</span></td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
                               <td className="p-1.5">{item.countOrBreed}</td>
                               <td className="p-1.5 font-bold text-slate-700">{item.activity}</td>
                               <td className="p-1.5 text-slate-500 italic">{item.notes}</td>
@@ -6404,7 +7287,7 @@ export default function App() {
                   {selectedSections.goats && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>11. Goats Dairy herd & lactation logs</span>
+                        <span>Goats Dairy herd & lactation logs</span>
                         <span className="text-[9px] font-mono text-slate-400">({goatRecords.length} records)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6419,7 +7302,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {goatRecords.slice(0, 10).map((gt) => (
+                          {goatRecords.map((gt) => (
                             <tr key={gt.id} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{gt.date}</td>
                               <td className="p-1.5 font-bold text-slate-800">{gt.tagId}</td>
@@ -6438,7 +7321,7 @@ export default function App() {
                   {selectedSections.calves && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>12. Nursery young calf nutrition logs</span>
+                        <span>Nursery young calf nutrition logs</span>
                         <span className="text-[9px] font-mono text-slate-400">({calfRecords.length} records)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6453,7 +7336,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {calfRecords.slice(0, 10).map((cf) => (
+                          {calfRecords.map((cf) => (
                             <tr key={cf.id} className="border-b border-slate-100">
                               <td className="p-1.5 font-mono text-slate-400">{cf.date}</td>
                               <td className="p-1.5 font-bold text-slate-800">{cf.calfId}</td>
@@ -6472,7 +7355,7 @@ export default function App() {
                   {selectedSections.bsf && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>13. organic black Soldier Fly (BSF) Larval cycles</span>
+                        <span>organic black Soldier Fly (BSF) Larval cycles</span>
                         <span className="text-[9px] font-mono text-slate-400">({bsfRecords.length} batches)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6533,7 +7416,7 @@ export default function App() {
                     return (
                       <div className="space-y-2 animate-fade-in">
                         <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>14. Optimized Feed Formulation Recipe (Formula Made)</span>
+                          <span>Optimized Feed Formulation Recipe (Formula Made)</span>
                           <span className="text-[9px] font-mono text-slate-400">({fItems.length} recipe ingredients)</span>
                         </h5>
 
@@ -6596,7 +7479,7 @@ export default function App() {
                   {selectedSections.inventory && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>15. Storage Warehouse stocks reserves</span>
+                        <span>Storage Warehouse stocks reserves</span>
                         <span className="text-[9px] font-mono text-slate-400">({inventory.length} items)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6635,7 +7518,7 @@ export default function App() {
                   {selectedSections.vet && (
                     <div className="space-y-2">
                        <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>16. Clinical veterinary treatments & diagnostics</span>
+                        <span>Clinical veterinary treatments & diagnostics</span>
                         <span className="text-[9px] font-mono text-slate-400">({vetRecords.length} entries)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6670,7 +7553,7 @@ export default function App() {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>17. Farmer's Academy Clinical Cases History Archive</span>
+                          <span>Farmer's Academy Clinical Cases History Archive</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredDiagHistory().length} cases)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -6701,7 +7584,7 @@ export default function App() {
 
                       <div className="space-y-2">
                         <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                          <span>17b. Auto-Deduct SOP Actions Audit Ledger</span>
+                          <span>Auto-Deduct SOP Actions Audit Ledger</span>
                           <span className="text-[9px] font-mono text-slate-400">({getStoredDeductLogs().length} events)</span>
                         </h5>
                         <table className="w-full text-[11px] text-left border-collapse">
@@ -6734,7 +7617,7 @@ export default function App() {
                   {selectedSections.timetable && (
                     <div className="space-y-2">
                       <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                        <span>18. Operations & Timetable Schedule Calendar</span>
+                        <span>Operations & Timetable Schedule Calendar</span>
                         <span className="text-[9px] font-mono text-slate-400">({getStoredTimetable().length} tasks)</span>
                       </h5>
                       <table className="w-full text-[11px] text-left border-collapse">
@@ -6759,6 +7642,156 @@ export default function App() {
                               <td className="p-1.5 text-slate-600">SOP: {t.how} ({t.why})</td>
                               <td className="p-1.5 font-mono font-bold text-[10px]">{t.status}</td>
                               <td className="p-1.5 italic text-slate-500">{t.assignedTo || 'Unassigned'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 18. Silage Preservation */}
+                  {(selectedSections.silage || selectedSections.ai_silage) && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>Silage Preservation & Feed Rations Audit</span>
+                        <span className="text-[9px] font-mono text-slate-400 font-bold">({silageRecords.length} pits)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date Made</th>
+                            <th className="p-1">Raw Crop Material</th>
+                            <th className="p-1">Area (Acres)</th>
+                            <th className="p-1 text-right">Silage Weight (KG)</th>
+                            <th className="p-1">Quality Diagnosis</th>
+                            <th className="p-1">Feed Projections (Days)</th>
+                            <th className="p-1">Compaction Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {silageRecords.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.dateMade}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.rawMaterial}</td>
+                              <td className="p-1.5">{item.acres} Acres</td>
+                              <td className="p-1.5 text-right font-mono">{item.calculatedWeightKg.toLocaleString()} KG</td>
+                              <td className="p-1.5 italic font-semibold text-emerald-800">{item.quality}</td>
+                              <td className="p-1.5 text-slate-600 text-[10px]">{item.animalsFedCount} head for {item.daysOfFeedAvailable} Days</td>
+                              <td className="p-1.5 text-slate-500 font-sans italic">{item.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 19. Heifers Progeny Growth */}
+                  {(selectedSections.heifers || selectedSections.ai_heifers) && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>Heifer Progressive Growth & Puberty Monitors</span>
+                        <span className="text-[9px] font-mono text-slate-400 font-bold">({heiferRecords.length} animals)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date Logged</th>
+                            <th className="p-1">Heifer Ear Tag ID</th>
+                            <th className="p-1">Liveweight</th>
+                            <th className="p-1">Chest Girth (cm)</th>
+                            <th className="p-1">Avg Daily Gain (ADG)</th>
+                            <th className="p-1 text-center">Breeding Status</th>
+                            <th className="p-1">Operational Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {heiferRecords.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.dateLogged}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.cowId}</td>
+                              <td className="p-1.5 font-semibold text-slate-800">{item.weightKg} KG</td>
+                              <td className="p-1.5 font-mono">{item.girthCm || 'N/A'} cm</td>
+                              <td className="p-1.5 font-mono text-emerald-800">+{item.averageDailyGainGrams}g / Day</td>
+                              <td className="p-1.5 text-center font-bold text-slate-700">{item.breedingReady ? 'READY (AI Eligible)' : 'Growing'}</td>
+                              <td className="p-1.5 text-slate-500 font-sans italic">{item.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 20. Poultry Flock Monitor */}
+                  {(selectedSections.poultry || selectedSections.live_poultry) && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>Poultry Flock Development Ledger & Egg Harvesting</span>
+                        <span className="text-[9px] font-mono text-slate-400 font-bold">({poultryRecords.length} batches)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Date Logged</th>
+                            <th className="p-1">Cohort Group Name</th>
+                            <th className="p-1">Bird Count</th>
+                            <th className="p-1">Daily Feed Ration</th>
+                            <th className="p-1">Egg Crates Yield</th>
+                            <th className="p-1">Hen-Day Production %</th>
+                            <th className="p-1 text-center">Mortality Rate</th>
+                            <th className="p-1">Operational Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {poultryRecords.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.dateLogged}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.batchName} <span className="text-[10px] text-slate-500">({item.stage})</span></td>
+                              <td className="p-1.5 font-semibold text-slate-800">{item.count || 'N/A'} Birds</td>
+                              <td className="p-1.5 font-mono">{item.feedGivenKg} KG ({item.feedType})</td>
+                              <td className="p-1.5 font-mono font-bold text-emerald-800">{item.eggCratesHarvested || 0} Cr <span className="text-[10px] text-slate-500 block">cracked: {item.crackedEggsCount || 0}</span></td>
+                              <td className="p-1.5 font-mono text-slate-600 font-bold">{item.percentageProduction}%</td>
+                              <td className="p-1.5 text-center text-rose-800 font-bold">{item.mortalityCount || 0} death(s)</td>
+                              <td className="p-1.5 text-slate-500 font-sans italic">{item.notes}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* 21. Biosecurity Vet Isolation & Quarantine Protocols */}
+                  {(selectedSections.quarantine || selectedSections.spray_quarantine || selectedSections.vet_withdrawal) && (
+                    <div className="space-y-2">
+                      <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                        <span>Biosecurity Vet Isolation & Quarantine Protocols</span>
+                        <span className="text-[9px] font-mono text-slate-400 font-bold">({quarantineRecords.length} records)</span>
+                      </h5>
+                      <table className="w-full text-[11px] text-left border-collapse font-sans">
+                        <thead>
+                          <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                            <th className="p-1">Isolation Start</th>
+                            <th className="p-1">Animal Tag ID / Specimen</th>
+                            <th className="p-1">Quarantine Reason</th>
+                            <th className="p-1">Symptoms Tracked</th>
+                            <th className="p-1">Release Status</th>
+                            <th className="p-1">Attending Veterinarian</th>
+                            <th className="p-1">Prescription Notes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {quarantineRecords.map((item, idx) => (
+                            <tr key={idx} className="border-b border-slate-100">
+                              <td className="p-1.5 font-mono text-slate-400">{item.dateStarted}</td>
+                              <td className="p-1.5 font-bold text-slate-800">{item.animalTagOrBatch} <span className="text-[10px] text-slate-500">({item.animalType})</span></td>
+                              <td className="p-1.5 italic text-slate-600">{item.quarantineReason}</td>
+                              <td className="p-1.5 font-sans text-slate-600">{item.symptomsObserved || 'None'}</td>
+                              <td className="p-1.5 font-bold text-center">
+                                <span className={item.quarantineStatus === 'Cleared & Released' ? 'text-emerald-800' : 'text-rose-800'}>
+                                  {item.quarantineStatus}
+                                </span>
+                              </td>
+                              <td className="p-1.5 font-semibold text-slate-700">Dr. {item.vetInCharge}</td>
+                              <td className="p-1.5 text-slate-500 font-sans italic">{item.notes}</td>
                             </tr>
                           ))}
                         </tbody>
