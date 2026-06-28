@@ -184,6 +184,8 @@ export function DairyBreeding({
   const [selectedMateId, setSelectedMateId] = useState<string>('');
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [cowSearch, setCowSearch] = useState('');
+  const [cowBreedFilter, setCowBreedFilter] = useState('');
+  const [cowStatusFilter, setCowStatusFilter] = useState('');
 
   // Vet log form states
   const [vetCowId, setVetCowId] = useState('');
@@ -313,13 +315,13 @@ export function DairyBreeding({
     let y = 43; // spacing from header
     
     // Aggregate Summary calculation
-    const totalHarvest = milkRecords.reduce((sum, r) => sum + (r.am + r.pm), 0);
+    const totalHarvest = milkRecords.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
     const totalHome = milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0);
     const totalWorkers = milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0);
     const totalCalves = milkOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0);
     const totalSpoilt = milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0);
     const totalDebts = milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0);
-    const totalSales = milkRecords.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 52))), 0);
+    const totalSales = milkRecords.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
 
     // Summary Metrics Banner
     doc.setFillColor(248, 250, 252); // slate-50
@@ -422,14 +424,14 @@ export function DairyBreeding({
       const dayMilks = milkRecords.filter(r => r.date === dateKey);
       const dayOutflow = milkOutflows.find(o => o.date === dateKey);
       
-      const yieldVol = dayMilks.reduce((sum, r) => sum + (r.am + r.pm), 0);
+      const yieldVol = dayMilks.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
       const homeL = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
       const workersL = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
       const calfL = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
       const spoiledL = dayOutflow ? dayOutflow.milkSpoiled : 0;
       const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
       const debtCustomer = dayOutflow ? dayOutflow.debtCustomer : '';
-      const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 52))), 0);
+      const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
       
       // Row alternating color background
       if (index % 2 === 1) {
@@ -911,8 +913,8 @@ export function DairyBreeding({
     filteredMilk.forEach((m) => {
       const p = m.pricePerLiter ?? 0;
       const b = m.buyer ?? 'Domestic Use';
-      const s = m.totalSales ?? ((m.am + m.pm) * p);
-      csv += `${m.date},"${m.id}",${m.am},${m.pm},${(m.am + m.pm).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
+      const s = m.totalSales ?? (((m.am ?? 0) + (m.pm ?? 0)) * p);
+      csv += `${m.date},"${m.id}",${m.am ?? 0},${m.pm ?? 0},${((m.am ?? 0) + (m.pm ?? 0)).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
     });
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
@@ -987,9 +989,10 @@ export function DairyBreeding({
 
   // Calculate Average daily yield for a cow
   const getAverageYield = (tag: string) => {
-    const cowMilks = milkRecords.filter(r => r.id.toLowerCase() === tag.toLowerCase());
+    if (!tag) return 0;
+    const cowMilks = milkRecords.filter(r => r && r.id && r.id.toLowerCase() === tag.toLowerCase());
     if (cowMilks.length === 0) return 0;
-    const total = cowMilks.reduce((sum, r) => sum + r.am + r.pm, 0);
+    const total = cowMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
     return total / cowMilks.length;
   };
 
@@ -1320,6 +1323,10 @@ export function DairyBreeding({
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  // Unique breeds and statuses for filtering the cattle directory
+  const uniqueBreeds = Array.from(new Set(cows.map(c => c.breed).filter(Boolean)));
+  const uniqueStatuses = Array.from(new Set(cows.map(c => c.status).filter(Boolean)));
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -2165,8 +2172,8 @@ export function DairyBreeding({
 
                   return sortedDates.map((dateString) => {
                     const dayRecords = groupedMilkByDate[dateString];
-                    const dayTotalYield = dayRecords.reduce((sum, r) => sum + (r.am + r.pm), 0);
-                    const dayTotalMoney = dayRecords.reduce((sum, r) => sum + (r.totalSales ?? ((r.am + r.pm) * (r.pricePerLiter ?? 0))), 0);
+                    const dayTotalYield = dayRecords.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
+                    const dayTotalMoney = dayRecords.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 0))), 0);
                     const dayTotalDispatch = dayRecords.reduce((sum, r) => sum + (r.milkUsedAtHome ?? 0) + (r.milkUsedByWorkers ?? 0) + (r.milkSpoiled ?? 0), 0);
                     const dayTotalDebt = dayRecords.reduce((sum, r) => sum + (r.debtsKsh ?? 0), 0);
 
@@ -2204,11 +2211,11 @@ export function DairyBreeding({
                         <div className="space-y-2">
                           {dayRecords.map((m, idx) => {
                             const price = m.pricePerLiter ?? 0;
-                            const sales = m.totalSales ?? ((m.am + m.pm) * price);
+                            const sales = m.totalSales ?? (((m.am ?? 0) + (m.pm ?? 0)) * price);
                             const buyer = m.buyer ?? '';
-                            const totalCowYield = m.am + m.pm;
+                            const totalCowYield = (m.am ?? 0) + (m.pm ?? 0);
                             const dispatchedCow = (m.milkUsedAtHome ?? 0) + (m.milkUsedByWorkers ?? 0) + (m.milkUsedByCalf ?? 0) + (m.milkSpoiled ?? 0);
-                            const isHigh = isHighProducer(m.am, m.pm, m.id);
+                            const isHigh = isHighProducer(m.am ?? 0, m.pm ?? 0, m.id);
 
                             return (
                               <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs space-y-2 hover:bg-slate-50/20 transition-all">
@@ -2224,7 +2231,7 @@ export function DairyBreeding({
                                       <span className="text-[9px] text-slate-400 font-semibold italic">Recorded by {m.staff}</span>
                                     </div>
                                     <div className="text-[10px] text-slate-500 font-bold font-mono">
-                                      <span>AM: {m.am.toFixed(1)}L | PM: {m.pm.toFixed(1)}L | </span>
+                                      <span>AM: {(m.am ?? 0).toFixed(1)}L | PM: {(m.pm ?? 0).toFixed(1)}L | </span>
                                       <strong className="text-emerald-800">Total: {totalCowYield.toFixed(1)} L</strong>
                                     </div>
                                   </div>
@@ -2323,7 +2330,7 @@ export function DairyBreeding({
                                   const workers = r.milkUsedByWorkers ?? 0;
                                   const calf = r.milkUsedByCalf ?? 0;
                                   const spoiled = r.milkSpoiled ?? 0;
-                                  const yieldVal = r.am + r.pm;
+                                  const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
                                   return sum + Math.max(0, yieldVal - (home + workers + calf + spoiled));
                                 }, 0).toFixed(1)} L
                               </span>
@@ -2333,7 +2340,7 @@ export function DairyBreeding({
                                   const workers = r.milkUsedByWorkers ?? 0;
                                   const calf = r.milkUsedByCalf ?? 0;
                                   const spoiled = r.milkSpoiled ?? 0;
-                                  const yieldVal = r.am + r.pm;
+                                  const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
                                   const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
                                   return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
                                 }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -2438,7 +2445,7 @@ export function DairyBreeding({
                                           const workers = r.milkUsedByWorkers ?? 0;
                                           const calf = r.milkUsedByCalf ?? 0;
                                           const spoiled = r.milkSpoiled ?? 0;
-                                          const yieldVal = r.am + r.pm;
+                                          const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
                                           const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
                                           return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
                                         }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -2449,7 +2456,7 @@ export function DairyBreeding({
                                       <span className="text-amber-400 font-black text-xs">
                                         Ksh {dayRecords.reduce((sum, r) => {
                                           const price = r.pricePerLiter ?? 52;
-                                          const yieldVal = r.am + r.pm;
+                                          const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
                                           return sum + (yieldVal * price);
                                         }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                       </span>
@@ -3101,8 +3108,8 @@ export function DairyBreeding({
                       milkOutflows.map((item, index) => {
                         // Calculate total harvest volume and total sales value dynamically for that date from all milk records
                         const dayRecs = milkRecords.filter(r => r.date === item.date);
-                        const totalHarvestVol = dayRecs.reduce((sum, r) => sum + (r.am + r.pm), 0);
-                        const totalSalesVal = dayRecs.reduce((sum, r) => sum + (r.totalSales || ((r.am + r.pm) * (r.pricePerLiter || 52))), 0);
+                        const totalHarvestVol = dayRecs.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
+                        const totalSalesVal = dayRecs.reduce((sum, r) => sum + (r.totalSales || (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter || 52))), 0);
 
                         return (
                           <tr key={index} className="border-b border-slate-800/60 hover:bg-slate-900/30">
@@ -3175,18 +3182,48 @@ export function DairyBreeding({
       {/* SUB-TAB 2: COW IDENTITY DIRECTORY */}
       {subTab === 'registry' && (
         <div className="space-y-6">
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-3.5 text-slate-400" size={14} />
-              <input
-                type="text"
-                placeholder="Search Cow tag ID or name..."
-                value={cowSearch}
-                onChange={(e) => setCowSearch(e.target.value)}
-                className="text-xs pl-9 pr-4 py-3 border border-slate-200 rounded-xl w-full font-bold focus:outline-none"
-              />
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto flex-1">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-3.5 text-slate-400" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search Cow tag ID or name..."
+                  value={cowSearch}
+                  onChange={(e) => setCowSearch(e.target.value)}
+                  className="text-xs pl-9 pr-4 py-3 border border-slate-200 rounded-xl w-full font-bold focus:outline-none bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-all"
+                />
+              </div>
+
+              {/* Filter by Breed */}
+              <div className="w-full sm:w-44">
+                <select
+                  value={cowBreedFilter}
+                  onChange={(e) => setCowBreedFilter(e.target.value)}
+                  className="text-xs border border-slate-200 rounded-xl px-3 py-3 w-full font-bold text-slate-600 bg-white focus:outline-none cursor-pointer hover:border-slate-300 transition-all"
+                >
+                  <option value="">All Breeds</option>
+                  {uniqueBreeds.map((breed) => (
+                    <option key={breed} value={breed}>{breed}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filter by Breeding Status */}
+              <div className="w-full sm:w-44">
+                <select
+                  value={cowStatusFilter}
+                  onChange={(e) => setCowStatusFilter(e.target.value)}
+                  className="text-xs border border-slate-200 rounded-xl px-3 py-3 w-full font-bold text-slate-600 bg-white focus:outline-none cursor-pointer hover:border-slate-300 transition-all"
+                >
+                  <option value="">All Breeding Statuses</option>
+                  {uniqueStatuses.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center justify-end gap-2 w-full xl:w-auto">
               <button
                 onClick={downloadBreedersCSV}
                 type="button"
@@ -3454,9 +3491,37 @@ export function DairyBreeding({
                 </button>
               </div>
             ) : (
-              cows
-                .filter(c => c.id.toLowerCase().includes(cowSearch.toLowerCase()) || c.name.toLowerCase().includes(cowSearch.toLowerCase()))
-                .map(cow => {
+              (() => {
+                const filteredCows = cows.filter(c => {
+                  const matchesSearch = c.id.toLowerCase().includes(cowSearch.toLowerCase()) || c.name.toLowerCase().includes(cowSearch.toLowerCase());
+                  const matchesBreed = !cowBreedFilter || c.breed === cowBreedFilter;
+                  const matchesStatus = !cowStatusFilter || c.status === cowStatusFilter;
+                  return matchesSearch && matchesBreed && matchesStatus;
+                });
+
+                if (filteredCows.length === 0) {
+                  return (
+                    <div className="col-span-1 md:col-span-3 text-center py-12 px-6 bg-slate-50 border border-dashed border-slate-200 rounded-3xl space-y-3">
+                      <div className="text-slate-400 font-bold text-base uppercase tracking-wider">No Matching Cattle Found</div>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                        No registered cattle match your search query, breed, or status filters. Try adjusting your filter settings or clear all filters.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCowSearch('');
+                          setCowBreedFilter('');
+                          setCowStatusFilter('');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-850 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer border-none"
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  );
+                }
+
+                return filteredCows.map(cow => {
                   const avgYield = getAverageYield(cow.id);
                   return (
                     <div key={cow.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
@@ -3562,7 +3627,8 @@ export function DairyBreeding({
                       </div>
                     </div>
                   );
-                })
+                });
+              })()
             )}
           </div>
         </div>
