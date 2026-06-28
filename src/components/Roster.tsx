@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StaffMember, StaffOffRecord } from '../types';
-import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList, Printer } from 'lucide-react';
+import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList, Printer, Download } from 'lucide-react';
 
 interface RosterProps {
   staffList: StaffMember[];
@@ -152,11 +152,11 @@ export function Roster({
             <button
               onClick={() => onTriggerSectionReport('staff')}
               type="button"
-              className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl font-black text-xs uppercase transition-all shadow-sm cursor-pointer m-0"
-              title="Download Staff & Leaves Report"
+              className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+              title="Download Staff & Leaves PDF Report"
             >
-              <Printer size={14} />
-              Report
+              <Download size={14} />
+              Download PDF Report
             </button>
           )}
           {rosterSubTab === 'roster' ? (

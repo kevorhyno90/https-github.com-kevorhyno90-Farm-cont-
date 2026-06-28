@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { Ingredient } from '../types';
-import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles, Printer } from 'lucide-react';
+import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles, Printer, Download } from 'lucide-react';
 
 interface FeedFormulatorProps {
   ingredients: Ingredient[];
@@ -828,11 +828,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
           <button
             onClick={() => onTriggerSectionReport('formula')}
             type="button"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-805 text-white rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 shrink-0 self-start sm:self-center border border-slate-800"
-            title="Download Feed Formula Report"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 shrink-0 self-start sm:self-center border border-amber-600/10 font-bold"
+            title="Download Feed Formula PDF Report"
           >
-            <Printer size={13} />
-            Print Feed Report
+            <Download size={13} />
+            Download PDF Report
           </button>
         )}
       </div>

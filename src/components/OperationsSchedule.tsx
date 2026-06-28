@@ -18,7 +18,8 @@ import {
   PenSquare,
   Sparkles,
   Info,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
 
 interface TimetableItem {
@@ -445,11 +446,11 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             <button
               onClick={() => onTriggerSectionReport('schedule')}
               type="button"
-              className="flex items-center justify-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0 h-10"
-              title="Download Operations & Schedules Report"
+              className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 hover:text-slate-950 border border-amber-600/10 font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 h-10 font-bold"
+              title="Download Operations & Schedules PDF Report"
             >
-              <Printer size={13} />
-              Report
+              <Download size={13} />
+              Download PDF Report
             </button>
           )}
           <button

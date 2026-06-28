@@ -990,6 +990,101 @@ export default function App() {
           ${buildTableHtml(['Cow Tag ID', 'Service Date', 'Bull Name/Semen Ref', 'Expected Due', 'Pregnancy Status'], rows)}
         </div>
       `;
+
+      // Add Semen Straw Inventory table
+      const semenRows = semenInventory.map(s => [
+        `<strong>${s.id}</strong>`,
+        `<strong>${s.bullName}</strong>`,
+        `<span>${s.breed}</span>`,
+        `<span>${s.semenType}</span>`,
+        `<span style="font-size: 11px; color: #475569;">${s.origin}</span>`,
+        `<span style="font-family: monospace; font-weight: bold;">Ksh ${s.cost.toLocaleString()}</span>`,
+        `<span style="font-family: monospace; font-weight: bold; color: ${s.quantity <= 3 ? '#b91c1c' : '#1e293b'};">${s.quantity} units</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>Genetic Semen Straw Stock Inventory</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${semenInventory.length} lines)</span>
+          </h3>
+          ${buildTableHtml(['Straw ID/Ref', 'Sire/Bull Name', 'Breed', 'Semen Type', 'Origin', 'Straw Cost', 'Stock Quantity'], semenRows)}
+        </div>
+      `;
+    }
+
+    // 3.5 Cattle Breeders Registry
+    if (sections.cows || sections.cows_registry) {
+      const cowRows = cows.map(c => [
+        `<span style="font-family: monospace; font-weight: bold; color: #047857;">${c.id}</span>`,
+        `<strong>${c.name}</strong>`,
+        `<span style="font-weight: bold;">${c.breed}</span>`,
+        `<span style="font-family: monospace;">${c.dob}</span>`,
+        `<div style="font-size: 11px; line-height: 1.2;">
+           <div>Sire: <span style="color: #475569;">${c.sire || 'Imported Semen Specimen'}</span></div>
+           <div style="margin-top: 1px;">Dam: <span style="color: #475569;">${c.dam || 'Acr-Grade Sire Maternal'}</span></div>
+         </div>`,
+        `<span style="font-family: monospace; font-weight: 600;">${c.registrationNo || 'UNREG-PENDING'}</span>`,
+        `<span style="font-weight: bold; text-transform: uppercase; color: ${
+          c.status === 'Lactating' ? '#047857' : c.status === 'In-Calf' ? '#1d4ed8' : '#64748b'
+        }; font-size: 10px;">${c.status}</span>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>Registered Dairy Breeders Directory (Cattle Registry)</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${cows.length} head)</span>
+          </h3>
+          ${buildTableHtml(['Ear Tag ID', 'Breed Group Name', 'Breed', 'Date of Birth', 'Maternal & Sire Pedigree', 'Official Registry ID', 'Breeding Status'], cowRows)}
+        </div>
+      `;
+    }
+
+    // 3.6 Cattle Sales & Mortality Ledger
+    if (sections.life_ledger || sections.cattle_sales || sections.cattle_mortality) {
+      let lifeLedgerHtml = '';
+      if (animalSales && animalSales.length > 0 && (sections.life_ledger || sections.cattle_sales)) {
+        const salesRows = animalSales.map(as => [
+          `<span style="font-family: monospace;">${as.date}</span>`,
+          `<strong>${as.animalId}</strong> (${as.animalType})`,
+          `${as.weightKg || 'N/A'} kg`,
+          `<strong>Ksh ${as.price.toLocaleString()}</strong>`,
+          as.buyerName,
+          as.notes || 'No notes'
+        ]);
+        lifeLedgerHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #b91c1c; padding-left: 6px;">
+            Cattle Animal Disposals & Sales Ledger
+          </h4>
+          ${buildTableHtml(['Date', 'Animal Tag ID (Type)', 'Weight (KG)', 'Revenue', 'Customer / Buyer', 'Authorized Note'], salesRows)}
+        `;
+      }
+      if (mortalities && mortalities.length > 0 && (sections.life_ledger || sections.cattle_mortality)) {
+        const mortRows = mortalities.map(m => [
+          `<span style="font-family: monospace;">${m.date}</span>`,
+          `<strong>${m.animalId}</strong> (${m.animalType})`,
+          `<em style="color: #b91c1c;">${m.causeDescription}</em>`,
+          m.disposalSop,
+          m.managerSignOffBy
+        ]);
+        lifeLedgerHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 25px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #b91c1c; padding-left: 6px;">
+            Cattle Mortalities, Stillbirths & Loss Registers
+          </h4>
+          ${buildTableHtml(['Mortality Date', 'Animal Tag ID (Type)', 'Primary Cause of Death / Diagnosis', 'Disposal SOP Routine', 'Authorized Sign-off Officer'], mortRows)}
+        `;
+      }
+
+      if (lifeLedgerHtml) {
+        sectionsHtml += `
+          <div style="margin-bottom: 40px; page-break-inside: avoid;">
+            <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+              <span>Cattle Sales & Mortality Ledger</span>
+              <span style="font-size: 11px; color: #64748b; font-family: monospace;">(Disposal logs)</span>
+            </h3>
+            ${lifeLedgerHtml}
+          </div>
+        `;
+      }
     }
 
     // 4. Tea Harvest
@@ -1227,7 +1322,7 @@ export default function App() {
       `;
     }
 
-    // 10. Livestock
+    // 10. Livestock (Security Canines)
     if (sections.livestock) {
       const rows = livestock.filter(item => item.type === 'Dogs').map(item => [
         `<span style="font-family: monospace;">${item.date}</span>`,
@@ -1237,39 +1332,6 @@ export default function App() {
         `<span style="font-style: italic; color: #64748b;">${item.notes}</span>`
       ]);
 
-      let livestockExtraHtml = '';
-      if (animalSales && animalSales.length > 0) {
-        const salesRows = animalSales.map(as => [
-          `<span style="font-family: monospace;">${as.date}</span>`,
-          `<strong>${as.animalId}</strong> (${as.animalType})`,
-          `${as.weightKg || 'N/A'} kg`,
-          `<strong>Ksh ${as.price.toLocaleString()}</strong>`,
-          as.buyerName,
-          as.notes || 'No notes'
-        ]);
-        livestockExtraHtml += `
-          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
-            Livestock Animal Disposals & Sales Ledger
-          </h4>
-          ${buildTableHtml(['Date', 'Animal Tag ID (Type)', 'Weight (KG)', 'Revenue', 'Customer / Buyer', 'Authorized Note'], salesRows)}
-        `;
-      }
-      if (mortalities && mortalities.length > 0) {
-        const mortRows = mortalities.map(m => [
-          `<span style="font-family: monospace;">${m.date}</span>`,
-          `<strong>${m.animalId}</strong> (${m.animalType})`,
-          `<em style="color: #b91c1c;">${m.causeDescription}</em>`,
-          m.disposalSop,
-          m.managerSignOffBy
-        ]);
-        livestockExtraHtml += `
-          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
-            Mortalities, Stillbirths & Loss Registers
-          </h4>
-          ${buildTableHtml(['Mortality Date', 'Animal Tag ID (Type)', 'Primary Cause of Death / Diagnosis', 'Disposal SOP Routine', 'Authorized Sign-off Officer'], mortRows)}
-        `;
-      }
-
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
@@ -1277,7 +1339,6 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.filter(item => item.type === 'Dogs').length} canines)</span>
           </h3>
           ${buildTableHtml(['Date Logged', 'Canine Name', 'Breed Classification', 'Activity', 'Notes'], rows)}
-          ${livestockExtraHtml}
         </div>
       `;
     }
@@ -1988,6 +2049,23 @@ export default function App() {
         ]
       },
       {
+        key: 'cows',
+        label: 'Cattle Breeders Registry',
+        count: cows.length,
+        subsections: [
+          { key: 'cows_registry', label: 'Registered Dairy Breeders Directory', count: cows.length }
+        ]
+      },
+      {
+        key: 'life_ledger',
+        label: 'Cattle Sales & Mortality Ledger',
+        count: (animalSales?.length || 0) + (mortalities?.length || 0),
+        subsections: [
+          { key: 'cattle_sales', label: 'Cattle Disposals & Sales', count: animalSales?.length || 0 },
+          { key: 'cattle_mortality', label: 'Cattle Mortalities & Loss Registers', count: mortalities?.length || 0 }
+        ]
+      },
+      {
         key: 'tea',
         label: 'KTDA Tea Deliveries',
         count: filteredTeaRecords.length,
@@ -2139,6 +2217,8 @@ export default function App() {
       staff: 'Staff',
       milk: 'Livestock',
       ai: 'Livestock',
+      cows: 'Livestock',
+      life_ledger: 'Livestock',
       tea: 'Crop Exports',
       avo: 'Crop Exports',
       cropSales: 'Crop Exports',
@@ -2178,6 +2258,8 @@ export default function App() {
       'staff', 'staff_shifts', 'staff_offs',
       'milk', 'milk_production', 'milk_outflows',
       'ai', 'ai_breeding', 'ai_silage', 'ai_heifers',
+      'cows', 'cows_registry',
+      'life_ledger', 'cattle_sales', 'cattle_mortality',
       'tea', 'tea_dispatches', 'tea_grading',
       'avo', 'avo_shipments', 'avo_packhouse',
       'cropSales', 'crop_cash_sales', 'crop_ops',
@@ -2260,7 +2342,7 @@ export default function App() {
 
   const handleTriggerSectionReportMulti = (keys: string[]) => {
     const resetSections: Record<string, boolean> = {
-      staff: false, milk: false, ai: false, tea: false, avo: false,
+      staff: false, milk: false, ai: false, cows: false, life_ledger: false, tea: false, avo: false,
       cropSales: false, financials: false, spray: false, fields: false,
       livestock: false, goats: false, calves: false, bsf: false,
       inventory: false, vet: false, academy: false, timetable: false,
@@ -2504,6 +2586,8 @@ export default function App() {
     staff: true, staff_shifts: true, staff_offs: true,
     milk: true, milk_production: true, milk_outflows: true,
     ai: true, ai_breeding: true, ai_silage: true, ai_heifers: true,
+    cows: true, cows_registry: true,
+    life_ledger: true, cattle_sales: true, cattle_mortality: true,
     tea: true, tea_dispatches: true, tea_grading: true,
     avo: true, avo_shipments: true, avo_packhouse: true,
     cropSales: true, crop_cash_sales: true, crop_ops: true,
@@ -2540,6 +2624,8 @@ export default function App() {
         spray: sprayRecords.length > 0,
         fields: fields.length > 0,
         livestock: livestock.filter(item => item.type === 'Dogs' || item.category === 'Canine').length > 0,
+        cows: cows.length > 0,
+        life_ledger: animalSales.length > 0 || mortalities.length > 0,
         poultry: poultryRecords.length > 0,
         goats: goatRecords.length > 0,
         calves: calfRecords.length > 0,
@@ -2554,7 +2640,8 @@ export default function App() {
       // Force active tab keys
       if (activeTab === 'roster') withRecs.staff = true;
       if (activeTab === 'factory' || activeTab === 'tmr') withRecs.formula = true;
-      if (activeTab === 'dairy') { withRecs.milk = true; withRecs.ai = true; withRecs.vet = true; withRecs.calves = true; }
+      if (activeTab === 'dairy') { withRecs.milk = true; withRecs.ai = true; withRecs.vet = true; withRecs.calves = true; withRecs.cows = true; withRecs.life_ledger = true; }
+      if (activeTab === 'cows') { withRecs.cows = true; }
       if (activeTab === 'horti') { withRecs.tea = true; withRecs.avo = true; withRecs.cropSales = true; }
       if (activeTab === 'spray') withRecs.spray = true;
       if (activeTab === 'finance') withRecs.financials = true;
@@ -2569,6 +2656,8 @@ export default function App() {
         staff: withRecs.staff, staff_shifts: withRecs.staff, staff_offs: withRecs.staff,
         milk: withRecs.milk, milk_production: withRecs.milk, milk_outflows: withRecs.milk,
         ai: withRecs.ai, ai_breeding: withRecs.ai, ai_silage: withRecs.ai, ai_heifers: withRecs.ai,
+        cows: withRecs.cows, cows_registry: withRecs.cows,
+        life_ledger: withRecs.life_ledger, cattle_sales: withRecs.life_ledger, cattle_mortality: withRecs.life_ledger,
         tea: withRecs.tea, tea_dispatches: withRecs.tea, tea_grading: withRecs.tea,
         avo: withRecs.avo, avo_shipments: withRecs.avo, avo_packhouse: withRecs.avo,
         cropSales: withRecs.cropSales, crop_cash_sales: withRecs.cropSales, crop_ops: withRecs.cropSales,
@@ -4142,35 +4231,187 @@ export default function App() {
 
           {/* 3. Insemination & Breeding */}
           {sections.ai && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                  <span>3a. Artificial Insemination & Breeding Cycles</span>
+                  <span className="text-[9px] font-mono text-slate-400 font-bold">({aiRecords.length} cycles)</span>
+                </h5>
+                <table className="w-full text-[11px] text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                      <th className="p-1">Cow Tag ID</th>
+                      <th className="p-1">Service Date</th>
+                      <th className="p-1">Bull Name/Semen Ref</th>
+                      <th className="p-1">Gestation Expected Due</th>
+                      <th className="p-1">Pregnancy Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(forPdf ? aiRecords : aiRecords.slice(0, 10)).map((ai, idx) => (
+                      <tr key={idx} className="border-b border-slate-100">
+                        <td className="p-1.5 font-bold text-slate-800">{ai.cowId}</td>
+                        <td className="p-1.5 font-mono text-slate-700 font-bold">{ai.date}</td>
+                        <td className="p-1.5 italic text-slate-600">{ai.bull}</td>
+                        <td className="p-1.5 font-mono font-bold">{ai.due}</td>
+                        <td className="p-1.5">{ai.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!forPdf && aiRecords.length > 10 && (
+                  <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {aiRecords.length} AI cycles.</p>
+                )}
+              </div>
+
+              {/* Semen Straws Inventory Table */}
+              <div className="space-y-2">
+                <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                  <span>3b. Genetic Semen Straws & Sire Stock Inventory</span>
+                  <span className="text-[9px] font-mono text-slate-400 font-bold">({semenInventory.length} sires)</span>
+                </h5>
+                <table className="w-full text-[11px] text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                      <th className="p-1">Straw ID/Ref</th>
+                      <th className="p-1">Sire/Bull Name</th>
+                      <th className="p-1">Breed</th>
+                      <th className="p-1">Semen Type</th>
+                      <th className="p-1">Origin</th>
+                      <th className="p-1 text-right">Straw Cost</th>
+                      <th className="p-1 text-right">In Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {semenInventory.map((item, idx) => (
+                      <tr key={idx} className="border-b border-slate-100">
+                        <td className="p-1.5 font-bold text-slate-800">{item.id}</td>
+                        <td className="p-1.5 font-bold text-slate-700">{item.bullName}</td>
+                        <td className="p-1.5 text-slate-600">{item.breed}</td>
+                        <td className="p-1.5 text-slate-600">{item.semenType}</td>
+                        <td className="p-1.5 text-slate-500">{item.origin}</td>
+                        <td className="p-1.5 text-right font-mono">Ksh {item.cost.toLocaleString()}</td>
+                        <td className={`p-1.5 text-right font-mono font-bold ${item.quantity <= 3 ? 'text-red-600' : 'text-slate-800'}`}>
+                          {item.quantity} units
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 3.5 Cattle Breeders Registry */}
+          {(sections.cows || sections.cows_registry) && (
             <div className="space-y-2">
-              <h5 className="text-[11px] font-black text-slate-950 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                <span>3. Artificial Insemination & Breeding</span>
-                <span className="text-[9px] font-mono text-slate-400 font-bold">({aiRecords.length} cycles)</span>
+              <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                <span>3.5 Registered Dairy Breeders Directory (Cattle Registry)</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({cows.length} head)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
-                    <th className="p-1">Cow Tag ID</th>
-                    <th className="p-1">Service Date</th>
-                    <th className="p-1">Bull Name/Semen Ref</th>
-                    <th className="p-1">Gestation Expected Due</th>
-                    <th className="p-1">Pregnancy Status</th>
+                    <th className="p-1">Ear Tag ID</th>
+                    <th className="p-1">Breed Group Name</th>
+                    <th className="p-1">Breed</th>
+                    <th className="p-1">Date of Birth</th>
+                    <th className="p-1">Maternal & Sire Pedigree</th>
+                    <th className="p-1">Official Registry ID</th>
+                    <th className="p-1">Breeding Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(forPdf ? aiRecords : aiRecords.slice(0, 10)).map((ai, idx) => (
-                    <tr key={idx} className="border-b border-slate-100">
-                      <td className="p-1.5 font-bold text-slate-800">{ai.cowId}</td>
-                      <td className="p-1.5 font-mono text-slate-700 font-bold">{ai.date}</td>
-                      <td className="p-1.5 italic text-slate-600">{ai.bull}</td>
-                      <td className="p-1.5 font-mono font-bold">{ai.due}</td>
-                      <td className="p-1.5">{ai.status}</td>
+                  {cows.map((c) => (
+                    <tr key={c.id} className="border-b border-slate-100">
+                      <td className="p-1.5 font-mono text-emerald-800 font-bold">{c.id}</td>
+                      <td className="p-1.5 font-bold text-slate-800">{c.name}</td>
+                      <td className="p-1.5 text-slate-600 font-bold">{c.breed}</td>
+                      <td className="p-1.5 font-mono">{c.dob}</td>
+                      <td className="p-1.5">
+                        <div className="text-[10px] leading-tight text-slate-500">
+                          <div>Sire: <span className="font-semibold text-slate-700">{c.sire || 'Imported Semen Specimen'}</span></div>
+                          <div>Dam: <span className="font-semibold text-slate-700">{c.dam || 'Acr-Grade Sire Maternal'}</span></div>
+                        </div>
+                      </td>
+                      <td className="p-1.5 font-mono text-slate-600 font-bold">{c.registrationNo || 'UNREG-PENDING'}</td>
+                      <td className={`p-1.5 font-bold text-[10px] uppercase ${
+                        c.status === 'Lactating' ? 'text-emerald-700' : c.status === 'In-Calf' ? 'text-blue-700' : 'text-slate-500'
+                      }`}>{c.status}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {!forPdf && aiRecords.length > 10 && (
-                <p className="text-[9px] text-slate-400 italic font-mono">* Showing 10 most recent of {aiRecords.length} AI cycles.</p>
+            </div>
+          )}
+
+          {/* 3.6 Cattle Sales & Mortality Ledger */}
+          {(sections.life_ledger || sections.cattle_sales || sections.cattle_mortality) && (
+            <div className="space-y-4">
+              {/* Sales Sub-section */}
+              {(sections.life_ledger || sections.cattle_sales) && animalSales && animalSales.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                    <span>3.6.1 Cattle Disposals & Sales Ledger</span>
+                    <span className="text-[9px] font-mono text-slate-400 font-bold">({animalSales.length} records)</span>
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Date</th>
+                        <th className="p-1">Animal ID (Type)</th>
+                        <th className="p-1 text-right">Weight (KG)</th>
+                        <th className="p-1 text-right">Revenue</th>
+                        <th className="p-1">Buyer / Customer</th>
+                        <th className="p-1">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {animalSales.map((as, idx) => (
+                        <tr key={idx} className="border-b border-slate-100">
+                          <td className="p-1.5 font-mono text-slate-600">{as.date}</td>
+                          <td className="p-1.5 font-bold text-slate-800">{as.animalId} <span className="text-[10px] text-slate-400 font-normal">({as.animalType})</span></td>
+                          <td className="p-1.5 text-right font-mono">{as.weightKg || 'N/A'} kg</td>
+                          <td className="p-1.5 text-right font-mono text-emerald-700 font-bold">Ksh {as.price.toLocaleString()}</td>
+                          <td className="p-1.5 font-bold text-slate-700">{as.buyerName}</td>
+                          <td className="p-1.5 text-slate-500 italic">{as.notes || 'No notes'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Mortality Sub-section */}
+              {(sections.life_ledger || sections.cattle_mortality) && mortalities && mortalities.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                    <span>3.6.2 Cattle Mortalities, Stillbirths & Loss Registers</span>
+                    <span className="text-[9px] font-mono text-slate-400 font-bold">({mortalities.length} records)</span>
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Mortality Date</th>
+                        <th className="p-1">Animal Tag ID (Type)</th>
+                        <th className="p-1">Primary Cause / Diagnosis</th>
+                        <th className="p-1">Disposal SOP Routine</th>
+                        <th className="p-1">Sign-off Officer</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mortalities.map((m, idx) => (
+                        <tr key={idx} className="border-b border-slate-100">
+                          <td className="p-1.5 font-mono text-slate-600">{m.date}</td>
+                          <td className="p-1.5 font-bold text-slate-850">{m.animalId} <span className="text-[10px] text-slate-400 font-normal">({m.animalType})</span></td>
+                          <td className="p-1.5 text-rose-700 font-semibold italic">{m.causeDescription}</td>
+                          <td className="p-1.5 text-slate-600">{m.disposalSop}</td>
+                          <td className="p-1.5 font-bold text-slate-700">{m.managerSignOffBy}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
@@ -4412,28 +4653,28 @@ export default function App() {
             </div>
           )}
 
-          {/* 10. Poultry & Canines */}
+          {/* 10. Security Canines */}
           {sections.livestock && (
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                <span>10. Poultry Eggs & Canine Protection assets</span>
-                <span className="text-[9px] font-mono text-slate-400 font-bold">({livestock.length} records)</span>
+                <span>10. Security Canine Logs</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({livestock.filter(item => item.type === 'Dogs').length} records)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
                     <th className="p-1">Date Logged</th>
-                    <th className="p-1">Asset Group</th>
-                    <th className="p-1">Details Classification</th>
+                    <th className="p-1">Canine Name</th>
+                    <th className="p-1">Breed Classification</th>
                     <th className="p-1">Activity</th>
                     <th className="p-1">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {livestock.map((item) => (
+                  {livestock.filter(item => item.type === 'Dogs').map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
                       <td className="p-1.5 font-mono text-slate-700 font-bold">{item.date}</td>
-                      <td className="p-1.5 font-bold text-slate-800">{item.name} <span className="text-[10px] text-slate-450 italic">({item.type})</span></td>
+                      <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
                       <td className="p-1.5">{item.countOrBreed}</td>
                       <td className="p-1.5 font-bold text-slate-700">{item.activity}</td>
                       <td className="p-1.5 text-slate-500 italic">{item.notes}</td>
@@ -5960,19 +6201,53 @@ export default function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {filteredFinancials.map((item, idx) => (
-                              <tr key={idx} className="border-b border-slate-100">
-                                <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
-                                <td className="p-1.5 font-semibold text-slate-800">{item.desc}</td>
-                                <td className="p-1.5 font-mono text-[10px]">{item.category}</td>
-                                <td className="p-1.5 text-right font-bold text-emerald-800 font-mono">
-                                  {item.type === 'income' ? `+Ksh ${item.amount.toLocaleString()}` : ''}
-                                </td>
-                                <td className="p-1.5 text-right font-bold text-red-800 font-mono">
-                                  {item.type === 'expense' ? `-Ksh ${item.amount.toLocaleString()}` : ''}
-                                </td>
-                              </tr>
-                            ))}
+                            {(() => {
+                              const grouped: Record<string, typeof filteredFinancials> = {};
+                              filteredFinancials.forEach(f => {
+                                const cat = f.category ? f.category.trim() : 'Uncategorized';
+                                if (!grouped[cat]) grouped[cat] = [];
+                                grouped[cat].push(f);
+                              });
+                              return Object.entries(grouped).map(([catName, items]) => {
+                                const catIncome = items.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
+                                const catExpense = items.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
+                                const catNet = catIncome - catExpense;
+
+                                return (
+                                  <React.Fragment key={catName}>
+                                    <tr className="bg-slate-50 font-bold border-b border-slate-200">
+                                      <td colSpan={5} className="p-1.5 text-slate-700 text-[10px] uppercase tracking-wider">
+                                        Category: {catName}
+                                      </td>
+                                    </tr>
+                                    {items.map((item, idx) => (
+                                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
+                                        <td className="p-1.5 font-mono text-slate-400">{item.date}</td>
+                                        <td className="p-1.5 font-semibold text-slate-800">{item.desc}</td>
+                                        <td className="p-1.5 font-mono text-[10px] text-slate-500">{item.category}</td>
+                                        <td className="p-1.5 text-right font-bold text-emerald-800 font-mono">
+                                          {item.type === 'income' ? `+Ksh ${item.amount.toLocaleString()}` : ''}
+                                        </td>
+                                        <td className="p-1.5 text-right font-bold text-red-800 font-mono">
+                                          {item.type === 'expense' ? `-Ksh ${item.amount.toLocaleString()}` : ''}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    <tr className="bg-slate-100/70 font-bold border-b border-slate-200 text-slate-600">
+                                      <td className="p-1.5 text-slate-500 font-sans" colSpan={2}>
+                                        {catName} Subtotal
+                                      </td>
+                                      <td className="p-1.5 font-sans" colSpan={2}>
+                                        Income: <span className="text-emerald-700">Ksh {catIncome.toLocaleString()}</span> &bull; Expense: <span className="text-amber-800">Ksh {catExpense.toLocaleString()}</span>
+                                      </td>
+                                      <td className={`p-1.5 text-right font-mono ${catNet >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        Net: Ksh {catNet.toLocaleString()}
+                                      </td>
+                                    </tr>
+                                  </React.Fragment>
+                                );
+                              });
+                            })()}
                           </tbody>
                         </table>
 

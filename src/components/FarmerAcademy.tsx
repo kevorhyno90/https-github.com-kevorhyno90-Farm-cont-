@@ -1660,11 +1660,11 @@ export default function FarmerAcademy({
               <button
                 onClick={() => onTriggerSectionReport('academy')}
                 type="button"
-                className="bg-emerald-900/80 hover:bg-emerald-800 text-white font-black text-xs uppercase p-4 rounded-2xl border border-emerald-700/60 transition-all flex flex-col items-center justify-center shadow-lg cursor-pointer h-[66px] min-w-[85px] m-0"
-                title="Download Expert Diagnostics & SOP Audit Report"
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase p-4 rounded-2xl border border-amber-600/10 transition-all flex flex-col items-center justify-center shadow-lg cursor-pointer h-[66px] min-w-[85px] m-0 font-bold"
+                title="Download Expert Diagnostics & SOP Audit PDF Report"
               >
-                <Printer size={16} className="text-emerald-350 text-emerald-300 mb-1" />
-                <span className="text-[9px] font-bold tracking-wider">SOP Report</span>
+                <Download size={16} className="text-slate-950 mb-1" />
+                <span className="text-[9px] font-bold tracking-wider">Download PDF</span>
               </button>
             )}
             <div className="bg-slate-900/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-emerald-800 text-center shadow-md h-[66px] flex flex-col justify-center">

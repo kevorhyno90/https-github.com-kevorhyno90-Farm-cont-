@@ -9,7 +9,7 @@ import {
   Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
   BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
   AlertTriangle, DollarSign, BrainCircuit, Activity, Settings, Target, 
-  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table, Printer, Sliders
+  ArrowUpRight, ArrowDownRight, RefreshCw, BarChart2, Table, Printer, Sliders, Download
 } from 'lucide-react';
 import { 
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -608,11 +608,11 @@ export function Financials({
           <button
             onClick={() => onTriggerSectionReport('financials')}
             type="button"
-            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 shrink-0"
-            title="Export Financial Report as HTML Document"
+            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold shrink-0"
+            title="Download Financial PDF Report"
           >
-            <FileDown size={13} />
-            Output HTML Audit Report
+            <Download size={13} />
+            Download PDF Report
           </button>
         )}
       </div>
@@ -914,11 +914,11 @@ export function Financials({
                   <button
                     onClick={() => onTriggerSectionReport('financials')}
                     type="button"
-                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
-                    title="Download Financial Report"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-955 text-slate-950 font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 border border-amber-600/10 font-bold"
+                    title="Download Financial PDF Report"
                   >
-                    <Printer size={13} />
-                    Report
+                    <Download size={13} />
+                    Download PDF Report
                   </button>
                 )}
               </div>

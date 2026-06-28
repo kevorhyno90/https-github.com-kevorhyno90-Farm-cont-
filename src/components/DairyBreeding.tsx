@@ -1431,12 +1431,25 @@ export function DairyBreeding({
       {subTab === 'semen_inventory' && (
         <div className="space-y-6 animate-fadeIn" id="semen-inventory-section">
           <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-sm relative overflow-hidden">
-            <div className="relative z-10 space-y-2">
-              <span className="bg-amber-500/10 text-amber-400 font-black tracking-widest text-[10px] uppercase px-2.5 py-1 rounded-full border border-amber-500/20">
-                🧬 Genetic Stock Center
-              </span>
-              <h3 className="text-xl font-black text-white">Semen Straws & Breeding Sire Inventory</h3>
-              <p className="text-slate-400 text-xs font-medium">Manage and monitor high-yield genetic straws in stock. Select these genetic resources during artificial insemination (AI) service logs to track usage and auto-deduct straw inventory.</p>
+            <div className="relative z-10 space-y-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="space-y-2">
+                <span className="bg-amber-500/10 text-amber-400 font-black tracking-widest text-[10px] uppercase px-2.5 py-1 rounded-full border border-amber-500/20">
+                  🧬 Genetic Stock Center
+                </span>
+                <h3 className="text-xl font-black text-white">Semen Straws & Breeding Sire Inventory</h3>
+                <p className="text-slate-400 text-xs font-medium">Manage and monitor high-yield genetic straws in stock. Select these genetic resources during artificial insemination (AI) service logs to track usage and auto-deduct straw inventory.</p>
+              </div>
+              {onTriggerSectionReport && (
+                <button
+                  onClick={() => onTriggerSectionReport('ai')}
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold shrink-0 self-start md:self-center"
+                  title="Export Semen Inventory PDF Report"
+                >
+                  <Download size={13} />
+                  Semen PDF Report
+                </button>
+              )}
             </div>
           </div>
 
@@ -1631,6 +1644,30 @@ export function DairyBreeding({
       {subTab === 'life_ledger' && (
         <div className="space-y-6 animate-fadeIn" id="life-ledger-dairy">
           
+          {/* Header Actions for Sales & Loss */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
+                <TrendingUp size={16} className="text-rose-700" />
+                Cattle Sales & Mortality Ledger
+              </h4>
+              <p className="text-xs text-slate-400 font-medium">Download reports of livestock sales, capital disposal, and sanitary mortality audits.</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+              {onTriggerSectionReport && (
+                <button
+                  onClick={() => onTriggerSectionReport('life_ledger')}
+                  type="button"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                  title="Export Livestock Sales PDF Report"
+                >
+                  <Download size={13} />
+                  Sales PDF Report
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Header Summary Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="bg-emerald-950 text-white rounded-3xl p-5 border border-emerald-900 shadow-sm relative overflow-hidden">
@@ -2087,11 +2124,11 @@ export function DairyBreeding({
                     <button
                       onClick={() => onTriggerSectionReport('milk')}
                       type="button"
-                      className="flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer"
-                      title="Export Milking Report as HTML"
+                      className="flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer font-bold"
+                      title="Download Milking PDF Report"
                     >
-                      <FileDown size={10} />
-                      Export Report (HTML)
+                      <Download size={10} />
+                      Download PDF Report
                     </button>
                   )}
                   <Filter size={12} className="text-slate-400" />
@@ -2469,10 +2506,10 @@ export function DairyBreeding({
                   onClick={() => onTriggerSectionReport('ai')}
                   type="button"
                   className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
-                  title="Export Inseminations Report in HTML"
+                  title="Download Inseminations PDF Report"
                 >
-                  <FileDown size={13} />
-                  Insemination Reports (HTML)
+                  <Download size={13} />
+                  Download PDF Report
                 </button>
               )}
             </div>
@@ -3159,33 +3196,15 @@ export function DairyBreeding({
                 <FileSpreadsheet size={13} />
                 Export Breeders
               </button>
-              <button
-                onClick={downloadAICyclesCSV}
-                type="button"
-                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-950 hover:bg-rose-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                title="Download AI Records CSV"
-              >
-                <FileSpreadsheet size={13} />
-                Export AI Logs
-              </button>
-              <button
-                onClick={handleDownloadAIPdf}
-                type="button"
-                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border-none"
-                title="Download Artificial Insemination PDF Report"
-              >
-                <Download size={13} />
-                AI PDF Report
-              </button>
               {onTriggerSectionReport && (
                 <button
-                  onClick={() => onTriggerSectionReport('ai')}
+                  onClick={() => onTriggerSectionReport('cows')}
                   type="button"
-                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
-                  title="Export Inseminations Report in HTML"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                  title="Download Cattle Breeders PDF Report"
                 >
-                  <FileDown size={13} />
-                  Insemination Reports (HTML)
+                  <Download size={13} />
+                  Breeders PDF Report
                 </button>
               )}
               <button
@@ -3370,116 +3389,181 @@ export function DairyBreeding({
             </form>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cows
-              .filter(c => c.id.toLowerCase().includes(cowSearch.toLowerCase()) || c.name.toLowerCase().includes(cowSearch.toLowerCase()))
-              .map(cow => {
-                const avgYield = getAverageYield(cow.id);
-                return (
-                  <div key={cow.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="font-black text-slate-800 text-[13.5px] uppercase block tracking-wider">{cow.id}</span>
-                          <span className="text-[11px] font-bold text-slate-400 mt-1 block">Name: <span className="text-slate-600 font-extrabold">{cow.name}</span></span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {onEditCow && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
+            {cows.length === 0 ? (
+              <div className="col-span-1 md:col-span-3 text-center py-12 px-6 bg-slate-50 border border-dashed border-slate-200 rounded-3xl space-y-4">
+                <div className="text-slate-400 font-bold text-base uppercase tracking-wider">No Registered Cattle Found</div>
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                  The Cattle Identity Directory is currently empty. Register a new cow tag using the <strong className="text-emerald-950 font-black">"Add Cow ID Card"</strong> button above, or quickly populate the registry with premium demo dairy herd data.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const demoCows: Cow[] = [
+                      { 
+                        id: 'Cow-101 (Daisy)', 
+                        name: 'Daisy', 
+                        breed: 'Holstein-Friesian', 
+                        dob: '2021-04-12', 
+                        status: 'Dry', 
+                        notes: 'High lactation index mother.',
+                        sire: 'Supreme Champion Bull (SH-404)',
+                        dam: 'Daisy Mother Superior (DM-09)',
+                        grandSirePaternal: 'Friesian King (FK-99)',
+                        grandDamPaternal: 'Meadow Queen (MQ-12)',
+                        grandSireMaternal: 'Dairy Lord (DL-88)',
+                        grandDamMaternal: 'Super Milkmaid (SM-05)',
+                        registrationNo: 'KAG-HF-2021-9302'
+                      },
+                      { 
+                        id: 'Cow-102 (Goldie)', 
+                        name: 'Goldie', 
+                        breed: 'Guernsey', 
+                        dob: '2020-08-30', 
+                        status: 'Lactating', 
+                        notes: 'Solid prime butterfat producer.',
+                        sire: 'Giltspur Goldmine (GG-102)',
+                        dam: 'Sunset Buttercup (SB-55)',
+                        grandSirePaternal: 'Guernsey Duke (GD-401)',
+                        grandDamPaternal: 'Giltspur Belle (GB-88)',
+                        grandSireMaternal: 'Sovereign Prince (SP-99)',
+                        grandDamMaternal: 'Sunset Gold (SG-12)',
+                        registrationNo: 'KAG-G-2020-4381'
+                      },
+                      { 
+                        id: 'Cow-103 (Ruby)', 
+                        name: 'Ruby', 
+                        breed: 'Jersey', 
+                        dob: '2022-01-15', 
+                        status: 'Lactating', 
+                        notes: 'High yield milk solids champion.',
+                        sire: 'Jersey Lad (JL-401)',
+                        dam: 'Ruby Rose (RR-02)',
+                        grandSirePaternal: 'Jersey King (JK-99)',
+                        grandDamPaternal: 'Golden Maid (GM-11)',
+                        grandSireMaternal: 'Prince Charming (PC-202)',
+                        grandDamMaternal: 'Rosebud (RB-10)',
+                        registrationNo: 'KAG-J-2022-1104'
+                      }
+                    ];
+                    demoCows.forEach(c => onAddCow(c));
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-950 hover:bg-emerald-900 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md cursor-pointer border-none"
+                >
+                  🌱 Seed Premium Demo Cows
+                </button>
+              </div>
+            ) : (
+              cows
+                .filter(c => c.id.toLowerCase().includes(cowSearch.toLowerCase()) || c.name.toLowerCase().includes(cowSearch.toLowerCase()))
+                .map(cow => {
+                  const avgYield = getAverageYield(cow.id);
+                  return (
+                    <div key={cow.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-black text-slate-800 text-[13.5px] uppercase block tracking-wider">{cow.id}</span>
+                            <span className="text-[11px] font-bold text-slate-400 mt-1 block">Name: <span className="text-slate-600 font-extrabold">{cow.name}</span></span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {onEditCow && (
+                              <button
+                                onClick={() => setEditingCow(cow)}
+                                className="text-slate-300 hover:text-indigo-805 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
+                                title="Edit Cow Details"
+                              >
+                                <PenSquare size={13} />
+                              </button>
+                            )}
                             <button
-                              onClick={() => setEditingCow(cow)}
-                              className="text-slate-300 hover:text-indigo-805 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
-                              title="Edit Cow Details"
+                              onClick={() => onDeleteCow(cow.id)}
+                              className="text-slate-300 hover:text-red-600 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
+                              title="Delete Cow Record"
                             >
-                              <PenSquare size={13} />
+                              <Trash2 size={13} />
                             </button>
-                          )}
-                          <button
-                            onClick={() => onDeleteCow(cow.id)}
-                            className="text-slate-300 hover:text-red-600 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
-                            title="Delete Cow Record"
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                          <div className="bg-slate-55 bg-slate-50/50 p-2 border border-slate-100/40 rounded-xl">
+                            <span className="text-[9px] uppercase font-black text-slate-400 block">Breed</span>
+                            <span className="font-extrabold text-slate-700 truncate block mt-0.5">{cow.breed}</span>
+                          </div>
+                          <div className="bg-slate-55 bg-slate-50/50 p-2 border border-slate-100/40 rounded-xl">
+                            <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Age</span>
+                            <span className="font-extrabold text-slate-700 block mt-0.5">{getCowAge(cow.dob)}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex items-center gap-1.5">
+                          <span className="text-[10px] font-black text-slate-400 uppercase">State Status:</span>
+                          <select
+                            value={cow.status}
+                            onChange={(e) => onUpdateCowStatus(cow.id, e.target.value as any)}
+                            className="text-[10px] font-black uppercase text-emerald-950 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-250 cursor-pointer focus:outline-none"
                           >
-                            <Trash2 size={13} />
-                          </button>
+                            <option value="Lactating">Lactating</option>
+                            <option value="Dry">Dry</option>
+                            <option value="Heifer">Heifer</option>
+                            <option value="In-Calf">In-Calf</option>
+                          </select>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-                        <div className="bg-slate-55 bg-slate-50/50 p-2 border border-slate-100/40 rounded-xl">
-                          <span className="text-[9px] uppercase font-black text-slate-400 block">Breed</span>
-                          <span className="font-extrabold text-slate-700 truncate block mt-0.5">{cow.breed}</span>
+                      <div className="border-t border-slate-100/65 mt-4 pt-3 space-y-2">
+                        <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                          <span className="uppercase text-slate-400 font-extrabold flex items-center gap-1">
+                            <GitFork size={11} className="text-emerald-700" /> Ancestry / Lineage
+                          </span>
+                          {cow.registrationNo ? (
+                            <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 uppercase font-black">{cow.registrationNo}</span>
+                          ) : (
+                            <span className="text-slate-400 italic">No Studbook Reg</span>
+                          )}
                         </div>
-                        <div className="bg-slate-55 bg-slate-50/50 p-2 border border-slate-100/40 rounded-xl">
-                          <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Age</span>
-                          <span className="font-extrabold text-slate-700 block mt-0.5">{getCowAge(cow.dob)}</span>
+                        <div className="bg-slate-55 bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-[11px] leading-tight">
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 font-semibold">Sire:</span>
+                            <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.sire || 'Unregistered Bull'}>
+                              {cow.sire || 'Unknown Sire ♂'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400 font-semibold">Dam:</span>
+                            <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.dam || 'Unregistered Cow'}>
+                              {cow.dam || 'Unknown Dam ♀'}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mt-3 flex items-center gap-1.5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase">State Status:</span>
-                        <select
-                          value={cow.status}
-                          onChange={(e) => onUpdateCowStatus(cow.id, e.target.value as any)}
-                          className="text-[10px] font-black uppercase text-emerald-950 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-250 cursor-pointer focus:outline-none"
+                      <div className="border-t border-slate-100/60 mt-4 pt-3 space-y-1">
+                        <span className="text-[10px] uppercase font-black text-slate-400 font-bold flex items-center gap-1">
+                          <Activity size={11} className="text-emerald-700" /> Lactation Yield Metric
+                        </span>
+                        <div className="flex justify-between items-center bg-emerald-50/30 p-2 rounded-xl border border-emerald-100">
+                          <span className="text-xs text-slate-500 font-bold">Log average per day:</span>
+                          <span className="text-xs font-black font-mono text-emerald-850">
+                            {avgYield > 0 ? `${avgYield.toFixed(1)} Liters` : 'No logs'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-bold italic mt-2">"{cow.notes}"</p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-50">
+                        <button
+                          onClick={() => setPedigreeCow(cow)}
+                          className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors cursor-pointer m-0"
                         >
-                          <option value="Lactating">Lactating</option>
-                          <option value="Dry">Dry</option>
-                          <option value="Heifer">Heifer</option>
-                          <option value="In-Calf">In-Calf</option>
-                        </select>
+                          🧬 View Pedigree Family Tree
+                        </button>
                       </div>
                     </div>
-
-                    <div className="border-t border-slate-100/65 mt-4 pt-3 space-y-2">
-                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
-                        <span className="uppercase text-slate-400 font-extrabold flex items-center gap-1">
-                          <GitFork size={11} className="text-emerald-700" /> Ancestry / Lineage
-                        </span>
-                        {cow.registrationNo ? (
-                          <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 uppercase font-black">{cow.registrationNo}</span>
-                        ) : (
-                          <span className="text-slate-400 italic">No Studbook Reg</span>
-                        )}
-                      </div>
-                      <div className="bg-slate-50 border border-slate-150 rounded-xl p-2.5 space-y-1.5 text-[11px] leading-tight">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400 font-semibold">Sire:</span>
-                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.sire || 'Unregistered Bull'}>
-                            {cow.sire || 'Unknown Sire ♂'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400 font-semibold">Dam:</span>
-                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]" title={cow.dam || 'Unregistered Cow'}>
-                            {cow.dam || 'Unknown Dam ♀'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-100/60 mt-4 pt-3 space-y-1">
-                      <span className="text-[10px] uppercase font-black text-slate-400 font-bold flex items-center gap-1">
-                        <Activity size={11} className="text-emerald-700" /> Lactation Yield Metric
-                      </span>
-                      <div className="flex justify-between items-center bg-emerald-50/30 p-2 rounded-xl border border-emerald-100">
-                        <span className="text-xs text-slate-500 font-bold">Log average per day:</span>
-                        <span className="text-xs font-black font-mono text-emerald-850">
-                          {avgYield > 0 ? `${avgYield.toFixed(1)} Liters` : 'No logs'}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-bold italic mt-2">"{cow.notes}"</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-50">
-                      <button
-                        onClick={() => setPedigreeCow(cow)}
-                        className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors cursor-pointer m-0"
-                      >
-                        🧬 View Pedigree Family Tree
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+            )}
           </div>
         </div>
       )}
@@ -3552,11 +3636,11 @@ export function DairyBreeding({
                 <button
                   onClick={() => onTriggerSectionReport('vet')}
                   type="button"
-                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
-                  title="Export Vet History Report as HTML"
+                  className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                  title="Download Vet Clinic PDF Report"
                 >
-                  <FileDown size={13} />
-                  Export Vet Report (HTML)
+                  <Download size={13} />
+                  Download PDF Report
                 </button>
               )}
               <button
@@ -4215,11 +4299,11 @@ export function DairyBreeding({
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Biological Gestation Dial</span>
                 <h4 className="text-base font-black text-white uppercase tracking-wider">Circular Herd Breeding & Reproduction Wheel</h4>
-                <p className="text-xs text-emerald-350 font-medium leading-relaxed max-w-2xl">
+                <p className="text-xs text-emerald-350 font-medium leading-relaxed max-w-xl">
                   Simulate gestation timelines clockwise. Plot services (12 o'clock starting sector), follow gestating development (blue), track mandatory dry-off dates (amber at 220 days), and countdown to calving due (red at 283 days).
                 </p>
               </div>
-              <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-2xl">
+              <div className="flex flex-wrap items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-2xl w-full md:w-auto">
                 <div className="text-right">
                   <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider block">Currently Simulating</span>
                   <span className="text-xs font-mono font-black text-white">{formatDayOfYear(todayDayIndex)}</span>
@@ -4230,6 +4314,17 @@ export function DairyBreeding({
                   onChange={(e) => setSimulatedDate(e.target.value)}
                   className="bg-emerald-900 border border-emerald-800 rounded-lg p-1.5 text-xs text-white font-mono font-bold cursor-pointer"
                 />
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('ai')}
+                    type="button"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                    title="Export Gestation & Breeding PDF Report"
+                  >
+                    <Download size={13} />
+                    Breeding PDF Report
+                  </button>
+                )}
               </div>
             </div>
 

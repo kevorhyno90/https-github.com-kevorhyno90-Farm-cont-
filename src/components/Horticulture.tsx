@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { TeaRecord, AvocadoRecord } from '../types';
-import { Leaf, Plus, Package, Activity, BadgePercent, Filter, TrendingUp, Trash2, Edit2, FileSpreadsheet, QrCode, Printer, Award, Shield, Sparkles } from 'lucide-react';
+import { Leaf, Plus, Package, Activity, BadgePercent, Filter, TrendingUp, Trash2, Edit2, FileSpreadsheet, QrCode, Printer, Award, Shield, Sparkles, Download } from 'lucide-react';
 
 interface HorticultureProps {
   teaRecords: TeaRecord[];
@@ -345,11 +345,11 @@ export function Horticulture({
                   <button
                     onClick={() => onTriggerSectionReport('tea')}
                     type="button"
-                    className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
-                    title="Download Tea Report"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0 border border-amber-600/10 font-bold"
+                    title="Download Tea PDF Report"
                   >
-                    <Printer size={10} />
-                    Report
+                    <Download size={10} />
+                    Download PDF Report
                   </button>
                 )}
                 <span className="font-bold text-emerald-900">Total: {totalTeaAllTime.toLocaleString()} KG</span>
@@ -608,11 +608,11 @@ export function Horticulture({
                   <button
                     onClick={() => onTriggerSectionReport('avo')}
                     type="button"
-                    className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0"
-                    title="Download Avocado Report"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer m-0 border border-amber-600/10 font-bold"
+                    title="Download Avocado PDF Report"
                   >
-                    <Printer size={10} />
-                    Report
+                    <Download size={10} />
+                    Download PDF Report
                   </button>
                 )}
                 <span className="font-extrabold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-150">

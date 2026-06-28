@@ -51,7 +51,8 @@ import {
   Search,
   DollarSign,
   Users,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
 
 interface OtherSectionsProps {
@@ -339,6 +340,23 @@ export function OtherSections({
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
     link.setAttribute('download', `Canine_Poultry_Registry_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadCanineCSV = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'AGRICULTURAL SECURITY CANINE STATUS LEDGER\n';
+    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+    csv += 'Date,Canine Name,Breed Classification,Current Activity,Observational Log\n';
+    livestock.filter(item => item.type === 'Dogs').forEach((item) => {
+      csv += `"${item.date}","${item.name}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
+    });
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Canine_Security_Registry_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1174,11 +1192,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('fields')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Fields Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Fields PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -1823,10 +1841,11 @@ export function OtherSections({
                     {onTriggerSectionReport && (
                       <button
                         onClick={() => onTriggerSectionReport('silage')}
-                        className="flex items-center gap-1 px-3 py-2 bg-slate-150 border border-slate-200 text-slate-700 hover:bg-slate-200 rounded-xl font-bold text-xs uppercase cursor-pointer m-0"
+                        className="flex items-center gap-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 rounded-xl font-bold text-xs uppercase cursor-pointer m-0 font-bold shadow-md"
+                        title="Download Silage PDF Report"
                       >
-                        <Printer size={13} />
-                        Print Report
+                        <Download size={13} />
+                        Download PDF Report
                       </button>
                     )}
                   </div>
@@ -2175,11 +2194,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('fields')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Agronomy Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Agronomy PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -2465,11 +2484,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('cropSales')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Crop Sales Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Crop Sales PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -3030,10 +3049,11 @@ export function OtherSections({
                     {onTriggerSectionReport && (
                       <button
                         onClick={() => onTriggerSectionReport('poultry')}
-                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer font-bold"
+                        title="Download Poultry PDF Report"
                       >
-                        <Printer size={13} />
-                        Print Report
+                        <Download size={13} />
+                        Download PDF Report
                       </button>
                     )}
                   </div>
@@ -3617,10 +3637,11 @@ export function OtherSections({
                     {onTriggerSectionReport && (
                       <button
                         onClick={() => onTriggerSectionReport('heifers')}
-                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer font-bold"
+                        title="Download Heifer Progeny PDF Report"
                       >
-                        <Printer size={13} />
-                        Print Report
+                        <Download size={13} />
+                        Download PDF Report
                       </button>
                     )}
                   </div>
@@ -4174,10 +4195,11 @@ export function OtherSections({
                     {onTriggerSectionReport && (
                       <button
                         onClick={() => onTriggerSectionReport('quarantine')}
-                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-705 border border-slate-200 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer"
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 rounded-xl font-bold text-xs uppercase tracking-wider transition-all m-0 shadow cursor-pointer font-bold"
+                        title="Download Quarantine Isolate PDF Report"
                       >
-                        <Printer size={13} />
-                        Print Report
+                        <Download size={13} />
+                        Download PDF Report
                       </button>
                     )}
                   </div>
@@ -4465,7 +4487,7 @@ export function OtherSections({
                     🐶 Vet Passport PDF
                   </button>
                   <button
-                    onClick={downloadLivestockCSV}
+                    onClick={downloadCanineCSV}
                     type="button"
                     className="flex items-center gap-1.5 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-950 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
                     title="Export Canine Records CSV"
@@ -4477,11 +4499,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('livestock')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Livestock Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Livestock PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -4856,11 +4878,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('goats')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Goats Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Goats PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -5208,11 +5230,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('calves')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Calves Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download Calves PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -5476,11 +5498,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('bsf')}
                       type="button"
-                      className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download BSF Report"
+                      className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                      title="Download BSF PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -5702,11 +5724,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('livestock')}
                       type="button"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-[10px] uppercase rounded-lg transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Livestock Operations Report"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 font-bold text-[10px] uppercase rounded-lg transition-all shadow-md cursor-pointer m-0 font-bold"
+                      title="Download Livestock Operations PDF Report"
                     >
-                      <Printer size={12} />
-                      Print Feed Report
+                      <Download size={12} />
+                      Download PDF Report
                     </button>
                   )}
                 </div>
@@ -5879,11 +5901,11 @@ export function OtherSections({
                     <button
                       onClick={() => onTriggerSectionReport('livestock')}
                       type="button"
-                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-50 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
-                      title="Download Livestock Sales & Mortality Report"
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 font-bold"
+                      title="Download Livestock Sales & Mortality PDF Report"
                     >
-                      <Printer size={13} />
-                      Report
+                      <Download size={13} />
+                      Download PDF Report
                     </button>
                   )}
                   <button
@@ -6482,11 +6504,11 @@ export function OtherSections({
                 <button
                   onClick={() => onTriggerSectionReport('inventory')}
                   type="button"
-                  className="flex items-center gap-1.5 px-4 py-3 bg-slate-100 border border-slate-300 text-slate-705 text-slate-700 hover:bg-slate-200 font-bold text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
-                  title="Download Inventory Report"
+                  className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-slate-950 rounded-xl font-bold text-xs uppercase transition-all shadow-md cursor-pointer m-0 shrink-0 font-bold"
+                  title="Download Inventory PDF Report"
                 >
-                  <Printer size={13} />
-                  Report
+                  <Download size={13} />
+                  Download PDF Report
                 </button>
               )}
               <button

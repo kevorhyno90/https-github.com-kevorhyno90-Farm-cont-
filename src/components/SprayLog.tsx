@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { SprayRecord } from '../types';
-import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet, Printer } from 'lucide-react';
+import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet, Printer, Download } from 'lucide-react';
 
 interface SprayLogProps {
   sprayRecords: SprayRecord[];
@@ -312,11 +312,11 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   <button
                     onClick={() => onTriggerSectionReport('spray')}
                     type="button"
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
-                    title="Download Spray Report"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
+                    title="Download Spray PDF Report"
                   >
-                    <Printer size={12} />
-                    Report
+                    <Download size={12} />
+                    Download PDF Report
                   </button>
                 )}
               </div>
