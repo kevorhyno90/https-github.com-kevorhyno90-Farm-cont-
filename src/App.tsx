@@ -5294,7 +5294,9 @@ export default function App() {
         </div>
       )}
       {/* 1. DESKTOP SIDEBAR */}
-      <aside className="fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 w-72 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto hidden lg:flex flex-col z-40 transition-all">
+      <aside className={`fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 w-72 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto flex-col z-40 transition-all ${
+        activeTab === 'dash' ? 'hidden lg:flex' : 'hidden'
+      }`}>
         <div className="p-8 text-center border-b border-emerald-950 mb-6 shrink-0 relative flex flex-col items-center">
           <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-800 border border-green-700 text-yellow-500 rounded text-[9px] font-black uppercase tracking-wider">
             Live
@@ -5362,7 +5364,9 @@ export default function App() {
       </aside>
 
       {/* 2. MOBILE MENU HEADER BAR */}
-      <div className="flex-1 flex flex-col min-h-screen lg:pl-72 relative">
+      <div className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${
+        activeTab === 'dash' ? 'lg:pl-72' : 'lg:pl-0'
+      }`}>
         {/* Dynamic PWA Iframe Install Warning Banner */}
         {isInIframeSandbox && !dismissedPwaBanner && (
           <div className="bg-teal-900 text-teal-100 px-6 py-3 text-[11px] font-bold flex items-center justify-between gap-4 border-b border-teal-950 text-left animate-slideIn">
@@ -5399,13 +5403,15 @@ export default function App() {
 
         <header className="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center shadow-xs z-30 sticky top-0">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 -ml-2 text-emerald-950 hover:bg-slate-100 rounded-lg transition-colors m-0"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            {activeTab === 'dash' && (
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 -ml-2 text-emerald-950 hover:bg-slate-100 rounded-lg transition-colors m-0"
+                aria-label="Toggle Menu"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            )}
             {activeTab !== 'dash' && (
               <button
                 onClick={() => setActiveTab('dash')}
