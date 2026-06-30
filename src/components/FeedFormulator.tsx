@@ -2021,7 +2021,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {/* Mobile / Tablet Card View */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-5">
           {filteredAnimalRequirements.map((req) => (
             <div
               key={req.stage}
@@ -2062,6 +2063,71 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Desktop / Full-Screen Comparative Matrix Board */}
+        <div className="hidden lg:block overflow-hidden border border-slate-800/80 rounded-2xl bg-slate-950">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse table-fixed">
+              <thead>
+                <tr className="bg-slate-900/60 border-b border-slate-800">
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[28%]">Animal Stage & Profile</th>
+                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%]">Dry Matter Intake</th>
+                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%] text-center">Crude Protein (CP)</th>
+                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%] text-center">Energy Target (ME)</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[27%]">Recommended Feedstocks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {filteredAnimalRequirements.map((req) => (
+                  <tr key={req.stage} className="hover:bg-slate-900/40 transition-colors">
+                    {/* Stage Profile */}
+                    <td className="px-5 py-4.5 space-y-1.5 align-top">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[8px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider leading-none ${
+                          req.grp === 'Dairy' ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20' :
+                          req.grp === 'Poultry' ? 'bg-indigo-400/10 text-indigo-400 border border-indigo-400/20' :
+                          req.grp === 'Calves' ? 'bg-sky-400/10 text-sky-400 border border-sky-400/20' :
+                          'bg-pink-400/10 text-pink-400 border border-pink-400/10'
+                        }`}>
+                          {req.grp}
+                        </span>
+                        <h5 className="text-xs font-black text-white uppercase tracking-wider leading-tight">{req.stage}</h5>
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-medium break-words">{req.desc}</p>
+                    </td>
+
+                    {/* D.M. Intake */}
+                    <td className="px-4 py-4.5 align-top">
+                      <span className="text-xs font-mono font-bold text-slate-300 block pt-1">{req.intake}</span>
+                    </td>
+
+                    {/* CP */}
+                    <td className="px-4 py-4.5 text-center align-top">
+                      <div className="inline-block px-3 py-1 bg-amber-400/5 border border-amber-400/15 rounded-lg text-xs font-mono font-black text-amber-400 mt-0.5">
+                        {req.cpRange}
+                      </div>
+                    </td>
+
+                    {/* ME */}
+                    <td className="px-4 py-4.5 text-center align-top">
+                      <div className="inline-block px-3 py-1 bg-sky-400/5 border border-sky-400/15 rounded-lg text-xs font-mono font-black text-sky-400 mt-0.5">
+                        {req.meRange}
+                      </div>
+                    </td>
+
+                    {/* Recommended ingredients */}
+                    <td className="px-5 py-4.5 align-top">
+                      <div className="space-y-1 bg-white/[0.01] border border-white/[0.03] p-3 rounded-xl mt-0.5">
+                        <span className="text-[8px] uppercase font-black text-slate-500 block tracking-wider">Feedstocks:</span>
+                        <p className="text-[10.5px] text-slate-300 leading-normal font-semibold italic break-words">{req.ingredients}</p>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       </div>
