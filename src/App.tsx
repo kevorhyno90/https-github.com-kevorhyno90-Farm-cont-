@@ -5372,12 +5372,14 @@ export default function App() {
               </span>
               <span>
                 You are currently viewing this app inside a sandboxed preview frame. Browser security disables app installation inside iframes. 
-                <button 
-                  onClick={() => window.open(window.location.origin, '_blank')}
-                  className="underline hover:text-yellow-400 font-extrabold ml-1 cursor-pointer bg-transparent border-0 p-0 text-teal-100 transition-colors"
+                <a 
+                  href={window.location.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-yellow-400 font-extrabold ml-1 cursor-pointer text-teal-100 transition-colors inline-block"
                 >
                   Click here to open in a New Tab
-                </button> to unlock the browser's native "Install" button and run as a standalone offline PC app!
+                </a> to unlock the browser's native "Install" button and run as a standalone offline PC app!
               </span>
             </div>
             <button 

@@ -639,13 +639,15 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     <strong>To Install:</strong> Click the button below to launch the app directly in a secure, full-size browser tab. This bypasses the iframe and triggers Chrome/Edge to display the native "Install App" button in your browser's URL address bar.
                   </div>
 
-                  <button
-                    onClick={() => window.open(window.location.origin, '_blank')}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-white text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0"
+                  <a
+                    href={window.location.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-white text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 text-center no-underline inline-flex"
                   >
                     <Globe size={13} />
                     Open App in New Tab to Install
-                  </button>
+                  </a>
                 </div>
               ) : (
                 <div className="bg-teal-50 border border-teal-200 p-5 rounded-2xl space-y-3.5 text-left">
