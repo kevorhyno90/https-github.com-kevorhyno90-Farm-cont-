@@ -35,7 +35,8 @@ import {
   HeartPulse,
   Sparkles,
   Compass,
-  Shield
+  Shield,
+  Monitor
 } from 'lucide-react';
 
 // Modular Subcomponents
@@ -256,13 +257,53 @@ export default function App() {
     }
   });
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState<boolean>(false);
+
   useEffect(() => {
     try {
       setIsInIframeSandbox(window.self !== window.top);
     } catch (e) {
       setIsInIframeSandbox(true);
     }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handlePwaInstallAction = async () => {
+    if (isInIframeSandbox) {
+      alert("Browser Security Notice: Direct application installation is completely disabled inside sandboxed preview frames (iframes).\n\nPlease click the green banner at the top of the app to launch it in a New Tab, then use either our header 'Install' button or Chrome's address bar to install it as a native PC desktop app instantly!");
+      return;
+    }
+    if (!deferredPrompt) {
+      setActiveTab('settings');
+      triggerAppToastMessage("Opened Settings. Select 'PC & Mobile Install' to read step-by-step installation guides!");
+      return;
+    }
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`PWA Installation outcome: ${outcome}`);
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    } catch (err) {
+      console.error("Installation error:", err);
+    }
+  };
 
   // Reports composer filter states
   const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
@@ -5595,6 +5636,20 @@ export default function App() {
                 </div>
               )}
             </div>
+
+            {/* High-visibility PWA Install Trigger */}
+            <button
+              onClick={handlePwaInstallAction}
+              className={`px-3.5 py-1.5 rounded-full border transition-all text-[11px] font-black uppercase tracking-wider flex items-center gap-2 m-0 cursor-pointer active:scale-95 ${
+                isInstallable 
+                  ? 'bg-teal-600 hover:bg-teal-500 text-white border-teal-500 shadow-sm shadow-teal-500/20' 
+                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:text-slate-900 shadow-xs'
+              }`}
+              title="Install JR Farm Omni-Estate as a standalone desktop/mobile application"
+            >
+              <Monitor size={13} className={isInstallable ? 'text-teal-100 animate-pulse' : 'text-teal-700'} />
+              <span>Install App</span>
+            </button>
 
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-mono font-bold bg-slate-50 border px-3 py-1.5 rounded-full shadow-inner">
               <Clock size={12} className="text-emerald-800 shrink-0" />
