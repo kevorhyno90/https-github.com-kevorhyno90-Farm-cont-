@@ -399,7 +399,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
         body: JSON.stringify({ syncKey: cleanKey, database: databasePayload })
       });
 
-      const reply = await res.json();
+      let reply: any = {};
+      const resText = await res.text();
+      try {
+        reply = JSON.parse(resText);
+      } catch {
+        throw new Error(`Server returned non-JSON response (Status ${res.status}): ${resText.slice(0, 150)}...`);
+      }
+
       if (!res.ok) {
         throw new Error(reply.error || 'Server rejected synchronization request.');
       }
@@ -436,7 +443,13 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
     try {
       const res = await fetch(`/api/sync/load/${cleanKey}`);
-      const reply = await res.json();
+      let reply: any = {};
+      const resText = await res.text();
+      try {
+        reply = JSON.parse(resText);
+      } catch {
+        throw new Error(`Server returned non-JSON response (Status ${res.status}): ${resText.slice(0, 150)}...`);
+      }
 
       if (!res.ok) {
         throw new Error(reply.error || 'Room not found.');

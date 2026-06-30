@@ -1035,7 +1035,7 @@ export function Financials({
                 </div>
               ) : (
                 <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <AreaChart
                       data={monthlyChartData}
                       margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
@@ -1077,7 +1077,7 @@ export function Financials({
                   </div>
                 ) : (
                   <div className="h-[185px] relative flex justify-center items-center">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
                         <Pie
                           data={incomeCategoryData}
@@ -1131,7 +1131,7 @@ export function Financials({
                 </div>
               ) : (
                 <div className="h-[220px]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={expenseCategoryData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
                       <XAxis dataKey="name" fontSize={9} stroke="#94a3b8" tickLine={false} />
@@ -1609,7 +1609,7 @@ export function Financials({
                 </h4>
 
                 <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart
                       data={granularViewMode === 'cow' ? granularPnlData.cows.slice(0, 5) : granularPnlData.blocks}
                       margin={{ top: 10, right: 5, left: -20, bottom: 5 }}

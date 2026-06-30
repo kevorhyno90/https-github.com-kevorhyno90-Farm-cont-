@@ -129,8 +129,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Use JSON body parser
-  app.use(express.json());
+  // Use JSON body parser with increased limit to handle full database states
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Initialize server-side Gemini
   let ai: GoogleGenAI | null = null;

@@ -90,7 +90,7 @@ export function applyOrientationPreference(preference: 'any' | 'portrait' | 'lan
         .catch((err: any) => {
           // If portrait-primary is not supported, try generic portrait
           screenObj.orientation.lock('portrait').catch((e2: any) => {
-            console.warn("Could not lock orientation to portrait:", e2);
+            console.log("Note: Native orientation lock portrait bypassed:", e2.message || e2);
           });
         });
     } else if (preference === 'landscape') {
@@ -99,7 +99,7 @@ export function applyOrientationPreference(preference: 'any' | 'portrait' | 'lan
         .catch((err: any) => {
           // If landscape-primary is not supported, try generic landscape
           screenObj.orientation.lock('landscape').catch((e2: any) => {
-            console.warn("Could not lock orientation to landscape:", e2);
+            console.log("Note: Native orientation lock landscape bypassed:", e2.message || e2);
           });
         });
     } else {
@@ -107,7 +107,7 @@ export function applyOrientationPreference(preference: 'any' | 'portrait' | 'lan
       screenObj.orientation.unlock();
       console.log("Orientation unlocked. Device native auto-rotation enabled.");
     }
-  } catch (e) {
-    console.warn("Failed to set orientation lock state:", e);
+  } catch (e: any) {
+    console.log("Orientation preference lock skipped:", e.message || e);
   }
 }

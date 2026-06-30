@@ -4579,7 +4579,7 @@ export default function FarmerAcademy({
                 </div>
 
                 <div className="h-80 w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <LineChart
                       data={forecastingCurveData.curve}
                       margin={{ top: 15, right: 10, left: -10, bottom: 5 }}
