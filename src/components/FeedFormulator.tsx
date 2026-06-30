@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { Ingredient } from '../types';
-import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles, Printer, Download } from 'lucide-react';
+import { Beaker, Layers, Plus, Trash2, ShieldAlert, BadgeCheck, DollarSign, Sparkles, Printer, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FeedFormulatorProps {
   ingredients: Ingredient[];
@@ -366,6 +366,16 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
   // Animal Requirements tab state
   const [requirementsTab, setRequirementsTab] = useState<'All' | 'Dairy' | 'Poultry' | 'Calves' | 'Ducks'>('All');
+  const requirementsScrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollRequirements = (direction: 'left' | 'right') => {
+    if (requirementsScrollRef.current) {
+      const scrollAmount = 380;
+      requirementsScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Library searching states
   const [searchQuery, setSearchQuery] = useState('');
@@ -1992,10 +2002,10 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
       {/* Dynamic Animal Nutritional Requirements Panel */}
       <div className="bg-slate-900 text-slate-100 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6 animate-fadeIn mt-6 text-left">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b border-slate-800 pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider">OFFICIAL NRC/KALRO REFERENCE</span>
+              <span className="text-[9px] bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider animate-pulse">OFFICIAL NRC/KALRO REFERENCE</span>
               <span className="text-[9px] text-slate-400 font-black uppercase">Standard Dietary Targets</span>
             </div>
             <h4 className="text-lg font-black text-white uppercase tracking-wider mt-1.5 font-sans">Animal Nutritional Requirements Guidelines</h4>
@@ -2003,130 +2013,102 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
               Consult these official dietary metrics to guide your manual compounding and Least-Cost Feed (LCF) optimization parameters.
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5 shrink-0">
-            {(['All', 'Dairy', 'Poultry', 'Calves', 'Ducks'] as const).map((catName) => (
+          
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto xl:justify-end">
+            <div className="flex flex-wrap gap-1.5 shrink-0">
+              {(['All', 'Dairy', 'Poultry', 'Calves', 'Ducks'] as const).map((catName) => (
+                <button
+                  key={catName}
+                  type="button"
+                  onClick={() => setRequirementsTab(catName)}
+                  className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                    requirementsTab === catName
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                  }`}
+                >
+                  {catName === 'All' ? '📑 See All Stages' : catName}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-1.5 border-l border-slate-800 pl-3">
               <button
-                key={catName}
                 type="button"
-                onClick={() => setRequirementsTab(catName)}
-                className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                  requirementsTab === catName
-                    ? 'bg-emerald-605 bg-emerald-600 text-white border-emerald-500 shadow-md'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                }`}
+                onClick={() => scrollRequirements('left')}
+                className="p-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                title="Scroll Left"
               >
-                {catName === 'All' ? '📑 See All Stages' : catName}
+                <ChevronLeft size={16} />
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => scrollRequirements('right')}
+                className="p-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                title="Scroll Right"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile / Tablet Card View */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-5">
-          {filteredAnimalRequirements.map((req) => (
-            <div
-              key={req.stage}
-              className="bg-slate-950 border border-slate-800/80 p-5 rounded-2xl space-y-4 hover:border-slate-700/80 transition-all flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex justify-between items-start gap-1">
-                  <span className={`text-[8.5px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider leading-none ${
-                    req.grp === 'Dairy' ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20' :
-                    req.grp === 'Poultry' ? 'bg-indigo-400/10 text-indigo-400 border border-indigo-400/20' :
-                    req.grp === 'Calves' ? 'bg-sky-400/10 text-sky-400 border border-sky-400/20' :
-                    'bg-pink-400/10 text-pink-400 border border-pink-400/10'
-                  }`}>
-                    {req.grp}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono font-bold block leading-none">{req.intake}</span>
-                </div>
-                <h5 className="text-sm font-black text-white uppercase tracking-wider leading-tight pt-1">{req.stage}</h5>
-                <p className="text-[11px] text-slate-400 leading-normal font-medium">{req.desc}</p>
-              </div>
+        {/* Horizontal Scroll Deck - Fits the page perfectly without pushing content vertically down */}
+        <div className="relative group/deck">
+          {/* Subtle fade indicators for left/right scroll */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900 to-transparent pointer-events-none z-10 opacity-40 group-hover/deck:opacity-80 transition-opacity" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none z-10 opacity-40 group-hover/deck:opacity-80 transition-opacity" />
 
-              <div className="space-y-3 pt-3 border-t border-slate-850 border-dashed">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl text-center">
-                    <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Crude Protein</span>
-                    <span className="text-sm font-mono font-black text-amber-400 mt-0.5 block">{req.cpRange} CP</span>
+          <div
+            ref={requirementsScrollRef}
+            className="flex flex-row overflow-x-auto gap-5 pb-4 pt-1 snap-x scroll-smooth scrollbar-thin scrollbar-thumb-emerald-700/60 scrollbar-track-slate-950/40"
+          >
+            {filteredAnimalRequirements.map((req) => (
+              <div
+                key={req.stage}
+                className="w-[280px] sm:w-[330px] shrink-0 snap-start bg-slate-950/95 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-emerald-500/30 hover:bg-slate-950 transition-all duration-300 shadow-xl"
+              >
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center gap-1.5">
+                    <span className={`text-[8px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider leading-none ${
+                      req.grp === 'Dairy' ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20' :
+                      req.grp === 'Poultry' ? 'bg-indigo-400/10 text-indigo-400 border border-indigo-400/20' :
+                      req.grp === 'Calves' ? 'bg-sky-400/10 text-sky-400 border border-sky-400/20' :
+                      'bg-pink-400/10 text-pink-400 border border-pink-400/10'
+                    }`}>
+                      {req.grp}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono font-bold">{req.intake}</span>
                   </div>
-                  <div className="p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-xl text-center">
-                    <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Energy (ME)</span>
-                    <span className="text-sm font-mono font-black text-sky-400 mt-0.5 block">{req.meRange} MJ</span>
+                  <div>
+                    <h5 className="text-xs font-black text-white uppercase tracking-wider leading-snug">{req.stage}</h5>
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-medium mt-1 min-h-[50px] line-clamp-3 hover:line-clamp-none transition-all duration-200">
+                      {req.desc}
+                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-1.5 p-3 bg-white/[0.01] border border-white/[0.03] rounded-xl">
-                  <span className="text-[8.5px] uppercase font-black text-slate-500 block tracking-wider">Recommended Feedstocks:</span>
-                  <p className="text-[10px] text-slate-350 leading-relaxed font-semibold italic">{req.ingredients}</p>
+                <div className="space-y-3 pt-3 border-t border-slate-800/80 border-dashed mt-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 bg-slate-900 border border-slate-800/30 rounded-xl text-center">
+                      <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Protein (CP)</span>
+                      <span className="text-xs font-mono font-black text-amber-400 mt-0.5 block">{req.cpRange}</span>
+                    </div>
+                    <div className="p-2 bg-slate-900 border border-slate-800/30 rounded-xl text-center">
+                      <span className="text-[8px] text-slate-500 block uppercase font-bold tracking-wider">Energy (ME)</span>
+                      <span className="text-xs font-mono font-black text-sky-400 mt-0.5 block">{req.meRange}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 p-2.5 bg-slate-900/40 border border-slate-800/40 rounded-xl">
+                    <span className="text-[8px] uppercase font-black text-slate-500 block tracking-wider">Ideal Feedstocks:</span>
+                    <p className="text-[10px] text-slate-300 leading-normal font-semibold italic truncate" title={req.ingredients}>
+                      {req.ingredients}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop / Full-Screen Comparative Matrix Board */}
-        <div className="hidden lg:block overflow-hidden border border-slate-800/80 rounded-2xl bg-slate-950">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-fixed">
-              <thead>
-                <tr className="bg-slate-900/60 border-b border-slate-800">
-                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[28%]">Animal Stage & Profile</th>
-                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%]">Dry Matter Intake</th>
-                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%] text-center">Crude Protein (CP)</th>
-                  <th className="px-4 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[15%] text-center">Energy Target (ME)</th>
-                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 w-[27%]">Recommended Feedstocks</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/50">
-                {filteredAnimalRequirements.map((req) => (
-                  <tr key={req.stage} className="hover:bg-slate-900/40 transition-colors">
-                    {/* Stage Profile */}
-                    <td className="px-5 py-4.5 space-y-1.5 align-top">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[8px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider leading-none ${
-                          req.grp === 'Dairy' ? 'bg-amber-400/10 text-amber-400 border border-amber-400/20' :
-                          req.grp === 'Poultry' ? 'bg-indigo-400/10 text-indigo-400 border border-indigo-400/20' :
-                          req.grp === 'Calves' ? 'bg-sky-400/10 text-sky-400 border border-sky-400/20' :
-                          'bg-pink-400/10 text-pink-400 border border-pink-400/10'
-                        }`}>
-                          {req.grp}
-                        </span>
-                        <h5 className="text-xs font-black text-white uppercase tracking-wider leading-tight">{req.stage}</h5>
-                      </div>
-                      <p className="text-[11px] text-slate-400 leading-relaxed font-medium break-words">{req.desc}</p>
-                    </td>
-
-                    {/* D.M. Intake */}
-                    <td className="px-4 py-4.5 align-top">
-                      <span className="text-xs font-mono font-bold text-slate-300 block pt-1">{req.intake}</span>
-                    </td>
-
-                    {/* CP */}
-                    <td className="px-4 py-4.5 text-center align-top">
-                      <div className="inline-block px-3 py-1 bg-amber-400/5 border border-amber-400/15 rounded-lg text-xs font-mono font-black text-amber-400 mt-0.5">
-                        {req.cpRange}
-                      </div>
-                    </td>
-
-                    {/* ME */}
-                    <td className="px-4 py-4.5 text-center align-top">
-                      <div className="inline-block px-3 py-1 bg-sky-400/5 border border-sky-400/15 rounded-lg text-xs font-mono font-black text-sky-400 mt-0.5">
-                        {req.meRange}
-                      </div>
-                    </td>
-
-                    {/* Recommended ingredients */}
-                    <td className="px-5 py-4.5 align-top">
-                      <div className="space-y-1 bg-white/[0.01] border border-white/[0.03] p-3 rounded-xl mt-0.5">
-                        <span className="text-[8px] uppercase font-black text-slate-500 block tracking-wider">Feedstocks:</span>
-                        <p className="text-[10.5px] text-slate-300 leading-normal font-semibold italic break-words">{req.ingredients}</p>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            ))}
           </div>
         </div>
       </div>
