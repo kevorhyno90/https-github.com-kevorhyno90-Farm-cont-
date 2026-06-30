@@ -17,7 +17,9 @@ import {
   FileBadge,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  Copy,
+  FileCode
 } from 'lucide-react';
 
 interface BackupCenterProps {
@@ -40,6 +42,12 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
   const [isSyncSaving, setIsSyncSaving] = useState(false);
   const [isSyncLoading, setIsSyncLoading] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string>(() => localStorage.getItem('jr_farm_cloud_last_synced_at') || '');
+
+  // Direct P2P Code Sync States (Serverless Fail-safe option)
+  const [activeSyncTab, setActiveSyncTab] = useState<'cloud' | 'serverless'>('serverless'); // Default to serverless since cloud failed!
+  const [generatedP2PCode, setGeneratedP2PCode] = useState<string>('');
+  const [p2pCodeInput, setP2PCodeInput] = useState<string>('');
+  const [isCopySuccess, setIsCopySuccess] = useState<boolean>(false);
 
   // Conflict States
   const [cloudPayload, setCloudPayload] = useState<Record<string, any> | null>(null);
@@ -289,6 +297,121 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       setStatusMsg({
         type: 'error',
         text: 'Merged database rejected by system integrity validators.'
+      });
+    }
+  };
+
+  // 🔌 Direct Serverless P2P Code Sync Handlers
+  const handleGenerateP2PCode = () => {
+    setStatusMsg({ type: null, text: '' });
+    try {
+      const keys = [
+        'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+        'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+        'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+        'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+        'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+        'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
+        'jr_farm_estate_settings'
+      ];
+
+      const databasePayload: Record<string, any> = {};
+      keys.forEach(k => {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            databasePayload[k] = JSON.parse(raw);
+          } catch {
+            databasePayload[k] = raw;
+          }
+        }
+      });
+
+      const p2pData = {
+        app: "JR Farm Omni-Estate Platform",
+        version: "1.2.0",
+        p2p: true,
+        generatedAt: new Date().toISOString(),
+        database: databasePayload
+      };
+
+      const jsonStr = JSON.stringify(p2pData);
+      const b64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+        return String.fromCharCode(parseInt(p1, 16));
+      }));
+
+      setGeneratedP2PCode(b64);
+      setIsCopySuccess(false);
+      setStatusMsg({
+        type: 'success',
+        text: '🔌 P2P Sync Code generated successfully! Copy the secure code below and paste it on your other device.'
+      });
+    } catch (err: any) {
+      setStatusMsg({
+        type: 'error',
+        text: `Failed to generate P2P Sync Code: ${err.message}`
+      });
+    }
+  };
+
+  const handleCopyP2PCode = () => {
+    if (!generatedP2PCode) return;
+    navigator.clipboard.writeText(generatedP2PCode)
+      .then(() => {
+        setIsCopySuccess(true);
+        setTimeout(() => setIsCopySuccess(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Clipboard copy failed: ", err);
+      });
+  };
+
+  const handleLoadP2PCode = () => {
+    if (!p2pCodeInput.trim()) {
+      setStatusMsg({ type: 'error', text: 'Please paste a valid P2P Sync Code first.' });
+      return;
+    }
+
+    setStatusMsg({ type: null, text: '' });
+    try {
+      const trimmed = p2pCodeInput.trim();
+      
+      const jsonStr = decodeURIComponent(atob(trimmed).split('').map((c) => {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const parsed = JSON.parse(jsonStr);
+
+      if (!parsed || typeof parsed !== 'object' || !parsed.database) {
+        throw new Error("Invalid sync code format. Make sure you copied the entire text code.");
+      }
+
+      // We set the cloud payload as parsed.database so that conflict resolution modal can work if needed!
+      const hasConflicts = analyzeAndShowConflicts(parsed.database);
+      if (hasConflicts) {
+        setStatusMsg({
+          type: 'success',
+          text: `🔌 Serverless state loaded. Difference/Conflict detected between devices. Use the conflict resolution card below to merge!`
+        });
+        return;
+      }
+
+      const success = onImportFullBackup(parsed.database);
+      if (success) {
+        setStatusMsg({
+          type: 'success',
+          text: '🔌 Success: Direct P2P Sync code imported successfully! Re-binding system engine...'
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        throw new Error("Target verification failed during database import.");
+      }
+    } catch (err: any) {
+      setStatusMsg({
+        type: 'error',
+        text: `Direct P2P Import Failed: ${err.message || 'The pasted code is invalid, incomplete, or corrupted.'}`
       });
     }
   };
@@ -721,63 +844,172 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
             </div>
           )}
 
-          {/* New Cloud Sync Room Feature */}
-          <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 rounded-2xl border border-emerald-800 text-white space-y-4 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
-            <div className="space-y-1 relative">
-              <div className="inline-flex items-center gap-1 bg-amber-500 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
-                <RefreshCw size={10} className="animate-spin" /> Cross-Device Cloud Sync
-              </div>
-              <h3 className="text-base font-extrabold font-mono uppercase italic">📡 Instant PC & Mobile Transfer</h3>
-              <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium">
-                Want to access your farm registry on your PC or another phone? Enter a custom Sync Key below to upload your data from this device, then use the same key to pull it on your other browser!
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:items-end relative">
-              <div className="md:col-span-1 space-y-1">
-                <label className="text-[10px] font-black uppercase text-emerald-300 block tracking-wider">
-                  Create / Load Key Room
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. MyKevFarm"
-                  value={syncKey}
-                  onChange={(e) => setSyncKey(e.target.value)}
-                  className="w-full bg-emerald-1100 bg-emerald-900 border border-emerald-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 font-bold text-xs text-white placeholder-emerald-555"
-                />
-              </div>
-
-              <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
-                <button
-                  type="button"
-                  onClick={handleCloudSyncSave}
-                  disabled={isSyncSaving || isSyncLoading}
-                  className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 test-white text-white font-black hover:text-yellow-400 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                  {isSyncSaving ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
-                  📡 Push State to Cloud
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloudSyncLoad}
-                  disabled={isSyncSaving || isSyncLoading}
-                  className="flex-1 bg-amber-505 bg-yellow-405 bg-amber-500 hover:bg-amber-400 text-emerald-955 text-emerald-950 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                  {isSyncLoading ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
-                  📥 Pull State from Cloud
-                </button>
-              </div>
-            </div>
-
-            {lastSyncedAt && (
-              <p className="text-[10px] text-emerald-300 font-semibold italic flex items-center gap-1.5 pt-1">
-                <span>● Registered Room Key: <strong className="font-mono text-yellow-400 uppercase">{syncKey}</strong></span>
-                <span>|</span>
-                <span>Last Synced: <strong>{lastSyncedAt}</strong></span>
-              </p>
-            )}
+          {/* Synchronisation Tab Switcher */}
+          <div className="flex border-b border-slate-200">
+            <button
+              type="button"
+              onClick={() => setActiveSyncTab('serverless')}
+              className={`flex-1 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                activeSyncTab === 'serverless'
+                  ? 'border-emerald-600 text-emerald-700'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              🔌 Direct P2P Code Sync (100% Serverless)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSyncTab('cloud')}
+              className={`flex-1 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                activeSyncTab === 'cloud'
+                  ? 'border-emerald-600 text-emerald-700'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              📡 Cloud Key Room Sync (Legacy Server Support)
+            </button>
           </div>
+
+          {activeSyncTab === 'serverless' ? (
+            /* Serverless Direct Sync Block */
+            <div className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-6 rounded-2xl border border-emerald-800 text-white space-y-5 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
+              <div className="space-y-1 relative">
+                <div className="inline-flex items-center gap-1.5 bg-yellow-400 text-emerald-950 text-[9px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                  <FileCode size={11} /> 100% Offline & Serverless Sync
+                </div>
+                <h3 className="text-base font-extrabold font-mono uppercase italic">🔌 Serverless Direct Device Bridge</h3>
+                <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium font-sans">
+                  This direct sync converts your entire farm database into a secure, portable, compressed text code. You can send this code via email, message, or WhatsApp and paste it on any device to merge or restore your data immediately. No cloud servers required!
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                {/* Generate Block */}
+                <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
+                  <span className="text-[10px] font-black uppercase text-yellow-400 block tracking-widest font-mono">
+                    1. Generate From This Device
+                  </span>
+                  <p className="text-[11px] text-emerald-200 font-semibold leading-relaxed">
+                    Compile all your current farm registry logs, staff configs, and spraying cards into a single transfer code.
+                  </p>
+                  
+                  {generatedP2PCode ? (
+                    <div className="space-y-2">
+                      <textarea
+                        readOnly
+                        value={generatedP2PCode}
+                        className="w-full bg-emerald-950/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-emerald-300 h-20 break-all resize-none focus:outline-none"
+                        onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCopyP2PCode}
+                        className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-black py-2 rounded-lg text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+                      >
+                        <Copy size={12} />
+                        {isCopySuccess ? '✓ Copied to Clipboard!' : 'Copy Transfer Code'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleGenerateP2PCode}
+                      className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-black py-2.5 rounded-lg text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+                    >
+                      <RefreshCw size={12} />
+                      Generate Transfer Code
+                    </button>
+                  )}
+                </div>
+
+                {/* Import Block */}
+                <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
+                  <span className="text-[10px] font-black uppercase text-yellow-400 block tracking-widest font-mono">
+                    2. Import Onto This Device
+                  </span>
+                  <p className="text-[11px] text-emerald-200 font-semibold leading-relaxed">
+                    Paste the single transfer code from your other device here to instantly load or merge database entries.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <textarea
+                      placeholder="Paste secure sync transfer code here..."
+                      value={p2pCodeInput}
+                      onChange={(e) => setP2PCodeInput(e.target.value)}
+                      className="w-full bg-emerald-950/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-white h-20 break-all resize-none placeholder-emerald-700 focus:border-yellow-400 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleLoadP2PCode}
+                      className="w-full bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black py-2 rounded-lg text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+                    >
+                      <UploadCloud size={12} />
+                      Load & Sync Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* New Cloud Sync Room Feature */
+            <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 rounded-2xl border border-emerald-800 text-white space-y-4 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
+              <div className="space-y-1 relative">
+                <div className="inline-flex items-center gap-1 bg-amber-500 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  <RefreshCw size={10} className="animate-spin" /> Cross-Device Cloud Sync
+                </div>
+                <h3 className="text-base font-extrabold font-mono uppercase italic">📡 Instant PC & Mobile Transfer</h3>
+                <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium">
+                  Want to access your farm registry on your PC or another phone? Enter a custom Sync Key below to upload your data from this device, then use the same key to pull it on your other browser!
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:items-end relative">
+                <div className="md:col-span-1 space-y-1">
+                  <label className="text-[10px] font-black uppercase text-emerald-300 block tracking-wider">
+                    Create / Load Key Room
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. MyKevFarm"
+                    value={syncKey}
+                    onChange={(e) => setSyncKey(e.target.value)}
+                    className="w-full bg-emerald-900 border border-emerald-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 font-bold text-xs text-white placeholder-emerald-600"
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloudSyncSave}
+                    disabled={isSyncSaving || isSyncLoading}
+                    className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 text-white font-black hover:text-yellow-400 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+                  >
+                    {isSyncSaving ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
+                    📡 Push State to Cloud
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloudSyncLoad}
+                    disabled={isSyncSaving || isSyncLoading}
+                    className="flex-1 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+                  >
+                    {isSyncLoading ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
+                    📥 Pull State from Cloud
+                  </button>
+                </div>
+              </div>
+
+              {lastSyncedAt && (
+                <p className="text-[10px] text-emerald-300 font-semibold italic flex items-center gap-1.5 pt-1">
+                  <span>● Registered Room Key: <strong className="font-mono text-yellow-400 uppercase">{syncKey}</strong></span>
+                  <span>|</span>
+                  <span>Last Synced: <strong>{lastSyncedAt}</strong></span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* ACTIVE CONFLICT RESOLUTION & MERGE BOARD */}
           {showConflictModal && conflicts.length > 0 && (
