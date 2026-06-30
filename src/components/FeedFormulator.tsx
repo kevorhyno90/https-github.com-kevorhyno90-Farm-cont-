@@ -1999,6 +1999,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
             </div>
           )}
         </div>
+      </div>
 
       {/* Dynamic Animal Nutritional Requirements Panel */}
       <div className="bg-slate-900 text-slate-100 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6 animate-fadeIn mt-6 text-left">
@@ -2111,7 +2112,6 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
             ))}
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
