@@ -133,6 +133,12 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+  // Simple Request Logging Middleware
+  app.use((req, res, next) => {
+    console.log(`[Server] ${req.method} ${req.url}`);
+    next();
+  });
+
   // Initialize server-side Gemini
   let ai: GoogleGenAI | null = null;
   try {
