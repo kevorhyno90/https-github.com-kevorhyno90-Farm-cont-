@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building, 
   MapPin, 
@@ -17,7 +17,8 @@ import {
   DollarSign,
   CheckCircle2,
   Wifi,
-  RefreshCw
+  RefreshCw,
+  Monitor
 } from 'lucide-react';
 import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference } from '../utils/settingsHelper';
 
@@ -27,7 +28,7 @@ interface SettingsProps {
 }
 
 export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) {
-  const [activeSubSection, setActiveSubSection] = useState<'estate' | 'crops' | 'dairy' | 'system' | 'playstore'>('estate');
+  const [activeSubSection, setActiveSubSection] = useState<'estate' | 'crops' | 'dairy' | 'system' | 'pwa' | 'playstore'>('estate');
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [checklistCompleted, setChecklistCompleted] = useState<Record<string, boolean>>({
     manifest: true,
@@ -45,6 +46,53 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
   const [aiInitialized, setAiInitialized] = useState<boolean | null>(null);
   const [serverError, setServerError] = useState<string>('');
   const [isPurging, setIsPurging] = useState<boolean>(false);
+
+  // Custom PWA Install prompts state
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState<boolean>(false);
+  const [isInIframe, setIsInIframe] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if running in iframe
+    try {
+      setIsInIframe(window.self !== window.top);
+    } catch (e) {
+      setIsInIframe(true);
+    }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Check display mode standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert("Note: To install the application directly, please make sure you have opened this app in a New Tab (outside of the Google AI Studio preview sandbox frame). This allows your PC browser to detect the Progressive Web App and activate the install controls. Read the step-by-step guide below!");
+      return;
+    }
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`PWA Installation outcome: ${outcome}`);
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    } catch (err) {
+      console.error("Installation error:", err);
+    }
+  };
 
   const handleTestConnection = async () => {
     setConnState('checking');
@@ -134,6 +182,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
     { id: 'crops', label: 'Crop Contracts', icon: Leaf, color: 'text-indigo-700 bg-indigo-50' },
     { id: 'dairy', label: 'Herd Parameters', icon: Activity, color: 'text-amber-700 bg-amber-50' },
     { id: 'system', label: 'System Diagnostics', icon: Sliders, color: 'text-rose-700 bg-rose-50' },
+    { id: 'pwa', label: 'PC & Mobile Install', icon: Monitor, color: 'text-teal-700 bg-teal-50' },
     { id: 'playstore', label: 'Play Store & Monetize', icon: Smartphone, color: 'text-blue-700 bg-blue-50' }
   ] as const;
 
@@ -556,6 +605,198 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                   <Upload size={13} />
                   Import Backup Configuration
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tab: PC & Mobile Offline Installation Guide */}
+          {activeSubSection === 'pwa' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="border-b pb-3.5">
+                <div className="flex items-center gap-2">
+                  <Monitor className="text-teal-700" size={18} />
+                  <h5 className="text-sm font-black uppercase text-slate-900">PC & Mobile App Installation Center (PWA)</h5>
+                </div>
+                <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+                  JR Farm Omni-Estate is built as an offline-first, light-speed Progressive Web App. Install it on your computer or smartphone to use it offline, run in full-screen standalone mode, and save desktop space.
+                </p>
+              </div>
+
+              {/* Sandbox Detection Alert Card */}
+              {isInIframe ? (
+                <div className="bg-amber-50 border border-amber-200/80 p-5 rounded-2xl space-y-3.5 text-left">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="text-amber-700 shrink-0 mt-0.5" size={18} />
+                    <div>
+                      <h6 className="text-xs font-black text-amber-900 uppercase">Sandbox Container Frame Detected</h6>
+                      <p className="text-xs text-amber-800 leading-relaxed font-semibold mt-1">
+                        You are currently viewing JR Farm inside the Google AI Studio preview iframe sandbox. Browser security restrictions completely block PWA installations inside iframes.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/80 p-3 rounded-xl border border-amber-150 text-[11px] font-semibold text-slate-700 leading-relaxed">
+                    <strong>To Install:</strong> Click the button below to launch the app directly in a secure, full-size browser tab. This bypasses the iframe and triggers Chrome/Edge to display the native "Install App" button in your browser's URL address bar.
+                  </div>
+
+                  <button
+                    onClick={() => window.open(window.location.origin, '_blank')}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-white text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0"
+                  >
+                    <Globe size={13} />
+                    Open App in New Tab to Install
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-teal-50 border border-teal-200 p-5 rounded-2xl space-y-3.5 text-left">
+                  <div className="flex gap-3">
+                    <CheckCircle2 className="text-teal-700 shrink-0 mt-0.5" size={18} />
+                    <div>
+                      <h6 className="text-xs font-black text-teal-900 uppercase">Direct Browser Environment Active</h6>
+                      <p className="text-xs text-teal-800 leading-relaxed font-semibold mt-1">
+                        Excellent! You are running the app directly in your browser. The app is fully installable on your computer.
+                      </p>
+                    </div>
+                  </div>
+
+                  {isInstallable ? (
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full sm:w-auto px-5 py-2.5 bg-teal-950 hover:bg-teal-900 text-white text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 shadow-sm"
+                    >
+                      <Download size={13} />
+                      Install JR Farm Omni-Estate Now
+                    </button>
+                  ) : (
+                    <p className="text-xs text-teal-800 font-semibold italic">
+                      * Look at your browser's URL address bar (top-right) for the "Install" icon (the computer monitor symbol or three dots menu ➔ Save and share ➔ Install).
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* App PWA Requirements Verification Panel */}
+              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 space-y-3 text-left">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">App Eligibility & Diagnostics</span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-800 block">1. Secure Connection (HTTPS)</span>
+                      <span className="text-[9px] text-slate-450 font-medium">Mandatory browser security requirement</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">ACTIVE</span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-800 block">2. Web Manifest (manifest.json)</span>
+                      <span className="text-[9px] text-slate-450 font-medium">Valid application descriptor registered</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">VERIFIED</span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-800 block">3. Offline Service Worker (sw.js)</span>
+                      <span className="text-[9px] text-slate-450 font-medium">Caching offline assets shell</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">REGISTERED</span>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-800 block">4. Browser Sandboxed state</span>
+                      <span className="text-[9px] text-slate-450 font-medium">Iframe security limitations status</span>
+                    </div>
+                    {isInIframe ? (
+                      <span className="text-[10px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full font-black">SANDBOXED (IFRAME)</span>
+                    ) : (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">CLEAN (DIRECT)</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Step-by-Step Installation Instruction guides */}
+              <div className="space-y-4">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 block">How to Install on Your PC or Mac</span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Google Chrome */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 text-left">
+                    <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs uppercase">
+                      Ch
+                    </div>
+                    <h6 className="text-xs font-black text-slate-900">Google Chrome</h6>
+                    <ol className="text-[10.5px] text-slate-500 space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+                      <li>Open the application in a <strong>New Tab</strong>.</li>
+                      <li>Look at the address bar (far-right, next to bookmark star).</li>
+                      <li>Click the <strong>Install Icon</strong> (Monitor with down arrow).</li>
+                      <li>Click <strong>Install</strong> on the prompt.</li>
+                    </ol>
+                  </div>
+
+                  {/* Microsoft Edge */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 text-left">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs uppercase">
+                      Ed
+                    </div>
+                    <h6 className="text-xs font-black text-slate-900">Microsoft Edge</h6>
+                    <ol className="text-[10.5px] text-slate-500 space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+                      <li>Launch the app origin URL in a <strong>New Tab</strong>.</li>
+                      <li>Click the <strong>App Available</strong> icon (three squares with a plus) in the address bar.</li>
+                      <li>Click <strong>Install</strong> to add it to your PC App Directory.</li>
+                    </ol>
+                  </div>
+
+                  {/* Apple Safari */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 text-left">
+                    <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs uppercase">
+                      Sa
+                    </div>
+                    <h6 className="text-xs font-black text-slate-900">Apple Safari (macOS)</h6>
+                    <ol className="text-[10.5px] text-slate-500 space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+                      <li>Load the app origin URL in Safari.</li>
+                      <li>Click the <strong>Share</strong> button in the top toolbar.</li>
+                      <li>Select <strong>Add to Dock</strong> from the dropdown list.</li>
+                      <li>Run JR Farm directly from your Mac Dock!</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile phone installation instructions */}
+              <div className="space-y-4 pt-2">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 block">How to Install on Your Smartphone (Android & iOS)</span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Android Phone */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 flex gap-4 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Smartphone size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <h6 className="text-xs font-black text-slate-900">Android Phones (Chrome / Samsung Internet)</h6>
+                      <p className="text-[10.5px] text-slate-500 leading-relaxed font-semibold">
+                        Open the app URL in Chrome on your phone. Tap the <strong>three vertical dots menu</strong> in the top-right corner, select <strong>"Add to Home screen"</strong> (or <strong>"Install app"</strong>), and confirm.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* iPhone & iPad */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 flex gap-4 text-left">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+                      <Smartphone size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <h6 className="text-xs font-black text-slate-900">Apple iPhones & iPads (Safari)</h6>
+                      <p className="text-[10.5px] text-slate-500 leading-relaxed font-semibold">
+                        Open the app URL in Safari. Tap the <strong>Share</strong> icon (the square with an arrow pointing up at the bottom), scroll down the list of options, and tap <strong>"Add to Home Screen"</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

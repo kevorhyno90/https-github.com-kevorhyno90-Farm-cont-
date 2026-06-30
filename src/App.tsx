@@ -246,6 +246,24 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
 
+  // Sandbox and PWA install helpers
+  const [isInIframeSandbox, setIsInIframeSandbox] = useState<boolean>(false);
+  const [dismissedPwaBanner, setDismissedPwaBanner] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('jr_farm_pwa_banner_dismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      setIsInIframeSandbox(window.self !== window.top);
+    } catch (e) {
+      setIsInIframeSandbox(true);
+    }
+  }, []);
+
   // Reports composer filter states
   const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
   const [reportCategoryFilter, setReportCategoryFilter] = useState<string>('ALL');
@@ -5304,6 +5322,38 @@ export default function App() {
 
       {/* 2. MOBILE MENU HEADER BAR */}
       <div className="flex-1 flex flex-col min-h-screen lg:pl-72 relative">
+        {/* Dynamic PWA Iframe Install Warning Banner */}
+        {isInIframeSandbox && !dismissedPwaBanner && (
+          <div className="bg-teal-900 text-teal-100 px-6 py-3 text-[11px] font-bold flex items-center justify-between gap-4 border-b border-teal-950 text-left animate-slideIn">
+            <div className="flex items-center gap-2.5 flex-1 flex-wrap">
+              <span className="bg-yellow-500 text-slate-950 text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-wider shrink-0">
+                PC INSTALL
+              </span>
+              <span>
+                You are currently viewing this app inside a sandboxed preview frame. Browser security disables app installation inside iframes. 
+                <button 
+                  onClick={() => window.open(window.location.origin, '_blank')}
+                  className="underline hover:text-yellow-400 font-extrabold ml-1 cursor-pointer bg-transparent border-0 p-0 text-teal-100 transition-colors"
+                >
+                  Click here to open in a New Tab
+                </button> to unlock the browser's native "Install" button and run as a standalone offline PC app!
+              </span>
+            </div>
+            <button 
+              onClick={() => {
+                setDismissedPwaBanner(true);
+                try {
+                  localStorage.setItem('jr_farm_pwa_banner_dismissed', 'true');
+                } catch (e) {}
+              }}
+              className="text-teal-300 hover:text-white font-black bg-transparent border-0 cursor-pointer p-1 transition-colors text-xs shrink-0"
+              title="Dismiss this notice"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <header className="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center shadow-xs z-30 sticky top-0">
           <div className="flex items-center gap-3">
             <button
