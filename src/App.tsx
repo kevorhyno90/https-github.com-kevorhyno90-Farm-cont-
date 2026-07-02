@@ -3945,6 +3945,31 @@ export default function App() {
 
   // CSV Exporter helper
   const handleExportCSV = () => {
+    // Override raw records with the filtered records in the scope of this function
+    const milkRecords = filteredMilkRecords;
+    const milkOutflows = filteredMilkOutflows;
+    const aiRecords = filteredAiRecords;
+    const silageRecords = filteredSilageRecords;
+    const heiferRecords = filteredHeiferRecords;
+    const teaRecords = filteredTeaRecords;
+    const avoRecords = filteredAvoRecords;
+    const cropSales = filteredCropSales;
+    const financials = filteredFinancials;
+    const sprayRecords = filteredSprayRecords;
+    const quarantineRecords = filteredQuarantineRecords;
+    const goatRecords = filteredGoatRecords;
+    const calfRecords = filteredCalfRecords;
+    const bsfRecords = filteredBsfRecords;
+    const inventory = filteredInventory;
+    const vetRecords = filteredVetRecords;
+    const poultryRecords = filteredPoultryRecords;
+    const staffOffRecords = filteredStaffOffRecords;
+    const livestock = filteredLivestock;
+    const todos = filteredTodos;
+    
+    const getStoredDiagHistory = () => filteredDiagHistory;
+    const getStoredTimetable = () => filteredTimetable;
+    
     // Shadow selectedSections to ensure the Master CSV exports ALL sections every time
     const selectedSections = {
       staff: true, milk: true, ai: true, tea: true, avo: true,
@@ -3953,7 +3978,7 @@ export default function App() {
       formula: true, inventory: true, vet: true, academy: true,
       timetable: true, silage: true, ai_silage: true, heifers: true,
       ai_heifers: true, poultry: true, live_poultry: true,
-      quarantine: true, spray_quarantine: true, vet_withdrawal: true
+      quarantine: true, spray_quarantine: true, vet_withdrawal: true, todos: true
     };
 
     let csvContent = 'data:text/csv;charset=utf-8,';
@@ -3969,6 +3994,16 @@ export default function App() {
         csvContent += `"${st.name}","${st.unit}","${st.shiftMorning}","${st.shiftAfternoon}","${st.status}"\n`;
       });
       csvContent += '\n';
+      
+      if (staffOffRecords && staffOffRecords.length > 0) {
+        csvContent += '--- ALLOCATED SHIFT OFF & DUTY LEAVES LOG ---\n';
+        csvContent += 'Employee on Leave,Start Date,Resume Date,Sovereign Leave Reason,Relief Partner Cover\n';
+        staffOffRecords.forEach((o) => {
+          const stName = staffList.find(s => s.id === o.staffId)?.name || o.staffId;
+          csvContent += `"${stName}",${o.startDate},${o.endDate},"${o.reason}","${o.dutyReliefCover || 'None'}"\n`;
+        });
+        csvContent += '\n';
+      }
     }
 
     // 2. Milking records Section
@@ -3982,6 +4017,15 @@ export default function App() {
         csvContent += `${m.date},"${m.id}",${m.am ?? 0},${m.pm ?? 0},${((m.am ?? 0) + (m.pm ?? 0)).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
       });
       csvContent += '\n';
+      
+      if (milkOutflows && milkOutflows.length > 0) {
+        csvContent += '--- DAIRY BULK SALES & OUTFLOW DISPATCHES ---\n';
+        csvContent += 'Dispatch Date,Client/Destination,Volume (L),Price/L,Gross Revenue,Pending Debt\n';
+        milkOutflows.forEach((mo) => {
+          csvContent += `${mo.date},"${mo.destination}",${mo.liters},${mo.pricePerLiter || 0},${mo.liters * (mo.pricePerLiter || 0)},${mo.debtsKsh}\n`;
+        });
+        csvContent += '\n';
+      }
     }
 
     // 3. Breeding / AI Records Section
@@ -4057,12 +4101,12 @@ export default function App() {
       csvContent += '\n';
     }
 
-    // 10. Livestock Canine Log Section
+    // 10. General Livestock Log Section
     if (selectedSections.livestock) {
-      csvContent += '--- AGRICULTURAL SECURITY CANINE STATUS LEDGER ---\n';
-      csvContent += 'Date,Canine Name,Quantity/Breed details,Current Activity,Observational Log\n';
-      livestock.filter(item => item.type === 'Dogs').forEach((item) => {
-        csvContent += `"${item.date}","${item.name}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
+      csvContent += '--- GENERAL LIVESTOCK & CANINES ACTIVITY LEDGER ---\n';
+      csvContent += 'Date,Animal/Group Name,Livestock Type,Breed/Count,Current Activity,Observational Log\n';
+      livestock.forEach((item) => {
+        csvContent += `"${item.date}","${item.name}","${item.type}","${item.countOrBreed}","${item.activity}","${item.notes || ''}"\n`;
       });
       csvContent += '\n';
     }
@@ -4203,6 +4247,16 @@ export default function App() {
       csvContent += '\n';
     }
 
+    // 22. Todos (Farm Manager Checklist)
+    if (selectedSections.todos) {
+      csvContent += '--- FARM MANAGER DAILY CHECKLIST & TO-DOS ---\n';
+      csvContent += 'Date Added,Task Description,Status\n';
+      todos.forEach((t) => {
+        csvContent += `${t.date},"${t.text}","${t.completed ? 'COMPLETED' : 'PENDING'}"\n`;
+      });
+      csvContent += '\n';
+    }
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
@@ -4252,6 +4306,36 @@ export default function App() {
   ];
 
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
+    // Override raw records with the filtered records in the scope of this function
+    const milkRecords = filteredMilkRecords;
+    const milkOutflows = filteredMilkOutflows;
+    const aiRecords = filteredAiRecords;
+    const silageRecords = filteredSilageRecords;
+    const heiferRecords = filteredHeiferRecords;
+    const teaRecords = filteredTeaRecords;
+    const avoRecords = filteredAvoRecords;
+    const cropSales = filteredCropSales;
+    const financials = filteredFinancials;
+    const sprayRecords = filteredSprayRecords;
+    const quarantineRecords = filteredQuarantineRecords;
+    const goatRecords = filteredGoatRecords;
+    const calfRecords = filteredCalfRecords;
+    const bsfRecords = filteredBsfRecords;
+    const inventory = filteredInventory;
+    const vetRecords = filteredVetRecords;
+    const poultryRecords = filteredPoultryRecords;
+    const staffOffRecords = filteredStaffOffRecords;
+    const livestock = filteredLivestock;
+    const todos = filteredTodos;
+    
+    const getStoredDiagHistory = () => filteredDiagHistory;
+    const getStoredTimetable = () => filteredTimetable;
+    
+    // Calculated aggregates for financials inside this scope
+    const activeIncome = reportIncome;
+    const activeExpense = reportExpense;
+    const activeNet = reportNetBalance;
+
     return (
       <div className="space-y-6 text-black">
         {/* Formal Letterhead */}
@@ -4330,6 +4414,39 @@ export default function App() {
                   ))}
                 </tbody>
               </table>
+              
+              {staffOffRecords && staffOffRecords.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="text-[10px] font-black text-slate-600 uppercase tracking-widest border-l-2 border-slate-600 pl-1.5 mb-1">
+                    Allocated Shift Off & Duty Leaves Log
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse mt-1">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Employee on Leave</th>
+                        <th className="p-1">Start Date</th>
+                        <th className="p-1">Resume Date</th>
+                        <th className="p-1">Sovereign Leave Reason</th>
+                        <th className="p-1">Relief Partner Cover</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {staffOffRecords.map((o) => {
+                        const stName = staffList.find(s => s.id === o.staffId)?.name || o.staffId;
+                        return (
+                          <tr key={o.id} className="border-b border-slate-100">
+                            <td className="p-1.5 font-bold text-slate-800">{stName}</td>
+                            <td className="p-1.5 font-mono text-slate-700">{o.startDate}</td>
+                            <td className="p-1.5 font-mono text-slate-700">{o.endDate}</td>
+                            <td className="p-1.5 italic text-slate-600">{o.reason}</td>
+                            <td className="p-1.5 font-bold text-slate-800">{o.dutyReliefCover || 'None'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -4364,6 +4481,38 @@ export default function App() {
                   ))}
                 </tbody>
               </table>
+              
+              {milkOutflows && milkOutflows.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="text-[10px] font-black text-slate-600 uppercase tracking-widest border-l-2 border-slate-600 pl-1.5 mb-1">
+                    Dairy Bulk Sales, Consumption & Outflow Dispatches
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse mt-1">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Dispatch Date</th>
+                        <th className="p-1">Client/Destination</th>
+                        <th className="p-1 text-right">Volume</th>
+                        <th className="p-1 text-right">Price/L</th>
+                        <th className="p-1 text-right">Gross Revenue</th>
+                        <th className="p-1 text-right">Pending Debt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {milkOutflows.map((mo) => (
+                        <tr key={mo.id} className="border-b border-slate-100">
+                          <td className="p-1.5 font-mono text-slate-700 font-bold">{mo.date}</td>
+                          <td className="p-1.5 font-bold text-slate-800">{mo.destination} <span className="text-[10px] font-normal text-slate-500">({mo.dispatchType})</span></td>
+                          <td className="p-1.5 text-right font-mono font-bold">{mo.liters.toFixed(1)} L</td>
+                          <td className="p-1.5 text-right font-mono">Ksh {mo.pricePerLiter || 0}</td>
+                          <td className="p-1.5 text-right font-mono font-bold text-emerald-800">Ksh {(mo.liters * (mo.pricePerLiter || 0)).toLocaleString()}</td>
+                          <td className={`p-1.5 text-right font-mono font-bold ${mo.debtsKsh > 0 ? 'text-rose-700' : 'text-emerald-800'}`}>Ksh {mo.debtsKsh.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -4782,25 +4931,26 @@ export default function App() {
             </div>
           )}
 
-          {/* 10. Security Canines */}
+          {/* 10. General Livestock */}
           {sections.livestock && (
             <div className="space-y-2">
               <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
-                <span>10. Security Canine Logs</span>
-                <span className="text-[9px] font-mono text-slate-400 font-bold">({livestock.filter(item => item.type === 'Dogs').length} records)</span>
+                <span>10. General Livestock & Canines Activity Log</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({livestock.length} records)</span>
               </h5>
               <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
                     <th className="p-1">Date Logged</th>
-                    <th className="p-1">Canine Name</th>
-                    <th className="p-1">Breed Classification</th>
+                    <th className="p-1">Animal/Group Name</th>
+                    <th className="p-1">Livestock Type</th>
+                    <th className="p-1">Breed/Count</th>
                     <th className="p-1">Activity</th>
                     <th className="p-1">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {livestock.filter(item => item.type === 'Dogs').map((item) => (
+                  {livestock.map((item) => (
                     <tr key={item.id} className="border-b border-slate-100">
                       <td className="p-1.5 font-mono text-slate-700 font-bold">{item.date}</td>
                       <td className="p-1.5 font-bold text-slate-800">{item.name}</td>
@@ -5285,6 +5435,68 @@ export default function App() {
                               log.success ? 'bg-green-100 text-green-800' : 'bg-rose-100 text-rose-800'
                             }`}>{log.success ? 'PASSED' : 'FAILED'}</span>
                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 23. Todos */}
+          {sections.todos && (
+            <div className="space-y-4">
+              <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                <span>Farm Manager's Daily Checklist & To-Dos</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({todos.length} total tasks)</span>
+              </h5>
+              
+              {todos.filter(t => !t.completed).length > 0 && (
+                <div className="mt-2">
+                  <h5 className="text-[10px] font-black text-rose-700 uppercase tracking-widest border-l-2 border-rose-700 pl-1.5 mb-1">
+                    Action Required: Pending Farm Tasks
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse mt-1">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Date Added</th>
+                        <th className="p-1">Task Description</th>
+                        <th className="p-1 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {todos.filter(t => !t.completed).map((t) => (
+                        <tr key={t.id} className="border-b border-slate-100">
+                          <td className="p-1.5 font-mono text-slate-700">{t.date}</td>
+                          <td className="p-1.5 font-bold text-slate-800">{t.text}</td>
+                          <td className="p-1.5 font-bold text-rose-700 text-right">PENDING</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              {todos.filter(t => t.completed).length > 0 && (
+                <div className="mt-2">
+                  <h5 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest border-l-2 border-emerald-700 pl-1.5 mb-1">
+                    Completed Farm Tasks
+                  </h5>
+                  <table className="w-full text-[11px] text-left border-collapse mt-1">
+                    <thead>
+                      <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                        <th className="p-1">Date Added</th>
+                        <th className="p-1">Task Description</th>
+                        <th className="p-1 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {todos.filter(t => t.completed).map((t) => (
+                        <tr key={t.id} className="border-b border-slate-100">
+                          <td className="p-1.5 font-mono text-slate-500">{t.date}</td>
+                          <td className="p-1.5 font-bold text-slate-500 line-through">{t.text}</td>
+                          <td className="p-1.5 font-bold text-emerald-700 text-right">COMPLETED</td>
                         </tr>
                       ))}
                     </tbody>
