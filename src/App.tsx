@@ -4310,6 +4310,7 @@ export default function App() {
   ];
 
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
+    try {
     // Override raw records with the filtered records in the scope of this function
     const milkRecords = filteredMilkRecords;
     const milkOutflows = filteredMilkOutflows;
@@ -5526,6 +5527,14 @@ export default function App() {
         </div>
       </div>
     );
+    } catch (e: any) {
+      return (
+        <div style={{ color: 'red', padding: '20px', background: '#fee2e2', borderRadius: '8px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Master Report Crashed</h2>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{e.toString()}\n{e.stack}</pre>
+        </div>
+      );
+    }
   };
 
   // Visual Orientation Enforcement System for Mobile/Tablet Devices
@@ -7054,5 +7063,6 @@ export default function App() {
       )}
       <FirebaseSyncer />
     </div>
+    </ErrorBoundary>
   );
 }
