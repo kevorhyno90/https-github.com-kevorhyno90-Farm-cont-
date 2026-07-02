@@ -103,6 +103,13 @@ export interface Todo {
   assigneeName?: string;
 }
 
+export interface ActivityLogEntry {
+  id: string;
+  message: string;
+  timestamp: string;
+  type: 'info' | 'warning' | 'success' | 'alert';
+}
+
 export interface Ingredient {
   name: string;
   cp: number; // Crude Protein %

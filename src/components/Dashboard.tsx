@@ -40,7 +40,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { MilkingRecord, Todo, StaffOffRecord, StaffMember, Cow, QuarantineRecord, SprayRecord, FieldRecord, VetRecord } from '../types';
+import { MilkingRecord, Todo, StaffOffRecord, StaffMember, Cow, QuarantineRecord, SprayRecord, FieldRecord, VetRecord, ActivityLogEntry } from '../types';
 import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
 
@@ -53,6 +53,7 @@ interface DashboardProps {
   onToggleTodo: (id: string) => void;
   onAddTodo: (text: string, assigneeName?: string) => void;
   onDeleteTodo: (id: string) => void;
+  onReorderTodos?: (newTodos: Todo[]) => void;
   totalTeaQty: number;
   staffOffRecords: StaffOffRecord[];
   staffList: StaffMember[];
@@ -62,6 +63,7 @@ interface DashboardProps {
   sprayRecords?: SprayRecord[];
   fields?: FieldRecord[];
   vetRecords?: VetRecord[];
+  activityLogs?: ActivityLogEntry[];
 }
 
 export function Dashboard({
@@ -73,6 +75,7 @@ export function Dashboard({
   onToggleTodo,
   onAddTodo,
   onDeleteTodo,
+  onReorderTodos,
   totalTeaQty,
   staffOffRecords = [],
   staffList = [],
@@ -81,10 +84,12 @@ export function Dashboard({
   quarantineRecords = [],
   sprayRecords = [],
   fields = [],
-  vetRecords = []
+  vetRecords = [],
+  activityLogs = []
 }: DashboardProps) {
   const [newTodo, setNewTodo] = useState('');
   const [todoAssignee, setTodoAssignee] = useState('');
+  const [draggedTodoId, setDraggedTodoId] = useState<string | null>(null);
   const [expandedSopId, setExpandedSopId] = useState<string | null>(null);
   const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'rainy' | 'dry-cold'>('sunny');
   const [soilMoisture, setSoilMoisture] = useState<number>(42);
@@ -928,7 +933,33 @@ export function Dashboard({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     key={todo.id}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedTodoId(todo.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedTodoId && draggedTodoId !== todo.id && onReorderTodos) {
+                        const oldIndex = todos.findIndex(t => t.id === draggedTodoId);
+                        const newIndex = todos.findIndex(t => t.id === todo.id);
+                        if (oldIndex !== -1 && newIndex !== -1) {
+                          const newTodos = [...todos];
+                          const [moved] = newTodos.splice(oldIndex, 1);
+                          newTodos.splice(newIndex, 0, moved);
+                          onReorderTodos(newTodos);
+                        }
+                      }
+                      setDraggedTodoId(null);
+                    }}
+                    onDragEnd={() => setDraggedTodoId(null)}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
+                      draggedTodoId === todo.id ? 'opacity-50 scale-95 border-emerald-500/50' : ''
+                    } ${
                       todo.completed ? 'bg-black/20 border-white/5 opacity-50' : 'bg-black/40 border-white/10 hover:border-emerald-500/30 hover:bg-black/60'
                     }`}
                   >
@@ -1112,7 +1143,71 @@ export function Dashboard({
               <p className="font-black text-white text-xs leading-tight mb-2">{calcResult.dosage}</p>
               <p className="text-[9px] text-emerald-400/80 italic leading-snug">{calcResult.description}</p>
             </div>
+        </div>
+
+        {isLiveWeather && liveWeather?.daily && (
+          <div className="pt-6 border-t border-white/10">
+            <span className="text-[10px] uppercase font-black text-slate-500 block tracking-widest leading-none mb-4">
+              7-Day Forecast (Open-Meteo)
+            </span>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+              {liveWeather.daily.time.map((time: string, i: number) => (
+                <div key={time} className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5 min-w-[70px]">
+                  <span className="text-xs text-slate-400 font-bold mb-1">
+                    {new Date(time).toLocaleDateString('en-US', { weekday: 'short' })}
+                  </span>
+                  <span className="text-xl mb-1">
+                    {liveWeather.daily.weather_code[i] <= 3 ? '⛅' : liveWeather.daily.weather_code[i] >= 51 ? '🌧️' : '☀️'}
+                  </span>
+                  <div className="flex gap-1 text-[10px] font-mono font-bold">
+                    <span className="text-rose-400">{Math.round(liveWeather.daily.temperature_2m_max[i])}°</span>
+                    <span className="text-blue-400">{Math.round(liveWeather.daily.temperature_2m_min[i])}°</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
+      </motion.div>
+
+      {/* Activity Log Feed */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0 }}
+        className="bg-black/30 backdrop-blur-md p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl relative z-10"
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-blue-500/20 p-2.5 rounded-xl border border-blue-500/30">
+            <Bell size={20} className="text-blue-400" />
+          </div>
+          <div>
+            <h4 className="text-white font-black text-base uppercase tracking-widest">Global Activity Log</h4>
+            <p className="text-xs text-slate-400 font-medium mt-1">Live feed of farm events and notifications</p>
+          </div>
+        </div>
+
+        <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto space-y-3 custom-scrollbar">
+          {activityLogs.length === 0 ? (
+            <div className="text-center text-slate-500 font-mono text-sm py-4">No recent activity</div>
+          ) : (
+            activityLogs.map(log => (
+              <div key={log.id} className="flex gap-4 p-3 bg-white/5 rounded-xl border border-white/5 items-start">
+                <span className={`shrink-0 mt-0.5 text-[10px] font-black tracking-widest px-2 py-1 rounded-md border ${
+                  log.type === 'alert' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                  log.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                  log.type === 'warning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                  'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                }`}>
+                  {log.type.toUpperCase()}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-slate-200">{log.message}</p>
+                  <span className="text-xs text-slate-500 font-mono">{new Date(log.timestamp).toLocaleString()}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </motion.div>
 

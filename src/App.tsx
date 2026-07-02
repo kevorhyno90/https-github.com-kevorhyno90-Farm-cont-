@@ -679,6 +679,15 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_MORTALITY_RECORDS;
   });
 
+  const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>(() => {
+    const saved = localStorage.getItem('jr_farm_activity_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jr_farm_activity_logs', JSON.stringify(activityLogs));
+  }, [activityLogs]);
+
   const [silageRecords, setSilageRecords] = useState<SilageRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_silages');
     return saved ? JSON.parse(saved) : [
@@ -5813,6 +5822,7 @@ export default function App() {
               onToggleTodo={handleToggleTodo}
               onAddTodo={handleAddTodo}
               onDeleteTodo={handleDeleteTodo}
+              onReorderTodos={setTodos}
               totalTeaQty={totalTeaQty}
               staffOffRecords={staffOffRecords}
               staffList={staffList}
@@ -5822,6 +5832,7 @@ export default function App() {
               sprayRecords={sprayRecords}
               fields={fields}
               vetRecords={vetRecords}
+              activityLogs={activityLogs}
             />
           )}
 
