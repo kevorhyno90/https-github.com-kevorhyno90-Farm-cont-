@@ -329,6 +329,7 @@ export interface MilkOutflowRecord {
   debtsKsh: number; // Value of milk sold on credit (debts) Ksh or Outstanding debt quantity description
   debtCustomer?: string; // Debtor Name / Account
   debtsList?: { debtor: string; amount: number }[]; // List of multiple debtors
+  salesPricePerLiter?: number; // Price per liter for the day
   notes?: string;
 }
 
@@ -346,7 +347,6 @@ export interface SilageRecord {
   recommendedDailyIntakePerAnimal: number; // in KG (typically 1.5% - 3% of body weight depending on DM content)
   daysOfFeedAvailable: number; // calculated feed lifespan
 }
-
 export interface HeiferRecord {
   id: string;
   cowId: string; // Target heifer identification tag

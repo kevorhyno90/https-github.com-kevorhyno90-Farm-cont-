@@ -224,6 +224,7 @@ export function DairyBreeding({
   const [outflowDebts, setOutflowDebts] = useState<number | ''>('');
   const [outflowCustomer, setOutflowCustomer] = useState('');
   const [outflowNotes, setOutflowNotes] = useState('');
+  const [outflowPrice, setOutflowPrice] = useState<number | ''>(52);
 
   const handleOutflowSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,6 +252,7 @@ export function DairyBreeding({
       debtsKsh: finalDebts.length > 0 ? totalDebtsVal : 0,
       debtCustomer: finalDebts.length > 0 ? combinedDebtorNames : undefined,
       debtsList: finalDebts.length > 0 ? finalDebts : undefined,
+      salesPricePerLiter: outflowPrice === '' ? 52 : Number(outflowPrice),
       notes: outflowNotes.trim() || undefined
     });
 
@@ -262,6 +264,7 @@ export function DairyBreeding({
     setOutflowCustomer('');
     setOutflowDebtsList([]);
     setOutflowNotes('');
+    setOutflowPrice(52);
   };
 
   const handleDownloadPdf = () => {
