@@ -2511,6 +2511,9 @@ export function DairyBreeding({
                                     <div className="flex items-center gap-3">
                                       <span className="text-[9px] font-mono text-slate-500">AM:{m.am} PM:{m.pm}</span>
                                       <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
+                                      {onEditMilkRecord && (
+                                        <button onClick={() => setEditingMilk(m)} className="text-slate-300 hover:text-emerald-500 transition-colors opacity-0 group-hover:opacity-100"><PenSquare size={12}/></button>
+                                      )}
                                       <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
                                     </div>
                                   </div>
@@ -2551,7 +2554,12 @@ export function DairyBreeding({
                                 </div>
                               )}
 
-                              <div className="flex justify-end mt-2">
+                              <div className="flex justify-end gap-3 mt-2 border-t border-slate-100 pt-2">
+                                {onEditMilkOutflow && (
+                                  <button onClick={() => setEditingOutflow(dayOutflow)} className="text-[9px] text-slate-400 hover:text-emerald-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
+                                    <PenSquare size={10}/> Edit Dispatch
+                                  </button>
+                                )}
                                 <button onClick={() => onDeleteMilkOutflow(dayOutflow.id)} className="text-[9px] text-slate-400 hover:text-red-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
                                   <Trash2 size={10}/> Delete Dispatch Log
                                 </button>
