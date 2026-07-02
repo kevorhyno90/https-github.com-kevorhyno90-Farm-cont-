@@ -2855,7 +2855,15 @@ export function DairyBreeding({
 
       {/* SUB-TAB 2: COW IDENTITY DIRECTORY */}
       {subTab === 'registry' && (
-        <CowRegistry cows={cows} cowSearch={cowSearch} setCowSearch={setCowSearch} onTriggerSectionReport={onTriggerSectionReport} setEditingCow={setEditingCow} onDeleteCow={onDeleteCow} milkRecords={milkRecords} />
+        <CowRegistry
+          cows={cows}
+          milkRecords={milkRecords}
+          onDeleteCow={onDeleteCow}
+          setEditingCow={setEditingCow}
+          onTriggerSectionReport={onTriggerSectionReport}
+          onUpdateCowStatus={onUpdateCowStatus}
+          onAddCow={onAddCow}
+        />
       )}
 
       {/* SUB-TAB 3: VETERINARY LOGS & DEWORMING REMINDERS */}
