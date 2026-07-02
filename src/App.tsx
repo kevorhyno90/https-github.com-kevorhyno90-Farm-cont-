@@ -317,15 +317,19 @@ export default function App() {
   const [reportStartMonth, setReportStartMonth] = useState<string>('2026-01');
   const [reportEndMonth, setReportEndMonth] = useState<string>('2026-06');
 
-  const isRecordInSelectedDateRange = (dateInput: string | Date | undefined | null): boolean => {
+  const isRecordInSelectedDateRange = (dateInput: any): boolean => {
     if (!dateInput) return true;
     
     let recordDate: Date;
     if (typeof dateInput === 'string') {
       const datePart = dateInput.split(' ')[0];
       recordDate = new Date(datePart);
-    } else {
+    } else if (typeof dateInput === 'number') {
+      recordDate = new Date(dateInput);
+    } else if (dateInput instanceof Date) {
       recordDate = dateInput;
+    } else {
+      return true; // Unrecognized type, don't filter it out and don't crash
     }
 
     if (isNaN(recordDate.getTime())) return true;

@@ -2396,9 +2396,9 @@ export function DairyBreeding({
                                       <span className="text-[9px] font-mono text-slate-500">AM:{m.am} PM:{m.pm}</span>
                                       <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
                                       {onEditMilkRecord && (
-                                        <button onClick={() => setEditingMilk(m)} className="text-slate-300 hover:text-emerald-500 transition-colors opacity-0 group-hover:opacity-100"><PenSquare size={12}/></button>
+                                        <button onClick={() => setEditingMilk(m)} className="text-slate-300 hover:text-emerald-500 transition-colors opacity-100"><PenSquare size={12}/></button>
                                       )}
-                                      <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
+                                      <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-slate-300 hover:text-red-500 transition-colors opacity-100"><Trash2 size={12}/></button>
                                     </div>
                                   </div>
                                 );
@@ -4182,9 +4182,16 @@ export function DairyBreeding({
                     />
                   </div>
                   <div>
+                    <input
+                      type="text"
+                      placeholder="YYYY-MM-DD or DD/MM/YYYY"
+                      value={editingCow.dob || ''}
+                      onChange={(e) => setEditingCow({ ...editingCow, dob: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    />
                     <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Record Date</label>
                     <input
-                      type="date"
+                      type="text"
                       value={editingMilk.date}
                       onChange={(e) => setEditingMilk({ ...editingMilk, date: e.target.value })}
                       className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-700 font-mono"
