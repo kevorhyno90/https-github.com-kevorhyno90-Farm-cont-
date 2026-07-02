@@ -2479,7 +2479,7 @@ export default function App() {
     });
   };
 
-  const handleDownloadHtmlReport = (customKeys?: string[]) => {
+  const handleDownloadPdfReport = async (customKeys?: string[]) => {
     let tempSections: Record<string, boolean>;
     if (customKeys && customKeys.length > 0) {
       tempSections = {
@@ -2499,27 +2499,87 @@ export default function App() {
 
     const htmlContent = generateHtmlReportContent(tempSections);
     
-    let filename = 'JR_Farm_Compiled_Report.html';
+    let filename = 'JR_Farm_Compiled_Report.pdf';
     const activeKeys = Object.keys(tempSections).filter(k => tempSections[k]);
     if (activeKeys.length === 1) {
       const key = activeKeys[0];
       const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
-      filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.html`;
+      filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
     } else if (activeKeys.length < 17) {
-      filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.html`;
+      filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.pdf`;
     } else {
-      filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.html`;
+      filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.pdf`;
     }
 
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const loadScript = (url: string) => {
+      return new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load ${url}`));
+        document.head.appendChild(script);
+      });
+    };
+
+    try {
+      if (!(window as any).html2pdf) {
+        await loadScript("/html2pdf.bundle.min.js");
+      }
+
+      // Create a clean container to render the HTML into PDF
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+
+      // Select the container from within the tempDiv (or use tempDiv itself)
+      const reportContainer = tempDiv.querySelector('.container') || tempDiv;
+      
+      // Style the reportContainer nicely for PDF page bounds
+      (reportContainer as HTMLElement).style.width = '790px';
+      (reportContainer as HTMLElement).style.padding = '30px';
+      (reportContainer as HTMLElement).style.boxShadow = 'none';
+      (reportContainer as HTMLElement).style.border = 'none';
+      (reportContainer as HTMLElement).style.background = '#ffffff';
+
+      // Hide the print button in the rendered PDF
+      const printBtn = reportContainer.querySelector('.print-btn');
+      if (printBtn) {
+        (printBtn as HTMLElement).remove();
+      }
+
+      // Append temporarily to the DOM to ensure styles/computed calculations work correctly
+      document.body.appendChild(tempDiv);
+
+      const opt = {
+        margin: [0.35, 0.35, 0.35, 0.35],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          letterRendering: true, 
+          logging: false,
+          scrollY: 0,
+          scrollX: 0
+        },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await (window as any).html2pdf().set(opt).from(reportContainer).save();
+      document.body.removeChild(tempDiv);
+    } catch (error) {
+      console.error("PDF generation failed, falling back to HTML download:", error);
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fallbackFilename = filename.replace('.pdf', '.html');
+      link.href = url;
+      link.setAttribute('download', fallbackFilename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleTriggerSectionReport = (key: string) => {
@@ -6721,10 +6781,10 @@ export default function App() {
                   </button>
 
                   <button
-                    onClick={() => handleDownloadHtmlReport()}
+                    onClick={() => handleDownloadPdfReport()}
                     className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 transition-all m-0 cursor-pointer shadow-sm border border-amber-600/15"
                   >
-                    <FileDown size={14} /> Download (HTML)
+                    <FileDown size={14} /> Download (PDF)
                   </button>
 
                   <button
@@ -7015,10 +7075,10 @@ export default function App() {
               </button>
 
               <button
-                onClick={() => handleDownloadHtmlReport()}
+                onClick={() => handleDownloadPdfReport()}
                 className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs uppercase flex items-center gap-2 transition-all m-0 cursor-pointer shadow-sm border border-amber-600/15"
               >
-                <FileDown size={14} /> Download Master (HTML)
+                <FileDown size={14} /> Download Master (PDF)
               </button>
 
               <button

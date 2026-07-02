@@ -547,11 +547,7 @@ export function OtherSections({
       };
 
       if (!(window as any).html2pdf) {
-        try {
-          await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
-        } catch (err1) {
-          await loadScript("https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js");
-        }
+        await loadScript("/html2pdf.bundle.min.js");
       }
 
       const name = isEmpty ? "" : (vetCardName || "Unnamed Canine");
