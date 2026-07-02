@@ -122,28 +122,48 @@ export function Roster({
     Completed: 'bg-slate-100 text-slate-800 border-slate-300'
   };
 
-  // Group counts
-  const totalStaffCount = staffList.length;
-  const activeStaffCount = staffList.filter(s => s.status === 'Present').length;
-  const offTodayCount = staffList.filter(s => s.status === 'Off').length;
-  const leaveTodayCount = staffList.filter(s => s.status === 'On Leave').length;
+  // Helper to generate initials
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const attendancePercentage = totalStaffCount === 0 ? 0 : Math.round((activeStaffCount / totalStaffCount) * 100);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fadeIn">
       {/* Roster overview banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 border border-slate-150 rounded-2xl shadow-sm gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-emerald-950 text-white rounded-xl">
-            <Users size={24} />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 border border-slate-150 rounded-3xl shadow-sm gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2 opacity-60"></div>
+        <div className="flex items-center gap-5 z-10 w-full md:w-auto">
+          <div className="p-3.5 bg-gradient-to-br from-emerald-800 to-emerald-950 text-white rounded-2xl shadow-lg shadow-emerald-900/20">
+            <Users size={26} strokeWidth={2.5} />
           </div>
-          <div>
-            <h4 className="text-slate-800 font-extrabold text-sm uppercase tracking-wider">Permanent Staff & Duty Scheduler</h4>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-400 font-semibold items-center">
-              <span>Workforce Pool: <strong className="text-slate-700">{totalStaffCount} Operators</strong></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-              <span className="text-emerald-700">Present Today: <strong>{activeStaffCount} Active</strong></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-              <span className="text-rose-600">Off/On Leave: <strong>{offTodayCount + leaveTodayCount} Squads</strong></span>
+          <div className="flex-1">
+            <h4 className="text-slate-800 font-black text-sm uppercase tracking-widest mb-1.5">Workforce & Duty Scheduler</h4>
+            
+            {/* Visual Progress Bar */}
+            <div className="w-full max-w-[280px] h-2 bg-slate-100 rounded-full mb-2 overflow-hidden flex">
+              <div 
+                className="h-full bg-emerald-500 transition-all duration-1000 ease-out rounded-full" 
+                style={{ width: `${attendancePercentage}%` }}
+              ></div>
+              <div 
+                className="h-full bg-rose-400 transition-all duration-1000 ease-out"
+                style={{ width: `${100 - attendancePercentage}%` }}
+              ></div>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 font-bold items-center uppercase tracking-wider">
+              <span>Total: <strong className="text-slate-700 text-xs">{totalStaffCount}</strong></span>
+              <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+              <span className="text-emerald-700">Present: <strong className="text-emerald-800 text-xs">{activeStaffCount}</strong></span>
+              <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+              <span className="text-rose-600">Off/Leave: <strong className="text-rose-700 text-xs">{offTodayCount + leaveTodayCount}</strong></span>
             </div>
           </div>
         </div>
@@ -356,60 +376,91 @@ export function Roster({
               .map((st) => (
                 <div
                   key={st.id}
-                  className={`bg-white border rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between transition-all ${
-                    st.status === 'Off' ? 'border-dashed border-red-300 scale-[0.99] opacity-95' : 'border-slate-100'
+                  className={`bg-white border rounded-3xl shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                    st.status === 'Off' ? 'border-dashed border-rose-300 opacity-90' : 
+                    st.status === 'On Leave' ? 'border-amber-200 opacity-95' :
+                    'border-slate-100 hover:border-emerald-200'
                   }`}
                 >
-                  <div className="p-6 border-b border-slate-50 relative">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-[9px] uppercase tracking-widest bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-black max-w-[120px] truncate block text-center">
-                          {st.unit} Unit
-                        </span>
-                        <h5 className="text-sm font-black text-slate-800 mt-2">{st.name}</h5>
-                        <p className="text-xs text-slate-400 font-bold">{st.role}</p>
+                  <div className="p-6 border-b border-slate-50 relative group">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-black shadow-inner shrink-0 ${
+                          st.status === 'Present' ? 'bg-emerald-100 text-emerald-800' :
+                          st.status === 'Off' ? 'bg-rose-100 text-rose-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {getInitials(st.name)}
+                        </div>
+                        <div>
+                          <span className="text-[9px] uppercase tracking-widest bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-black max-w-[120px] truncate block text-center mb-1 w-max">
+                            {st.unit} Unit
+                          </span>
+                          <h5 className="text-sm font-black text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors">{st.name}</h5>
+                          <p className="text-xs text-slate-400 font-bold mt-0.5">{st.role}</p>
+                        </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <select
-                          value={st.status}
-                          onChange={(e) => onUpdateStatus(st.id, e.target.value as any)}
-                          className={`text-[10px] font-black uppercase px-2 py-1.5 border rounded-md focus:outline-none cursor-pointer ${
-                            statusColors[st.status] || ''
-                          }`}
-                        >
-                          <option value="Present">Present</option>
-                          <option value="Off">Day Off</option>
-                          <option value="On Leave">On Leave</option>
-                        </select>
-                        
-                        {onEditStaff && (
+                        {/* Quick Status Toggles */}
+                        <div className="flex bg-slate-100 rounded-lg p-0.5 shadow-inner">
                           <button
-                            onClick={() => setEditingStaff(st)}
-                            className="text-slate-350 hover:text-indigo-800 p-1 rounded transition-colors m-0 cursor-pointer"
-                            title="Edit Operator"
+                            onClick={() => onUpdateStatus(st.id, 'Present')}
+                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                              st.status === 'Present' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                            }`}
                           >
-                            <UserPlus size={13} />
+                            Pres
                           </button>
-                        )}
-                        <button
-                          onClick={() => onDeleteStaff(st.id)}
-                          className="text-slate-350 hover:text-red-600 p-1 rounded transition-colors m-0 cursor-pointer"
-                          title="Remove Operator"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                          <button
+                            onClick={() => onUpdateStatus(st.id, 'Off')}
+                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                              st.status === 'Off' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                            }`}
+                          >
+                            Off
+                          </button>
+                          <button
+                            onClick={() => onUpdateStatus(st.id, 'On Leave')}
+                            className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                              st.status === 'On Leave' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                            }`}
+                          >
+                            Lv
+                          </button>
+                        </div>
+                        
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {onEditStaff && (
+                            <button
+                              onClick={() => setEditingStaff(st)}
+                              className="text-slate-350 hover:text-indigo-800 p-1.5 rounded-md hover:bg-indigo-50 transition-colors m-0 cursor-pointer"
+                              title="Edit Operator"
+                            >
+                              <UserPlus size={14} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => onDeleteStaff(st.id)}
+                            className="text-slate-350 hover:text-red-600 p-1.5 rounded-md hover:bg-rose-50 transition-colors m-0 cursor-pointer"
+                            title="Remove Operator"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-5 space-y-2">
                       <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Phone size={12} className="text-slate-400 shrink-0" />
+                        <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center">
+                          <Phone size={11} className="text-slate-400" />
+                        </div>
                         <span className="font-semibold text-slate-600 font-mono">{st.phone}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-slate-50/70 p-5 space-y-3">
+                  <div className="bg-slate-50/70 p-5 space-y-3.5 relative overflow-hidden group-hover:bg-slate-50 transition-colors">
                     <div className="flex items-start gap-2.5">
                       <Clock size={12} className="text-slate-400 shrink-0 mt-0.5" />
                       <div>
@@ -611,39 +662,65 @@ export function Roster({
                       return (
                         <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="p-5 font-bold text-slate-800">
-                            {r.staffName}
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                                r.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
+                                r.status === 'Completed' ? 'bg-slate-100 text-slate-600' :
+                                'bg-amber-100 text-amber-800'
+                              }`}>
+                                {getInitials(r.staffName)}
+                              </div>
+                              <span className="truncate">{r.staffName}</span>
+                            </div>
                           </td>
                           <td className="p-5">
-                            <span className={`text-[10px] px-2.5 py-1 rounded-md border font-black uppercase tracking-wider ${offTypeColors[r.type] || ''}`}>
+                            <span className={`text-[9px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider shadow-xs ${offTypeColors[r.type] || ''}`}>
                               {r.type}
                             </span>
                           </td>
                           <td className="p-5 font-mono">
-                            <span className="font-extrabold text-slate-700">{r.startDate}</span>
-                            <span className="mx-1 text-slate-300">to</span>
-                            <span className="font-extrabold text-slate-700">{r.endDate}</span>
-                            <span className="ml-2 text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-100 rounded px-1.5 py-0.5">
-                              {daysCount} {daysCount === 1 ? 'day' : 'days'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-slate-700 bg-slate-50 px-2 py-1 rounded">{r.startDate}</span>
+                              <span className="text-slate-300 text-[10px]">→</span>
+                              <span className="font-extrabold text-slate-700 bg-slate-50 px-2 py-1 rounded">{r.endDate}</span>
+                              <span className="ml-2 text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-full px-2 py-0.5">
+                                {daysCount} {daysCount === 1 ? 'day' : 'days'}
+                              </span>
+                            </div>
                           </td>
                           <td className="p-5 text-slate-500 font-medium italic max-w-xs truncate" title={r.notes}>
                             {r.notes || '—'}
                           </td>
                           <td className="p-5">
-                            <select
-                              value={r.status}
-                              onChange={(e) => onUpdateOffRecordStatus(r.id, e.target.value as any)}
-                              className={`text-[10px] font-black uppercase px-2.5 py-1.5 border rounded-lg focus:outline-none cursor-pointer ${
-                                recordStatusColors[r.status] || ''
-                              }`}
-                            >
-                              <option value="Approved">Approved</option>
-                              <option value="Pending">Pending</option>
-                              <option value="Completed">Completed</option>
-                            </select>
+                            <div className="flex bg-slate-100 rounded-lg p-0.5 shadow-inner w-max">
+                              <button
+                                onClick={() => onUpdateOffRecordStatus(r.id, 'Approved')}
+                                className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                                  r.status === 'Approved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                                }`}
+                              >
+                                Apprv
+                              </button>
+                              <button
+                                onClick={() => onUpdateOffRecordStatus(r.id, 'Pending')}
+                                className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                                  r.status === 'Pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                                }`}
+                              >
+                                Pend
+                              </button>
+                              <button
+                                onClick={() => onUpdateOffRecordStatus(r.id, 'Completed')}
+                                className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
+                                  r.status === 'Completed' ? 'bg-slate-500 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'
+                                }`}
+                              >
+                                Comp
+                              </button>
+                            </div>
                           </td>
                           <td className="p-5 text-right">
-                            <div className="flex items-center justify-end gap-1.5 font-sans">
+                            <div className="flex items-center justify-end gap-1.5 font-sans opacity-60 hover:opacity-100 transition-opacity">
                               {onEditStaffOffRecord && (
                                 <button
                                   onClick={() => setEditingStaffOffRecord(r)}
