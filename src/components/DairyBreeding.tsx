@@ -152,6 +152,10 @@ export function DairyBreeding({
   const [outflowDebtsList, setOutflowDebtsList] = useState<{ debtor: string; amount: number }[]>([]);
   const [outflowDebtorName, setOutflowDebtorName] = useState('');
   const [outflowDebtorAmount, setOutflowDebtorAmount] = useState<number | ''>('');
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [downloadType, setDownloadType] = useState<'csv' | 'pdf'>('pdf');
+  const [downloadPeriod, setDownloadPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
+
 
   // AI record states
   const [aiCowId, setAiCowId] = useState('');
@@ -912,23 +916,68 @@ export function DairyBreeding({
 
   // CSV Exporters for individual sections
   const downloadMilkCSV = () => {
+    // Filter data by selected period
+    const today = new Date().toISOString().split('T')[0];
+    const getStartOfWeek = (d: string) => {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(date.setDate(diff)).toISOString().split('T')[0];
+    };
+    const startOfWeek = getStartOfWeek(today);
+    const startOfMonth = today.substring(0, 8) + '01';
+
+    const filterFn = (r: { date: string }) => {
+      if (downloadPeriod === 'today') return r.date === today;
+      if (downloadPeriod === 'week') return r.date >= startOfWeek && r.date <= today;
+      if (downloadPeriod === 'month') return r.date >= startOfMonth && r.date <= today;
+      return true;
+    };
+
+    const targetMilk = milkRecords.filter(filterFn);
+    const targetOutflow = milkOutflows.filter(filterFn);
+
     let csv = 'data:text/csv;charset=utf-8,';
-    csv += 'COW MILKING RECORDS & PRODUCTION SALES\n';
-    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-    csv += 'Date,Cow Tag ID,AM Liters,PM Liters,Total Liters,Price/L (Ksh),Buyer,Total Sales (Ksh),Staff Officer\n';
-    filteredMilk.forEach((m) => {
-      const p = m.pricePerLiter ?? 0;
-      const b = m.buyer ?? 'Domestic Use';
-      const s = m.totalSales ?? (((m.am ?? 0) + (m.pm ?? 0)) * p);
-      csv += `${m.date},"${m.id}",${m.am ?? 0},${m.pm ?? 0},${((m.am ?? 0) + (m.pm ?? 0)).toFixed(2)},${p},"${b}",${s},"${m.staff}"\n`;
+    csv += 'CONSOLIDATED DAIRY PRODUCTION & DISPATCH LEDGER\n';
+    csv += `Generated: ${new Date().toLocaleString()} | Period: ${downloadPeriod.toUpperCase()}\n\n`;
+    
+    csv += '--- DAILY SUMMARIES ---\n';
+    csv += 'Date,Total Harvest (L),Home Consumed (L),Workers Consumed (L),Calf Consumed (L),Spoiled (L),Unpaid Debts (Ksh),Total Sales Revenue (Ksh)\n';
+    
+    const allDatesSet = new Set<string>();
+    targetMilk.forEach(r => allDatesSet.add(r.date));
+    targetOutflow.forEach(o => allDatesSet.add(o.date));
+    const sortedDates = Array.from(allDatesSet).sort((a, b) => b.localeCompare(a));
+
+    sortedDates.forEach((dateKey) => {
+      const dayMilks = targetMilk.filter(r => r.date === dateKey);
+      const dayOutflow = targetOutflow.find(o => o.date === dateKey);
+      
+      const yieldVol = dayMilks.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
+      const homeL = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
+      const workersL = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
+      const calfL = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
+      const spoiledL = dayOutflow ? dayOutflow.milkSpoiled : 0;
+      const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
+      const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
+      
+      csv += `${dateKey},${yieldVol},${homeL},${workersL},${calfL},${spoiledL},${debtsKsh},${daySales}\n`;
     });
+
+    csv += '\n--- INDIVIDUAL COW MILKING RECORDS ---\n';
+    csv += 'Date,Cow Tag ID,AM Liters,PM Liters,Total Liters,Staff Officer\n';
+    targetMilk.sort((a, b) => b.date.localeCompare(a.date)).forEach((m) => {
+      csv += `${m.date},"${m.id}",${m.am ?? 0},${m.pm ?? 0},${((m.am ?? 0) + (m.pm ?? 0)).toFixed(2)},"${m.staff}"\n`;
+    });
+
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Milking_Production_Records_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Sovereign_Dairy_Consolidated_${downloadPeriod}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setShowDownloadModal(false);
   };
 
   const downloadBreedersCSV = () => {
@@ -2357,7 +2406,7 @@ export function DairyBreeding({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={downloadMilkCSV}
+                  onClick={() => { setDownloadType('csv'); setShowDownloadModal(true); }}
                   type="button"
                   className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-900 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
                   title="Export Yield History as CSV"
@@ -2367,7 +2416,7 @@ export function DairyBreeding({
                 </button>
                 {onTriggerSectionReport && (
                   <button
-                    onClick={() => onTriggerSectionReport('milk')}
+                    onClick={() => { setDownloadType('pdf'); setShowDownloadModal(true); }}
                     type="button"
                     className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
                   >
@@ -6115,6 +6164,67 @@ export function DairyBreeding({
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Download Options Modal */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-slate-200 animate-slide-up">
+            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-black text-sm text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                <Download size={16} className={downloadType === 'pdf' ? 'text-rose-500' : 'text-emerald-500'} />
+                Export {downloadType.toUpperCase()} Report
+              </h3>
+              <button 
+                onClick={() => setShowDownloadModal(false)}
+                className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 rounded-full transition-colors border border-slate-200"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <p className="text-xs text-slate-500 font-medium">Select the time period to generate your consolidated production & dispatch report.</p>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Report Period</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setDownloadPeriod('today')}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'today' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                  >
+                    Today
+                  </button>
+                  <button 
+                    onClick={() => setDownloadPeriod('week')}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'week' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                  >
+                    This Week
+                  </button>
+                  <button 
+                    onClick={() => setDownloadPeriod('month')}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'month' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                  >
+                    This Month
+                  </button>
+                  <button 
+                    onClick={() => setDownloadPeriod('all')}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'all' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                  >
+                    All Time
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={downloadType === 'pdf' ? handleDownloadPdf : downloadMilkCSV}
+                className={`w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-wider text-white shadow-md transition-all ${downloadType === 'pdf' ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/20' : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'}`}
+              >
+                Generate {downloadType.toUpperCase()}
+              </button>
+            </div>
           </div>
         </div>
       )}
