@@ -55,6 +55,7 @@ import OperationsSchedule from './components/OperationsSchedule';
 import { SettingsCenter } from './components/SettingsCenter';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { AiAdvisor } from './components/AiAdvisor';
+import { FirebaseSyncer } from './components/FirebaseSyncer';
 
 // Master Types
 import {
@@ -6764,7 +6765,7 @@ export default function App() {
           <span>{appToastMessage}</span>
         </div>
       )}
-
+      <FirebaseSyncer />
     </div>
   );
 }
