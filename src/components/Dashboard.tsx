@@ -1142,8 +1142,9 @@ export function Dashboard({
               <span className="text-[9px] font-mono tracking-widest uppercase font-black text-yellow-400 block mb-1">Recommendation:</span>
               <p className="font-black text-white text-xs leading-tight mb-2">{calcResult.dosage}</p>
               <p className="text-[9px] text-emerald-400/80 italic leading-snug">{calcResult.description}</p>
-            </div>
+          </div>
         </div>
+      </div>
 
         {isLiveWeather && liveWeather?.daily && (
           <div className="pt-6 border-t border-white/10">
