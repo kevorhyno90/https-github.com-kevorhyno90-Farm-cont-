@@ -1973,514 +1973,549 @@ export function DairyBreeding({
         </div>
       )}
 
-      {/* SUB-TAB 1: LACTATION */}
+            {/* SUB-TAB 1: LACTATION (UNIFIED MILK RECORDING & DISPATCH) */}
       {subTab === 'lactation' && (
         <div className="space-y-8">
-          {/* Production Console (Milking Yield Logging) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase flex items-center gap-1">
-                <TrendingUp size={12} /> Production Console
-              </h5>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Record morning & afternoon daily milking yields</p>
+          {/* Analytics Dashboard */}
+          {(() => {
+            const today = new Date().toISOString().split('T')[0];
+            const getStartOfWeek = (d) => {
+              const date = new Date(d);
+              const day = date.getDay();
+              const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+              return new Date(date.setDate(diff)).toISOString().split('T')[0];
+            };
+            const startOfWeek = getStartOfWeek(today);
+            const startOfMonth = today.substring(0, 8) + '01';
+
+            const calcStats = (filterFn) => {
+              const filteredMilks = milkRecords.filter(filterFn);
+              const filteredOutflows = milkOutflows.filter(filterFn);
+              
+              const yieldL = filteredMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
+              const home = filteredOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0);
+              const workers = filteredOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0);
+              const calf = filteredOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0);
+              const spoiled = filteredOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0);
+              const consumedL = home + workers + calf + spoiled;
+              const netSoldL = Math.max(0, yieldL - consumedL);
+
+              // Calculate revenue based on the day's specific outflow price
+              let revenue = 0;
+              const uniqueDates = Array.from(new Set(filteredMilks.map(m => m.date)));
+              uniqueDates.forEach(dateKey => {
+                const dayMilks = filteredMilks.filter(m => m.date === dateKey);
+                const dayOutflow = milkOutflows.find(o => o.date === dateKey);
+                
+                const dYield = dayMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
+                const dHome = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
+                const dWorkers = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
+                const dCalf = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
+                const dSpoiled = dayOutflow ? dayOutflow.milkSpoiled : 0;
+                
+                const dConsumed = dHome + dWorkers + dCalf + dSpoiled;
+                const dNetSold = Math.max(0, dYield - dConsumed);
+                const price = dayOutflow?.salesPricePerLiter ?? 52;
+                revenue += (dNetSold * price);
+              });
+
+              return { yieldL, consumedL, netSoldL, revenue };
+            };
+
+            const dayStats = calcStats(r => r.date === today);
+            const weekStats = calcStats(r => r.date >= startOfWeek && r.date <= today);
+            const monthStats = calcStats(r => r.date >= startOfMonth && r.date <= today);
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Day Stats */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-all">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Calendar size={48} className="text-emerald-500" />
+                  </div>
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Today's Performance</h5>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-black text-slate-800">{dayStats.yieldL.toFixed(1)}</span>
+                    <span className="text-sm font-bold text-slate-400">Liters Yield</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs mt-4 pt-4 border-t border-slate-50">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Net Sold</span>
+                      <span className="font-mono font-bold text-emerald-600">{dayStats.netSoldL.toFixed(1)} L</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Revenue</span>
+                      <span className="font-mono font-bold text-slate-800">Ksh {dayStats.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Week Stats */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-indigo-200 transition-all">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Activity size={48} className="text-indigo-500" />
+                  </div>
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">This Week</h5>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-black text-slate-800">{weekStats.yieldL.toFixed(1)}</span>
+                    <span className="text-sm font-bold text-slate-400">Liters Yield</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs mt-4 pt-4 border-t border-slate-50">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Net Sold</span>
+                      <span className="font-mono font-bold text-indigo-600">{weekStats.netSoldL.toFixed(1)} L</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Revenue</span>
+                      <span className="font-mono font-bold text-slate-800">Ksh {weekStats.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Month Stats */}
+                <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <TrendingUp size={48} className="text-amber-500" />
+                  </div>
+                  <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">This Month</h5>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-black text-white">{monthStats.yieldL.toFixed(1)}</span>
+                    <span className="text-sm font-bold text-slate-400">Liters Yield</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs mt-4 pt-4 border-t border-slate-800">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Net Sold</span>
+                      <span className="font-mono font-bold text-amber-400">{monthStats.netSoldL.toFixed(1)} L</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Est. Revenue</span>
+                      <span className="font-mono font-bold text-white">Ksh {monthStats.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Forms Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* COLUMN 1: Individual Cow Milking Form */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+              <div className="border-b border-slate-100 pb-3">
+                <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase flex items-center gap-1">
+                  <TrendingUp size={12} /> Cow Milking Console
+                </h5>
+                <p className="text-[10px] text-slate-400 mt-1 font-bold">Record individual morning & afternoon yields</p>
+              </div>
+
+              <form onSubmit={handleMilkingSubmit} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Select / Type Cow Tag ID</label>
+                  {cows.length > 0 ? (
+                    <select
+                      required
+                      value={cowTag}
+                      onChange={(e) => setCowTag(e.target.value)}
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold bg-white outline-none"
+                    >
+                      <option value="">-- Choose registered cow --</option>
+                      {cows.map(c => (
+                        <option key={c.id} value={c.id}>{c.id} ({c.name} - {c.status})</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={cowTag}
+                      onChange={(e) => setCowTag(e.target.value)}
+                      placeholder="E.g. Cow-104 (Blossom)"
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold outline-none"
+                    />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">AM Liters</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.1"
+                      value={amLiters}
+                      onChange={(e) => setAmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      placeholder="Morning L"
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">PM Liters</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.1"
+                      value={pmLiters}
+                      onChange={(e) => setPmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      placeholder="Afternoon L"
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milking Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={milkingDate}
+                      onChange={(e) => setMilkingDate(e.target.value)}
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milking Officer</label>
+                    <select
+                      value={staffName}
+                      onChange={(e) => setStaffName(e.target.value)}
+                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full bg-white font-medium text-slate-700 outline-none"
+                    >
+                      {staffList.map((st) => (
+                        <option key={st.id} value={st.name}>
+                          {st.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
+                >
+                  Record Cow Yield
+                </button>
+              </form>
             </div>
 
-            <form onSubmit={handleMilkingSubmit} className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Select / Type Cow Tag ID</label>
-                {cows.length > 0 ? (
-                  <select
-                    required
-                    value={cowTag}
-                    onChange={(e) => setCowTag(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
-                  >
-                    <option value="">-- Choose registered cow --</option>
-                    {cows.map(c => (
-                      <option key={c.id} value={c.id}>{c.id} ({c.name} - {c.status})</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    required
-                    value={cowTag}
-                    onChange={(e) => setCowTag(e.target.value)}
-                    placeholder="E.g. Cow-104 (Blossom)"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
-                  />
-                )}
+            {/* COLUMN 2: Daily Milk Dispatch Form */}
+            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-sm space-y-6 text-white">
+              <div className="border-b border-slate-800 pb-3">
+                <h5 className="text-[11px] font-black tracking-widest text-emerald-400 uppercase flex items-center gap-1">
+                  <Truck size={12} /> Daily Global Dispatch
+                </h5>
+                <p className="text-[10px] text-slate-400 mt-1 font-bold">Record consumption, spoils & set today's price</p>
               </div>
 
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">AM Liters</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.1"
-                  value={amLiters}
-                  onChange={(e) => setAmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  placeholder="Morning L"
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">PM Liters</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.1"
-                  value={pmLiters}
-                  onChange={(e) => setPmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  placeholder="Afternoon L"
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
-                />
-              </div>
-
-              <div className="col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milking Date (Supports Now, Past & Future Dates)</label>
-                <input
-                  type="date"
-                  required
-                  value={milkingDate}
-                  onChange={(e) => setMilkingDate(e.target.value)}
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
-                />
-              </div>
-
-              <div className="col-span-2 flex items-center gap-2 py-1">
-                <input
-                  type="checkbox"
-                  id="isMilkSold"
-                  checked={isMilkSold}
-                  onChange={(e) => setIsMilkSold(e.target.checked)}
-                  className="w-4 h-4 text-emerald-800 border-slate-300 rounded focus:ring-emerald-700/10 cursor-pointer"
-                />
-                <label htmlFor="isMilkSold" className="text-[11px] font-black text-slate-700 uppercase tracking-wide cursor-pointer flex items-center gap-1.5 select-none font-bold">
-                  Commercialize Sale (Post to Finance Ledger)
-                </label>
-              </div>
-
-              {isMilkSold && (
-                <>
+              <form onSubmit={handleOutflowSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Price per Liter (Ksh)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Dispatch Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={outflowDate}
+                      onChange={(e) => setOutflowDate(e.target.value)}
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-amber-400 uppercase tracking-wider block mb-1">Sales Price / Liter (Ksh)</label>
                     <input
                       type="number"
                       required
                       min="1"
-                      value={milkPrice}
-                      onChange={(e) => setMilkPrice(e.target.value === '' ? '' : parseInt(e.target.value))}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      value={outflowPrice}
+                      onChange={(e) => setOutflowPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="e.g. 52"
+                      className="text-xs bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl p-3 w-full font-mono font-bold outline-none text-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-slate-800 p-3 rounded-xl bg-slate-950/50">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Used at Home">Home (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowHome}
+                      onChange={(e) => setOutflowHome(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-white"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milk Purchaser / Buyer</label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Used by Workers">Staff (L)</label>
                     <input
-                      type="text"
-                      required
-                      value={milkBuyer}
-                      onChange={(e) => setMilkBuyer(e.target.value)}
-                      placeholder="E.g. Brookside Dairy Ltd"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold text-slate-800"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowWorkers}
+                      onChange={(e) => setOutflowWorkers(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-white"
                     />
                   </div>
-                </>
-              )}
-
-              <div className="col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Milking Officer</label>
-                <select
-                  value={staffName}
-                  onChange={(e) => setStaffName(e.target.value)}
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-medium text-slate-700"
-                >
-                  {staffList.map((st) => (
-                    <option key={st.id} value={st.name}>
-                      {st.name} ({st.unit})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-
-
-              <button
-                type="submit"
-                className="col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0"
-              >
-                Record Milking Log
-              </button>
-            </form>
-
-            {/* Recents logs */}
-            <div className="border-t border-slate-100 pt-5 space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-bold">Compounded Yield History</label>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={downloadMilkCSV}
-                    type="button"
-                    className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-900 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer"
-                    title="Export Yield History as CSV"
-                  >
-                    <FileSpreadsheet size={10} />
-                    Export CSV
-                  </button>
-                  {onTriggerSectionReport && (
-                    <button
-                      onClick={() => onTriggerSectionReport('milk')}
-                      type="button"
-                      className="flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded font-black text-[9px] uppercase transition-all shadow-xs shrink-0 cursor-pointer font-bold"
-                      title="Download Milking PDF Report"
-                    >
-                      <Download size={10} />
-                      Download PDF Report
-                    </button>
-                  )}
-                  <Filter size={12} className="text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Filter Cow..."
-                    value={filterCow}
-                    onChange={(e) => setFilterCow(e.target.value)}
-                    className="text-[10px] p-1.5 border border-slate-200 rounded bg-slate-50 font-bold"
-                  />
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Consumed by Calf">Calf (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowCalf}
+                      onChange={(e) => setOutflowCalf(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-rose-400 uppercase tracking-wider block mb-1" title="Spoiled Milk">Spoilt (L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={outflowSpoiled}
+                      onChange={(e) => setOutflowSpoiled(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="0.0"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-rose-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-rose-300"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="max-h-[500px] overflow-y-auto pr-1">
-                {(() => {
-                  const groupedMilkByDate = filteredMilk.reduce((groups, record) => {
-                    const dateKey = record.date;
-                    if (!groups[dateKey]) {
-                      groups[dateKey] = [];
-                    }
-                    groups[dateKey].push(record);
-                    return groups;
-                  }, {} as Record<string, MilkingRecord[]>);
-
-                  const sortedDates = Object.keys(groupedMilkByDate).sort((a, b) => b.localeCompare(a));
-
-                  if (sortedDates.length === 0) {
-                    return (
-                      <div className="text-center py-6 text-slate-400 font-bold uppercase text-[10px]">
-                        No milking records found
-                      </div>
-                    );
-                  }
-
-                  return sortedDates.map((dateString) => {
-                    const dayRecords = groupedMilkByDate[dateString];
-                    const dayTotalYield = dayRecords.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
-                    const dayTotalMoney = dayRecords.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 0))), 0);
-                    const dayTotalDispatch = dayRecords.reduce((sum, r) => sum + (r.milkUsedAtHome ?? 0) + (r.milkUsedByWorkers ?? 0) + (r.milkSpoiled ?? 0), 0);
-                    const dayTotalDebt = dayRecords.reduce((sum, r) => sum + (r.debtsKsh ?? 0), 0);
-
-                    return (
-                      <div key={dateString} className="mb-4 bg-slate-50/60 border border-slate-100 rounded-2xl p-3.5 space-y-3">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/80 pb-2">
-                          <div>
-                            <span className="font-extrabold text-slate-800 text-xs uppercase tracking-wider block">
-                              📅 {new Date(dateString).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                            <span className="text-[9px] text-slate-400 font-bold uppercase">
-                              {dayRecords.length} Cow{dayRecords.length > 1 ? 's' : ''} Milked
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5 text-[9px] font-black uppercase tracking-wider">
-                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-1 rounded-md font-mono">
-                              Yield: {dayTotalYield.toFixed(1)} L
-                            </span>
-                            <span className="bg-indigo-50 text-indigo-800 border border-indigo-100 px-2 py-1 rounded-md font-mono">
-                              Money: Ksh {dayTotalMoney.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                            </span>
-                            {dayTotalDispatch > 0 && (
-                              <span className="bg-amber-50 text-amber-800 border border-amber-100 px-2 py-1 rounded-md font-mono">
-                                Dispatched: {dayTotalDispatch.toFixed(1)} L
-                              </span>
-                            )}
-                            {dayTotalDebt > 0 && (
-                              <span className="bg-rose-50 text-rose-800 border border-rose-100 px-2 py-1 rounded-md font-mono">
-                                Debts: Ksh {dayTotalDebt.toLocaleString()}
-                              </span>
-                            )}
+                <div className="grid grid-cols-1 gap-2 border border-slate-800 p-3 rounded-xl bg-slate-950/50">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[9px] font-black text-rose-400 uppercase tracking-wider block">🚨 Log Debtors (Optional)</label>
+                    {outflowDebtsList.length > 0 && (
+                      <span className="text-[9px] font-mono font-black text-rose-400">Total: Ksh {outflowDebtsList.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={outflowCustomer}
+                      onChange={(e) => setOutflowCustomer(e.target.value)}
+                      placeholder="Debtor Name"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-full font-bold outline-none text-white"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={outflowDebts}
+                      onChange={(e) => setOutflowDebts(e.target.value === '' ? '' : Number(e.target.value))}
+                      placeholder="Ksh"
+                      className="text-xs bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-lg p-2 w-24 font-mono font-bold outline-none text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddDebtorToList}
+                      className="bg-rose-950 hover:bg-rose-900 text-rose-300 px-3 rounded-lg font-black text-[10px] uppercase transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {outflowDebtsList.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {outflowDebtsList.map((d, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-slate-900 px-2 py-1.5 rounded-lg border border-slate-800">
+                          <span className="text-[10px] font-bold text-slate-300">👤 {d.debtor}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-mono font-black text-rose-400">Ksh {d.amount.toLocaleString()}</span>
+                            <button type="button" onClick={() => handleRemoveDebtorFromList(idx)} className="text-slate-500 hover:text-red-400"><X size={12}/></button>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
+                >
+                  Save Daily Dispatch
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Unified Ledger Log */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+            <div className="flex justify-between items-end border-b border-slate-100 pb-3">
+              <div>
+                <h5 className="text-[11px] font-black tracking-widest text-slate-800 uppercase flex items-center gap-1">
+                  <Database size={12} /> Combined Production & Dispatch Ledger
+                </h5>
+                <p className="text-[10px] text-slate-400 mt-1 font-bold">Historical data computed automatically per day</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={downloadMilkCSV}
+                  type="button"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-900 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
+                  title="Export Yield History as CSV"
+                >
+                  <FileSpreadsheet size={12} />
+                  CSV
+                </button>
+                {onTriggerSectionReport && (
+                  <button
+                    onClick={() => onTriggerSectionReport('milk')}
+                    type="button"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
+                  >
+                    <Download size={12} />
+                    PDF
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
+              {(() => {
+                const allDates = Array.from(new Set([...milkRecords.map(r => r.date), ...milkOutflows.map(o => o.date)])).sort((a, b) => b.localeCompare(a));
+                
+                if (allDates.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-slate-400 font-bold uppercase text-[10px]">
+                      No production or dispatch records found
+                    </div>
+                  );
+                }
+
+                return allDates.map(dateStr => {
+                  const dayMilks = milkRecords.filter(r => r.date === dateStr);
+                  const dayOutflow = milkOutflows.find(o => o.date === dateStr);
+                  
+                  const yieldTotal = dayMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
+                  const home = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
+                  const workers = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
+                  const calf = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
+                  const spoiled = dayOutflow ? dayOutflow.milkSpoiled : 0;
+                  const consumed = home + workers + calf + spoiled;
+                  
+                  const price = dayOutflow?.salesPricePerLiter ?? 52;
+                  const netSold = Math.max(0, yieldTotal - consumed);
+                  const revenue = netSold * price;
+
+                  const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
+
+                  return (
+                    <div key={dateStr} className="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-xs hover:border-slate-200 transition-all">
+                      {/* Day Header */}
+                      <div className="bg-slate-100/50 p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs">
+                            <span className="font-extrabold text-slate-800 text-xs uppercase tracking-widest block font-mono">
+                              {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                          {dayOutflow && (
+                            <span className="text-[9px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                              Price: Ksh {price}/L
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
+                          <span className="bg-white text-slate-700 border border-slate-200 px-2 py-1 rounded-md shadow-xs">
+                            Yield: {yieldTotal.toFixed(1)} L
+                          </span>
+                          {consumed > 0 && (
+                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded-md shadow-xs">
+                              Dispatch: {consumed.toFixed(1)} L
+                            </span>
+                          )}
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-md shadow-xs">
+                            Net: {netSold.toFixed(1)} L
+                          </span>
+                          <span className="bg-emerald-600 text-white border border-emerald-700 px-2 py-1 rounded-md shadow-xs">
+                            Ksh {revenue.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Left: Milking Detail */}
                         <div className="space-y-2">
-                          {dayRecords.map((m, idx) => {
-                            const price = m.pricePerLiter ?? 0;
-                            const sales = m.totalSales ?? (((m.am ?? 0) + (m.pm ?? 0)) * price);
-                            const buyer = m.buyer ?? '';
-                            const totalCowYield = (m.am ?? 0) + (m.pm ?? 0);
-                            const dispatchedCow = (m.milkUsedAtHome ?? 0) + (m.milkUsedByWorkers ?? 0) + (m.milkUsedByCalf ?? 0) + (m.milkSpoiled ?? 0);
-                            const isHigh = isHighProducer(m.am ?? 0, m.pm ?? 0, m.id);
-
-                            return (
-                              <div key={idx} className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs space-y-2 hover:bg-slate-50/20 transition-all">
-                                <div className="flex justify-between items-start gap-2">
-                                  <div className="space-y-0.5">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="font-black text-slate-800 text-xs">{m.id}</span>
-                                      {isHigh && (
-                                        <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded font-black uppercase tracking-wider">
-                                          Peak
-                                        </span>
-                                      )}
-                                      <span className="text-[9px] text-slate-400 font-semibold italic">Recorded by {m.staff}</span>
+                          <h6 className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 border-b border-slate-200 pb-1">Cow Yields ({dayMilks.length})</h6>
+                          {dayMilks.length === 0 ? (
+                            <span className="text-[10px] text-slate-400 font-bold italic">No cow records logged.</span>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {dayMilks.map(m => {
+                                const mTotal = (m.am ?? 0) + (m.pm ?? 0);
+                                const isHigh = isHighProducer(m.am ?? 0, m.pm ?? 0, m.id);
+                                return (
+                                  <div key={m.id} className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-2xs group">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-slate-800 text-xs">{m.id}</span>
+                                      {isHigh && <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded font-black uppercase tracking-wider">Peak</span>}
                                     </div>
-                                    <div className="text-[10px] text-slate-500 font-bold font-mono">
-                                      <span>AM: {(m.am ?? 0).toFixed(1)}L | PM: {(m.pm ?? 0).toFixed(1)}L | </span>
-                                      <strong className="text-emerald-800">Total: {totalCowYield.toFixed(1)} L</strong>
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-[9px] font-mono text-slate-500">AM:{m.am} PM:{m.pm}</span>
+                                      <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
+                                      <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={12}/></button>
                                     </div>
                                   </div>
-
-                                  <div className="text-right space-y-0.5">
-                                    {price > 0 ? (
-                                      <>
-                                        <span className="font-black text-slate-800 text-xs font-mono block">Ksh {sales.toLocaleString()}</span>
-                                        <span className="text-[8.5px] text-slate-400 font-medium block truncate max-w-[120px]" title={buyer}>{buyer}</span>
-                                      </>
-                                    ) : (
-                                      <span className="text-slate-400 font-black text-[9px] uppercase tracking-wide block">Domestic Use</span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {/* Dispatch specifics inside each record */}
-                                {(dispatchedCow > 0 || m.debtsKsh || m.notes) && (
-                                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-150/50 text-[9.5px] text-slate-600 font-medium grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
-                                    {dispatchedCow > 0 && (
-                                      <div className="col-span-1 sm:col-span-2 flex flex-wrap gap-x-2 text-slate-500 font-bold">
-                                        <span>🚛 Dispatch Breakdown:</span>
-                                        {m.milkUsedAtHome ? <span className="text-blue-700 font-mono">Home Use: {m.milkUsedAtHome}L</span> : null}
-                                        {m.milkUsedByWorkers ? <span className="text-amber-700 font-mono">Workers: {m.milkUsedByWorkers}L</span> : null}
-                                        {m.milkUsedByCalf ? <span className="text-purple-700 font-mono">Calves: {m.milkUsedByCalf}L</span> : null}
-                                        {m.milkSpoiled ? <span className="text-rose-700 font-mono">Spoilt: {m.milkSpoiled}L</span> : null}
-                                      </div>
-                                    )}
-                                    {m.debtsList && m.debtsList.length > 0 ? (
-                                      <div className="text-rose-700 font-bold col-span-1 sm:col-span-2 space-y-0.5">
-                                        <span>🚨 Unpaid Debts:</span>
-                                        <div className="pl-2 border-l border-rose-250 flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[8.5px]">
-                                          {m.debtsList.map((d, dIdx) => (
-                                            <span key={dIdx} className="bg-rose-50 text-rose-950 px-1.5 py-0.5 rounded font-mono">
-                                              👤 {d.debtor}: <strong>Ksh {d.amount.toLocaleString()}</strong>
-                                            </span>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ) : m.debtsKsh ? (
-                                      <div className="text-rose-700 font-bold">
-                                        🚨 Unpaid Debt: Ksh {m.debtsKsh.toLocaleString()} ({m.debtCustomer || 'Anonymous'})
-                                      </div>
-                                    ) : null}
-                                    {m.notes && (
-                                      <div className="text-slate-500 col-span-1 sm:col-span-2 italic font-sans">
-                                        📝 {m.notes}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-
-                                <div className="flex justify-end gap-1 border-t border-slate-100 pt-1.5 mt-1.5">
-                                  {onEditMilkRecord && (
-                                    <button
-                                      onClick={() => setEditingMilk(m)}
-                                      className="text-slate-400 hover:text-emerald-900 p-1 rounded transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-100 hover:bg-slate-50 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-transparent"
-                                      title="Edit Record"
-                                    >
-                                      <PenSquare size={11} />
-                                      <span>Edit</span>
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => onDeleteMilkRecord(m.id, m.date)}
-                                    className="text-slate-400 hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 border border-transparent hover:border-slate-100 hover:bg-slate-50 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-transparent"
-                                    title="Delete Record"
-                                  >
-                                    <Trash2 size={11} />
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Daily Automatic Summary Card */}
-                        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-4 space-y-3.5 shadow-md mt-3 border border-indigo-900 font-sans">
-                          <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-200">
-                              📊 Daily Automatic Valuation & Allocation
-                            </span>
-                            <span className="text-[10px] font-mono font-bold bg-white/10 text-white px-2 py-0.5 rounded-full">
-                              {dateString}
-                            </span>
-                          </div>
-
-                          {/* 5-Column Bento Allocation Liters & Value */}
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-center">
-                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
-                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🥛 Commercial Sales</span>
-                              <span className="block font-black text-xs text-emerald-400 font-mono">
-                                {dayRecords.reduce((sum, r) => {
-                                  const home = r.milkUsedAtHome ?? 0;
-                                  const workers = r.milkUsedByWorkers ?? 0;
-                                  const calf = r.milkUsedByCalf ?? 0;
-                                  const spoiled = r.milkSpoiled ?? 0;
-                                  const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
-                                  return sum + Math.max(0, yieldVal - (home + workers + calf + spoiled));
-                                }, 0).toFixed(1)} L
-                              </span>
-                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
-                                Ksh {dayRecords.reduce((sum, r) => {
-                                  const home = r.milkUsedAtHome ?? 0;
-                                  const workers = r.milkUsedByWorkers ?? 0;
-                                  const calf = r.milkUsedByCalf ?? 0;
-                                  const spoiled = r.milkSpoiled ?? 0;
-                                  const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
-                                  const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
-                                  return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
-                                }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </span>
-                            </div>
-
-                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
-                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🏠 Home Use</span>
-                              <span className="block font-black text-xs text-blue-300 font-mono">
-                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedAtHome ?? 0), 0).toFixed(1)} L
-                              </span>
-                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
-                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedAtHome ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </span>
-                            </div>
-
-                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
-                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">👥 Workers Use</span>
-                              <span className="block font-black text-xs text-amber-300 font-mono">
-                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedByWorkers ?? 0), 0).toFixed(1)} L
-                              </span>
-                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
-                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedByWorkers ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </span>
-                            </div>
-
-                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 space-y-0.5">
-                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">🐮 Calf Intake</span>
-                              <span className="block font-black text-xs text-purple-300 font-mono">
-                                {dayRecords.reduce((sum, r) => sum + (r.milkUsedByCalf ?? 0), 0).toFixed(1)} L
-                              </span>
-                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
-                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkUsedByCalf ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </span>
-                            </div>
-
-                            <div className="bg-white/5 p-2 rounded-xl border border-white/5 col-span-2 md:col-span-1 space-y-0.5">
-                              <span className="block text-[8px] text-slate-400 font-extrabold uppercase">⚠️ Spoilt / Lost</span>
-                              <span className="block font-black text-xs text-rose-300 font-mono">
-                                {dayRecords.reduce((sum, r) => sum + (r.milkSpoiled ?? 0), 0).toFixed(1)} L
-                              </span>
-                              <span className="block text-[9px] font-extrabold text-slate-300 font-mono">
-                                Ksh {dayRecords.reduce((sum, r) => sum + ((r.milkSpoiled ?? 0) * (r.pricePerLiter ?? 52)), 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Debt Summary Area */}
-                          {(() => {
-                            const debtorsList: { debtor: string; amount: number }[] = [];
-                            dayRecords.forEach(r => {
-                              if (r.debtsList && r.debtsList.length > 0) {
-                                r.debtsList.forEach(d => {
-                                  debtorsList.push({ debtor: d.debtor, amount: d.amount });
-                                });
-                              } else if (r.debtsKsh) {
-                                debtorsList.push({ debtor: r.debtCustomer || 'Anonymous', amount: r.debtsKsh });
-                              }
-                            });
-
-                            const totalUnpaidDebts = debtorsList.reduce((sum, d) => sum + d.amount, 0);
-
-                            return (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-white/10 text-xs font-sans">
-                                {/* Left side: Unpaid Debtor List */}
-                                <div className="space-y-1 bg-white/5 p-2.5 rounded-xl border border-white/5">
-                                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-rose-300">
-                                    <span>🚨 Debts from All Debtors</span>
-                                    <span>Total: Ksh {totalUnpaidDebts.toLocaleString()}</span>
-                                  </div>
-                                  {debtorsList.length > 0 ? (
-                                    <div className="space-y-1 max-h-[75px] overflow-y-auto pr-1">
-                                      {debtorsList.map((d, dIdx) => (
-                                        <div key={dIdx} className="flex justify-between text-[10px] bg-white/5 px-2 py-1 rounded font-mono">
-                                          <span className="text-slate-200">👤 {d.debtor}</span>
-                                          <span className="text-rose-300 font-bold">Ksh {d.amount.toLocaleString()}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="text-center py-2 text-slate-400 font-bold text-[9px] uppercase italic">
-                                      No unpaid debts recorded for today
-                                    </div>
-                                  )}
+                        {/* Right: Dispatch Detail */}
+                        <div className="space-y-2">
+                          <h6 className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 border-b border-slate-200 pb-1">Dispatch & Debts</h6>
+                          {!dayOutflow ? (
+                            <span className="text-[10px] text-slate-400 font-bold italic">No dispatch logged.</span>
+                          ) : (
+                            <div className="space-y-2">
+                              {consumed > 0 && (
+                                <div className="flex flex-wrap gap-2 text-[9px] font-bold">
+                                  {home > 0 && <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">🏠 Home: {home}L</span>}
+                                  {workers > 0 && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded border border-amber-100">👥 Staff: {workers}L</span>}
+                                  {calf > 0 && <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100">🍼 Calf: {calf}L</span>}
+                                  {spoiled > 0 && <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded border border-rose-100">⚠️ Spoilt: {spoiled}L</span>}
                                 </div>
-
-                                {/* Right side: Realized & Grand Totals */}
-                                <div className="flex flex-col justify-between space-y-1 bg-white/5 p-2.5 rounded-xl border border-white/5">
-                                  <div className="text-[10px] font-black uppercase text-indigo-300">
-                                    💰 Realized Cash vs Grand Total Valuation
-                                  </div>
-                                  <div className="space-y-1 font-mono text-[10px]">
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-400 font-bold">Total Harvest Vol:</span>
-                                      <span className="text-white font-bold">{dayTotalYield.toFixed(1)} L</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-slate-400 font-bold">Recorded Sales Revenue:</span>
-                                      <span className="text-emerald-400 font-bold">
-                                        Ksh {dayRecords.reduce((sum, r) => {
-                                          const home = r.milkUsedAtHome ?? 0;
-                                          const workers = r.milkUsedByWorkers ?? 0;
-                                          const calf = r.milkUsedByCalf ?? 0;
-                                          const spoiled = r.milkSpoiled ?? 0;
-                                          const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
-                                          const soldVol = Math.max(0, yieldVal - (home + workers + calf + spoiled));
-                                          return sum + (r.totalSales ?? (soldVol * (r.pricePerLiter ?? 52)));
-                                        }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between border-t border-white/10 pt-1">
-                                      <span className="text-slate-300 font-black uppercase">Grand Total Day Value:</span>
-                                      <span className="text-amber-400 font-black text-xs">
-                                        Ksh {dayRecords.reduce((sum, r) => {
-                                          const price = r.pricePerLiter ?? 52;
-                                          const yieldVal = (r.am ?? 0) + (r.pm ?? 0);
-                                          return sum + (yieldVal * price);
-                                        }, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                      </span>
-                                    </div>
+                              )}
+                              
+                              {debtsKsh > 0 && (
+                                <div className="bg-rose-50 p-2 rounded-lg border border-rose-100">
+                                  <span className="text-[9px] font-black text-rose-600 uppercase tracking-wide block mb-1">Unpaid Debts (Ksh {debtsKsh.toLocaleString()})</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {dayOutflow.debtsList && dayOutflow.debtsList.length > 0 ? (
+                                      dayOutflow.debtsList.map((d, i) => (
+                                        <span key={i} className="text-[9px] font-mono text-rose-800 bg-white px-1.5 py-0.5 rounded shadow-2xs">👤 {d.debtor}: Ksh {d.amount}</span>
+                                      ))
+                                    ) : (
+                                      <span className="text-[9px] font-mono text-rose-800 bg-white px-1.5 py-0.5 rounded shadow-2xs">👤 {dayOutflow.debtCustomer}</span>
+                                    )}
                                   </div>
                                 </div>
+                              )}
+
+                              <div className="flex justify-end mt-2">
+                                <button onClick={() => onDeleteMilkOutflow(dayOutflow.id)} className="text-[9px] text-slate-400 hover:text-red-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
+                                  <Trash2 size={10}/> Delete Dispatch Log
+                                </button>
                               </div>
-                            );
-                          })()}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    );
-                  });
-                })()}
-              </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
-      )}
-
-      {/* SUB-TAB: BREEDING LEDGER */}
+      )}\n      {/* SUB-TAB: BREEDING LEDGER */}
       {subTab === 'breeding_ledger' && (
         <div className="space-y-6">
           {/* Header Actions for Breeding Ledger */}
