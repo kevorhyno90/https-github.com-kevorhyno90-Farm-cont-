@@ -7095,6 +7095,6 @@ export default function App() {
       )}
       <FirebaseSyncer />
     </div>
-    
+    </ErrorBoundary>
   );
 }
