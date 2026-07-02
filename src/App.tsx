@@ -959,6 +959,9 @@ export default function App() {
     const inventory = filteredInventory;
     const vetRecords = filteredVetRecords;
     const poultryRecords = filteredPoultryRecords;
+    const staffOffRecords = filteredStaffOffRecords;
+    const livestock = filteredLivestock;
+    const todos = filteredTodos;
     
     const getStoredDiagHistory = () => filteredDiagHistory;
     const getStoredTimetable = () => filteredTimetable;
@@ -1031,6 +1034,25 @@ export default function App() {
         `<strong>${((m.am ?? 0) + (m.pm ?? 0)).toFixed(1)} L</strong>`,
         m.staff
       ]);
+      
+      let outflowsHtml = '';
+      if (milkOutflows && milkOutflows.length > 0) {
+        const outRows = milkOutflows.map(mo => [
+          `<span style="font-family: monospace; font-weight: bold;">${mo.date}</span>`,
+          `<strong>${mo.destination}</strong> (${mo.dispatchType})`,
+          `<strong>${mo.liters.toFixed(1)} L</strong>`,
+          `Ksh ${mo.pricePerLiter || 0}`,
+          `<span style="color: #166534; font-weight: bold;">Ksh ${(mo.liters * (mo.pricePerLiter || 0)).toLocaleString()}</span>`,
+          `<span style="color: ${mo.debtsKsh > 0 ? '#b91c1c' : '#166534'};">Ksh ${mo.debtsKsh.toLocaleString()}</span>`
+        ]);
+        outflowsHtml = `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
+            Dairy Bulk Sales, Consumption & Outflow Dispatches
+          </h4>
+          ${buildTableHtml(['Dispatch Date', 'Client/Destination', 'Volume', 'Price/L', 'Gross Revenue', 'Pending Debt'], outRows)}
+        `;
+      }
+
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
@@ -1038,6 +1060,7 @@ export default function App() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${milkRecords.length} records)</span>
           </h3>
           ${buildTableHtml(['Date', 'Cow Tag ID', 'AM Liters', 'PM Liters', 'Total Yield', 'Milker'], rows)}
+          ${outflowsHtml}
         </div>
       `;
     }
@@ -1392,11 +1415,12 @@ export default function App() {
       `;
     }
 
-    // 10. Livestock (Security Canines)
+    // 10. Livestock (General)
     if (sections.livestock) {
-      const rows = livestock.filter(item => item.type === 'Dogs').map(item => [
+      const rows = livestock.map(item => [
         `<span style="font-family: monospace;">${item.date}</span>`,
         `<strong>${item.name}</strong>`,
+        `<em>${item.type}</em>`,
         item.countOrBreed,
         `<strong>${item.activity}</strong>`,
         `<span style="font-style: italic; color: #64748b;">${item.notes}</span>`
@@ -1405,10 +1429,10 @@ export default function App() {
       sectionsHtml += `
         <div style="margin-bottom: 40px; page-break-inside: avoid;">
           <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
-            <span>Security Canine Logs</span>
-            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.filter(item => item.type === 'Dogs').length} canines)</span>
+            <span>General Livestock & Canines Activity Log</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${livestock.length} entries)</span>
           </h3>
-          ${buildTableHtml(['Date Logged', 'Canine Name', 'Breed Classification', 'Activity', 'Notes'], rows)}
+          ${buildTableHtml(['Date Logged', 'Animal/Group Name', 'Livestock Type', 'Breed/Count', 'Activity Phase', 'Notes'], rows)}
         </div>
       `;
     }
@@ -1881,6 +1905,50 @@ export default function App() {
           ${buildTableHtml(['Isolation Start', 'Animal Tag ID / Specimen', 'Quarantine Reason', 'Symptoms Tracked', 'Release Status', 'Attending Veterinarian', 'Prescription Notes'], rows)}
         </div>
       `;
+    }
+
+    // 22. To-Dos
+    if (sections.todos) {
+      const pendingRows = todos.filter(t => !t.completed).map(t => [
+        `<span style="font-family: monospace;">${t.date}</span>`,
+        `<strong>${t.text}</strong>`,
+        `<span style="font-weight: bold; color: #b91c1c;">PENDING</span>`
+      ]);
+      const completedRows = todos.filter(t => t.completed).map(t => [
+        `<span style="font-family: monospace;">${t.date}</span>`,
+        `<strong style="text-decoration: line-through; color: #64748b;">${t.text}</strong>`,
+        `<span style="font-weight: bold; color: #166534;">COMPLETED</span>`
+      ]);
+      
+      let todosHtml = '';
+      if (pendingRows.length > 0) {
+        todosHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #b91c1c; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #b91c1c; padding-left: 6px;">
+            Action Required: Pending Farm Tasks
+          </h4>
+          ${buildTableHtml(['Date Added', 'Task Description', 'Status'], pendingRows)}
+        `;
+      }
+      if (completedRows.length > 0) {
+        todosHtml += `
+          <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #166534; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #166534; padding-left: 6px;">
+            Completed Farm Tasks
+          </h4>
+          ${buildTableHtml(['Date Added', 'Task Description', 'Status'], completedRows)}
+        `;
+      }
+
+      if (todosHtml) {
+        sectionsHtml += `
+          <div style="margin-bottom: 40px; page-break-inside: avoid;">
+            <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+              <span>Farm Manager's Daily Checklist & To-Dos</span>
+              <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${todos.length} total tasks)</span>
+            </h3>
+            ${todosHtml}
+          </div>
+        `;
+      }
     }
 
     const netPlAmount = financials.reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
@@ -2416,7 +2484,7 @@ export default function App() {
       cropSales: false, financials: false, spray: false, fields: false,
       livestock: false, goats: false, calves: false, bsf: false,
       inventory: false, vet: false, academy: false, timetable: false,
-      silage: false, heifers: false, poultry: false, quarantine: false
+      silage: false, heifers: false, poultry: false, quarantine: false, todos: false
     } as any;
     
     keys.forEach(k => {
@@ -2906,6 +2974,9 @@ export default function App() {
   const filteredHeiferRecords = heiferRecords.filter(h => isRecordInSelectedDateRange(h.dateLogged));
   const filteredPoultryRecords = poultryRecords.filter(p => isRecordInSelectedDateRange(p.dateLogged));
   const filteredQuarantineRecords = quarantineRecords.filter(q => isRecordInSelectedDateRange(q.dateStarted));
+  const filteredStaffOffRecords = staffOffRecords.filter(o => isRecordInSelectedDateRange(o.startDate));
+  const filteredLivestock = livestock.filter(l => isRecordInSelectedDateRange(l.date));
+  const filteredTodos = todos.filter(t => isRecordInSelectedDateRange(t.date));
 
   const reportIncome = filteredFinancials.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
   const reportExpense = filteredFinancials.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
