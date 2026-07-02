@@ -4744,8 +4744,8 @@ export function DairyBreeding({
                     <input
                       type="date"
                       value={editingMilk.date}
-                      disabled
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                      onChange={(e) => setEditingMilk({ ...editingMilk, date: e.target.value })}
+                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-700 font-mono"
                     />
                   </div>
                 </div>

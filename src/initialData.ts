@@ -105,33 +105,19 @@ export const INITIAL_INGREDIENTS: Ingredient[] = [
 ];
 
 export const INITIAL_MILK_RECORDS: MilkingRecord[] = [
-  { id: 'Cow-101 (Daisy)', am: 15.5, pm: 12.0, staff: 'Mosoti', date: getRelativeDate(-6) },
-  { id: 'Cow-102 (Goldie)', am: 18.0, pm: 14.5, staff: 'Mosoti', date: getRelativeDate(-6) },
-  { id: 'Cow-103 (Ruby)', am: 12.0, pm: 10.0, staff: 'Mosoti', date: getRelativeDate(-6) },
-
-  { id: 'Cow-101 (Daisy)', am: 16.0, pm: 11.5, staff: 'Mosoti', date: getRelativeDate(-5) },
-  { id: 'Cow-102 (Goldie)', am: 17.5, pm: 15.0, staff: 'Mosoti', date: getRelativeDate(-5) },
-  { id: 'Cow-103 (Ruby)', am: 11.8, pm: 9.5, staff: 'Mosoti', date: getRelativeDate(-5) },
-
-  { id: 'Cow-101 (Daisy)', am: 15.8, pm: 12.2, staff: 'Mosoti', date: getRelativeDate(-4) },
-  { id: 'Cow-102 (Goldie)', am: 19.0, pm: 14.0, staff: 'Mosoti', date: getRelativeDate(-4) },
-  { id: 'Cow-103 (Ruby)', am: 12.5, pm: 10.2, staff: 'Mosoti', date: getRelativeDate(-4) },
-
-  { id: 'Cow-101 (Daisy)', am: 16.2, pm: 12.5, staff: 'Mosoti', date: getRelativeDate(-3) },
-  { id: 'Cow-102 (Goldie)', am: 18.5, pm: 14.8, staff: 'Mosoti', date: getRelativeDate(-3) },
-  { id: 'Cow-103 (Ruby)', am: 13.0, pm: 11.0, staff: 'Mosoti', date: getRelativeDate(-3) },
-
-  { id: 'Cow-101 (Daisy)', am: 15.0, pm: 12.0, staff: 'Mosoti', date: getRelativeDate(-2) },
-  { id: 'Cow-102 (Goldie)', am: 19.5, pm: 15.2, staff: 'Mosoti', date: getRelativeDate(-2) },
-  { id: 'Cow-103 (Ruby)', am: 12.2, pm: 10.5, staff: 'Mosoti', date: getRelativeDate(-2) },
-
-  { id: 'Cow-101 (Daisy)', am: 16.5, pm: 13.0, staff: 'Mosoti', date: getRelativeDate(-1) },
-  { id: 'Cow-102 (Goldie)', am: 20.0, pm: 16.0, staff: 'Mosoti', date: getRelativeDate(-1) },
-  { id: 'Cow-103 (Ruby)', am: 12.8, pm: 11.2, staff: 'Mosoti', date: getRelativeDate(-1) },
-
   { id: 'Cow-101 (Daisy)', am: 17.0, pm: 13.5, staff: 'Mosoti', date: getRelativeDate(0) },
   { id: 'Cow-102 (Goldie)', am: 21.0, pm: 15.8, staff: 'Mosoti', date: getRelativeDate(0) },
-  { id: 'Cow-103 (Ruby)', am: 13.5, pm: 11.5, staff: 'Mosoti', date: getRelativeDate(0) }
+  { id: 'Cow-103 (Ruby)', am: 13.5, pm: 11.5, staff: 'Mosoti', date: getRelativeDate(0) },
+
+  { id: 'Cow-101 (Daisy)', am: 16.5, pm: 13.0, staff: 'Mosoti', date: getRelativeDate(-2) },
+  { id: 'Cow-102 (Goldie)', am: 20.0, pm: 16.0, staff: 'Mosoti', date: getRelativeDate(-2) },
+  { id: 'Cow-103 (Ruby)', am: 12.8, pm: 11.2, staff: 'Mosoti', date: getRelativeDate(-2) },
+
+  { id: 'Cow-101 (Daisy)', am: 15.0, pm: 12.0, staff: 'Mosoti', date: getRelativeDate(-15) },
+  { id: 'Cow-102 (Goldie)', am: 19.5, pm: 15.2, staff: 'Mosoti', date: getRelativeDate(-15) },
+
+  { id: 'Cow-101 (Daisy)', am: 16.2, pm: 12.5, staff: 'Mosoti', date: getRelativeDate(-45) },
+  { id: 'Cow-102 (Goldie)', am: 18.5, pm: 14.8, staff: 'Mosoti', date: getRelativeDate(-45) },
 ];
 
 export const INITIAL_SEMEN_INVENTORY: SemenInventoryItem[] = [
@@ -681,6 +667,16 @@ export const INITIAL_MORTALITY_RECORDS: MortalityRecord[] = [
 export const INITIAL_MILK_OUTFLOW_RECORDS: MilkOutflowRecord[] = [
   {
     id: 'mo-1',
+    date: getRelativeDate(0),
+    milkUsedAtHome: 4.0,
+    milkUsedByWorkers: 5.0,
+    milkSpoiled: 0.0,
+    debtsKsh: 0,
+    debtCustomer: '',
+    notes: 'Today\'s dispatch.'
+  },
+  {
+    id: 'mo-2',
     date: getRelativeDate(-2),
     milkUsedAtHome: 4.5,
     milkUsedByWorkers: 6.0,
@@ -690,14 +686,24 @@ export const INITIAL_MILK_OUTFLOW_RECORDS: MilkOutflowRecord[] = [
     notes: 'Home milk for guests; Kemunto dry period credits.'
   },
   {
-    id: 'mo-2',
-    date: getRelativeDate(-1),
+    id: 'mo-3',
+    date: getRelativeDate(-15),
     milkUsedAtHome: 3.5,
     milkUsedByWorkers: 5.0,
     milkSpoiled: 0.0,
     debtsKsh: 420,
     debtCustomer: 'Bob Nyabuto (Local shop)',
     notes: 'Local shop purchased on credit, 8 liters at Ksh 52.5.'
+  },
+  {
+    id: 'mo-4',
+    date: getRelativeDate(-45),
+    milkUsedAtHome: 3.0,
+    milkUsedByWorkers: 4.0,
+    milkSpoiled: 1.0,
+    debtsKsh: 0,
+    debtCustomer: '',
+    notes: 'Old historic dispatch.'
   }
 ];
 
