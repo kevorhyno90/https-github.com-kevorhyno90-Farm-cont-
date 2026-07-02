@@ -122,10 +122,18 @@ export function Roster({
     Completed: 'bg-slate-100 text-slate-800 border-slate-300'
   };
 
+  // Group counts
+  const totalStaffCount = staffList.length;
+  const activeStaffCount = staffList.filter(s => s.status === 'Present').length;
+  const offTodayCount = staffList.filter(s => s.status === 'Off').length;
+  const leaveTodayCount = staffList.filter(s => s.status === 'On Leave').length;
+
   // Helper to generate initials
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return '??';
     return name
       .split(' ')
+      .filter(n => n.length > 0)
       .map(n => n[0])
       .join('')
       .substring(0, 2)
