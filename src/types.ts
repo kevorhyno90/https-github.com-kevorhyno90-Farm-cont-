@@ -389,6 +389,9 @@ export interface QuarantineRecord {
   notes: string;
 }
 
-
-
-
+export interface ActivityLogEntry {
+  id: string;
+  message: string;
+  timestamp: string;
+  type: 'info' | 'warning' | 'success' | 'alert';
+}
