@@ -30,7 +30,10 @@ import {
   Printer,
   Download,
   Sparkles,
-  Award
+  Award,
+  Truck,
+  X,
+  Database
 } from 'lucide-react';
 
 interface DairyBreedingProps {
