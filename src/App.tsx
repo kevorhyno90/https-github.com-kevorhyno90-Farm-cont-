@@ -1072,19 +1072,32 @@ export default function App() {
       
       let outflowsHtml = '';
       if (milkOutflows && milkOutflows.length > 0) {
-        const outRows = milkOutflows.map(mo => [
-          `<span style="font-family: monospace; font-weight: bold;">${mo.date}</span>`,
-          `<strong>${mo.destination}</strong> (${mo.dispatchType})`,
-          `<strong>${mo.liters.toFixed(1)} L</strong>`,
-          `Ksh ${mo.pricePerLiter || 0}`,
-          `<span style="color: #166534; font-weight: bold;">Ksh ${(mo.liters * (mo.pricePerLiter || 0)).toLocaleString()}</span>`,
-          `<span style="color: ${mo.debtsKsh > 0 ? '#b91c1c' : '#166534'};">Ksh ${mo.debtsKsh.toLocaleString()}</span>`
-        ]);
+        const outRows = milkOutflows.map(mo => {
+          const dayMilks = milkRecords.filter(r => r.date === mo.date);
+          const yieldTotal = dayMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
+          const home = mo.milkUsedAtHome || 0;
+          const workers = mo.milkUsedByWorkers || 0;
+          const calf = mo.milkUsedByCalf || 0;
+          const spoiled = mo.milkSpoiled || 0;
+          const consumed = home + workers + calf + spoiled;
+          const netSold = Math.max(0, yieldTotal - consumed);
+          const price = (mo as any).salesPricePerLiter ?? 52;
+          const revenue = netSold * price;
+          
+          return [
+            `<span style="font-family: monospace; font-weight: bold;">${mo.date}</span>`,
+            `<strong>Market Sales (Direct)</strong> <span style="font-size: 9px; color: #64748b;">(Home: ${home}L | Staff: ${workers}L | Calf: ${calf}L | Spoilt: ${spoiled}L)</span>`,
+            `<strong>${netSold.toFixed(1)} L</strong>`,
+            `Ksh ${price}`,
+            `<span style="color: #166534; font-weight: bold;">Ksh ${revenue.toLocaleString()}</span>`,
+            `<span style="color: ${mo.debtsKsh > 0 ? '#b91c1c' : '#166534'};">Ksh ${mo.debtsKsh.toLocaleString()}</span>`
+          ];
+        });
         outflowsHtml = `
           <h4 style="font-size: 11px; font-family: sans-serif; text-transform: uppercase; color: #475569; margin-top: 15px; margin-bottom: 5px; font-weight: 700; border-left: 3px solid #64748b; padding-left: 6px;">
             Dairy Bulk Sales, Consumption & Outflow Dispatches
           </h4>
-          ${buildTableHtml(['Dispatch Date', 'Client/Destination', 'Volume', 'Price/L', 'Gross Revenue', 'Pending Debt'], outRows)}
+          ${buildTableHtml(['Dispatch Date', 'Client/Destination / Consumption Breakdown', 'Volume Sold', 'Price/L', 'Gross Revenue', 'Pending Debt'], outRows)}
         `;
       }
 
@@ -4527,24 +4540,39 @@ export default function App() {
                     <thead>
                       <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
                         <th className="p-1">Dispatch Date</th>
-                        <th className="p-1">Client/Destination</th>
-                        <th className="p-1 text-right">Volume</th>
+                        <th className="p-1">Consumption / Sales Details</th>
+                        <th className="p-1 text-right">Volume Sold</th>
                         <th className="p-1 text-right">Price/L</th>
                         <th className="p-1 text-right">Gross Revenue</th>
                         <th className="p-1 text-right">Pending Debt</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {milkOutflows.map((mo) => (
-                        <tr key={mo.id} className="border-b border-slate-100">
-                          <td className="p-1.5 font-mono text-slate-700 font-bold">{mo.date}</td>
-                          <td className="p-1.5 font-bold text-slate-800">{mo.destination} <span className="text-[10px] font-normal text-slate-500">({mo.dispatchType})</span></td>
-                          <td className="p-1.5 text-right font-mono font-bold">{mo.liters.toFixed(1)} L</td>
-                          <td className="p-1.5 text-right font-mono">Ksh {mo.pricePerLiter || 0}</td>
-                          <td className="p-1.5 text-right font-mono font-bold text-emerald-800">Ksh {(mo.liters * (mo.pricePerLiter || 0)).toLocaleString()}</td>
-                          <td className={`p-1.5 text-right font-mono font-bold ${mo.debtsKsh > 0 ? 'text-rose-700' : 'text-emerald-800'}`}>Ksh {mo.debtsKsh.toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {milkOutflows.map((mo) => {
+                        const dayMilks = milkRecords.filter(r => r.date === mo.date);
+                        const yieldTotal = dayMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
+                        const home = mo.milkUsedAtHome || 0;
+                        const workers = mo.milkUsedByWorkers || 0;
+                        const calf = mo.milkUsedByCalf || 0;
+                        const spoiled = mo.milkSpoiled || 0;
+                        const consumed = home + workers + calf + spoiled;
+                        const netSold = Math.max(0, yieldTotal - consumed);
+                        const price = (mo as any).salesPricePerLiter ?? 52;
+                        const revenue = netSold * price;
+                        return (
+                          <tr key={mo.id} className="border-b border-slate-100">
+                            <td className="p-1.5 font-mono text-slate-700 font-bold">{mo.date}</td>
+                            <td className="p-1.5 text-slate-800">
+                              <span className="font-bold">Market Sales (Direct)</span>
+                              <span className="text-[10px] font-normal text-slate-500 block">Home: {home}L | Staff: {workers}L | Calf: {calf}L | Spoilt: {spoiled}L</span>
+                            </td>
+                            <td className="p-1.5 text-right font-mono font-bold">{netSold.toFixed(1)} L</td>
+                            <td className="p-1.5 text-right font-mono">Ksh {price}</td>
+                            <td className="p-1.5 text-right font-mono font-bold text-emerald-800">Ksh {revenue.toLocaleString()}</td>
+                            <td className={`p-1.5 text-right font-mono font-bold ${mo.debtsKsh > 0 ? 'text-rose-700' : 'text-emerald-800'}`}>Ksh {mo.debtsKsh.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
