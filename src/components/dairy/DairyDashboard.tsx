@@ -1,13 +1,13 @@
 import React from 'react';
 import { Calendar, Activity, TrendingUp, BellRing, Baby, TestTube, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { MilkingRecord, MilkOutflowRecord, AIRecord, CowRecord } from '../../types';
+import { MilkingRecord, MilkOutflowRecord, AIRecord, Cow } from '../../types';
 
 interface DairyDashboardProps {
   milkRecords: MilkingRecord[];
   milkOutflows: MilkOutflowRecord[];
   aiRecords: AIRecord[];
-  cows: CowRecord[];
+  cows: Cow[];
 }
 
 export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: DairyDashboardProps) {
@@ -203,8 +203,8 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Yield Trend</h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="99%" height="100%">
                 <LineChart data={recentChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
@@ -217,8 +217,8 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
           </div>
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Revenue Trend</h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="99%" height="100%">
                 <BarChart data={recentChartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />

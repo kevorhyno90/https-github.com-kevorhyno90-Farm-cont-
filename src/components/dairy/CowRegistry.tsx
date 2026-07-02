@@ -1,13 +1,13 @@
 import React from 'react';
 import { Search, Plus, FileSpreadsheet, Droplets, Trash2, CheckCircle2 } from 'lucide-react';
-import { CowRecord, MilkingRecord } from '../../types';
+import { Cow, MilkingRecord } from '../../types';
 
 interface CowRegistryProps {
-  cows: CowRecord[];
+  cows: Cow[];
   cowSearch: string;
   setCowSearch: (val: string) => void;
   onTriggerSectionReport?: (section: string) => void;
-  setEditingCow: (cow: CowRecord) => void;
+  setEditingCow: (cow: Cow) => void;
   onDeleteCow: (id: string) => void;
   milkRecords: MilkingRecord[];
 }

@@ -4,11 +4,11 @@
  */
 
 import { CowRegistry } from './dairy/CowRegistry';
+import { DairyDashboard } from './dairy/DairyDashboard';
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord, SemenInventoryItem, CalfRecord } from '../types';
 import {
-import { DairyDashboard } from './dairy/DairyDashboard';
   Plus,
   Calendar,
   Activity,
