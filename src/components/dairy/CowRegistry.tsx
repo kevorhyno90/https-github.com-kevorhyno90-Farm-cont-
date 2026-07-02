@@ -22,8 +22,8 @@ export function CowRegistry({
   milkRecords 
 }: CowRegistryProps) {
   return (
-{/* SUB-TAB 2: COW IDENTITY DIRECTORY */}
-      <>
+    <>
+      {/* SUB-TAB 2: COW IDENTITY DIRECTORY */}
         <div className="space-y-6">
           <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto flex-1">
