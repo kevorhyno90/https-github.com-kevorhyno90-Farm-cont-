@@ -471,10 +471,9 @@ export function CowRegistry({
                     </div>
                   );
                 });
-              })()
-            </>
+              })()}
           </div>
         </div>
-      
+    </>
   );
 }
