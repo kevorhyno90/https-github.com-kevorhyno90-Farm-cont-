@@ -178,6 +178,37 @@ export const LOGO_SVG_STRING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox=
   <text x="128" y="218" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="9" fill="url(#gold)" text-anchor="middle" letter-spacing="1.5" opacity="0.95">ESTATE</text>
 </svg>`;
 
+class ErrorBoundary extends React.Component<{children: any}, {hasError: boolean, error: any, errorInfo: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    this.setState({ errorInfo });
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '25px', backgroundColor: '#fef2f2', color: '#991b1b', height: '100vh', overflow: 'auto', fontFamily: 'sans-serif' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>Application Crashed!</h2>
+          <p style={{ fontWeight: 'bold' }}>Please send this error message to the developer:</p>
+          <pre style={{ backgroundColor: '#fee2e2', padding: '15px', borderRadius: '8px', overflowX: 'auto', border: '1px solid #fca5a5' }}>
+            {this.state.error && this.state.error.toString()}
+          </pre>
+          <pre style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', overflowX: 'auto', border: '1px solid #e2e8f0', color: '#334155', marginTop: '15px' }}>
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const getStoredFeedFormula = () => {
     try {
@@ -5553,6 +5584,7 @@ export default function App() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Dynamic Screen Orientation Blocker Overlay */}
       {showOrientationBlocker && (
@@ -7063,6 +7095,6 @@ export default function App() {
       )}
       <FirebaseSyncer />
     </div>
-    </ErrorBoundary>
+    
   );
 }
