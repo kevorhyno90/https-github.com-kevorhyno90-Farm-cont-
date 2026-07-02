@@ -840,13 +840,13 @@ export function Dashboard({
               <p className="text-xs text-slate-400 font-medium mt-1">Morning (AM) vs Afternoon (PM) yield</p>
             </div>
           </div>
-          <div className="h-80 w-full bg-black/20 rounded-2xl p-4 border border-white/5">
+          <div className="h-80 w-full bg-black/20 rounded-2xl p-4 border border-white/5 min-w-0">
             {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 text-sm font-mono">
                 No milking records compiled yet.
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
