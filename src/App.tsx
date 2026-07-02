@@ -85,7 +85,8 @@ import {
   SilageRecord,
   HeiferRecord,
   PoultryRecord,
-  QuarantineRecord
+  QuarantineRecord,
+  ActivityLogEntry
 } from './types';
 
 // Mock Primers
