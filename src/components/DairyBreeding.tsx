@@ -4853,15 +4853,26 @@ export function DairyBreeding({
             </div>
             
             <div className="space-y-3.5 text-xs">
-              {/* Date */}
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dispatch Date</label>
-                <input
-                  type="date"
-                  value={editingOutflow.date}
-                  disabled
-                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
-                />
+              {/* Date & Price */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Dispatch Date</label>
+                  <input
+                    type="date"
+                    value={editingOutflow.date}
+                    onChange={(e) => setEditingOutflow({ ...editingOutflow, date: e.target.value })}
+                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-100 text-slate-700 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-amber-500 uppercase block mb-1">Sales Price / L (Ksh)</label>
+                  <input
+                    type="number"
+                    value={editingOutflow.salesPricePerLiter ?? 52}
+                    onChange={(e) => setEditingOutflow({ ...editingOutflow, salesPricePerLiter: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    className="border border-amber-200 rounded-lg p-2.5 w-full text-xs font-bold bg-amber-50 text-amber-900 font-mono"
+                  />
+                </div>
               </div>
 
               {/* Volumes Section */}
