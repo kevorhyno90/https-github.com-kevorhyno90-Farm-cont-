@@ -355,10 +355,42 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                           <p className="text-[10px] text-slate-500 font-bold uppercase">
                             Chemical: <span className="font-extrabold text-slate-700">{rec.chemical}</span> • Target: {rec.target}
                           </p>
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                            <Clock size={12} className="text-slate-450" />
-                            <span>Sprayed: {rec.date} • Pre-Harvest Interval (PHI): {rec.phi} days</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                              <Clock size={12} className="text-slate-450" />
+                              <span>Sprayed: {rec.date} • Pre-Harvest Interval (PHI): {rec.phi} days</span>
+                            </div>
+                            {(() => {
+                              const daysRemaining = Math.max(0, Math.ceil((new Date(rec.safeDate).getTime() - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)));
+                              if (daysRemaining > 0) {
+                                return (
+                                  <span className="text-[10px] bg-red-100 text-red-800 border border-red-200 px-2.5 py-0.5 rounded-full font-black font-mono animate-pulse">
+                                    PHI Withholding: {daysRemaining} days left
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="text-[10px] bg-emerald-105 bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-black font-mono">
+                                  Withholding Expired
+                                </span>
+                              );
+                            })()}
                           </div>
+ 
+                          {(() => {
+                            const name = rec.chemical.toLowerCase();
+                            let tox = { label: 'WHO Class II: Moderately Hazardous', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+                            if (name.includes('dimethoate') || name.includes('carbofuran') || name.includes('methomyl') || name.includes('ddvp')) {
+                              tox = { label: 'WHO Class Ib: Highly Hazardous', color: 'text-red-705 bg-red-50 border-red-200' };
+                            } else if (name.includes('copper') || name.includes('sulphur') || name.includes('mancozeb') || name.includes('neem')) {
+                              tox = { label: 'WHO Class III: Slightly Hazardous', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+                            }
+                            return (
+                              <div className={`mt-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase tracking-wide inline-block ${tox.color}`}>
+                                {tox.label} • PPE Required
+                              </div>
+                            );
+                          })()}
 
                           <div className="flex items-center gap-4 mt-2 bg-[#ffffff]/60 p-2 rounded-xl border border-slate-100/80 max-w-sm">
                             <div>

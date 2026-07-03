@@ -14,8 +14,9 @@ interface RosterProps {
   onUpdateOffRecordStatus: (id: string, status: 'Approved' | 'Pending' | 'Completed') => void;
   onEditStaffOffRecord?: (id: string, updated: StaffOffRecord) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  onAddTransaction?: (transaction: any) => void;
 }
-
+ 
 export function Roster({
   staffList,
   onUpdateStatus,
@@ -27,10 +28,11 @@ export function Roster({
   onDeleteOffRecord,
   onUpdateOffRecordStatus,
   onEditStaffOffRecord,
-  onTriggerSectionReport
+  onTriggerSectionReport,
+  onAddTransaction
 }: RosterProps) {
   // Navigation tabs of roster page
-  const [rosterSubTab, setRosterSubTab] = useState<'roster' | 'leaves'>('roster');
+  const [rosterSubTab, setRosterSubTab] = useState<'roster' | 'leaves' | 'attendance' | 'wages'>('roster');
 
   // New Editing State variables
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
@@ -228,7 +230,7 @@ export function Roster({
           onClick={() => setRosterSubTab('leaves')}
           className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 flex items-center gap-2 cursor-pointer ${
             rosterSubTab === 'leaves'
-              ? 'border-indigo-805 text-indigo-950 font-black'
+              ? 'border-indigo-850 text-indigo-950 font-black'
               : 'border-transparent text-slate-400 hover:text-slate-600'
           }`}
         >
@@ -236,6 +238,26 @@ export function Roster({
           <span className="text-[10px] bg-indigo-100 text-indigo-900 px-2.5 py-0.5 rounded-full font-black">
             {staffOffRecords.length}
           </span>
+        </button>
+        <button
+          onClick={() => setRosterSubTab('attendance')}
+          className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 cursor-pointer ${
+            rosterSubTab === 'attendance'
+              ? 'border-sky-800 text-sky-950 font-black'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          Daily Attendance
+        </button>
+        <button
+          onClick={() => setRosterSubTab('wages')}
+          className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 cursor-pointer ${
+            rosterSubTab === 'wages'
+              ? 'border-amber-600 text-amber-950 font-black'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          Wages & Advances
         </button>
       </div>
 
@@ -955,6 +977,200 @@ export function Roster({
               >
                 Save Changes
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+ 
+      {/* TAB 3: DAILY ATTENDANCE GRID */}
+      {rosterSubTab === 'attendance' && (
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm text-left space-y-6">
+          <div>
+            <h4 className="text-sm font-black uppercase text-slate-800 tracking-wide">Daily Attendance Grid Sheet</h4>
+            <p className="text-xs text-slate-400 font-semibold mt-1">Directly toggle daily presence statuses for the farm workforce.</p>
+          </div>
+          <div className="border border-slate-100 rounded-2xl overflow-hidden">
+            <table className="w-full text-left border-collapse text-xs font-semibold">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="p-3">Staff Name</th>
+                  <th className="p-3">Role / Unit</th>
+                  <th className="p-3">Shift Plan</th>
+                  <th className="p-3 text-center">Status Action Toggle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {staffList.map((worker) => (
+                  <tr key={worker.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                    <td className="p-3 font-bold text-slate-700">{worker.name}</td>
+                    <td className="p-3 text-slate-400">
+                      <span className="text-slate-700 font-bold">{worker.role}</span> • {worker.unit}
+                    </td>
+                    <td className="p-3 font-mono text-[10.5px]">
+                      AM: {worker.shiftMorning} | PM: {worker.shiftAfternoon}
+                    </td>
+                    <td className="p-3 flex justify-center gap-1.5">
+                      {[
+                        { label: 'Present', color: 'emerald', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
+                        { label: 'Off', color: 'rose', bg: 'bg-rose-50 text-rose-800 border-rose-200' },
+                        { label: 'On Leave', color: 'indigo', bg: 'bg-indigo-50 text-indigo-800 border-indigo-200' }
+                      ].map((btn) => (
+                        <button
+                          key={btn.label}
+                          onClick={() => onUpdateStatus(worker.id, btn.label as any)}
+                          className={`px-3 py-1.5 border rounded-lg text-2xs uppercase tracking-wider font-black transition-all m-0 cursor-pointer ${
+                            worker.status === btn.label
+                              ? `${btn.bg} shadow-xs ring-1 ring-${btn.color}-500/10`
+                              : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50 hover:text-slate-600'
+                          }`}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+ 
+      {/* TAB 4: WAGES & PAYROLL PAYMENTS */}
+      {rosterSubTab === 'wages' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
+          {/* Wages logger Form */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm lg:col-span-5 space-y-6 self-start">
+            <div>
+              <h4 className="text-sm font-black uppercase text-slate-800 tracking-wide">Record Wage Advance or Payment</h4>
+              <p className="text-xs text-slate-400 font-semibold mt-1">Publish paycheck advances or wage settlements directly to the cash flow ledger.</p>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const fd = new FormData(form);
+                const workerId = fd.get('workerId') as string;
+                const payType = fd.get('payType') as string;
+                const amt = parseFloat(fd.get('amount') as string) || 0;
+                const desc = fd.get('desc') as string;
+                const dateVal = fd.get('payDate') as string;
+ 
+                if (!workerId || amt <= 0) {
+                  alert('Please select an employee and enter a positive payment amount.');
+                  return;
+                }
+ 
+                const s = staffList.find(w => w.id === workerId);
+                if (!s) return;
+ 
+                if (onAddTransaction) {
+                  onAddTransaction({
+                    id: `WAGE-${Date.now()}`,
+                    type: 'expense',
+                    amount: amt,
+                    category: 'Wages',
+                    description: `${payType}: Paid to ${s.name} (${s.role}) - ${desc}`,
+                    date: dateVal || new Date().toISOString().split('T')[0]
+                  });
+                  alert(`✓ Registered wage expense of KES ${amt} to the financials database successfully!`);
+                  form.reset();
+                } else {
+                  alert('Ledger syncer offline. Transaction could not be auto-published.');
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 block">Select Employee</label>
+                <select name="workerId" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                  {staffList.map(w => (
+                    <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Payment Type</label>
+                  <select name="payType" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                    <option value="Wage Advance">Wage Advance</option>
+                    <option value="Salary Settlement">Salary Settlement</option>
+                    <option value="Performance Bonus">Performance Bonus</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-400 block">Amount (Ksh)</label>
+                  <input type="number" name="amount" placeholder="e.g. 5000" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+                </div>
+              </div>
+ 
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 block">Payment Description</label>
+                <input type="text" name="desc" placeholder="e.g. Week 2 pluckers advance" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+              </div>
+ 
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 block">Date of Payment</label>
+                <input type="date" name="payDate" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+              </div>
+ 
+              <button
+                type="submit"
+                className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10"
+              >
+                Log Wage Payment to Ledger
+              </button>
+            </form>
+          </div>
+ 
+          {/* Wages ledger brief view */}
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm lg:col-span-7 space-y-6">
+            <div>
+              <h4 className="text-sm font-black uppercase text-slate-800 tracking-wide">Wage Accounting Ledger</h4>
+              <p className="text-xs text-slate-400 font-semibold mt-1">Live review of labor costs registered on this estate.</p>
+            </div>
+            
+            <div className="border border-slate-100 rounded-2xl overflow-hidden">
+              <table className="w-full text-left border-collapse text-xs font-semibold">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="p-3">Date</th>
+                    <th className="p-3">Reference</th>
+                    <th className="p-3">Details</th>
+                    <th className="p-3 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    let wageTx: any[] = [];
+                    try {
+                      const saved = localStorage.getItem('jr_farm_financials');
+                      if (saved) {
+                        wageTx = JSON.parse(saved).filter((f: any) => f.category === 'Wages' || f.description.toLowerCase().includes('wage') || f.description.toLowerCase().includes('paid to'));
+                      }
+                    } catch (e) {
+                      console.error(e);
+                    }
+                    if (wageTx.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={4} className="p-6 text-center text-slate-400 italic">No wage transactions found. Log one to begin!</td>
+                        </tr>
+                      );
+                    }
+                    return wageTx.map((tx) => (
+                      <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                        <td className="p-3 font-mono">{tx.date}</td>
+                        <td className="p-3 font-bold text-emerald-900">{tx.id}</td>
+                        <td className="p-3 text-slate-500 font-medium">{tx.description}</td>
+                        <td className="p-3 text-right font-black text-rose-600 font-mono">Ksh {Number(tx.amount).toLocaleString()}</td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

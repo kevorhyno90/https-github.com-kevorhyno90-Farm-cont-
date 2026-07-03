@@ -207,7 +207,7 @@ async function startServer() {
       const syncRecord = syncDb[cleanKey];
 
       if (!syncRecord) {
-        return res.status(444).status(404).json({ error: `No sync room found under key "${cleanKey}". Check spelling and retry.` });
+        return res.status(404).json({ error: `No sync room found under key "${cleanKey}". Check spelling and retry.` });
       }
 
       res.json({
@@ -256,7 +256,7 @@ Observable Symptoms: "${symptom}"
 Compile diagnostic analysis reports. Validate that the response is JSON only with the requested structure.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: [
           {
             role: "user",
@@ -635,7 +635,7 @@ How can I assist you in livestock or crop management today?`;
       }
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: [
           ...(history || []).map((h: any) => ({
             role: h.role === "user" ? "user" : "model",

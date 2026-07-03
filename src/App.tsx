@@ -2293,8 +2293,7 @@ export default function App() {
         label: 'GlobalGAP Spray Logs',
         count: filteredSprayRecords.length,
         subsections: [
-          { key: 'spray_logs', label: 'Insecticide & Anti-Fungal Sprays', count: filteredSprayRecords.length },
-          { key: 'spray_quarantine', label: 'Safe PHI Harvest Withholding Warnings', count: filteredQuarantineRecords.length }
+          { key: 'spray_logs', label: 'Insecticide & Anti-Fungal Sprays', count: filteredSprayRecords.length }
         ]
       },
       {
@@ -2372,8 +2371,7 @@ export default function App() {
         label: 'Clinical Treatments',
         count: filteredVetRecords.length,
         subsections: [
-          { key: 'vet_treatments', label: 'Clinical Treatment Protocols Log', count: filteredVetRecords.length },
-          { key: 'vet_withdrawal', label: 'Bio-hazard Withdrawal Safe Period Audits', count: filteredQuarantineRecords.length }
+          { key: 'vet_treatments', label: 'Clinical Treatment Protocols Log', count: filteredVetRecords.length }
         ]
       },
       {
@@ -2393,6 +2391,21 @@ export default function App() {
           { key: 'timetable_schedule', label: 'Operations Calendar Tasks Scheduled', count: filteredTimetable.length },
           { key: 'timetable_protocols', label: 'Standard SOP Protocols & Check drills', count: 18 }
         ]
+      },
+      {
+        key: 'quarantine',
+        label: 'Biosecurity & Quarantine Logs',
+        count: filteredQuarantineRecords.length,
+        subsections: [
+          { key: 'spray_quarantine', label: 'Safe PHI Harvest Withholding Warnings', count: filteredQuarantineRecords.length },
+          { key: 'vet_withdrawal', label: 'Bio-hazard Withdrawal Safe Period Audits', count: filteredQuarantineRecords.length }
+        ]
+      },
+      {
+        key: 'todos',
+        label: "Daily Checklist & To-Dos",
+        count: todos.length,
+        subsections: []
       }
     ];
   };
@@ -2412,6 +2425,7 @@ export default function App() {
       spray: 'Crop Exports',
       fields: 'Main',
       livestock: 'Livestock',
+      poultry: 'Livestock',
       goats: 'Livestock',
       calves: 'Livestock',
       bsf: 'Feed & Factory',
@@ -2419,7 +2433,9 @@ export default function App() {
       inventory: 'Operations',
       vet: 'Livestock',
       academy: 'Academy',
-      timetable: 'Operations'
+      timetable: 'Operations',
+      quarantine: 'Livestock',
+      todos: 'Operations'
     };
 
     return rawSections.filter(sec => {
@@ -2453,6 +2469,7 @@ export default function App() {
       'spray', 'spray_logs', 'spray_quarantine',
       'fields', 'fields_registry', 'fields_agroforestry',
       'livestock', 'live_canines', 'live_poultry',
+      'poultry',
       'goats', 'goats_milk', 'goats_herd',
       'calves', 'calves_log', 'calves_health',
       'bsf', 'bsf_rearing', 'bsf_harvest',
@@ -2460,7 +2477,8 @@ export default function App() {
       'inventory', 'inventory_reserves', 'inventory_alerts',
       'vet', 'vet_treatments', 'vet_withdrawal',
       'academy', 'academy_casebook', 'academy_sop_logs',
-      'timetable', 'timetable_schedule', 'timetable_protocols'
+      'timetable', 'timetable_schedule', 'timetable_protocols',
+      'quarantine', 'todos'
     ];
     const updated = {} as Record<string, boolean>;
     keys.forEach(k => {
@@ -2487,7 +2505,7 @@ export default function App() {
         cropSales: false, financials: false, spray: false, fields: false,
         livestock: false, goats: false, calves: false, bsf: false,
         formula: false, inventory: false, vet: false, academy: false, timetable: false,
-        silage: false, heifers: false, poultry: false, quarantine: false
+        silage: false, heifers: false, poultry: false, quarantine: false, todos: false
       } as Record<string, boolean>;
       customKeys.forEach(k => {
         const mappedKey = k === 'schedule' ? 'timetable' : k;
@@ -2841,6 +2859,7 @@ export default function App() {
     spray: true, spray_logs: true, spray_quarantine: true,
     fields: true, fields_registry: true, fields_agroforestry: true,
     livestock: true, live_canines: true, live_poultry: true,
+    poultry: true,
     goats: true, goats_milk: true, goats_herd: true,
     calves: true, calves_log: true, calves_health: true,
     bsf: true, bsf_rearing: true, bsf_harvest: true,
@@ -2848,7 +2867,9 @@ export default function App() {
     inventory: true, inventory_reserves: true, inventory_alerts: true,
     vet: true, vet_treatments: true, vet_withdrawal: true,
     academy: true, academy_casebook: true, academy_sop_logs: true,
-    timetable: true, timetable_schedule: true, timetable_protocols: true
+    timetable: true, timetable_schedule: true, timetable_protocols: true,
+    quarantine: true,
+    todos: true
   });
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -2880,9 +2901,11 @@ export default function App() {
         inventory: inventory.length > 0,
         vet: vetRecords.length > 0,
         academy: getStoredDiagHistory().length > 0,
-        timetable: getStoredTimetable().length > 0
+        timetable: getStoredTimetable().length > 0,
+        quarantine: quarantineRecords.length > 0,
+        todos: todos.length > 0
       } as Record<string, boolean>;
-
+ 
       // Force active tab keys
       if (activeTab === 'roster') withRecs.staff = true;
       if (activeTab === 'factory' || activeTab === 'tmr') withRecs.formula = true;
@@ -2897,7 +2920,7 @@ export default function App() {
       if (activeTab === 'inventory') withRecs.inventory = true;
       if (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') withRecs.academy = true;
       if (activeTab === 'timetable') withRecs.timetable = true;
-
+ 
       setSelectedSections({
         staff: withRecs.staff, staff_shifts: withRecs.staff, staff_offs: withRecs.staff,
         milk: withRecs.milk, milk_production: withRecs.milk, milk_outflows: withRecs.milk,
@@ -2920,9 +2943,11 @@ export default function App() {
         vet: withRecs.vet, vet_treatments: withRecs.vet, vet_withdrawal: withRecs.vet,
         academy: withRecs.academy, academy_casebook: withRecs.academy, academy_sop_logs: withRecs.academy,
         timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
+        quarantine: withRecs.quarantine, spray_quarantine: withRecs.quarantine, vet_withdrawal: withRecs.quarantine,
+        todos: withRecs.todos
       });
     }
-  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords]);
+  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords, quarantineRecords, todos]);
 
   // Synchronize localStorage
   useEffect(() => {
@@ -3830,24 +3855,56 @@ export default function App() {
 
   const handleAddSpray = (rec: SprayRecord) => {
     setSprayRecords([rec, ...sprayRecords]);
+    
+    // Auto-deduct matching chemical from warehouse inventory
+    const chemicalLower = rec.chemical.toLowerCase();
+    const matched = inventory.find(item => item.name.toLowerCase().includes(chemicalLower) && item.category === 'Chemical');
+    if (matched) {
+      const deductionAmount = 1; // Default 1 unit/liter per spray run
+      const nextQty = Math.max(0, matched.quantity - deductionAmount);
+      setInventory(prev => prev.map(item => item.id === matched.id ? { ...item, quantity: nextQty } : item));
+      
+      if (nextQty <= matched.minStock) {
+        handleAddTodo(`⚠️ LOW STOCK ALERT: Chemical "${matched.name}" is down to ${nextQty} ${matched.unit}. Restock required immediately.`, 'Storekeeper');
+      }
+    }
   };
-
+ 
   const handleAddFields = (rec: FieldRecord) => {
     setFields([rec, ...fields]);
   };
-
+ 
   const handleAddLivestock = (rec: LivestockRecord) => {
     setLivestock([rec, ...livestock]);
   };
-
+ 
   const handleUpdateInventoryStock = (id: string, newQty: number) => {
     setInventory(
       inventory.map((item) => (item.id === id ? { ...item, quantity: newQty } : item))
     );
   };
-
-  const handleAddInventoryItem = (item: InventoryItem) => {
-    setInventory([...inventory, item]);
+ 
+  const handleAddInventoryItem = (item: InventoryItem & { deductions?: Array<{ name: string; amount: number }> }) => {
+    setInventory(prev => {
+      let updated = [...prev, { id: item.id, name: item.name, category: item.category, quantity: item.quantity, unit: item.unit, minStock: item.minStock, dateReceived: item.dateReceived, location: item.location, expiryDate: item.expiryDate }];
+      
+      if (item.deductions) {
+        item.deductions.forEach(ded => {
+          const lowerName = ded.name.toLowerCase();
+          updated = updated.map(inv => {
+            if (inv.name.toLowerCase().includes(lowerName) && (inv.category === 'Feed' || inv.category === 'Fertilizer')) {
+              const nextQty = Math.max(0, inv.quantity - ded.amount);
+              if (nextQty <= inv.minStock) {
+                setTimeout(() => handleAddTodo(`⚠️ LOW STOCK ALERT: Raw Feed Material "${inv.name}" is down to ${nextQty.toFixed(1)} ${inv.unit} left after compounding.`, 'Storekeeper'), 100);
+              }
+              return { ...inv, quantity: nextQty };
+            }
+            return inv;
+          });
+        });
+      }
+      return updated;
+    });
   };
 
   const handleAddCow = (rec: Cow) => {
@@ -6251,6 +6308,7 @@ export default function App() {
               fields={fields}
               vetRecords={vetRecords}
               activityLogs={activityLogs}
+              inventory={inventory}
             />
           )}
 
@@ -6267,6 +6325,7 @@ export default function App() {
               onUpdateOffRecordStatus={handleUpdateOffRecordStatus}
               onEditStaffOffRecord={handleEditStaffOffRecord}
               onTriggerSectionReport={handleTriggerSectionReport}
+              onAddTransaction={handleAddTransaction}
             />
           )}
 
@@ -6276,6 +6335,7 @@ export default function App() {
               onAddIngredientToLib={handleAddIngredientLib}
               onDeleteIngredientToLib={handleDeleteIngredientLib}
               onTriggerSectionReport={handleTriggerSectionReport}
+              onAddInventoryItem={handleAddInventoryItem}
             />
           )}
 
@@ -6368,6 +6428,9 @@ export default function App() {
               onTriggerSectionReport={handleTriggerSectionReport}
               cows={cows}
               fields={fields}
+              milkRecords={milkRecords}
+              vetRecords={vetRecords}
+              aiRecords={aiRecords}
             />
           )}
 
@@ -7096,7 +7159,7 @@ export default function App() {
       <AiAdvisor 
         farmState={{
           cowsCount: livestock ? livestock.length : 0,
-          milkTotal: milkRecords ? milkRecords.reduce((sum, r) => sum + r.morningYield + r.eveningYield, 0) : 0,
+          milkTotal: milkRecords ? milkRecords.reduce((sum, r) => sum + (r.am || 0) + (r.pm || 0), 0) : 0,
           fieldsCount: fields ? fields.length : 0,
           staffCount: staffList ? staffList.length : 0,
           income: totalIncome,

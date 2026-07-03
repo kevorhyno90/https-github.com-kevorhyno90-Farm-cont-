@@ -41,9 +41,8 @@ import {
   Area
 } from 'recharts';
 import { MilkingRecord, Todo, StaffOffRecord, StaffMember, Cow, QuarantineRecord, SprayRecord, FieldRecord, VetRecord, ActivityLogEntry } from '../types';
-import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout } from 'lucide-react';
+import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout, Smartphone } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
-
 interface DashboardProps {
   milkRecords: MilkingRecord[];
   netPl: number;
@@ -64,6 +63,7 @@ interface DashboardProps {
   fields?: FieldRecord[];
   vetRecords?: VetRecord[];
   activityLogs?: ActivityLogEntry[];
+  inventory?: any[];
 }
 
 export function Dashboard({
@@ -85,7 +85,8 @@ export function Dashboard({
   sprayRecords = [],
   fields = [],
   vetRecords = [],
-  activityLogs = []
+  activityLogs = [],
+  inventory = []
 }: DashboardProps) {
   const [newTodo, setNewTodo] = useState('');
   const [todoAssignee, setTodoAssignee] = useState('');
@@ -465,7 +466,84 @@ export function Dashboard({
           );
         })}
       </div>
-
+ 
+      {/* Weather Advisory, Unified Alarms, and PWA Prompts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 z-10 relative">
+        {/* Weather Advisory Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 text-left"
+        >
+          <div className="flex justify-between items-start mb-3">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans">Agronomic Weather Advisory</span>
+            <div className="p-2 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30">
+              <CloudRain size={16} />
+            </div>
+          </div>
+          <h4 className="text-sm font-black text-white uppercase tracking-wide">Heavy Rain Forecast • 18°C</h4>
+          <p className="text-[10px] text-sky-300 font-bold uppercase mt-1">High Humidity (92%) • Spore Risk Alert</p>
+          <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10.5px] leading-relaxed text-amber-300 font-medium">
+            ⚠️ **Late Blight Spore Threat (Solanaceae)**: Cool mist and rainfall accelerate pathogen germination. Secure tomato blocks with protective copper fungicide immediately.
+          </div>
+        </motion.div>
+ 
+        {/* Unified Alarms Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 text-left"
+        >
+          <div className="flex justify-between items-start mb-3">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans">Unified Alarm Center</span>
+            <div className="p-2 bg-rose-500/20 text-rose-400 rounded-lg border border-rose-500/30">
+              <AlertTriangle size={16} />
+            </div>
+          </div>
+          <h4 className="text-sm font-black text-white uppercase tracking-wide">Active Alerts Check</h4>
+          <div className="mt-2.5 space-y-2">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-rose-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+              <span>{quarantineRecords.filter((q: any) => q.quarantineStatus !== 'Cleared & Released').length} Livestock in quarantine.</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-yellow-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+              <span>Warehouse: {inventory.filter((i: any) => i.quantity <= i.minStock).length} feeds/chemicals below minimum.</span>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+              <span>{todos.filter((t: any) => !t.completed).length} checklist task items pending.</span>
+            </div>
+          </div>
+        </motion.div>
+ 
+        {/* PWA Prompt Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 text-left flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-sans">App Shell Settings</span>
+              <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
+                <Smartphone size={16} />
+              </div>
+            </div>
+            <h4 className="text-sm font-black text-white uppercase tracking-wide">PWA Mobile Shortcut</h4>
+            <p className="text-[11px] text-slate-400 mt-2 leading-relaxed font-semibold">
+              Pin JR Farm Omni-Estate directly to your mobile phone home screen. Works offline with lightning speed.
+            </p>
+          </div>
+          <button
+            onClick={() => alert("To install, open this application in a new browser tab and click the Install option in the URL address bar.")}
+            className="mt-3 w-full py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 text-[10px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer text-center"
+          >
+            Install PWA
+          </button>
+        </motion.div>
+      </div>
+ 
       {/* 🧑‍🌾 Staff Attendance & Leave Alerts Reminders */}
       {(() => {
         const todayString = new Date().toISOString().split('T')[0];

@@ -192,6 +192,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
 
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'dateAsc' | 'dateDesc' | 'status' | 'category'>('dateAsc');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<TimetableItem | null>(null);
 
@@ -323,7 +324,17 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   const handleToggleStatus = (id: string) => {
     const updated = items.map(item => {
       if (item.id === id) {
-        return { ...item, status: item.status === 'Completed' ? 'Pending' : 'Completed' as any };
+        return { ...item, status: (item.status === 'Completed' ? 'Pending' : 'Completed') as any };
+      }
+      return item;
+    });
+    handleSaveToLocalStorage(updated);
+  };
+ 
+  const handleUpdateStatusDirect = (id: string, nextStatus: 'Pending' | 'In Progress' | 'Completed') => {
+    const updated = items.map(item => {
+      if (item.id === id) {
+        return { ...item, status: nextStatus };
       }
       return item;
     });
@@ -573,7 +584,33 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
           )}
         </div>
       </div>
-
+ 
+      {/* Kanban Board vs List View Toggle */}
+      <div className="flex justify-start gap-2 border-b border-slate-100 pb-2">
+        <button
+          onClick={() => setViewMode('kanban')}
+          type="button"
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
+            viewMode === 'kanban'
+              ? 'bg-emerald-950 text-white border-emerald-950 shadow-sm font-bold'
+              : 'bg-white text-slate-500 hover:text-slate-800 border-slate-205'
+          }`}
+        >
+          🗂️ Operations Kanban Board
+        </button>
+        <button
+          onClick={() => setViewMode('list')}
+          type="button"
+          className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
+            viewMode === 'list'
+              ? 'bg-emerald-950 text-white border-emerald-950 shadow-sm font-bold'
+              : 'bg-white text-slate-500 hover:text-slate-800 border-slate-205'
+          }`}
+        >
+          📋 Standard Timetable List
+        </button>
+      </div>
+ 
       {/* Filter and Stats Segment */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto flex-wrap">
@@ -625,8 +662,145 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
         </div>
       </div>
 
+      {/* KANBAN BOARD SECTION */}
+      {viewMode === 'kanban' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          {/* COLUMN 1: PENDING / SCHEDULED */}
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">📋 Scheduled / Pending</span>
+              <span className="bg-amber-100 text-amber-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+                {filteredItems.filter(i => i.status === 'Pending').length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {filteredItems.filter(i => i.status === 'Pending').length === 0 ? (
+                <p className="text-[11px] text-slate-400 italic text-center py-6">No pending chores in this filter.</p>
+              ) : (
+                filteredItems.filter(i => i.status === 'Pending').map(item => {
+                  const diffText = getDaysDiffText(item.targetDate);
+                  return (
+                    <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative group">
+                      <div>
+                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <h4 className="text-xs font-black text-slate-800 mt-2 leading-snug">{item.operation}</h4>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-bold space-y-0.5">
+                        <p>🕒 {item.when}</p>
+                        <p>👤 {item.assignedTo || 'General Team'}</p>
+                        {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
+                      </div>
+                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
+                          className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                        >
+                          Start Task →
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatusDirect(item.id, 'Completed')}
+                          className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-200 text-[10px] font-black uppercase rounded-lg cursor-pointer font-bold"
+                          title="Mark Completed"
+                        >
+                          ✓
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+ 
+          {/* COLUMN 2: IN PROGRESS */}
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[11px] font-black uppercase text-indigo-800 tracking-wider">⚡ In Progress</span>
+              <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+                {filteredItems.filter(i => i.status === 'In Progress').length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {filteredItems.filter(i => i.status === 'In Progress').length === 0 ? (
+                <p className="text-[11px] text-slate-400 italic text-center py-6">No tasks in progress.</p>
+              ) : (
+                filteredItems.filter(i => i.status === 'In Progress').map(item => {
+                  const diffText = getDaysDiffText(item.targetDate);
+                  return (
+                    <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative">
+                      <div>
+                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <h4 className="text-xs font-black text-slate-800 mt-2 leading-snug">{item.operation}</h4>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-bold space-y-0.5">
+                        <p>🕒 {item.when}</p>
+                        <p>👤 {item.assignedTo || 'General Team'}</p>
+                        {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
+                      </div>
+                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => handleUpdateStatusDirect(item.id, 'Pending')}
+                          className="w-1/2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                        >
+                          ← Revert
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatusDirect(item.id, 'Completed')}
+                          className="w-1/2 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-white text-[10px] font-black uppercase rounded-lg cursor-pointer border-none shadow"
+                        >
+                          Complete ✓
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+ 
+          {/* COLUMN 3: COMPLETED */}
+          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[11px] font-black uppercase text-emerald-900 tracking-wider">✅ Verified / Completed</span>
+              <span className="bg-emerald-100 text-emerald-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+                {filteredItems.filter(i => i.status === 'Completed').length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {filteredItems.filter(i => i.status === 'Completed').length === 0 ? (
+                <p className="text-[11px] text-slate-400 italic text-center py-6">No completed tasks yet.</p>
+              ) : (
+                filteredItems.filter(i => i.status === 'Completed').map(item => {
+                  return (
+                    <div key={item.id} className="bg-white/80 p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 opacity-90 relative">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600"></div>
+                      <div>
+                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <h4 className="text-xs font-black text-slate-550 line-through mt-2 leading-snug">{item.operation}</h4>
+                      </div>
+                      <div className="text-[10px] text-slate-455 text-slate-400 font-bold space-y-0.5">
+                        <p>👤 {item.assignedTo || 'General Team'}</p>
+                      </div>
+                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
+                          className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                        >
+                          ← Move to In Progress
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+ 
       {/* TIMETABLE LIST SECTION */}
-      <div className="space-y-4" id="timetable-timeline">
+      {viewMode === 'list' && (
+        <div className="space-y-4" id="timetable-timeline">
         {filteredItems.length === 0 ? (
           <div className="bg-white border border-slate-100 rounded-3xl p-12 text-center text-slate-400 font-bold text-xs space-y-2">
             <AlertCircle className="mx-auto text-slate-300" size={32} />
@@ -785,6 +959,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
           })
         )}
       </div>
+      )}
 
       {/* CREATE / EDIT SOP TIMETABLE MODAL */}
       {showAddModal && (

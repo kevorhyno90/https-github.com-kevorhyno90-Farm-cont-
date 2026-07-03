@@ -1116,7 +1116,7 @@ export function DairyBreeding({
 
   const activeRemindersCount = dewormingReminders.filter(r => r.status !== 'safe').length;
 
-  const handleDownloadPedigree = (cow: Cow) => {
+  const handleDownloadPedigree = async (cow: Cow) => {
     const certificateHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -1372,13 +1372,45 @@ export function DairyBreeding({
   </div>
 </body>
 </html>`;
-    const blob = new Blob([certificateHtml], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `pedigree_\${cow.name.toLowerCase()}_\${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.html`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const loadScript = (url: string) => {
+      return new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load ${url}`));
+        document.head.appendChild(script);
+      });
+    };
+
+    try {
+      if (!(window as any).html2pdf) {
+        await loadScript("/html2pdf.bundle.min.js");
+      }
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = certificateHtml;
+      document.body.appendChild(tempDiv);
+
+      const opt = {
+        margin: [0.3, 0.3, 0.3, 0.3],
+        filename: `pedigree_${cow.name.toLowerCase()}_${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+
+      await (window as any).html2pdf().set(opt).from(tempDiv).save();
+      document.body.removeChild(tempDiv);
+    } catch (err) {
+      console.error("PDF generation failed, falling back to HTML download:", err);
+      const blob = new Blob([certificateHtml], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pedigree_${cow.name.toLowerCase()}_${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.html`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   // Unique breeds and statuses for filtering the cattle directory
@@ -5342,7 +5374,7 @@ export function DairyBreeding({
                       className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase rounded-xl transition-all shadow-sm cursor-pointer m-0"
                     >
                       <Download size={13} />
-                      Download Pedigree Slip (HTML)
+                      Download Pedigree Slip (PDF)
                     </button>
                     <button
                       type="button"

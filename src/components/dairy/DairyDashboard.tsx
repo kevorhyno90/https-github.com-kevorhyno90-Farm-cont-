@@ -12,6 +12,10 @@ interface DairyDashboardProps {
 
 export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: DairyDashboardProps) {
   const today = new Date().toISOString().split('T')[0];
+  
+  // Interactive Lactation Cow Curve state
+  const [selectedCowId, setSelectedCowId] = React.useState<string>('');
+
   const getStartOfWeek = (d: string) => {
     const date = new Date(d);
     const day = date.getDay();
@@ -58,6 +62,26 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
   const weekStats = calcStats(r => r.date >= startOfWeek && r.date <= today);
   const monthStats = calcStats(r => r.date >= startOfMonth && r.date <= today);
 
+  // FCR metrics: standard dairy cow feed dry matter allocation is 12 kg
+  const lactatingCowsCount = cows.filter(c => c.status === 'Lactating').length || 1;
+  const averageFeedKg = 12;
+  const dailyFcr = dayStats.yieldL > 0 
+    ? (dayStats.yieldL / (lactatingCowsCount * averageFeedKg)).toFixed(2) 
+    : '0.00';
+
+  // Lactation curves line chart mapping
+  const lactationCurveData = React.useMemo(() => {
+    if (!selectedCowId) return [];
+    const cowMilks = milkRecords
+      .filter(r => r.id && r.id.toLowerCase() === selectedCowId.toLowerCase())
+      .sort((a, b) => a.date.localeCompare(b.date));
+    return cowMilks.map((r, idx) => ({
+      day: `Day ${idx + 1}`,
+      yield: (r.am || 0) + (r.pm || 0),
+      date: r.date
+    }));
+  }, [milkRecords, selectedCowId]);
+
   // Prepare Chart Data
   const sortedDates = Array.from(new Set(milkRecords.map(m => m.date))).sort();
   const chartData = sortedDates.map(date => {
@@ -90,7 +114,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
       const aiDate = new Date(ai.date);
       const daysSinceAI = Math.floor((todayDate.getTime() - aiDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      const cowName = cows.find(c => c.tagId === ai.cowId)?.name || 'Unknown Cow';
+      const cowName = cows.find(c => c.tagId === ai.cowId || c.id === ai.cowId)?.name || 'Unknown Cow';
 
       // 1. Heat Check (21 days)
       if (ai.status === 'Pending' && daysSinceAI >= 18 && daysSinceAI <= 24) {
@@ -130,7 +154,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
     <div className="space-y-8">
       {/* Smart Alerts Panel */}
       {activeAlerts.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm">
+        <div className="bg-red-50 border border-red-200 rounded-3xl p-6 shadow-sm text-left">
           <div className="flex items-center gap-3 mb-4">
             <BellRing className="text-red-500 animate-pulse" size={24} />
             <h4 className="text-sm font-black text-red-900 uppercase tracking-wide">Smart Action Alerts ({activeAlerts.length})</h4>
@@ -157,7 +181,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
       )}
 
       {/* Production Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
         <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-all">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Calendar size={48} className="text-emerald-500" /></div>
           <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Today's Performance</h5>
@@ -184,6 +208,19 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
           </div>
         </div>
 
+        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:border-sky-200 transition-all">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Activity size={48} className="text-sky-500" /></div>
+          <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">Feed Conversion Ratio</h5>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-3xl font-black text-slate-800">{dailyFcr}</span>
+            <span className="text-sm font-bold text-slate-400">L / KG DM</span>
+          </div>
+          <div className="flex justify-between items-center text-xs mt-4 pt-4 border-t border-slate-50">
+            <div className="flex flex-col"><span className="text-[9px] font-bold text-slate-400 uppercase">Lactating Herd</span><span className="font-mono font-bold text-slate-800">{lactatingCowsCount} cows</span></div>
+            <div className="flex flex-col text-right"><span className="text-[9px] font-bold text-slate-400 uppercase">Standard Feed</span><span className="font-mono font-bold text-slate-800">{averageFeedKg} kg / cow</span></div>
+          </div>
+        </div>
+
         <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><TrendingUp size={48} className="text-amber-500" /></div>
           <h5 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">This Month</h5>
@@ -201,7 +238,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
       {/* Charts Section */}
       {recentChartData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Yield Trend</h4>
             <div className="h-64 w-full min-w-0">
               <ResponsiveContainer width="99%" height="100%">
@@ -215,7 +252,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Revenue Trend</h4>
             <div className="h-64 w-full min-w-0">
               <ResponsiveContainer width="99%" height="100%">
@@ -231,6 +268,50 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
           </div>
         </div>
       )}
+
+      {/* Lactation Curve Section */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wide">Individual Lactation Curve Analysis</h4>
+            <p className="text-[10.5px] text-slate-400 font-bold uppercase mt-0.5">MILK YIELD (AM + PM) PLOTTED OVER DAYS IN LACTATION</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] font-black uppercase text-slate-400">Select Cow:</label>
+            <select
+              value={selectedCowId}
+              onChange={(e) => setSelectedCowId(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold"
+            >
+              <option value="">-- Choose Cow tag --</option>
+              {cows.map(c => (
+                <option key={c.id} value={c.id}>{c.id} - {c.name} ({c.breed})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {selectedCowId ? (
+          lactationCurveData.length > 0 ? (
+            <div className="h-72 w-full min-w-0">
+              <ResponsiveContainer width="99%" height="100%">
+                <LineChart data={lactationCurveData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} label={{ value: 'Liters Produced', angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: 10, fill: '#94a3b8', fontWeight: 'bold' } }} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value: number) => [`${value} Liters`, 'Daily Yield']} />
+                  <Line type="monotone" dataKey="yield" stroke="#8b5cf6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="p-8 text-center text-slate-400 italic text-xs">No milking records logged for Cow {selectedCowId}. Add records under the milking log to plot the curve.</div>
+          )
+        ) : (
+          <div className="p-8 text-center text-slate-400 italic text-xs">Please select a cow from the dropdown menu to visualize its individual lactation curve.</div>
+        )}
+      </div>
     </div>
   );
 }

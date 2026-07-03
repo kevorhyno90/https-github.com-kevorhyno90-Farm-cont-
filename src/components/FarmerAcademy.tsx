@@ -104,6 +104,13 @@ export default function FarmerAcademy({
   // Sub-tabs to detail specific items within categories
   const [selectedCrop, setSelectedCrop] = useState<string>('all');
   const [selectedAnimal, setSelectedAnimal] = useState<string>('all');
+ 
+  // Interactive Quiz States
+  const [currentQuizQ, setCurrentQuizQ] = useState<number>(0);
+  const [quizScore, setQuizScore] = useState<number>(0);
+  const [selectedAns, setSelectedAns] = useState<number | null>(null);
+  const [quizDone, setQuizDone] = useState<boolean>(false);
+  const [showFeedback, setShowFeedback] = useState<boolean>(false);
 
   // Calculator states
   const [biogasVolume, setBiogasVolume] = useState<number>(2); // target m3 of gas
@@ -1809,6 +1816,19 @@ export default function FarmerAcademy({
         >
           <Calendar size={13} />
           PHI & Breeding Gestation Timelines
+        </button>
+ 
+        <button
+          onClick={() => { setActiveTab('quizzes' as any); }}
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wide transition-all cursor-pointer m-0 ${
+            activeTab === ('quizzes' as any)
+              ? 'bg-rose-950 text-white border-rose-950 shadow-sm'
+              : 'bg-rose-50 text-rose-900 hover:bg-rose-100 border-rose-200'
+          }`}
+          id="tab-quizzes"
+        >
+          <Award size={13} className={activeTab === ('quizzes' as any) ? 'text-yellow-400' : 'text-rose-700'} />
+          Interactive Quizzes
         </button>
       </div>
 
@@ -4615,7 +4635,167 @@ export default function FarmerAcademy({
           </div>
         </div>
       )}
-
+ 
+      {activeTab === ('quizzes' as any) && (
+        <div className="space-y-6 text-left animate-fadeIn">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-black uppercase">FARMER'S ACADEMY QUIZ</span>
+              <span className="text-[9.5px] text-slate-400 font-bold uppercase">GAP Audit Assessment</span>
+            </div>
+            
+            <h4 className="text-base font-black text-slate-800 uppercase tracking-wide">Test Your Agronomic & Safety Knowledge</h4>
+            <p className="text-xs text-slate-400 font-medium">Verify your understanding of chemical handling, withholding periods, and livestock feed standards to prepare for official certifications.</p>
+          </div>
+ 
+          {!quizDone ? (
+            <div className="bg-white p-8 rounded-3xl border border-slate-150 shadow-sm space-y-6">
+              {/* Progress bar */}
+              <div>
+                <div className="flex justify-between items-center text-[10px] text-slate-400 font-extrabold uppercase mb-2">
+                  <span>Question {currentQuizQ + 1} of 3</span>
+                  <span>Score: {quizScore} / 3</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="bg-emerald-605 bg-emerald-600 h-full transition-all duration-300" style={{ width: `${((currentQuizQ) / 3) * 100}%` }}></div>
+                </div>
+              </div>
+ 
+              {/* Question Card */}
+              {(() => {
+                const quizQuestions = [
+                  {
+                    q: "Under GlobalGAP standards, what is the mandatory Pre-Harvest Interval (PHI) withholding period for standard copper-based fungicide applications?",
+                    options: [
+                      "A) 14 days",
+                      "B) 2 days",
+                      "C) 45 days",
+                      "D) 0 days"
+                    ],
+                    correct: 0,
+                    explanation: "Copper-based treatments require at least a 14-day withholding period to clear residues before picking or plucking leaf crops."
+                  },
+                  {
+                    q: "What does the WHO Toxicity Class Ib designation represent on pesticide or insecticide packaging labels?",
+                    options: [
+                      "A) Slightly Hazardous",
+                      "B) Highly Hazardous",
+                      "C) Extremely Toxic (Class Ia)",
+                      "D) Non-hazardous"
+                    ],
+                    correct: 1,
+                    explanation: "Class Ib is classified by the World Health Organization as 'Highly Hazardous' and requires strict PPE including respirator face guards."
+                  },
+                  {
+                    q: "In standard compounding formulation, what is the target Crude Protein (CP) percentage recommended for high-yielding peak lactation dairy cattle?",
+                    options: [
+                      "A) 12.0% CP",
+                      "B) 19.5% CP",
+                      "C) 8.0% CP",
+                      "D) 28.0% CP"
+                    ],
+                    correct: 1,
+                    explanation: "Peak lactation dairy cows have high metabolic demand, needing approximately 19.5% CP in their dry matter concentrate intake."
+                  }
+                ];
+ 
+                const currentQuestion = quizQuestions[currentQuizQ];
+ 
+                return (
+                  <div className="space-y-6">
+                    <p className="text-sm font-black text-slate-800 leading-normal">{currentQuestion.q}</p>
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      {currentQuestion.options.map((opt, idx) => {
+                        let btnStyle = "border-slate-200 hover:border-slate-300 bg-white text-slate-700";
+                        if (selectedAns !== null) {
+                          if (idx === currentQuestion.correct) {
+                            btnStyle = "border-emerald-500 bg-emerald-50 text-emerald-950 font-black";
+                          } else if (idx === selectedAns) {
+                            btnStyle = "border-red-405 bg-rose-50 text-rose-950";
+                          } else {
+                            btnStyle = "border-slate-100 bg-slate-50/50 text-slate-400 opacity-60";
+                          }
+                        }
+ 
+                        return (
+                          <button
+                            key={idx}
+                            disabled={selectedAns !== null}
+                            onClick={() => {
+                              setSelectedAns(idx);
+                              setShowFeedback(true);
+                              if (idx === currentQuestion.correct) {
+                                setQuizScore(prev => prev + 1);
+                              }
+                            }}
+                            className={`p-4 border rounded-2xl text-left text-xs font-bold transition-all cursor-pointer focus:outline-none ${btnStyle} w-full`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+ 
+                    {showFeedback && (
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <span className="text-[10px] font-black uppercase text-slate-500 block">Agronomic Explanation:</span>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium">{currentQuestion.explanation}</p>
+                        
+                        <button
+                          onClick={() => {
+                            if (currentQuizQ < 2) {
+                              setCurrentQuizQ(prev => prev + 1);
+                              setSelectedAns(null);
+                              setShowFeedback(false);
+                            } else {
+                              setQuizDone(true);
+                            }
+                          }}
+                          className="px-5 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border-none shadow"
+                        >
+                          {currentQuizQ < 2 ? "Next Question" : "Complete Quiz"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-3xl border border-slate-150 shadow-sm text-center space-y-6">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto shadow-md">
+                <Award size={32} />
+              </div>
+ 
+              <div>
+                <h4 className="text-lg font-black text-slate-800 uppercase">Assessment Complete</h4>
+                <p className="text-xs text-slate-500 font-medium mt-1">Sovereign Agronomic Certificate of Achievement</p>
+                <h2 className="text-3xl font-black text-emerald-950 mt-4 font-mono">{quizScore} / 3 Score</h2>
+              </div>
+ 
+              <p className="text-xs text-slate-500 leading-normal max-w-sm mx-auto font-medium">
+                {quizScore === 3 
+                  ? "Outstanding! You scored 100% and demonstrated expert compliance with GlobalGAP & WHO safety guidelines."
+                  : "Good effort! Review the chemical withholding protocols and lactation targets to achieve a perfect compliance record."}
+              </p>
+ 
+              <button
+                onClick={() => {
+                  setCurrentQuizQ(0);
+                  setQuizScore(0);
+                  setSelectedAns(null);
+                  setQuizDone(false);
+                  setShowFeedback(false);
+                }}
+                className="px-6 py-3 border border-slate-200 text-slate-550 font-black text-xs uppercase tracking-wider rounded-xl hover:bg-slate-50 cursor-pointer bg-white"
+              >
+                Retake Quiz
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

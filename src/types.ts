@@ -347,6 +347,7 @@ export interface SilageRecord {
   recommendedDailyIntakePerAnimal: number; // in KG (typically 1.5% - 3% of body weight depending on DM content)
   daysOfFeedAvailable: number; // calculated feed lifespan
 }
+
 export interface HeiferRecord {
   id: string;
   cowId: string; // Target heifer identification tag
@@ -387,11 +388,4 @@ export interface QuarantineRecord {
   quarantineStatus: 'Strict Isolation' | 'Under Observation' | 'Cleared & Released' | 'Failed & Culled';
   vetInCharge: string;
   notes: string;
-}
-
-export interface ActivityLogEntry {
-  id: string;
-  message: string;
-  timestamp: string;
-  type: 'info' | 'warning' | 'success' | 'alert';
 }

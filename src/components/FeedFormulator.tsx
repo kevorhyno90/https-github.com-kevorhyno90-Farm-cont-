@@ -12,8 +12,9 @@ interface FeedFormulatorProps {
   onAddIngredientToLib: (ing: Ingredient) => void;
   onDeleteIngredientToLib: (name: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
+  onAddInventoryItem?: (item: any) => void;
 }
-
+ 
 // Expanded Targets & Presets including poultry, calves, ducks, and various dairy classes
 const PRESETS = {
   // DAIRY CLASSES
@@ -356,7 +357,7 @@ const ANIMAL_NUTRITION_STANDARDS = [
   }
 ];
 
-export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngredientToLib, onTriggerSectionReport }: FeedFormulatorProps) {
+export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngredientToLib, onTriggerSectionReport, onAddInventoryItem }: FeedFormulatorProps) {
   // New laboratory ingredient state
   const [libName, setLibName] = useState('');
   const [libCp, setLibCp] = useState<number | ''>('');
@@ -1421,6 +1422,32 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
                   </p>
                 </div>
               </div>
+ 
+              {/* Export to warehouse stock button */}
+              {onAddInventoryItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const mixName = prompt("Enter a custom name for this compounded feed mix lot:", `Compounded Herd Ration (${averageCp.toFixed(1)}% CP)`);
+                    if (!mixName) return;
+                    onAddInventoryItem({
+                      id: `comp-feed-${Date.now()}`,
+                      name: mixName,
+                      category: 'Feed',
+                      quantity: totalWeight,
+                      unit: 'kg',
+                      minStock: 100,
+                      notes: `Formulated recipe: ${averageCp.toFixed(1)}% CP, ${averageMe.toFixed(1)} MJ/kg ME. Cost: KES ${averageCostPerKg.toFixed(1)}/kg.`,
+                      deductions: batchItems.map(item => ({ name: item.name, amount: item.amount }))
+                    });
+                    alert(`✓ Successfully exported ${totalWeight.toFixed(1)} KG of "${mixName}" to your Warehouse Inventory stock list!`);
+                  }}
+                  className="w-full py-3 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer m-0 text-center shadow flex items-center justify-center gap-2"
+                >
+                  <Plus size={14} className="text-emerald-300" />
+                  Export Compounding Mix to Warehouse Inventory
+                </button>
+              )}
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-100 p-8 rounded-2xl text-center">

@@ -251,7 +251,69 @@ export function Horticulture({
           </p>
         </div>
       </div>
-
+ 
+      {/* Visual Block Grid Map & Yield Forecasting */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Interactive Block Grid Map (8 cols) */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-8 text-left space-y-4">
+          <div>
+            <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Interactive Orchard & Tea Block Map</h5>
+            <p className="text-2xs text-slate-400 font-bold uppercase mt-0.5">Click a block to view recent agronomic operations</p>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { id: 'BLK-T1', name: 'South Slope Tea', type: 'Tea', desc: 'Clone 31/8', status: 'Active Plucking', color: 'emerald', latestOp: 'Plucked 172kg yesterday' },
+              { id: 'BLK-T2', name: 'East Ridge Tea', type: 'Tea', desc: 'Clone 15/10', status: 'Pruned', color: 'amber', latestOp: 'Pruning completed 10d ago' },
+              { id: 'BLK-A1', name: 'Lower Valley Hass', type: 'Avocado', desc: 'Grafted Hass', status: 'Fruit Growing', color: 'sky', latestOp: 'Fungicide sprayed 4d ago' },
+              { id: 'BLK-A2', name: 'Ridge Orchard', type: 'Avocado', desc: 'Fuerte Variety', status: 'Dormant Post-Harvest', color: 'slate', latestOp: 'Harvest completed last season' }
+            ].map((block) => (
+              <button
+                key={block.id}
+                onClick={() => alert(`Block ${block.id}: ${block.name}\nCrop: ${block.type} (${block.desc})\nStatus: ${block.status}\nLatest Action: ${block.latestOp}`)}
+                className="p-4 border border-slate-100 rounded-2xl text-left hover:shadow-md transition-all cursor-pointer bg-white group focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <span className="text-[9px] font-black text-slate-400 block uppercase font-mono">{block.id}</span>
+                <span className="text-xs font-black text-slate-800 block mt-1 leading-snug">{block.name}</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-semibold">{block.desc}</span>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${block.color === 'emerald' ? 'bg-emerald-500 animate-pulse' : block.color === 'amber' ? 'bg-amber-500' : block.color === 'sky' ? 'bg-sky-500 animate-pulse' : 'bg-slate-500'}`}></span>
+                  <span className="text-[10px] text-slate-500 font-extrabold uppercase">{block.status}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+ 
+        {/* Yield Forecasting Analytics (4 cols) */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-4 text-left space-y-4">
+          <div>
+            <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Yield Trend Forecasting</h5>
+            <p className="text-2xs text-slate-400 font-bold uppercase mt-0.5">Machine-assisted projections</p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+              <span className="text-[9px] font-black text-emerald-800 block uppercase">Projected Green Tea (Next 30 days)</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-xl font-black text-slate-800">850 KG</span>
+                <span className="text-[10px] text-emerald-700 font-bold font-mono">+5.2% trend</span>
+              </div>
+              <p className="text-[9.5px] text-emerald-600 font-medium leading-normal mt-1">Based on KTDA delivery aggregate monthly average plucking indices.</p>
+            </div>
+ 
+            <div className="p-3 bg-sky-50 rounded-xl border border-sky-100">
+              <span className="text-[9px] font-black text-sky-800 block uppercase">Projected Hass Harvest (Oct-Dec)</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-xl font-black text-slate-800">4,800 KG</span>
+                <span className="text-[10px] text-sky-700 font-bold font-mono">Normal Yield</span>
+              </div>
+              <p className="text-[9.5px] text-sky-600 font-medium leading-normal mt-1">Calculated from historical block grafting indices and rainfall levels.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
       <div className={activeSubModule ? "space-y-8" : "grid grid-cols-1 lg:grid-cols-2 gap-8"}>
         {/* Tea plucking ledger */}
         {(!activeSubModule || activeSubModule === 'tea') && (
