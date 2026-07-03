@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar, Activity, TrendingUp, BellRing, Baby, TestTube, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Calendar, Activity, TrendingUp, BellRing, Baby, TestTube, AlertTriangle, Radio, Zap } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { MilkingRecord, MilkOutflowRecord, AIRecord, Cow } from '../../types';
 
@@ -15,6 +15,41 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
   
   // Interactive Lactation Cow Curve state
   const [selectedCowId, setSelectedCowId] = React.useState<string>('');
+
+  // ── Milking Telemetry Stream Simulator ──────────────────────────────────
+  const [telemetryActive, setTelemetryActive] = useState(false);
+  const [telemetryReadings, setTelemetryReadings] = useState<{ cowId: string; yield: number; session: string; pulse: number }[]>([]);
+  const [telemetryTick, setTelemetryTick] = useState(0);
+  const telemetryRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopTelemetry = () => {
+    if (telemetryRef.current) clearInterval(telemetryRef.current);
+    telemetryRef.current = null;
+    setTelemetryActive(false);
+  };
+
+  const startTelemetry = () => {
+    if (cows.length === 0) return;
+    setTelemetryActive(true);
+    const tick = () => {
+      setTelemetryTick(t => t + 1);
+      setTelemetryReadings(
+        cows.slice(0, 8).map(cow => ({
+          cowId: cow.id,
+          yield: parseFloat((Math.random() * 6 + 2).toFixed(2)),
+          session: new Date().getHours() < 12 ? 'AM' : 'PM',
+          pulse: Math.floor(Math.random() * 20 + 55)
+        }))
+      );
+    };
+    tick();
+    telemetryRef.current = setInterval(tick, 2000);
+  };
+
+  useEffect(() => {
+    return () => { if (telemetryRef.current) clearInterval(telemetryRef.current); };
+  }, []);
+  // ── end telemetry ─────────────────────────────────────────────────────
 
   const getStartOfWeek = (d: string) => {
     const date = new Date(d);
@@ -311,6 +346,72 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
         ) : (
           <div className="p-8 text-center text-slate-400 italic text-xs">Please select a cow from the dropdown menu to visualize its individual lactation curve.</div>
         )}
+      </div>
+
+      {/* ── Milking Telemetry Stream Simulator ── */}
+      <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-2xl ${telemetryActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+              <Radio size={20} className={telemetryActive ? 'animate-pulse' : ''} />
+            </div>
+            <div>
+              <h4 className="text-white font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                Live Milking Telemetry
+                {telemetryActive && (
+                  <span className="flex items-center gap-1 text-emerald-400 text-[10px] font-black">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+                    STREAMING
+                  </span>
+                )}
+              </h4>
+              <p className="text-slate-400 text-[10px] font-bold mt-0.5">
+                {telemetryActive
+                  ? `Live sensor feed · Tick #${telemetryTick} · Refreshes every 2s`
+                  : 'Simulate real-time sensor data from the milking parlour'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={telemetryActive ? stopTelemetry : startTelemetry}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all cursor-pointer m-0 border-0 ${
+              telemetryActive
+                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-900/40'
+            }`}
+          >
+            <Zap size={13} />
+            {telemetryActive ? 'Stop Stream' : 'Start Live Stream'}
+          </button>
+        </div>
+
+        {telemetryActive && telemetryReadings.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {telemetryReadings.map((r, i) => (
+              <div key={r.cowId + i} className="bg-slate-800 rounded-2xl p-4 border border-slate-700 hover:border-emerald-700/40 transition-all">
+                <p className="text-[10px] font-black text-slate-400 uppercase truncate">{r.cowId}</p>
+                <p className="text-2xl font-black text-white mt-1">{r.yield}
+                  <span className="text-xs text-emerald-400 font-bold ml-1">L</span>
+                </p>
+                <div className="mt-2 bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                    style={{ width: `${Math.min((r.yield / 10) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-[9px] text-slate-500 font-bold mt-1.5">
+                  {r.session} session · ♥ {r.pulse} bpm
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : !telemetryActive ? (
+          <div className="text-center py-8 border border-dashed border-slate-700 rounded-2xl">
+            <Radio size={32} className="mx-auto text-slate-600 mb-3" />
+            <p className="text-slate-500 text-xs font-bold">Press <span className="text-emerald-400">Start Live Stream</span> to activate sensor simulation</p>
+            <p className="text-slate-600 text-[10px] mt-1">Streams per-cow yield, session, and heart-rate pulse data</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

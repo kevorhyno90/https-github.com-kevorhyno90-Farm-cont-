@@ -8,6 +8,7 @@ import { DairyDashboard } from './dairy/DairyDashboard';
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord, SemenInventoryItem, CalfRecord } from '../types';
+import { exportToCsv } from '../utils/csvHelper';
 import {
   Plus,
   Calendar,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, FileSpreadsheet, Droplets, Trash2, CheckCircle2, GitFork, Activity, PenSquare, Download } from 'lucide-react';
 import { Cow, MilkingRecord } from '../../types';
+import { exportToCsv } from '../../utils/csvHelper';
 
 interface CowRegistryProps {
   cows: Cow[];
@@ -53,22 +54,20 @@ export function CowRegistry({
   };
 
   const downloadBreedersCSV = () => {
-    let csv = 'data:text/csv;charset=utf-8,';
-    csv += 'REGISTERED BREEDERS REGISTRY DIRECTORY\n';
-    csv += 'Tag ID,Name,Breed,DOB,Sire,Dam,Reg. No,Status,Yield(Avg),Notes\n';
-    
-    cows.forEach(cow => {
-      const avg = getAverageYield(cow.id).toFixed(1);
-      csv += `"${cow.id}","${cow.name}","${cow.breed}","${cow.dob}","${cow.sire}","${cow.dam}","${cow.registrationNo}","${cow.status}","${avg}","${cow.notes}"\n`;
-    });
-    
-    const encodedUri = encodeURI(csv);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `farm_breeders_registry_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const headers = ['Tag ID', 'Name', 'Breed', 'DOB', 'Sire', 'Dam', 'Reg. No', 'Status', 'Avg Yield (L)', 'Notes'];
+    const rows = cows.map(cow => [
+      cow.id,
+      cow.name,
+      cow.breed,
+      cow.dob,
+      cow.sire || '',
+      cow.dam || '',
+      cow.registrationNo || '',
+      cow.status,
+      getAverageYield(cow.id).toFixed(1),
+      cow.notes || ''
+    ]);
+    exportToCsv(`Cattle_Registry_${new Date().toISOString().split('T')[0]}`, headers, rows);
   };
 
   const handleCowSubmit = (e: React.FormEvent) => {

@@ -19,6 +19,7 @@ import {
   PoultryRecord,
   QuarantineRecord
 } from '../types';
+import { exportToCsv } from '../utils/csvHelper';
 import {
   TreePine,
   Shield,
@@ -414,21 +415,17 @@ export function OtherSections({
   };
 
   const downloadInventoryCSV = () => {
-    let csv = 'data:text/csv;charset=utf-8,';
-    csv += 'OPERATIONAL STORES & RAW INVENTORY LEDGER\n';
-    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-    csv += 'Item ID,Item Name,Primary Category,Current Stock,Unit Measure,Reorder Safety Level,Status Alert\n';
-    inventory.forEach((item) => {
-      const isLow = item.quantity <= item.minStock;
-      csv += `"${item.id}","${item.name}","${item.category}",${item.quantity},"${item.unit}",${item.minStock},"${isLow ? 'RESTOCK REQUIRED' : 'Secure level'}"\n`;
-    });
-    const encodedUri = encodeURI(csv);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Warehouse_Inventory_Audit_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const headers = ['Item ID', 'Item Name', 'Category', 'Current Stock', 'Unit', 'Min Stock', 'Status'];
+    const rows = inventory.map(item => [
+      item.id,
+      item.name,
+      item.category,
+      item.quantity,
+      item.unit,
+      item.minStock,
+      item.quantity <= item.minStock ? 'RESTOCK REQUIRED' : 'Secure Level'
+    ]);
+    exportToCsv(`Warehouse_Inventory_${new Date().toISOString().split('T')[0]}`, headers, rows);
   };
 
   // Other Crops Sales Form State

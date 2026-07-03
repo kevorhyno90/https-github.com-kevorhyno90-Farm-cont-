@@ -5,6 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FinancialRecord, AIRecord, Cow, FieldRecord } from '../types';
+import { exportToCsv } from '../utils/csvHelper';
 import { 
   Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
   BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
@@ -563,20 +564,16 @@ export function Financials({
   }, [cows, fields, financialRecords, activeMarketMilkPrice, milkRecords, vetRecords, aiRecords]);
 
   const downloadFinancialsCSV = () => {
-    let csv = 'data:text/csv;charset=utf-8,';
-    csv += 'NYARONDE FARM ACCOUNTING LEDGER\n';
-    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-    csv += 'Date,Transaction Reference ID,Type,Category/Source,Description,Amount (Ksh)\n';
-    filteredRecords.forEach((f) => {
-      csv += `${f.date},"${f.id}","${f.type}","${f.category}","${f.description}",${f.amount}\n`;
-    });
-    const encodedUri = encodeURI(csv);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Financial_Operational_Ledger_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const headers = ['Date', 'Transaction ID', 'Type', 'Category', 'Description', 'Amount (Ksh)'];
+    const rows = filteredRecords.map((f) => [
+      f.date,
+      f.id,
+      f.type,
+      f.category,
+      f.description,
+      f.amount
+    ]);
+    exportToCsv(`Financial_Ledger_${new Date().toISOString().split('T')[0]}`, headers, rows);
   };
 
   // Pie colors for Recharts category breakdowns
