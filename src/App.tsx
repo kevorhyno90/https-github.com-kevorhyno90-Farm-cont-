@@ -6306,7 +6306,14 @@ export default function App() {
             <button
               onClick={() => setShowReportModal(true)}
               className="lg:hidden bg-yellow-500 text-slate-950 font-black p-2 rounded-lg text-xs hover:bg-yellow-400 transition-all flex items-center gap-1.5 m-0 cursor-pointer border-0"
-              title="View        {/* 3. MOBILE SYSTEM SLIDING DRAWER MENU */}
+              title="View Master Report"
+            >
+              <FileText size={14} />
+            </button>
+          </div>
+        </header>
+ 
+        {/* 3. MOBILE SYSTEM SLIDING DRAWER MENU */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 flex lg:hidden">
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs" onClick={() => setMobileMenuOpen(false)}></div>
