@@ -20,6 +20,11 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  PanelLeftClose,
+  PanelLeftOpen,
   ClipboardList,
   Printer,
   Download,
@@ -279,6 +284,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dash');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
+ 
+  // Sidebar enhancement states
+  const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
+  const [sidebarSearch, setSidebarSearch] = useState<string>('');
+  const [slimSidebar, setSlimSidebar] = useState<boolean>(false);
 
   // Sandbox and PWA install helpers
   const [isInIframeSandbox, setIsInIframeSandbox] = useState<boolean>(false);
@@ -5778,13 +5788,22 @@ export default function App() {
         </div>
       )}
       {/* 1. DESKTOP SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 w-72 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto flex-col z-40 transition-all ${
-        activeTab === 'dash' ? 'hidden lg:flex' : 'hidden'
-      }`}>
+      <aside className={`fixed inset-y-0 left-0 bg-emerald-950 text-emerald-100 h-screen border-r border-emerald-900 shadow-xl overflow-y-auto flex flex-col z-40 transition-all duration-300 ${
+        slimSidebar ? 'w-20' : 'w-72'
+      } hidden lg:flex`}>
         <div className="p-8 text-center border-b border-emerald-950 mb-6 shrink-0 relative flex flex-col items-center">
           <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-800 border border-green-700 text-yellow-500 rounded text-[9px] font-black uppercase tracking-wider">
             Live
           </div>
+          {/* Collapse sidebar trigger button */}
+          <button
+            onClick={() => setSlimSidebar(!slimSidebar)}
+            className="absolute top-2 left-2 p-1.5 rounded bg-emerald-900/60 border border-emerald-800 hover:border-yellow-500 text-emerald-400 hover:text-white transition-all cursor-pointer m-0 active:scale-95 border-none"
+            title={slimSidebar ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {slimSidebar ? <PanelLeftOpen size={12} /> : <PanelLeftClose size={12} />}
+          </button>
+ 
           {/* Branded Logo */}
           <div className="flex justify-center mb-3">
             <div 
@@ -5792,24 +5811,67 @@ export default function App() {
               dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }} 
             />
           </div>
-          <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">{getStoredSettings()?.estateName || "JR FARM OMNI-ESTATE"}</h1>
-          <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1 font-mono">
-            Manager: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}
-          </p>
+          {!slimSidebar && (
+            <>
+              <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">{getStoredSettings()?.estateName || "JR FARM OMNI-ESTATE"}</h1>
+              <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-1 font-mono">
+                Manager: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}
+              </p>
+            </>
+          )}
         </div>
-
+ 
+        {/* Sidebar Search query input */}
+        {!slimSidebar && (
+          <div className="px-4 mb-4 relative">
+            <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none text-emerald-400">
+              <Search size={13} />
+            </div>
+            <input
+              type="text"
+              placeholder="Search sections..."
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
+              className="w-full bg-emerald-900/60 border border-emerald-800 text-white placeholder-emerald-400 rounded-xl py-2 pl-9 pr-8 text-xs outline-none focus:border-yellow-500 transition-colors font-semibold"
+            />
+            {sidebarSearch && (
+              <button
+                onClick={() => setSidebarSearch('')}
+                className="absolute right-7 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-white text-xs bg-transparent border-0 cursor-pointer p-0 font-bold"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+ 
         {/* Sidebar Nav links grouped by category */}
         <nav className="flex-1 px-4 space-y-6">
-          {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => (
-            <div key={cat} className="space-y-1">
-              <span className="px-4 text-[9px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
-                {cat}
-              </span>
+          {slimSidebar ? (
+            <div className="space-y-4 flex flex-col items-center">
               {sidebarLinks
-                .filter((link) => link.category === cat)
+                .filter((link) => 
+                  link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                  link.category.toLowerCase().includes(sidebarSearch.toLowerCase())
+                )
                 .map((link) => {
                   const Icon = link.icon;
                   const isActive = activeTab === link.id;
+                  
+                  let hasDot = false;
+                  let dotColor = 'bg-yellow-500';
+                  
+                  if (link.id === 'inventory') {
+                    const lowCount = inventory.filter(i => i.quantity <= i.minStock).length;
+                    if (lowCount > 0) { hasDot = true; dotColor = 'bg-rose-500 animate-pulse'; }
+                  } else if (link.id === 'timetable') {
+                    const pendingTasks = todos.filter(t => !t.completed).length;
+                    if (pendingTasks > 0) { hasDot = true; dotColor = 'bg-amber-500'; }
+                  } else if (link.id === 'roster') {
+                    const onLeave = staffList.filter(s => s.status === 'On Leave').length;
+                    if (onLeave > 0) { hasDot = true; dotColor = 'bg-emerald-500'; }
+                  }
+ 
                   return (
                     <button
                       key={link.id}
@@ -5817,39 +5879,133 @@ export default function App() {
                         setActiveTab(link.id);
                         setMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-xs tracking-wide leading-none ${
+                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all relative border-none ${
                         isActive
-                          ? 'bg-emerald-800 text-white shadow-md border-l-4 border-yellow-500 pl-3 font-extrabold'
+                          ? 'bg-emerald-800 text-white shadow-md border-b-4 border-yellow-500 font-extrabold'
                           : 'text-emerald-100 hover:bg-emerald-900/60 hover:text-white'
                       }`}
+                      title={link.label}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon size={16} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
-                        <span>{link.label}</span>
-                      </div>
-                      <ChevronRight size={12} className={isActive ? 'text-yellow-500 opacity-100' : 'opacity-0'} />
+                      <Icon size={18} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
+                      {hasDot && (
+                        <span className={`absolute top-2 right-2 w-2 h-2 rounded-full ${dotColor}`}></span>
+                      )}
                     </button>
                   );
                 })}
             </div>
-          ))}
+          ) : (
+            ['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => {
+              const catLinks = sidebarLinks
+                .filter((link) => link.category === cat)
+                .filter((link) => 
+                  link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                  link.category.toLowerCase().includes(sidebarSearch.toLowerCase())
+                );
+ 
+              if (catLinks.length === 0) return null;
+              const isCollapsed = collapsedCats[cat];
+ 
+              return (
+                <div key={cat} className="space-y-1">
+                  <button
+                    onClick={() => setCollapsedCats(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                    className="w-full flex items-center justify-between px-4 py-1.5 text-[9px] font-black text-emerald-555 text-emerald-500 hover:text-emerald-300 uppercase tracking-widest text-left cursor-pointer bg-transparent border-0 m-0"
+                  >
+                    <span>{cat}</span>
+                    {isCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+                  </button>
+ 
+                  {!isCollapsed && (
+                    <div className="space-y-0.5 animate-fadeIn">
+                      {catLinks.map((link) => {
+                        const Icon = link.icon;
+                        const isActive = activeTab === link.id;
+                        
+                        let badgeText = '';
+                        let badgeColor = 'bg-yellow-500 text-slate-950';
+                        
+                        if (link.id === 'inventory') {
+                          const lowStockCount = inventory.filter(i => i.quantity <= i.minStock).length;
+                          if (lowStockCount > 0) {
+                            badgeText = `${lowStockCount}`;
+                            badgeColor = 'bg-rose-500 text-white animate-pulse';
+                          }
+                        } else if (link.id === 'timetable') {
+                          const pendingTasks = todos.filter(t => !t.completed).length;
+                          if (pendingTasks > 0) {
+                            badgeText = `${pendingTasks}`;
+                            badgeColor = 'bg-amber-500 text-slate-950';
+                          }
+                        } else if (link.id === 'roster') {
+                          const onLeaveCount = staffList.filter(s => s.status === 'On Leave').length;
+                          if (onLeaveCount > 0) {
+                            badgeText = `${onLeaveCount}`;
+                            badgeColor = 'bg-emerald-600 text-white';
+                          }
+                        }
+ 
+                        return (
+                          <button
+                            key={link.id}
+                            onClick={() => {
+                              setActiveTab(link.id);
+                              setMobileMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-xs tracking-wide leading-none border-none ${
+                              isActive
+                                ? 'bg-emerald-800 text-white shadow-md border-l-4 border-yellow-500 pl-3 font-extrabold'
+                                : 'text-emerald-100 hover:bg-emerald-900/60 hover:text-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Icon size={16} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
+                              <span>{link.label}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {badgeText && (
+                                <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-mono font-black ${badgeColor}`}>
+                                  {badgeText}
+                                </span>
+                              )}
+                              <ChevronRight size={12} className={isActive ? 'text-yellow-500 opacity-100' : 'opacity-0'} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </nav>
-
+ 
         {/* Master PDF printable report downloader trigger */}
-        <div className="p-6 border-t border-emerald-900 shrink-0">
-          <button
-            onClick={() => setShowReportModal(true)}
-            className="w-full bg-yellow-500 hover:bg-yellow-400 active:scale-[0.98] text-slate-950 font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 m-0 cursor-pointer"
-          >
-            <FileText size={16} />
-            Master Report
-          </button>
+        <div className="p-4 border-t border-emerald-900 shrink-0 flex justify-center">
+          {slimSidebar ? (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="w-12 h-12 bg-yellow-500 hover:bg-yellow-400 active:scale-[0.98] text-slate-950 rounded-xl flex items-center justify-center shadow-md m-0 cursor-pointer border-none"
+              title="Download Master Report"
+            >
+              <FileText size={18} />
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="w-full bg-yellow-500 hover:bg-yellow-400 active:scale-[0.98] text-slate-950 font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 m-0 cursor-pointer border-none"
+            >
+              <FileText size={16} />
+              Master Report
+            </button>
+          )}
         </div>
       </aside>
 
       {/* 2. MOBILE MENU HEADER BAR */}
       <div className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${
-        activeTab === 'dash' ? 'lg:pl-72' : 'lg:pl-0'
+        slimSidebar ? 'lg:pl-20' : 'lg:pl-72'
       }`}>
         {/* Dynamic PWA Iframe Install Warning Banner */}
         {isInIframeSandbox && !dismissedPwaBanner && (
@@ -6150,19 +6306,12 @@ export default function App() {
             <button
               onClick={() => setShowReportModal(true)}
               className="lg:hidden bg-yellow-500 text-slate-950 font-black p-2 rounded-lg text-xs hover:bg-yellow-400 transition-all flex items-center gap-1.5 m-0 cursor-pointer border-0"
-              title="View Master Report"
-            >
-              <FileText size={14} />
-            </button>
-          </div>
-        </header>
-
-        {/* 3. MOBILE SYSTEM SLIDING DRAWER MENU */}
+              title="View        {/* 3. MOBILE SYSTEM SLIDING DRAWER MENU */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 flex lg:hidden">
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs" onClick={() => setMobileMenuOpen(false)}></div>
             <aside className="relative flex flex-col w-full max-w-xs h-full bg-emerald-950 text-emerald-100 shadow-2xl p-6 overflow-y-auto">
-              <div className="flex justify-between items-center pb-6 border-b border-emerald-900 mb-6">
+              <div className="flex justify-between items-center pb-6 border-b border-emerald-900 mb-4">
                 <div className="flex items-center gap-3">
                   <div 
                     className="w-10 h-10 shadow-md rounded-xl border border-yellow-500/20 overflow-hidden bg-emerald-950 p-[1px] shrink-0" 
@@ -6175,54 +6324,126 @@ export default function App() {
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 rounded-lg bg-emerald-900 border border-emerald-800 text-emerald-200 m-0"
+                  className="p-1.5 rounded-lg bg-emerald-900 border border-emerald-800 text-emerald-205 m-0 border-none"
                 >
                   <X size={16} />
                 </button>
               </div>
-
+ 
+              {/* Mobile Search input */}
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-emerald-400">
+                  <Search size={12} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search sections..."
+                  value={sidebarSearch}
+                  onChange={(e) => setSidebarSearch(e.target.value)}
+                  className="w-full bg-emerald-900/60 border border-emerald-800 text-white placeholder-emerald-400 rounded-xl py-2 pl-8 pr-8 text-xs outline-none focus:border-yellow-500 font-semibold"
+                />
+                {sidebarSearch && (
+                  <button
+                    onClick={() => setSidebarSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-white text-xs bg-transparent border-0 cursor-pointer p-0 font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+ 
               <nav className="flex-1 space-y-5">
-                {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => (
-                  <div key={cat} className="space-y-1">
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest block mb-1">
-                      {cat}
-                    </span>
-                    {sidebarLinks
-                      .filter((link) => link.category === cat)
-                      .map((link) => {
-                        const Icon = link.icon;
-                        const isActive = activeTab === link.id;
-                        return (
-                          <button
-                            key={link.id}
-                            onClick={() => {
-                              setActiveTab(link.id);
-                              setMobileMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold text-xs ${
-                              isActive
-                                ? 'bg-emerald-800 text-white border-l-4 border-yellow-500 pl-2 font-extrabold'
-                                : 'text-emerald-100 hover:bg-emerald-900/60'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Icon size={14} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
-                              <span>{link.label}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                  </div>
-                ))}
+                {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => {
+                  const catLinks = sidebarLinks
+                    .filter((link) => link.category === cat)
+                    .filter((link) => 
+                      link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+                      link.category.toLowerCase().includes(sidebarSearch.toLowerCase())
+                    );
+ 
+                  if (catLinks.length === 0) return null;
+                  const isCollapsed = collapsedCats[cat];
+ 
+                  return (
+                    <div key={cat} className="space-y-1">
+                      <button
+                        onClick={() => setCollapsedCats(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                        className="w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-black text-emerald-500 hover:text-emerald-305 uppercase tracking-widest text-left cursor-pointer bg-transparent border-0 m-0"
+                      >
+                        <span>{cat}</span>
+                        {isCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+                      </button>
+ 
+                      {!isCollapsed && (
+                        <div className="space-y-0.5 animate-fadeIn">
+                          {catLinks.map((link) => {
+                            const Icon = link.icon;
+                            const isActive = activeTab === link.id;
+                            
+                            let badgeText = '';
+                            let badgeColor = 'bg-yellow-500 text-slate-955';
+                            
+                            if (link.id === 'inventory') {
+                              const lowStockCount = inventory.filter(i => i.quantity <= i.minStock).length;
+                              if (lowStockCount > 0) {
+                                badgeText = `${lowStockCount}`;
+                                badgeColor = 'bg-rose-500 text-white animate-pulse';
+                              }
+                            } else if (link.id === 'timetable') {
+                              const pendingTasks = todos.filter(t => !t.completed).length;
+                              if (pendingTasks > 0) {
+                                badgeText = `${pendingTasks}`;
+                                badgeColor = 'bg-amber-500 text-slate-950';
+                              }
+                            } else if (link.id === 'roster') {
+                              const onLeaveCount = staffList.filter(s => s.status === 'On Leave').length;
+                              if (onLeaveCount > 0) {
+                                badgeText = `${onLeaveCount}`;
+                                badgeColor = 'bg-emerald-600 text-white';
+                              }
+                            }
+ 
+                            return (
+                              <button
+                                key={link.id}
+                                onClick={() => {
+                                  setActiveTab(link.id);
+                                  setMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold text-xs border-none ${
+                                  isActive
+                                    ? 'bg-emerald-800 text-white border-l-4 border-yellow-500 pl-2 font-extrabold'
+                                    : 'text-emerald-100 hover:bg-emerald-900/60'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Icon size={14} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
+                                  <span>{link.label}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {badgeText && (
+                                    <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-mono font-black ${badgeColor}`}>
+                                      {badgeText}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </nav>
-
+ 
               <div className="pt-6 border-t border-emerald-900 mt-6">
                 <button
                   onClick={() => {
                     setShowReportModal(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full bg-yellow-500 text-slate-950 font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 m-0"
+                  className="w-full bg-yellow-500 text-slate-950 font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 m-0 border-none"
                 >
                   <FileText size={15} />
                   Master Report
