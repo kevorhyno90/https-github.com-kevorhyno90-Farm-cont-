@@ -321,11 +321,89 @@ export function CowRegistry({
       </div>
 
       {pedigreeCow && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full">
-            <h3 className="font-black text-lg text-slate-800 mb-4">{pedigreeCow.name} Pedigree</h3>
-            <p className="text-xs text-slate-500 mb-6 font-bold">Pedigree view is in development.</p>
-            <button onClick={() => setPedigreeCow(null)} className="w-full bg-slate-800 text-white py-3 rounded-xl font-black uppercase text-xs">Close</button>
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-4xl animate-fadeIn m-auto mt-10 mb-10">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-black text-2xl text-slate-800 flex items-center gap-2">
+                  <GitFork className="text-emerald-600" />
+                  {pedigreeCow.name} ({pedigreeCow.id})
+                </h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Pedigree Lineage Tree</p>
+              </div>
+              <button onClick={() => setPedigreeCow(null)} className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-2 transition-colors m-0 border-0 cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <div className="relative border border-slate-100 rounded-3xl bg-slate-50 p-6 md:p-12 overflow-x-auto">
+              <div className="min-w-[600px] flex items-center justify-center">
+                {/* Grandparents Column */}
+                <div className="flex flex-col gap-12 w-48 shrink-0">
+                  {/* Paternal Grandparents */}
+                  <div className="flex flex-col gap-4 relative">
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm relative z-10">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">Paternal Grand-Sire</span>
+                      <span className="font-bold text-slate-700 text-xs">{pedigreeCow.grandSirePaternal || 'Unknown'}</span>
+                    </div>
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm relative z-10">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">Paternal Grand-Dam</span>
+                      <span className="font-bold text-slate-700 text-xs">{pedigreeCow.grandDamPaternal || 'Unknown'}</span>
+                    </div>
+                    {/* Connecting lines to Sire */}
+                    <div className="absolute right-[-24px] top-1/2 -translate-y-1/2 w-6 border-r-2 border-y-2 border-slate-200 rounded-r-lg z-0" style={{ height: 'calc(100% - 3rem)' }}></div>
+                  </div>
+
+                  {/* Maternal Grandparents */}
+                  <div className="flex flex-col gap-4 relative">
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm relative z-10">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">Maternal Grand-Sire</span>
+                      <span className="font-bold text-slate-700 text-xs">{pedigreeCow.grandSireMaternal || 'Unknown'}</span>
+                    </div>
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm relative z-10">
+                      <span className="text-[9px] uppercase font-black text-slate-400 block">Maternal Grand-Dam</span>
+                      <span className="font-bold text-slate-700 text-xs">{pedigreeCow.grandDamMaternal || 'Unknown'}</span>
+                    </div>
+                    {/* Connecting lines to Dam */}
+                    <div className="absolute right-[-24px] top-1/2 -translate-y-1/2 w-6 border-r-2 border-y-2 border-slate-200 rounded-r-lg z-0" style={{ height: 'calc(100% - 3rem)' }}></div>
+                  </div>
+                </div>
+
+                {/* Parents Column */}
+                <div className="flex flex-col justify-around h-full w-48 shrink-0 ml-12 relative py-8">
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm relative z-10 mb-16">
+                    <span className="text-[10px] uppercase font-black text-blue-500 block">Sire (Father)</span>
+                    <span className="font-black text-blue-900 text-sm">{pedigreeCow.sire || 'Unknown'}</span>
+                    <div className="absolute left-[-48px] top-1/2 w-12 h-0.5 bg-slate-200 z-0"></div>
+                  </div>
+                  <div className="bg-pink-50 border border-pink-200 p-4 rounded-xl shadow-sm relative z-10 mt-16">
+                    <span className="text-[10px] uppercase font-black text-pink-500 block">Dam (Mother)</span>
+                    <span className="font-black text-pink-900 text-sm">{pedigreeCow.dam || 'Unknown'}</span>
+                    <div className="absolute left-[-48px] top-1/2 w-12 h-0.5 bg-slate-200 z-0"></div>
+                  </div>
+                  {/* Connecting lines to self */}
+                  <div className="absolute right-[-24px] top-1/2 -translate-y-1/2 w-6 border-r-2 border-y-2 border-slate-300 rounded-r-lg z-0" style={{ height: 'calc(100% - 10rem)' }}></div>
+                </div>
+
+                {/* Target Cow (Self) */}
+                <div className="w-56 shrink-0 ml-12 relative">
+                  <div className="bg-emerald-50 border-2 border-emerald-500 p-5 rounded-2xl shadow-lg relative z-10">
+                    <span className="text-[10px] uppercase font-black text-emerald-600 block">Target Animal</span>
+                    <span className="font-black text-emerald-950 text-lg block">{pedigreeCow.name}</span>
+                    <span className="font-bold text-emerald-700 text-xs block font-mono">{pedigreeCow.id}</span>
+                    <span className="mt-2 block text-[10px] bg-emerald-200 text-emerald-900 px-2 py-1 rounded font-bold w-max uppercase tracking-wider">{pedigreeCow.breed}</span>
+                    <div className="absolute left-[-48px] top-1/2 w-12 h-0.5 bg-slate-300 z-0"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button onClick={() => setPedigreeCow(null)} className="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-black uppercase text-xs transition-colors cursor-pointer m-0 border-0">
+                Close Pedigree View
+              </button>
+            </div>
           </div>
         </div>
       )}
