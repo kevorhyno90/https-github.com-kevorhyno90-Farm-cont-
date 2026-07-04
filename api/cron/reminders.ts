@@ -33,43 +33,127 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const todos = farmData.jr_farm_todos || [];
     const cows = farmData.jr_farm_cows || [];
     const bsfs = farmData.jr_farm_bsfs || [];
+    const vets = farmData.jr_farm_vets || [];
+    const quarantine = farmData.jr_farm_quarantine || [];
+    const sprays = farmData.jr_farm_sprays || [];
+    const inventory = farmData.jr_farm_inventory || [];
+    const aiRecords = farmData.jr_farm_ai || [];
+    const staffOff = farmData.jr_farm_staff_off || [];
     
-    const notificationsToSend: { title: string, body: string }[] = [];
-    
-    // Evaluate Todos
+    const notificationsToSend: { text: string; daysLeft: number }[] = [];
     const today = new Date().toISOString().split('T')[0];
-    todos.forEach((todo: any) => {
-      if (!todo.completed && todo.date === today) {
-        notificationsToSend.push({
-          title: "Task Due Today!",
-          body: `Don't forget: ${todo.text}`
-        });
+    const now = Date.now();
+    const msPerDay = 1000 * 3600 * 24;
+
+    const diffDays = (targetDate: string) => Math.ceil((new Date(targetDate).getTime() - now) / msPerDay);
+    
+    // Evaluate Employee Leaves
+    staffOff.forEach((leave: any) => {
+      if (leave.status === 'Approved') {
+        const startDays = diffDays(leave.startDate);
+        const endDays = diffDays(leave.endDate);
+        
+        // Reminder for leave starting
+        if (startDays <= 3 && startDays >= 0) {
+          notificationsToSend.push({ 
+            text: `👤 Staff Alert: ${leave.staffName} begins ${leave.type} in ${startDays} days.`, 
+            daysLeft: startDays 
+          });
+        }
+        
+        // Reminder for staff returning
+        if (endDays === 0) {
+          notificationsToSend.push({ 
+            text: `👤 Staff Returning: ${leave.staffName} finishes leave today!`, 
+            daysLeft: 0 
+          });
+        }
       }
     });
+
+    // Evaluate Todos
+    let todoCount = 0;
+    todos.forEach((todo: any) => {
+      if (!todo.completed && todo.date === today) {
+        todoCount++;
+      }
+    });
+    if (todoCount > 0) notificationsToSend.push({ text: `📋 ${todoCount} Task(s) due today.`, daysLeft: 0 });
     
-    // Evaluate Cows (Breeding/PD/Deworming logic replicated)
+    // Evaluate Cows (Dry-off)
     cows.forEach((cow: any) => {
       if (cow.pregnancyStatus === 'pregnant' && cow.dueDate) {
-        const dueTime = new Date(cow.dueDate).getTime();
-        const diffDays = Math.ceil((dueTime - Date.now()) / (1000 * 3600 * 24));
-        if (diffDays <= 7 && diffDays >= 0) {
-          notificationsToSend.push({
-            title: "Drying Off Alert",
-            body: `${cow.name || cow.id} is due to calve in ${diffDays} days! Ensure dry-off.`
-          });
+        const days = diffDays(cow.dueDate);
+        if (days <= 7 && days >= 0) {
+          notificationsToSend.push({ text: `🐄 Cow ${cow.name || cow.id} due to calve in ${days} days (Dry-off alert).`, daysLeft: days });
+        }
+      }
+    });
+
+    // Evaluate Vet Records
+    vets.forEach((vet: any) => {
+      if (vet.nextDueDate) {
+        const days = diffDays(vet.nextDueDate);
+        if (days <= 3 && days >= 0) {
+          notificationsToSend.push({ text: `💉 ${vet.animalCategory || 'Animal'} ${vet.cowId} due for ${vet.type} in ${days} days.`, daysLeft: days });
+        }
+      }
+    });
+
+    // Evaluate Quarantine
+    quarantine.forEach((q: any) => {
+      if (q.dateScheduledEnd && q.quarantineStatus !== 'Cleared & Released' && q.quarantineStatus !== 'Failed & Culled') {
+        const days = diffDays(q.dateScheduledEnd);
+        if (days <= 1 && days >= 0) {
+          notificationsToSend.push({ text: `🚧 ${q.animalTagOrBatch} finishes quarantine in ${days} days.`, daysLeft: days });
+        }
+      }
+    });
+
+    // Evaluate Sprays (Chemicals)
+    sprays.forEach((spray: any) => {
+      if (spray.safeDate && spray.safeDate === today) {
+        notificationsToSend.push({ text: `🌿 Block ${spray.block} is safe to harvest today (PHI over).`, daysLeft: 0 });
+      }
+      if (spray.nextSprayDate) {
+        const days = diffDays(spray.nextSprayDate);
+        if (days <= 1 && days >= 0) {
+          notificationsToSend.push({ text: `🐛 Block ${spray.block} due for ${spray.chemical} spray in ${days} days.`, daysLeft: days });
+        }
+      }
+    });
+
+    // Evaluate Inventory
+    inventory.forEach((item: any) => {
+      if (item.quantity <= item.minStock) {
+        notificationsToSend.push({ text: `📦 Low Stock: ${item.name} (${item.quantity} ${item.unit} left).`, daysLeft: 0 });
+      }
+      if (item.expiryDate) {
+        const days = diffDays(item.expiryDate);
+        if (days <= 14 && days >= 0) {
+          notificationsToSend.push({ text: `⚠️ ${item.name} expires in ${days} days!`, daysLeft: days });
+        }
+      }
+    });
+
+    // Evaluate AI Records
+    aiRecords.forEach((ai: any) => {
+      if (ai.status === 'Pending') {
+        if (ai.returnHeatDate && diffDays(ai.returnHeatDate) === 0) {
+          notificationsToSend.push({ text: `🔥 Cow ${ai.cowId}: Check for return heat today (21 days post-AI).`, daysLeft: 0 });
+        }
+        if (ai.checkDate && diffDays(ai.checkDate) === 0) {
+          notificationsToSend.push({ text: `🩺 Cow ${ai.cowId}: Due for pregnancy check today.`, daysLeft: 0 });
         }
       }
     });
 
     // Evaluate BSF
     bsfs.forEach((bsf: any) => {
-      const start = new Date(bsf.startDate).getTime();
-      const diffDays = Math.floor((Date.now() - start) / (1000 * 3600 * 24));
-      if (diffDays === 14) {
-        notificationsToSend.push({
-          title: "BSF Harvest Alert",
-          body: `Batch ${bsf.id} (Pupae phase) is ready for harvesting!`
-        });
+      const start = new Date(bsf.startDate || bsf.inoculationDate).getTime();
+      const d = Math.floor((now - start) / msPerDay);
+      if (d === 14) {
+        notificationsToSend.push({ text: `🪰 BSF Batch ${bsf.batchId || bsf.id} ready for harvesting!`, daysLeft: 0 });
       }
     });
 
@@ -86,9 +170,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let sentCount = 0;
     const errors: any[] = [];
     
-    // For simplicity, just send the first/most critical alarm so we don't spam them.
-    const primaryAlert = notificationsToSend[0];
-    const payload = JSON.stringify(primaryAlert);
+    // Sort by upcoming (daysLeft ascending) and map back to strings
+    notificationsToSend.sort((a, b) => a.daysLeft - b.daysLeft);
+    const sortedAlerts = notificationsToSend.map(n => n.text);
+
+    // Bundle all alerts into a single payload, no truncation
+    const title = sortedAlerts.length === 1 ? "JR Farm Alert" : `JR Farm: ${sortedAlerts.length} Alerts`;
+    const body = sortedAlerts.join('\n');
+
+    const payload = JSON.stringify({ title, body });
 
     for (const key of subKeys) {
       const sub = subscriptions[key];
@@ -106,8 +196,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     res.status(200).json({ 
-      message: `Sent ${sentCount} notifications out of ${subKeys.length} subscriptions.`,
-      alert: primaryAlert,
+      message: `Sent ${sentCount} bundled notifications out of ${subKeys.length} subscriptions.`,
+      alerts: notificationsToSend,
       errors
     });
     
