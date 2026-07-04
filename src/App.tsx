@@ -44,6 +44,8 @@ import {
   Monitor
 } from 'lucide-react';
 
+import { realtimeDb } from './firebase';
+import { ref, push, set } from 'firebase/database';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
@@ -2965,6 +2967,40 @@ function FarmCoreApp() {
       setNotificationPermissionState(res);
       if (res === 'granted') {
         triggerAppToastMessage("✓ Smartphone Taskbar Alerts Authorized!");
+
+        // Subscribe to Web Push Background Notifications
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            const publicVapidKey = 'BEjz8oIUeEp29dUbSKWjNFvo0Rtt1hWCi0SvFSBVePNFamrVbIb_CarvRxLY5Av0wnURkaNtoArFeBRPs0XMfnc'; 
+            
+            // Helper to convert base64 to Uint8Array
+            const urlBase64ToUint8Array = (base64String: string) => {
+              const padding = '='.repeat((4 - base64String.length % 4) % 4);
+              const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+              const rawData = window.atob(base64);
+              const outputArray = new Uint8Array(rawData.length);
+              for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+              }
+              return outputArray;
+            };
+
+            const subscription = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+            });
+
+            // Save subscription to Firebase Realtime Database
+            const subId = subscription.endpoint.split('/').pop() || Date.now().toString();
+            const subRef = ref(realtimeDb, `pushSubscriptions/${subId}`);
+            await set(subRef, JSON.parse(JSON.stringify(subscription)));
+            console.log('Push subscription saved successfully.');
+          }
+        } catch (pushErr) {
+          console.error('Failed to subscribe to Web Push:', pushErr);
+        }
+
         // Fire a test welcome notification
         try {
           new Notification("JR Farm Pro", {
