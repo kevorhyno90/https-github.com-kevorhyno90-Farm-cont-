@@ -41,6 +41,11 @@ export function CowRegistry({
   const downloadPedigreeImage = async () => {
     if (!pedigreeCow) return;
     setIsDownloadingPedigree(true);
+    
+    // Yield to the main thread so the UI can paint the "Generating Image..." loading state 
+    // before html2canvas synchronously blocks the thread.
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       if (!(window as any).html2canvas) {
         const script = document.createElement('script');
