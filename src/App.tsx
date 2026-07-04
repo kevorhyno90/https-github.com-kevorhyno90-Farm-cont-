@@ -59,6 +59,7 @@ const FeedFormulator = React.lazy(() => import('./components/FeedFormulator').th
 const TmrMixing = React.lazy(() => import('./components/TmrMixing').then(m => ({ default: m.TmrMixing })));
 const DairyBreeding = React.lazy(() => import('./components/DairyBreeding').then(m => ({ default: m.DairyBreeding })));
 const Horticulture = React.lazy(() => import('./components/Horticulture').then(m => ({ default: m.Horticulture })));
+const AzollaManager = React.lazy(() => import('./components/AzollaManager').then(m => ({ default: m.AzollaManager })));
 const SprayLog = React.lazy(() => import('./components/SprayLog').then(m => ({ default: m.SprayLog })));
 const Financials = React.lazy(() => import('./components/Financials').then(m => ({ default: m.Financials })));
 const OtherSections = React.lazy(() => import('./components/OtherSections').then(m => ({ default: m.OtherSections })));
@@ -564,7 +565,8 @@ function FarmCoreApp() {
     heiferRecords, setHeiferRecords,
     poultryRecords, setPoultryRecords,
     quarantineRecords, setQuarantineRecords,
-    semenInventory, setSemenInventory
+    semenInventory, setSemenInventory,
+    azollaRecords, setAzollaRecords
   } = useFarmState();
 
   // Report modal state
@@ -1276,6 +1278,26 @@ function FarmCoreApp() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${bsfRecords.length} batches)</span>
           </h3>
           ${buildTableHtml(['Date', 'Batch ID', 'Substrate Type', 'Inoculated', 'Larvae Harvested', 'Stage Status'], rows)}
+        </div>
+      `;
+    }
+
+    // 13.5 Azolla
+    if (sections.azolla) {
+      const rows = azollaRecords.map(a => [
+        `<span style="font-family: monospace; font-weight: bold;">${a.date}</span>`,
+        `<strong>${a.pondId}</strong>`,
+        `<strong style="font-family: monospace; color: #166534;">${a.harvestYieldKg} KG</strong>`,
+        `<span>${a.distributedTo}</span>`,
+        `<em>${a.notes}</em>`
+      ]);
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>Azolla Aquatic Ponds (Protein Feed)</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${azollaRecords.length} harvests)</span>
+          </h3>
+          ${buildTableHtml(['Harvest Date', 'Pond ID', 'Yield (KG)', 'Distributed To', 'Notes'], rows)}
         </div>
       `;
     }
@@ -2601,7 +2623,8 @@ function FarmCoreApp() {
     academy: true, academy_casebook: true, academy_sop_logs: true,
     timetable: true, timetable_schedule: true, timetable_protocols: true,
     quarantine: true,
-    todos: true
+    todos: true,
+    azolla: true
   });
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -2635,7 +2658,8 @@ function FarmCoreApp() {
         academy: getStoredDiagHistory().length > 0,
         timetable: getStoredTimetable().length > 0,
         quarantine: quarantineRecords.length > 0,
-        todos: todos.length > 0
+        todos: todos.length > 0,
+        azolla: azollaRecords.length > 0
       } as Record<string, boolean>;
  
       // Force active tab keys
@@ -2644,6 +2668,7 @@ function FarmCoreApp() {
       if (activeTab === 'dairy') { withRecs.milk = true; withRecs.ai = true; withRecs.vet = true; withRecs.calves = true; withRecs.cows = true; withRecs.life_ledger = true; }
       if (activeTab === 'cows') { withRecs.cows = true; }
       if (activeTab === 'horti') { withRecs.tea = true; withRecs.avo = true; withRecs.cropSales = true; }
+      if (activeTab === 'azolla') { withRecs.azolla = true; }
       if (activeTab === 'spray') withRecs.spray = true;
       if (activeTab === 'finance') withRecs.financials = true;
       if (activeTab === 'fields') withRecs.fields = true;
@@ -2676,7 +2701,8 @@ function FarmCoreApp() {
         academy: withRecs.academy, academy_casebook: withRecs.academy, academy_sop_logs: withRecs.academy,
         timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
         quarantine: withRecs.quarantine, spray_quarantine: withRecs.quarantine, vet_withdrawal: withRecs.quarantine,
-        todos: withRecs.todos
+        todos: withRecs.todos,
+        azolla: withRecs.azolla
       });
     }
   }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords, quarantineRecords, todos]);
@@ -2739,6 +2765,7 @@ function FarmCoreApp() {
   const filteredStaffOffRecords = staffOffRecords.filter(o => isRecordInSelectedDateRange(o.startDate));
   const filteredLivestock = livestock.filter(l => isRecordInSelectedDateRange(l.date));
   const filteredTodos = todos.filter(t => isRecordInSelectedDateRange(t.date));
+  const filteredAzollaRecords = azollaRecords.filter(a => isRecordInSelectedDateRange(a.date));
 
   const reportIncome = filteredFinancials.filter(f => f.type === 'income').reduce((sum, f) => sum + f.amount, 0);
   const reportExpense = filteredFinancials.filter(f => f.type === 'expense').reduce((sum, f) => sum + f.amount, 0);
@@ -2923,6 +2950,43 @@ function FarmCoreApp() {
             actionTab: 'fields'
           });
         }
+      }
+    });
+
+    // New: Azolla Water and Nutrients Reminder
+    if (azollaRecords.length > 0) {
+      // Find latest record date
+      const sortedAzolla = [...azollaRecords].sort((a, b) => b.date.localeCompare(a.date));
+      const latest = sortedAzolla[0];
+      const diffDays = Math.ceil((todayNum - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 3) {
+        list.push({
+          id: `azolla-water-${latest.id}`,
+          section: 'Crops',
+          title: `💧 Azolla Ponds Maintenance Due`,
+          body: `It has been ${diffDays} days since the last Azolla harvest/record. Remember to top up water levels and add manure/nutrients to maintain optimal growth.`,
+          severity: 'medium',
+          actionLabel: 'Manage Azolla',
+          actionTab: 'azolla'
+        });
+      }
+    }
+
+    // New: BSF Feeding and Egg Harvesting Reminder
+    const activeBsf = bsfRecords.filter(b => b.status !== 'Harvested');
+    activeBsf.forEach(batch => {
+      const diffDays = Math.ceil((todayNum - new Date(batch.inoculationDate).getTime()) / (1000 * 60 * 60 * 24));
+      // Remind every 3 days for feeding or egg check
+      if (diffDays > 0 && diffDays % 3 === 0) {
+        list.push({
+          id: `bsf-maint-${batch.id}-${diffDays}`,
+          section: 'Stock',
+          title: `🐛 BSF Batch Maintenance: ${batch.batchId}`,
+          body: `Batch ${batch.batchId} has been active for ${diffDays} days. Ensure consistent feeding (substrate) and check love cages for egg harvesting if applicable.`,
+          severity: 'medium',
+          actionLabel: 'Check BSF Batches',
+          actionTab: 'factory'
+        });
       }
     });
 
@@ -4115,6 +4179,7 @@ function FarmCoreApp() {
 
     { id: 'tea', label: 'KTDA Tea Deliveries', icon: Leaf, category: 'Crop Exports' },
     { id: 'avo', label: 'Avocado Export Shipments', icon: Sprout, category: 'Crop Exports' },
+    { id: 'azolla', label: 'Azolla Aquatic Ponds', icon: Droplets, category: 'Crop Exports' },
     { id: 'fields', label: 'Fields & Trees', icon: Sprout, category: 'Crop Exports' },
     { id: 'spray', label: 'GlobalGAP Spray', icon: FlaskConical, category: 'Crop Exports' },
 
@@ -4903,6 +4968,38 @@ function FarmCoreApp() {
                       <td className="p-1.5 text-center font-mono">{batch.inoculationDate}</td>
                       <td className="p-1.5 text-right font-mono font-bold text-yellow-800">{batch.larvaeHarvestedKg} KG</td>
                       <td className="p-1.5 font-mono font-semibold text-[10px] text-slate-500">{batch.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 13.5 Azolla Ponds */}
+          {sections.azolla && (
+            <div className="space-y-2">
+              <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                <span>13.5 Azolla Aquatic Ponds (Protein Feed)</span>
+                <span className="text-[9px] font-mono text-slate-454 font-bold">({azollaRecords.length} harvests)</span>
+              </h5>
+              <table className="w-full text-[11px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                    <th className="p-1">Harvest Date</th>
+                    <th className="p-1">Pond ID</th>
+                    <th className="p-1 text-right">Yield (KG)</th>
+                    <th className="p-1">Distributed To</th>
+                    <th className="p-1">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {azollaRecords.map((a) => (
+                    <tr key={a.id} className="border-b border-slate-100">
+                      <td className="p-1.5 font-mono text-slate-700 font-bold">{a.date}</td>
+                      <td className="p-1.5 font-bold text-slate-800">{a.pondId}</td>
+                      <td className="p-1.5 text-right font-mono font-bold text-emerald-800">{a.harvestYieldKg} KG</td>
+                      <td className="p-1.5 text-slate-705">{a.distributedTo}</td>
+                      <td className="p-1.5 italic text-slate-500">{a.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -6330,6 +6427,15 @@ function FarmCoreApp() {
                 activeTab === 'avo' ? 'avo' :
                 undefined
               }
+            />
+          )}
+
+          {activeTab === 'azolla' && (
+            <AzollaManager
+              records={azollaRecords}
+              onAddRecord={(rec) => setAzollaRecords([...azollaRecords, rec])}
+              onDeleteRecord={(id) => setAzollaRecords(azollaRecords.filter(r => r.id !== id))}
+              onTriggerSectionReport={handleTriggerSectionReportMulti}
             />
           )}
 

@@ -39,6 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const inventory = farmData.jr_farm_inventory || [];
     const aiRecords = farmData.jr_farm_ai || [];
     const staffOff = farmData.jr_farm_staff_off || [];
+    const azolla = farmData.jr_farm_azolla || [];
     
     const notificationsToSend: { text: string; daysLeft: number }[] = [];
     const today = new Date().toISOString().split('T')[0];
@@ -150,12 +151,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Evaluate BSF
     bsfs.forEach((bsf: any) => {
-      const start = new Date(bsf.startDate || bsf.inoculationDate).getTime();
-      const d = Math.floor((now - start) / msPerDay);
-      if (d === 14) {
-        notificationsToSend.push({ text: `🪰 BSF Batch ${bsf.batchId || bsf.id} ready for harvesting!`, daysLeft: 0 });
+      if (bsf.status !== 'Harvested') {
+        const start = new Date(bsf.startDate || bsf.inoculationDate).getTime();
+        const d = Math.floor((now - start) / msPerDay);
+        if (d === 14) {
+          notificationsToSend.push({ text: `🪰 BSF Batch ${bsf.batchId || bsf.id} ready for final larvae harvest!`, daysLeft: 0 });
+        } else if (d > 0 && d % 3 === 0) {
+          // Remind every 3 days for feeding and egg harvesting
+          notificationsToSend.push({ text: `🐛 BSF Batch ${bsf.batchId || bsf.id}: Add feed substrate and harvest eggs from love cages today.`, daysLeft: 0 });
+        }
       }
     });
+
+    // Evaluate Azolla Ponds (Water & Nutrients)
+    if (azolla.length > 0) {
+      const sortedAzolla = [...azolla].sort((a: any, b: any) => b.date.localeCompare(a.date));
+      const latest = sortedAzolla[0];
+      const d = Math.ceil((now - new Date(latest.date).getTime()) / msPerDay);
+      if (d >= 3) {
+        notificationsToSend.push({ text: `💧 Azolla Ponds: Last harvest was ${d} days ago. Top up water levels and add manure/nutrients!`, daysLeft: 0 });
+      }
+    }
 
     if (notificationsToSend.length === 0) {
       return res.status(200).json({ message: 'No alarms triggered.' });

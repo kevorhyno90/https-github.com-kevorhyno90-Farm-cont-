@@ -28,7 +28,8 @@ import {
   HeiferRecord,
   PoultryRecord,
   QuarantineRecord,
-  SemenInventoryItem
+  SemenInventoryItem,
+  AzollaRecord
 } from '../types';
 
 import {
@@ -117,6 +118,8 @@ interface FarmContextType {
   setQuarantineRecords: React.Dispatch<React.SetStateAction<QuarantineRecord[]>>;
   semenInventory: SemenInventoryItem[];
   setSemenInventory: React.Dispatch<React.SetStateAction<SemenInventoryItem[]>>;
+  azollaRecords: AzollaRecord[];
+  setAzollaRecords: React.Dispatch<React.SetStateAction<AzollaRecord[]>>;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -417,6 +420,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : INITIAL_SEMEN_INVENTORY;
   });
 
+  const [azollaRecords, setAzollaRecords] = useState<AzollaRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_azolla');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   // LocalStorage synchronizations
   useEffect(() => { localStorage.setItem('jr_farm_staff', JSON.stringify(staffList)); }, [staffList]);
   useEffect(() => { localStorage.setItem('jr_farm_ingredients', JSON.stringify(ingredients)); }, [ingredients]);
@@ -447,6 +455,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { localStorage.setItem('jr_farm_poultries', JSON.stringify(poultryRecords)); }, [poultryRecords]);
   useEffect(() => { localStorage.setItem('jr_farm_quarantines', JSON.stringify(quarantineRecords)); }, [quarantineRecords]);
   useEffect(() => { localStorage.setItem('jr_farm_semen_inventory', JSON.stringify(semenInventory)); }, [semenInventory]);
+  useEffect(() => { localStorage.setItem('jr_farm_azolla', JSON.stringify(azollaRecords)); }, [azollaRecords]);
 
   return (
     <FarmContext.Provider
@@ -479,7 +488,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         heiferRecords, setHeiferRecords,
         poultryRecords, setPoultryRecords,
         quarantineRecords, setQuarantineRecords,
-        semenInventory, setSemenInventory
+        semenInventory, setSemenInventory,
+        azollaRecords, setAzollaRecords
       }}
     >
       {children}
