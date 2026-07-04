@@ -14,8 +14,8 @@ interface CowRegistryProps {
 }
 
 export function CowRegistry({ 
-  cows, 
-  milkRecords,
+  cows = [], 
+  milkRecords = [],
   onAddCow,
   onDeleteCow,
   onUpdateCowStatus,
