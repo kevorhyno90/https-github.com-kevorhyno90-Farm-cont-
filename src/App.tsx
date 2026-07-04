@@ -5610,6 +5610,43 @@ function FarmCoreApp() {
       <div className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${
         slimSidebar ? 'lg:pl-20' : 'lg:pl-72'
       }`}>
+        {/* Dynamic PWA Install Auto-Modal */}
+        {isInstallable && !dismissedPwaBanner && (
+          <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl border-4 border-teal-50 flex flex-col items-center text-center transform transition-all">
+              <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 mb-5 shadow-inner">
+                <Monitor size={40} className="animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">Install JR Farm</h3>
+              <p className="text-sm text-slate-500 mb-8 font-semibold leading-relaxed">
+                Install the JR Farm Omni-Estate app on your device for lightning-fast offline access and a premium native experience!
+              </p>
+              <div className="flex flex-col w-full gap-3">
+                <button 
+                  onClick={() => {
+                    handlePwaInstallAction();
+                    setDismissedPwaBanner(true);
+                    try { localStorage.setItem('jr_farm_pwa_banner_dismissed', 'true'); } catch (e) {}
+                  }}
+                  className="w-full bg-teal-600 hover:bg-teal-500 text-white font-black py-4 rounded-xl transition-all shadow-lg shadow-teal-500/30 cursor-pointer text-lg tracking-wide uppercase flex items-center justify-center gap-2"
+                >
+                  <Download size={20} />
+                  Install Now
+                </button>
+                <button 
+                  onClick={() => {
+                    setDismissedPwaBanner(true);
+                    try { localStorage.setItem('jr_farm_pwa_banner_dismissed', 'true'); } catch (e) {}
+                  }}
+                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold py-3 rounded-xl transition-colors cursor-pointer text-sm"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Dynamic PWA Iframe Install Warning Banner */}
         {isInIframeSandbox && !dismissedPwaBanner && (
           <div className="bg-teal-900 text-teal-100 px-6 py-3 text-[11px] font-bold flex items-center justify-between gap-4 border-b border-teal-950 text-left animate-slideIn">
