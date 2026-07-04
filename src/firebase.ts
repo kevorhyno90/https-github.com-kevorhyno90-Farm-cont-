@@ -5,6 +5,7 @@ import { getDatabase } from "firebase/database";
 const firebaseConfig = {
   apiKey: "AIzaSyCw6SULwl9xwLkgAw4Ls-R-DvESldXxFts",
   authDomain: "dairy-farm-app-b95a9.firebaseapp.com",
+  databaseURL: "https://dairy-farm-app-b95a9-default-rtdb.firebaseio.com",
   projectId: "dairy-farm-app-b95a9",
   storageBucket: "dairy-farm-app-b95a9.firebasestorage.app",
   messagingSenderId: "461702776121",
