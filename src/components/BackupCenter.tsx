@@ -21,8 +21,15 @@ import {
   Copy,
   FileCode
 } from 'lucide-react';
-import { db } from '../firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { realtimeDb } from '../firebase';
+import { ref, set, get, child } from 'firebase/database';
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => 
+  Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Connection timed out. Please ensure the Realtime Database is created and accessible in your Firebase Console.')), ms))
+  ]);
+
 
 interface BackupCenterProps {
   onResetToDefaults: () => void;
@@ -273,8 +280,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     if (success) {
       try {
       const cleanKey = syncKey.trim().toLowerCase();
-      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
-      await setDoc(docRef, { database: mergedPayload, updatedAt: new Date().toISOString() });
+      const dbRef = ref(realtimeDb, `cloudSyncRooms/${cleanKey}`);
+      await withTimeout(set(dbRef, { database: mergedPayload, updatedAt: new Date().toISOString() }), 10000);
     } catch (e) {
       console.error("Auto backup save failed after merge", e);
     }
@@ -515,8 +522,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
         }
       });
 
-      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
-      await setDoc(docRef, { database: databasePayload, updatedAt: new Date().toISOString() });
+      const dbRef = ref(realtimeDb, `cloudSyncRooms/${cleanKey}`);
+      await withTimeout(set(dbRef, { database: databasePayload, updatedAt: new Date().toISOString() }), 10000);
 
       // Save sync key & time
       const nowStr = new Date().toLocaleString();
@@ -549,14 +556,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     setStatusMsg({ type: null, text: '' });
 
     try {
-      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
-      const docSnap = await getDoc(docRef);
+      const dbRef = ref(realtimeDb);
+      const snapshot = await withTimeout(get(child(dbRef, `cloudSyncRooms/${cleanKey}`)), 10000);
       
-      if (!docSnap.exists()) {
+      if (!snapshot.exists()) {
         throw new Error('Room not found.');
       }
       
-      const reply = docSnap.data();
+      const reply = snapshot.val();
 
       if (!reply.database || typeof reply.database !== 'object') {
         throw new Error('Retrieved sync room contains corrupted databases.');
