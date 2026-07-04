@@ -49,7 +49,6 @@ import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
 import { LandingPage } from './components/LandingPage';
-import { PortraitEnforcer } from './components/PortraitEnforcer';
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -204,7 +203,6 @@ export default function App() {
 
   return (
     <FarmProvider>
-      <PortraitEnforcer />
       {!hasEnteredApp ? (
         <LandingPage onEnter={handleEnter} />
       ) : (
