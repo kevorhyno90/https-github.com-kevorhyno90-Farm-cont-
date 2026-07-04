@@ -407,35 +407,35 @@ export function Dashboard({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 z-10 relative">
         {[
           { 
-            label: "Milk Yield (Today)", 
-            value: `${todayLiters.toFixed(1)} L`, 
-            sub: "Active dairy herd log", 
-            icon: Activity, 
-            color: "emerald",
+            label: "Total Livestock", 
+            value: `${cows.length} Head`, 
+            sub: "Active dairy herd count", 
+            icon: Heart, 
+            color: "blue",
             delay: 0.1
           },
           { 
-            label: "Tea Weights (Harvest)", 
-            value: `${totalTeaQty.toLocaleString()} KG`, 
-            sub: "KTDA delivery aggregate", 
-            icon: Leaf, 
-            color: "purple",
+            label: "Milk Yield (Today)", 
+            value: `${todayLiters.toFixed(1)} L`, 
+            sub: "Real-time production", 
+            icon: Activity, 
+            color: "emerald",
             delay: 0.2
           },
           { 
-            label: "Net Cash Balance", 
+            label: "Net Financial P&L", 
             value: `Ksh ${netPl.toLocaleString()}`, 
-            sub: "Overall P&L account", 
-            icon: Coins, 
+            sub: "Overall cash balance", 
+            icon: DollarSign, 
             color: netPl >= 0 ? "emerald" : "rose",
             delay: 0.3
           },
           { 
-            label: "Calving Alarm", 
-            value: upcomingDueAlarm || "None", 
-            sub: `${activeAlarmsCount} pending breed cycles`, 
-            icon: TrendingUp, 
-            color: "rose",
+            label: "Active Alerts", 
+            value: `${activeAlarmsCount} Alerts`, 
+            sub: upcomingDueAlarm || "All clear", 
+            icon: AlertTriangle, 
+            color: activeAlarmsCount > 0 ? "rose" : "slate",
             delay: 0.4
           }
         ].map((widget, idx) => {
