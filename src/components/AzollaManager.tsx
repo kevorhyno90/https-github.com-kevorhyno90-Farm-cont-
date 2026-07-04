@@ -194,9 +194,9 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
             </div>
           </div>
           
-          <div className="flex-1 min-h-[300px]">
+          <div className="flex-1 min-h-[300px] h-[300px]">
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="99%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} vertical={false} />
                   <XAxis dataKey="date" tick={{fontSize: 12}} />

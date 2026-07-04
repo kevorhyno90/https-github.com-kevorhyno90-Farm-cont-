@@ -6435,7 +6435,7 @@ function FarmCoreApp() {
               records={azollaRecords}
               onAddRecord={(rec) => setAzollaRecords([...azollaRecords, rec])}
               onDeleteRecord={(id) => setAzollaRecords(azollaRecords.filter(r => r.id !== id))}
-              onTriggerSectionReport={handleTriggerSectionReportMulti}
+              onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
 
