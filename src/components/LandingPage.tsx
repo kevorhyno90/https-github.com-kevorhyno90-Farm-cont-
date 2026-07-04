@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Leaf, Shield, Sparkles } from 'lucide-react';
 import { LOGO_SVG_STRING } from '../App';
 import { auth, googleProvider } from '../firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithRedirect } from 'firebase/auth';
 
 interface LandingPageProps {
   onEnter: (uid: string) => void;
@@ -17,12 +17,10 @@ export function LandingPage({ onEnter }: LandingPageProps) {
     try {
       setLoading(true);
       setErrorMsg('');
-      const result = await signInWithPopup(auth, googleProvider);
-      onEnter(result.user.uid);
+      await signInWithRedirect(auth, googleProvider);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Login failed.');
-    } finally {
       setLoading(false);
     }
   };
