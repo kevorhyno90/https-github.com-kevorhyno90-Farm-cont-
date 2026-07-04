@@ -664,6 +664,41 @@ How can I assist you in livestock or crop management today?`;
     }
   });
 
+  // 🔌 Cloud Sync Routes
+  app.post("/api/sync/save", (req, res) => {
+    const { syncKey, database } = req.body;
+    if (!syncKey || !database) {
+      return res.status(400).json({ error: "Missing syncKey or database payload" });
+    }
+    
+    const db = readSyncDatabase();
+    const cleanKey = syncKey.toLowerCase().trim();
+    db[cleanKey] = {
+      database,
+      updatedAt: new Date().toISOString()
+    };
+    writeSyncDatabase(db);
+    
+    res.json({ success: true, message: "Database synced successfully." });
+  });
+
+  app.get("/api/sync/load/:syncKey", (req, res) => {
+    const { syncKey } = req.params;
+    if (!syncKey) {
+      return res.status(400).json({ error: "Missing syncKey" });
+    }
+
+    const db = readSyncDatabase();
+    const cleanKey = syncKey.toLowerCase().trim();
+    const room = db[cleanKey];
+
+    if (!room) {
+      return res.status(404).json({ error: "Sync room not found." });
+    }
+
+    res.json({ database: room.database, updatedAt: room.updatedAt });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
