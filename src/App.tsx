@@ -51,6 +51,8 @@ import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
 import { LandingPage } from './components/LandingPage';
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -199,7 +201,17 @@ export default function App() {
     return sessionStorage.getItem('jr_farm_entered') === 'true';
   });
 
-  const handleEnter = () => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        sessionStorage.setItem('jr_farm_entered', 'true');
+        setHasEnteredApp(true);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleEnter = (uid?: string) => {
     sessionStorage.setItem('jr_farm_entered', 'true');
     setHasEnteredApp(true);
   };

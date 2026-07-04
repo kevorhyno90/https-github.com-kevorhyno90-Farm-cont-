@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, doc, setDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 
@@ -7,7 +7,7 @@ export function FirebaseSyncer() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error' | 'success'>('idle');
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  const FARM_ID = 'default_farm_001'; // In a real app, this would be tied to user auth
+  const FARM_ID = auth.currentUser ? auth.currentUser.uid : 'default_farm_001';
 
   // Background Sync to Cloud
   useEffect(() => {
