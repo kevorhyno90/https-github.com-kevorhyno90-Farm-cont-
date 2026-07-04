@@ -29,6 +29,7 @@ export function CowRegistry({
   const [cowStatusFilter, setCowStatusFilter] = useState('');
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
+  const [isDownloadingPedigree, setIsDownloadingPedigree] = useState(false);
 
   const [newCow, setNewCow] = useState<Partial<Cow>>({ status: 'Heifer' });
 
@@ -37,6 +38,37 @@ export function CowRegistry({
   const uniqueStatuses = Array.from(new Set(cows.map(c => c.status).filter(Boolean)));
 
   // Helper Functions
+  const downloadPedigreeImage = async () => {
+    if (!pedigreeCow) return;
+    setIsDownloadingPedigree(true);
+    try {
+      if (!(window as any).html2canvas) {
+        const script = document.createElement('script');
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        script.async = false;
+        document.body.appendChild(script);
+        await new Promise(resolve => script.onload = resolve);
+      }
+      
+      const element = document.getElementById('pedigree-tree-container');
+      if (element) {
+        const canvas = await (window as any).html2canvas(element, { 
+          backgroundColor: '#f8fafc',
+          scale: 2 
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `JR_Farm_${pedigreeCow.name}_Pedigree.png`;
+        link.click();
+      }
+    } catch (err) {
+      console.error("Failed to download pedigree", err);
+    } finally {
+      setIsDownloadingPedigree(false);
+    }
+  };
+
   const getAverageYield = (tag: string) => {
     if (!tag) return 0;
     const cowMilks = milkRecords.filter(r => r && r.id && r.id.toLowerCase() === tag.toLowerCase());
@@ -336,7 +368,7 @@ export function CowRegistry({
               </button>
             </div>
 
-            <div className="relative border border-slate-100 rounded-3xl bg-slate-50 p-6 md:p-12 overflow-x-auto">
+            <div id="pedigree-tree-container" className="relative border border-slate-100 rounded-3xl bg-slate-50 p-6 md:p-12 overflow-x-auto">
               <div className="min-w-[600px] flex items-center justify-center">
                 {/* Grandparents Column */}
                 <div className="flex flex-col gap-12 w-48 shrink-0">
@@ -399,7 +431,15 @@ export function CowRegistry({
               </div>
             </div>
             
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-end gap-3">
+              <button 
+                onClick={downloadPedigreeImage} 
+                disabled={isDownloadingPedigree}
+                className="px-6 py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-200 rounded-xl font-black uppercase text-xs transition-colors cursor-pointer m-0 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Download size={14} /> 
+                {isDownloadingPedigree ? 'Generating Image...' : 'Save as Image'}
+              </button>
               <button onClick={() => setPedigreeCow(null)} className="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-black uppercase text-xs transition-colors cursor-pointer m-0 border-0">
                 Close Pedigree View
               </button>
