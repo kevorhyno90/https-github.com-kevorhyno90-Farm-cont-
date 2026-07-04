@@ -30,6 +30,8 @@ export function CowRegistry({
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
 
+  const [newCow, setNewCow] = useState<Partial<Cow>>({ status: 'Heifer' });
+
   // Derived Values
   const uniqueBreeds = Array.from(new Set(cows.map(c => c.breed).filter(Boolean)));
   const uniqueStatuses = Array.from(new Set(cows.map(c => c.status).filter(Boolean)));
@@ -44,6 +46,7 @@ export function CowRegistry({
   };
 
   const getCowAge = (dobString: string) => {
+    if (!dobString) return 'Unknown';
     const birth = new Date(dobString);
     const now = new Date();
     let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
@@ -72,8 +75,11 @@ export function CowRegistry({
 
   const handleCowSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Please use the main Dairy Breeding tab to add a cow in this version.");
-    setShowAddCowForm(false);
+    if (onAddCow && newCow.id && newCow.breed) {
+      onAddCow(newCow as Cow);
+      setShowAddCowForm(false);
+      setNewCow({ status: 'Heifer' });
+    }
   };
 
   return (
@@ -153,10 +159,23 @@ export function CowRegistry({
           <form onSubmit={handleCowSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
             <h4 className="text-sm font-black text-slate-800 uppercase flex items-center gap-2 mb-4"><Plus size={16}/> Add New Cattle to Registry</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Cow Tag ID*</label><input required type="text" className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
-              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Name / Nickname</label><input type="text" className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
-              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Breed*</label><input required type="text" className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
-              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Date of Birth</label><input type="date" className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Cow Tag ID*</label><input required type="text" value={newCow.id || ''} onChange={e => setNewCow({...newCow, id: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Name / Nickname</label><input type="text" value={newCow.name || ''} onChange={e => setNewCow({...newCow, name: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Breed*</label><input required type="text" value={newCow.breed || ''} onChange={e => setNewCow({...newCow, breed: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Date of Birth</label><input type="date" value={newCow.dob || ''} onChange={e => setNewCow({...newCow, dob: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Current Status*</label>
+                <select required value={newCow.status || 'Heifer'} onChange={e => setNewCow({...newCow, status: e.target.value as any})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold bg-white">
+                  <option value="Lactating">Lactating</option>
+                  <option value="Dry">Dry</option>
+                  <option value="Heifer">Heifer</option>
+                  <option value="In-Calf">In-Calf</option>
+                </select>
+              </div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Registration No.</label><input type="text" value={newCow.registrationNo || ''} onChange={e => setNewCow({...newCow, registrationNo: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" placeholder="Optional" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Sire (Father)</label><input type="text" value={newCow.sire || ''} onChange={e => setNewCow({...newCow, sire: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" placeholder="Unknown" /></div>
+              <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Dam (Mother)</label><input type="text" value={newCow.dam || ''} onChange={e => setNewCow({...newCow, dam: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" placeholder="Unknown" /></div>
+              <div className="md:col-span-4"><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Additional Notes</label><textarea value={newCow.notes || ''} onChange={e => setNewCow({...newCow, notes: e.target.value})} rows={2} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold resize-none" placeholder="Enter any identifying marks, conditions, or history..."></textarea></div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button type="button" onClick={() => setShowAddCowForm(false)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase rounded-xl transition-colors cursor-pointer m-0 border-none">Cancel</button>
