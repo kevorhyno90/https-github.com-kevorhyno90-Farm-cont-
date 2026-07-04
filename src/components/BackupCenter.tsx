@@ -21,6 +21,8 @@ import {
   Copy,
   FileCode
 } from 'lucide-react';
+import { db } from '../firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 interface BackupCenterProps {
   onResetToDefaults: () => void;
@@ -270,15 +272,12 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     const success = onImportFullBackup(mergedPayload);
     if (success) {
       try {
-        const cleanKey = syncKey.trim().toLowerCase();
-        await fetch('/api/sync/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ syncKey: cleanKey, database: mergedPayload })
-        });
-      } catch (e) {
-        console.error("Auto backup save failed after merge", e);
-      }
+      const cleanKey = syncKey.trim().toLowerCase();
+      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
+      await setDoc(docRef, { database: mergedPayload, updatedAt: new Date().toISOString() });
+    } catch (e) {
+      console.error("Auto backup save failed after merge", e);
+    }
 
       const nowStr = new Date().toLocaleString();
       localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
@@ -516,23 +515,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
         }
       });
 
-      const res = await fetch('/api/sync/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ syncKey: cleanKey, database: databasePayload })
-      });
-
-      let reply: any = {};
-      const resText = await res.text();
-      try {
-        reply = JSON.parse(resText);
-      } catch {
-        throw new Error(`Server returned non-JSON response (Status ${res.status}): ${resText.slice(0, 150)}...`);
-      }
-
-      if (!res.ok) {
-        throw new Error(reply.error || 'Server rejected synchronization request.');
-      }
+      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
+      await setDoc(docRef, { database: databasePayload, updatedAt: new Date().toISOString() });
 
       // Save sync key & time
       const nowStr = new Date().toLocaleString();
@@ -565,18 +549,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     setStatusMsg({ type: null, text: '' });
 
     try {
-      const res = await fetch(`/api/sync/load/${cleanKey}`);
-      let reply: any = {};
-      const resText = await res.text();
-      try {
-        reply = JSON.parse(resText);
-      } catch {
-        throw new Error(`Server returned non-JSON response (Status ${res.status}): ${resText.slice(0, 150)}...`);
+      const docRef = doc(db, 'cloudSyncRooms', cleanKey);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error('Room not found.');
       }
-
-      if (!res.ok) {
-        throw new Error(reply.error || 'Room not found.');
-      }
+      
+      const reply = docSnap.data();
 
       if (!reply.database || typeof reply.database !== 'object') {
         throw new Error('Retrieved sync room contains corrupted databases.');
