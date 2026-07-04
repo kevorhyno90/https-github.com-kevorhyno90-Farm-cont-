@@ -48,6 +48,8 @@ import { getStoredSettings, applyOrientationPreference } from './utils/settingsH
 import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
+import { LandingPage } from './components/LandingPage';
+import { PortraitEnforcer } from './components/PortraitEnforcer';
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -191,9 +193,23 @@ class ErrorBoundary extends React.Component<{children: any}, {hasError: boolean,
 }
 
 export default function App() {
+  const [hasEnteredApp, setHasEnteredApp] = useState(() => {
+    return sessionStorage.getItem('jr_farm_entered') === 'true';
+  });
+
+  const handleEnter = () => {
+    sessionStorage.setItem('jr_farm_entered', 'true');
+    setHasEnteredApp(true);
+  };
+
   return (
     <FarmProvider>
-      <FarmCoreApp />
+      <PortraitEnforcer />
+      {!hasEnteredApp ? (
+        <LandingPage onEnter={handleEnter} />
+      ) : (
+        <FarmCoreApp />
+      )}
     </FarmProvider>
   );
 }
