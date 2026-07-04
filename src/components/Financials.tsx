@@ -583,13 +583,13 @@ export function Financials({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Dynamic Header Banner */}
-      <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4 text-left">
           <div className="p-3 bg-teal-100 text-teal-950 rounded-xl shrink-0">
             <BookOpen className="text-emerald-900" size={24} />
           </div>
           <div>
-            <h4 className="text-white font-black text-sm uppercase tracking-wider">Estate Accounting Ledger & Analytics</h4>
+            <h4 className="text-slate-805 font-black text-sm uppercase tracking-wider">Estate Accounting Ledger & Analytics</h4>
             <p className="text-xs text-slate-400 font-medium">
               Monitor operational P&L in real-time, audit seasonal allocations, verify budgets, and predict breeding profitability schedules.
             </p>
@@ -600,7 +600,7 @@ export function Financials({
           <button
             onClick={() => onTriggerSectionReport('financials')}
             type="button"
-            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-[0_8px_30px_rgb(0,0,0,0.2)] cursor-pointer m-0 border border-amber-600/10 font-bold shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold shrink-0"
             title="Download Financial PDF Report"
           >
             <Download size={13} />
@@ -610,11 +610,11 @@ export function Financials({
       </div>
 
       {/* Sub-tab Navigation Panel */}
-      <div className="flex flex-wrap gap-2.5 p-1 bg-black/40 rounded-2xl max-w-2xl text-xs">
+      <div className="flex flex-wrap gap-2.5 p-1 bg-slate-100 rounded-2xl max-w-2xl text-xs">
         <button
           onClick={() => setSubTab('ledger')}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
-            subTab === 'ledger' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] font-black' : 'text-slate-400 hover:text-white'
+            subTab === 'ledger' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Table size={14} className="text-emerald-800" />
@@ -624,7 +624,7 @@ export function Financials({
         <button
           onClick={() => setSubTab('analytics')}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
-            subTab === 'analytics' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] font-black' : 'text-slate-400 hover:text-white'
+            subTab === 'analytics' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <BarChart2 size={14} className="text-indigo-800 animate-pulse" />
@@ -634,7 +634,7 @@ export function Financials({
         <button
           onClick={() => setSubTab('budgets')}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
-            subTab === 'budgets' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] font-black' : 'text-slate-400 hover:text-white'
+            subTab === 'budgets' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Target size={14} className="text-rose-805" />
@@ -644,7 +644,7 @@ export function Financials({
         <button
           onClick={() => setSubTab('breeding_roi')}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
-            subTab === 'breeding_roi' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] font-black' : 'text-slate-400 hover:text-white'
+            subTab === 'breeding_roi' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <BrainCircuit size={14} className="text-amber-800" />
@@ -654,7 +654,7 @@ export function Financials({
         <button
           onClick={() => setSubTab('granular_analysis')}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all uppercase tracking-wider m-0 border-none cursor-pointer ${
-            subTab === 'granular_analysis' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] font-black' : 'text-slate-400 hover:text-white'
+            subTab === 'granular_analysis' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Sliders size={14} className="text-teal-700" />
@@ -680,7 +680,7 @@ export function Financials({
               <ArrowUpRight size={12} className="text-emerald-400" /> Gross Earnings
             </span>
             <h3 className="text-emerald-400 font-black font-mono text-xl mt-2">+{totalIncome.toLocaleString()}</h3>
-            <span className="text-[9px] text-slate-400 block pt-1 font-medium italic">Accrued credits</span>
+            <span className="text-[9px] text-slate-500 block pt-1 font-medium italic">Accrued credits</span>
           </div>
 
           <div className="bg-slate-800/80 border border-slate-700/40 p-4 rounded-2xl flex flex-col justify-between">
@@ -688,7 +688,7 @@ export function Financials({
               <ArrowDownRight size={12} className="text-rose-400" /> Aggregate Debits
             </span>
             <h3 className="text-rose-400 font-black font-mono text-xl mt-2">-{totalExpense.toLocaleString()}</h3>
-            <span className="text-[9px] text-slate-400 block pt-1 font-medium italic">Accrued cash drains</span>
+            <span className="text-[9px] text-slate-500 block pt-1 font-medium italic">Accrued cash drains</span>
           </div>
         </div>
       </div>
@@ -699,7 +699,7 @@ export function Financials({
           {/* Logs Forms Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Income logger */}
-            <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-4">
+            <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl shadow-sm space-y-4">
               <div className="text-left">
                 <h5 className="text-[11px] font-black tracking-widest text-emerald-950 uppercase flex items-center gap-1.5">
                   <TrendingUp size={14} className="text-emerald-800" /> Log Income Stream
@@ -717,7 +717,7 @@ export function Financials({
                     value={incAmt}
                     onChange={(e) => setIncAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="Amount in Ksh"
-                    className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white/5 backdrop-blur-xl focus:ring-emerald-700/10 focus:outline-none"
+                    className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-emerald-700/10 focus:outline-none"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -727,7 +727,7 @@ export function Financials({
                       required
                       value={incSrc}
                       onChange={(e) => setIncSrc(e.target.value)}
-                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-semibold bg-white/5 backdrop-blur-xl cursor-pointer focus:outline-none"
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer focus:outline-none"
                     >
                       <option value="">Choose category...</option>
                       <option value="Milk Sale">Brookside Milk Deliveries</option>
@@ -747,7 +747,7 @@ export function Financials({
                       value={incDesc}
                       onChange={(e) => setIncDesc(e.target.value)}
                       placeholder="E.g. Rec ref #33989"
-                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-medium bg-white/5 backdrop-blur-xl focus:outline-none"
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-medium bg-white focus:outline-none"
                     />
                   </div>
                   <div>
@@ -757,13 +757,13 @@ export function Financials({
                       required
                       value={incDate}
                       onChange={(e) => setIncDate(e.target.value)}
-                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white/5 backdrop-blur-xl font-mono cursor-pointer focus:outline-none"
+                      className="text-xs border border-emerald-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer focus:outline-none"
                     />
                   </div>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-[0_8px_30px_rgb(0,0,0,0.2)] m-0 border-none cursor-pointer"
+                  className="w-full bg-emerald-950 hover:bg-emerald-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 border-none cursor-pointer"
                 >
                   Post Revenue Transaction
                 </button>
@@ -771,7 +771,7 @@ export function Financials({
             </div>
 
             {/* Expense logger */}
-            <div className="bg-rose-50 border border-rose-150 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-4">
+            <div className="bg-rose-50 border border-rose-150 p-6 rounded-3xl shadow-sm space-y-4">
               <div className="text-left">
                 <h5 className="text-[11px] font-black tracking-widest text-rose-950 uppercase flex items-center gap-1.5">
                   <TrendingDown size={14} className="text-rose-800" /> Log Farm Expense
@@ -789,7 +789,7 @@ export function Financials({
                     value={expAmt}
                     onChange={(e) => setExpAmt(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="Amount in Ksh"
-                    className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white/5 backdrop-blur-xl focus:ring-rose-700/10 focus:outline-none"
+                    className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white focus:ring-rose-700/10 focus:outline-none"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -799,7 +799,7 @@ export function Financials({
                       required
                       value={expSrc}
                       onChange={(e) => setExpSrc(e.target.value)}
-                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-semibold bg-white/5 backdrop-blur-xl cursor-pointer focus:outline-none"
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-semibold bg-white cursor-pointer focus:outline-none"
                     >
                       <option value="">Choose category...</option>
                       <option value="Animal Feed">Compounding Raw Feed Materials</option>
@@ -818,7 +818,7 @@ export function Financials({
                       value={expDesc}
                       onChange={(e) => setExpDesc(e.target.value)}
                       placeholder="E.g. Payee Victor advance wages"
-                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-medium bg-white/5 backdrop-blur-xl focus:outline-none"
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-medium bg-white focus:outline-none"
                     />
                   </div>
                   <div>
@@ -828,13 +828,13 @@ export function Financials({
                       required
                       value={expDate}
                       onChange={(e) => setExpDate(e.target.value)}
-                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white/5 backdrop-blur-xl font-mono cursor-pointer focus:outline-none"
+                      className="text-xs border border-rose-200 rounded-lg p-3 w-full font-bold bg-white font-mono cursor-pointer focus:outline-none"
                     />
                   </div>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-[0_8px_30px_rgb(0,0,0,0.2)] m-0 border-none cursor-pointer"
+                  className="w-full bg-rose-950 hover:bg-rose-900 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all shadow-md m-0 border-none cursor-pointer"
                 >
                   Post Debit Transaction
                 </button>
@@ -843,8 +843,8 @@ export function Financials({
           </div>
 
           {/* Expanded filtering & audit trail table */}
-          <div className="bg-white/5 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-4 text-left">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-white/10 pb-4">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-left">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h5 className="text-[11px] font-black tracking-widest text-[#0b251a] uppercase flex items-center gap-1.5">
                   <Filter size={14} className="text-teal-700" /> Operational Auditing Ledger
@@ -864,7 +864,7 @@ export function Financials({
                     placeholder="Search ledger..."
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
-                    className="text-xs border border-white/10 bg-black/20 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white/5 backdrop-blur-xl font-bold"
+                    className="text-xs border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white font-bold"
                   />
                 </div>
 
@@ -872,7 +872,7 @@ export function Financials({
                 <select
                   value={datePreset}
                   onChange={(e) => setDatePreset(e.target.value as any)}
-                  className="text-xs bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-xl p-2.5 bg-white/5 backdrop-blur-xl cursor-pointer hover:bg-black/30 focus:outline-none font-bold"
+                  className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
                 >
                   <option value="all">All Dates Range</option>
                   <option value="this-week">This Week (7d)</option>
@@ -886,7 +886,7 @@ export function Financials({
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value as any)}
-                  className="text-xs bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-xl p-2.5 bg-white/5 backdrop-blur-xl cursor-pointer hover:bg-black/30 focus:outline-none font-bold"
+                  className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white cursor-pointer hover:bg-slate-50 focus:outline-none font-bold"
                 >
                   <option value="all">All Ledger Flows</option>
                   <option value="income">Credits only (+)</option>
@@ -906,7 +906,7 @@ export function Financials({
                   <button
                     onClick={() => onTriggerSectionReport('financials')}
                     type="button"
-                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-955 text-slate-950 font-bold text-xs uppercase rounded-xl transition-all shadow-[0_8px_30px_rgb(0,0,0,0.2)] cursor-pointer m-0 shrink-0 border border-amber-600/10 font-bold"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-955 text-slate-950 font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 border border-amber-600/10 font-bold"
                     title="Download Financial PDF Report"
                   >
                     <Download size={13} />
@@ -920,21 +920,21 @@ export function Financials({
             {datePreset === 'custom' && (
               <div className="bg-teal-50/40 p-4 rounded-2xl border border-teal-100/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Start Date</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Start Date</label>
                   <input
                     type="date"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="text-xs bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-xl p-2.5 bg-white/5 backdrop-blur-xl w-full font-bold font-mono focus:outline-none"
+                    className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white w-full font-bold font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">End Date</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">End Date</label>
                   <input
                     type="date"
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="text-xs bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-xl p-2.5 bg-white/5 backdrop-blur-xl w-full font-bold font-mono focus:outline-none"
+                    className="text-xs border border-slate-200 rounded-xl p-2.5 bg-white w-full font-bold font-mono focus:outline-none"
                   />
                 </div>
               </div>
@@ -944,7 +944,7 @@ export function Financials({
             <div className="max-h-[400px] overflow-y-auto pr-1">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 bg-black/30 text-slate-400 text-[10px] uppercase font-black">
+                  <tr className="border-b border-slate-100 bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
                     <td className="p-3">Reference Date</td>
                     <td className="p-3">Category</td>
                     <td className="p-3">Auditing Details</td>
@@ -961,7 +961,7 @@ export function Financials({
                     </tr>
                   ) : (
                     filteredRecords.map((r) => (
-                      <tr key={r.id} className="border-b border-slate-50 hover:bg-black/30/30">
+                      <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/30">
                         <td className="p-3 font-mono text-slate-400 font-bold">{r.date}</td>
                         <td className="p-3">
                           <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
@@ -970,7 +970,7 @@ export function Financials({
                             {r.category}
                           </span>
                         </td>
-                        <td className="p-3 font-medium text-slate-200 max-w-xs truncate" title={r.description}>
+                        <td className="p-3 font-medium text-slate-600 max-w-xs truncate" title={r.description}>
                           {r.description}
                         </td>
                         <td className="p-3 text-right font-mono font-black text-sm">
@@ -983,7 +983,7 @@ export function Financials({
                             {onEditFinancialRecord && (
                               <button
                                 onClick={() => setEditingFinancial(r)}
-                                className="text-slate-300 hover:text-indigo-800 p-2 border border-transparent hover:border-white/10 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
+                                className="text-slate-300 hover:text-indigo-800 p-2 border border-transparent hover:border-slate-200 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
                                 title="Edit entry"
                               >
                                 <Edit2 size={13} />
@@ -991,7 +991,7 @@ export function Financials({
                             )}
                             <button
                               onClick={() => setSelectedInvoiceTx(r)}
-                              className="text-slate-300 hover:text-emerald-800 p-2 border border-transparent hover:border-white/10 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
+                              className="text-slate-300 hover:text-emerald-800 p-2 border border-transparent hover:border-slate-200 rounded-lg transition-colors cursor-pointer m-0 bg-transparent"
                               title="Print Receipt / Invoice"
                             >
                               <FileSpreadsheet size={13} />
@@ -1020,7 +1020,7 @@ export function Financials({
         <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Timeline AreaChart */}
-            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] lg:col-span-8 space-y-4 text-left">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-8 space-y-4 text-left">
               <div>
                 <h5 className="text-[11px] font-black tracking-widest text-[#0c2619] uppercase flex items-center gap-1.5">
                   <Calendar size={14} className="text-teal-700 animate-pulse" /> Monthly Cash Flow Trends (P&L Timeline)
@@ -1029,7 +1029,7 @@ export function Financials({
               </div>
 
               {monthlyChartData.length === 0 ? (
-                <div className="h-[280px] flex items-center justify-center bg-black/30 border border-white/10 rounded-2xl italic text-slate-400 text-xs">
+                <div className="h-[280px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl italic text-slate-400 text-xs">
                   Generate some ledger transactions first to populate the cashflow dashboard coordinates.
                 </div>
               ) : (
@@ -1063,7 +1063,7 @@ export function Financials({
             </div>
 
             {/* Incomes Segmentations Breakdown pie chart */}
-            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] lg:col-span-4 flex flex-col justify-between text-left">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-4 flex flex-col justify-between text-left">
               <div className="space-y-4">
                 <div>
                   <h5 className="text-[11px] font-black tracking-widest text-[#0c2619] uppercase">Revenue Sources split</h5>
@@ -1099,14 +1099,14 @@ export function Financials({
               </div>
 
               {/* Legends list */}
-              <div className="pt-4 border-t border-white/10 text-[10px] space-y-1.5 font-bold uppercase tracking-wider text-slate-650">
+              <div className="pt-4 border-t border-slate-100 text-[10px] space-y-1.5 font-bold uppercase tracking-wider text-slate-650">
                 {incomeCategoryData.map((item, idx) => {
                   const percent = Math.round((item.value / totalIncome) * 100) || 0;
                   return (
                     <div key={idx} className="flex justify-between items-center">
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: INCOME_COLORS[idx % INCOME_COLORS.length] }}></span>
-                        <span className="truncate max-w-[120px] text-slate-200">{item.name}</span>
+                        <span className="truncate max-w-[120px] text-slate-600">{item.name}</span>
                       </div>
                       <span className="font-mono text-emerald-900">{percent}% ({item.value.toLocaleString()} Ksh)</span>
                     </div>
@@ -1118,7 +1118,7 @@ export function Financials({
 
           {/* Expenses categories breakdown bar charts layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
-            <div className="bg-white/5 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-4">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
               <div>
                 <h5 className="text-[11px] font-black tracking-widest text-rose-950 uppercase">Capital Expenditures Allocation (Ksh)</h5>
                 <p className="text-xs text-slate-400 font-medium mt-0.5">Distribution of debits across farm operations</p>
@@ -1147,7 +1147,7 @@ export function Financials({
               )}
             </div>
 
-            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.2)] flex flex-col justify-between">
+            <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md flex flex-col justify-between">
               <div className="space-y-4">
                 <span className="text-[8px] bg-red-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit">
                   Urgent Operating Margin Alert
@@ -1190,7 +1190,7 @@ export function Financials({
           </div>
  
           {/* Agribusiness ROI Comparison Chart */}
-          <div className="bg-white/5 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-left space-y-4">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left space-y-4">
             <div>
               <h5 className="text-[11px] font-black tracking-widest text-[#0c2619] uppercase flex items-center gap-1.5 font-sans">
                 <BarChart2 size={14} className="text-teal-700" /> Agribusiness Division ROI Comparative Analysis
@@ -1225,7 +1225,7 @@ export function Financials({
 
       {/* SUBTAB 3: Capital Budget Allocation limits check (Improvement 3) */}
       {subTab === 'budgets' && (
-        <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-6 text-left">
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6 text-left">
           <div>
             <h5 className="text-[11px] font-black tracking-widest text-[#092215] uppercase flex items-center gap-1.5">
               <Target size={14} className="text-rose-800" /> Capital Allocation & Expense Budgeting
@@ -1247,18 +1247,18 @@ export function Financials({
                 
                 // Color mapping: green under 70%, yellow 70-100%, bright pulsing red over 100%
                 const barColor = pct > 100 ? 'bg-red-600' : (pct >= 70 ? 'bg-amber-500' : 'bg-emerald-600');
-                const textColor = pct > 100 ? 'text-red-700 font-black' : (pct >= 70 ? 'text-amber-700' : 'text-slate-200');
+                const textColor = pct > 100 ? 'text-red-700 font-black' : (pct >= 70 ? 'text-amber-700' : 'text-slate-600');
 
                 return (
                   <div key={index} className="space-y-1.5 font-sans">
                     <div className="flex justify-between items-center text-xs font-bold">
-                      <span className="text-white uppercase text-[10px] tracking-wide">{category}</span>
+                      <span className="text-slate-805 uppercase text-[10px] tracking-wide">{category}</span>
                       <span className={`font-mono text-[11px] ${textColor}`}>
                         {actual.toLocaleString()} / {cap.toLocaleString()} Ksh ({pct}%)
                       </span>
                     </div>
 
-                    <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/10/40">
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/40">
                       <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }}></div>
                     </div>
 
@@ -1273,8 +1273,8 @@ export function Financials({
             </div>
 
             {/* Adjuster form settings */}
-            <div className="bg-black/30 border border-white/10 rounded-3xl p-6 space-y-4">
-              <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider block">
+            <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 space-y-4">
+              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">
                 ⚙️ Adjust Operational Budget Threshold Limits
               </span>
               <p className="text-[11px] text-slate-450 font-medium leading-relaxed">
@@ -1296,13 +1296,13 @@ export function Financials({
                         const updated = { ...budgetCaps, [category]: parseInt(e.target.value) || 0 };
                         handleSaveBudgetCaps(updated);
                       }}
-                      className="text-xs font-mono font-bold bg-white/5 backdrop-blur-xl border border-slate-205 rounded-xl p-2.5 w-full focus:ring-1 focus:ring-rose-800 focus:outline-none"
+                      className="text-xs font-mono font-bold bg-white border border-slate-205 rounded-xl p-2.5 w-full focus:ring-1 focus:ring-rose-800 focus:outline-none"
                     />
                   </div>
                 ))}
               </div>
 
-              <div className="p-3.5 bg-[#0e301d]/5 rounded-2xl border border-[#0e301d]/10 text-[10px] text-slate-200 uppercase font-bold leading-normal flex items-start gap-2.5">
+              <div className="p-3.5 bg-[#0e301d]/5 rounded-2xl border border-[#0e301d]/10 text-[10px] text-slate-600 uppercase font-bold leading-normal flex items-start gap-2.5">
                 <Sparkles size={16} className="text-emerald-850 shrink-0 mt-0.5 animate-pulse" />
                 <p>
                   Setting low budget thresholds encourages team members to formulating raw materials carefully rather than relying on commercial supplier bag products.
@@ -1316,7 +1316,7 @@ export function Financials({
       {/* SUBTAB 4: Predictive AI Breeding ROI and Dairy Yield projections (Improvement 4) */}
       {subTab === 'breeding_roi' && (
         <div className="space-y-8 text-left">
-          <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] space-y-6">
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
             <div>
               <div className="flex justify-between items-start flex-wrap gap-2">
                 <div>
@@ -1335,19 +1335,19 @@ export function Financials({
 
             {/* Model stats grids */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-black/30 border border-white/10 p-4.5 rounded-2xl">
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
                 <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Pregnant Milking Cows</span>
                 <h3 className="text-2xl font-black font-mono text-emerald-900 mt-1">{breedingPredictionData.activePregnancies} Head</h3>
                 <span className="text-[10px] text-slate-400 font-medium block pt-1">Calving over next 90 days</span>
               </div>
 
-              <div className="bg-black/30 border border-white/10 p-4.5 rounded-2xl">
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
                 <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Unchecked Cycles</span>
                 <h3 className="text-2xl font-black font-mono text-indigo-950 mt-1">{breedingPredictionData.pendingServices} In-waiting</h3>
                 <span className="text-[10px] text-slate-400 font-medium block pt-1">Awaiting veterinary check</span>
               </div>
 
-              <div className="bg-black/30 border border-white/10 p-4.5 rounded-2xl">
+              <div className="bg-slate-50 border border-slate-100 p-4.5 rounded-2xl">
                 <span className="text-[9px] text-slate-400 font-extrabold uppercase block tracking-wider">Est. Peak Lactation Yield</span>
                 <h3 className="text-2xl font-black font-mono text-teal-900 mt-1">+{breedingPredictionData.projectedLiters.toLocaleString()} L</h3>
                 <span className="text-[10px] text-slate-400 font-medium block pt-1">Based on breed targets (90d)</span>
@@ -1361,9 +1361,9 @@ export function Financials({
             </div>
 
             {/* Price model slider */}
-            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 space-y-2">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[10px] font-black uppercase text-slate-400">Recalibrate Predicted Sales price</span>
+                <span className="text-[10px] font-black uppercase text-slate-500">Recalibrate Predicted Sales price</span>
                 <span className="font-extrabold text-emerald-950 font-mono text-[11px]">Ksh {activeMarketMilkPrice} / Liter</span>
               </div>
               <input
@@ -1389,7 +1389,7 @@ export function Financials({
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-[9.5px] uppercase font-black text-slate-400">
+                    <tr className="border-b border-slate-100 text-[9.5px] uppercase font-black text-slate-400">
                       <th className="py-2.5">Cow / Breed Specimen</th>
                       <th className="py-2.5">Due Date Calibration</th>
                       <th className="py-2.5">Timeline Countdown</th>
@@ -1399,23 +1399,23 @@ export function Financials({
                   </thead>
                   <tbody className="divide-y divide-slate-50 font-medium text-slate-650">
                     {breedingPredictionData.upcomingCalvings.map((c, i) => {
-                      const daysColor = c.daysLeft <= 30 ? 'text-red-700 font-black' : (c.daysLeft <= 60 ? 'text-amber-705 text-amber-700' : 'text-slate-200');
+                      const daysColor = c.daysLeft <= 30 ? 'text-red-700 font-black' : (c.daysLeft <= 60 ? 'text-amber-705 text-amber-700' : 'text-slate-600');
                       const peakDaily = c.breed.toLowerCase().includes('friesian') ? 28 : (c.breed.toLowerCase().includes('jersey') ? 19 : 24);
                       const expectedSum = peakDaily * 90 * activeMarketMilkPrice;
 
                       return (
-                        <tr key={i} className="hover:bg-black/20">
+                        <tr key={i} className="hover:bg-slate-50/50">
                           <td className="py-3 flex flex-col">
-                            <span className="font-bold text-white">{c.cowName}</span>
+                            <span className="font-bold text-slate-800">{c.cowName}</span>
                             <span className="text-[10px] text-slate-450 font-mono font-medium">{c.cowId} | {c.breed}</span>
                           </td>
-                          <td className="py-3 font-mono text-slate-200">{c.dueDate}</td>
+                          <td className="py-3 font-mono text-slate-700">{c.dueDate}</td>
                           <td className="py-3">
                             <span className={`text-[11px] font-bold ${daysColor}`}>
                               {c.daysLeft <= 0 ? '✓ Calved / Peak Lactation' : `In ${c.daysLeft} days`}
                             </span>
                           </td>
-                          <td className="py-3 text-right font-mono font-bold text-slate-200">~{peakDaily} L/day</td>
+                          <td className="py-3 text-right font-mono font-bold text-slate-700">~{peakDaily} L/day</td>
                           <td className="py-3 text-right font-mono font-black text-emerald-950">Ksh {expectedSum.toLocaleString()}</td>
                         </tr>
                       );
@@ -1433,7 +1433,7 @@ export function Financials({
         <div className="space-y-8 text-left animate-fadeIn">
           {/* Dashboard Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
                 {granularViewMode === 'cow' ? 'Total Dairy Revenue' : 'Total Crop Revenue'}
               </span>
@@ -1447,7 +1447,7 @@ export function Financials({
               </p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
                 {granularViewMode === 'cow' ? 'Total Cattle Cost' : 'Total Agronomy Cost'}
               </span>
@@ -1461,7 +1461,7 @@ export function Financials({
               </p>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xs">
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
                 Net Profitability
               </span>
@@ -1475,7 +1475,7 @@ export function Financials({
               </p>
             </div>
 
-            <div className="bg-teal-950 text-white rounded-2xl p-5 border border-teal-900 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+            <div className="bg-teal-950 text-white rounded-2xl p-5 border border-teal-900 shadow-sm">
               <span className="text-[10px] text-teal-300 font-extrabold uppercase tracking-wider block">
                 Average Cost Efficiency
               </span>
@@ -1493,11 +1493,11 @@ export function Financials({
           </div>
 
           {/* Mode Switcher Buttons */}
-          <div className="bg-black/40 p-1.5 rounded-2xl border border-white/10/50 flex w-full max-w-md">
+          <div className="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/50 flex w-full max-w-md">
             <button
               onClick={() => setGranularViewMode('cow')}
               className={`flex-1 py-3 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all m-0 cursor-pointer border-none ${
-                granularViewMode === 'cow' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]' : 'text-slate-400 hover:text-white'
+                granularViewMode === 'cow' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               🐄 Individual Cattle (Dairy P&L)
@@ -1505,7 +1505,7 @@ export function Financials({
             <button
               onClick={() => setGranularViewMode('block')}
               className={`flex-1 py-3 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all m-0 cursor-pointer border-none ${
-                granularViewMode === 'block' ? 'bg-white/5 backdrop-blur-xl text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]' : 'text-slate-400 hover:text-white'
+                granularViewMode === 'block' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               🌱 Farm Blocks (Agronomy CoP)
@@ -1515,10 +1515,10 @@ export function Financials({
           {/* Analysis View Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Column: Data Table */}
-            <div className="lg:col-span-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="lg:col-span-8 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <div>
-                  <h4 className="text-sm font-black text-white uppercase">
+                  <h4 className="text-sm font-black text-slate-900 uppercase">
                     {granularViewMode === 'cow' ? 'Cattle Profitability Ledger' : 'Block & Crop Cost of Production Ledger'}
                   </h4>
                   <p className="text-[10.5px] text-slate-400 font-bold uppercase">
@@ -1530,7 +1530,7 @@ export function Financials({
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 text-[9.5px] uppercase font-black text-slate-400">
+                    <tr className="border-b border-slate-150 text-[9.5px] uppercase font-black text-slate-400">
                       <th className="py-3">Name / Identifier</th>
                       <th className="py-3">{granularViewMode === 'cow' ? 'Yield (L)' : 'Acreage / Crop'}</th>
                       <th className="py-3 text-right">Production Cost</th>
@@ -1543,20 +1543,20 @@ export function Financials({
                     {granularViewMode === 'cow' ? (
                       granularPnlData.cows.map((c, i) => {
                         const isProfit = c.profit >= 0;
-                        const copColor = c.copPerLiter < 38 ? 'text-emerald-700 font-black' : (c.copPerLiter <= 52 ? 'text-white font-bold' : 'text-rose-700 font-black');
+                        const copColor = c.copPerLiter < 38 ? 'text-emerald-700 font-black' : (c.copPerLiter <= 52 ? 'text-slate-805 font-bold' : 'text-rose-700 font-black');
 
                         return (
-                          <tr key={i} className="hover:bg-black/20">
+                          <tr key={i} className="hover:bg-slate-50/50">
                             <td className="py-3.5 flex flex-col">
-                              <span className="font-bold text-white">{c.name}</span>
+                              <span className="font-bold text-slate-900">{c.name}</span>
                               <span className="text-[9.5px] text-slate-450 font-mono uppercase">{c.id} | {c.breed}</span>
-                              <span className="text-[8px] bg-black/40 text-slate-400 font-extrabold uppercase px-1.5 py-0.5 rounded-sm mt-1 self-start">
+                              <span className="text-[8px] bg-slate-100 text-slate-500 font-extrabold uppercase px-1.5 py-0.5 rounded-sm mt-1 self-start">
                                 {c.status}
                               </span>
                             </td>
-                            <td className="py-3.5 font-mono text-slate-200">
+                            <td className="py-3.5 font-mono text-slate-700">
                               {c.status === 'Lactating' ? (
-                                <span className="font-bold text-white">{c.milkLiters.toFixed(1)} L</span>
+                                <span className="font-bold text-slate-800">{c.milkLiters.toFixed(1)} L</span>
                               ) : (
                                 <span className="text-slate-400">—</span>
                               )}
@@ -1589,19 +1589,19 @@ export function Financials({
                     ) : (
                       granularPnlData.blocks.map((b, i) => {
                         const isProfit = b.profit >= 0;
-                        const copColor = b.copPerAcre < 15000 ? 'text-emerald-700 font-black' : (b.copPerAcre <= 30000 ? 'text-white font-bold' : 'text-rose-700 font-black');
+                        const copColor = b.copPerAcre < 15000 ? 'text-emerald-700 font-black' : (b.copPerAcre <= 30000 ? 'text-slate-805 font-bold' : 'text-rose-700 font-black');
 
                         return (
-                          <tr key={i} className="hover:bg-black/20">
+                          <tr key={i} className="hover:bg-slate-50/50">
                             <td className="py-3.5 flex flex-col">
-                              <span className="font-bold text-white">{b.blockName}</span>
+                              <span className="font-bold text-slate-900">{b.blockName}</span>
                               <span className="text-[9.5px] text-slate-455 font-mono uppercase">{b.cropType}</span>
                               <span className="text-[8px] bg-indigo-55 text-indigo-700 font-extrabold uppercase px-1.5 py-0.5 rounded-sm mt-1 self-start">
                                 {b.status}
                               </span>
                             </td>
-                            <td className="py-3.5 font-mono text-slate-200">
-                              <span className="font-bold text-white">{b.acreage} Acres</span>
+                            <td className="py-3.5 font-mono text-slate-700">
+                              <span className="font-bold text-slate-800">{b.acreage} Acres</span>
                               {b.isEstimated && (
                                 <span className="block text-[8px] text-teal-655 font-black uppercase">Estimated</span>
                               )}
@@ -1634,8 +1634,8 @@ export function Financials({
             {/* Right Column: Visual Charts & AI Advice */}
             <div className="lg:col-span-4 space-y-6">
               {/* Chart Comparison */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xs space-y-4">
-                <h4 className="text-xs font-black text-white uppercase">
+              <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs space-y-4">
+                <h4 className="text-xs font-black text-slate-900 uppercase">
                   {granularViewMode === 'cow' ? 'Revenue vs Cost Comparison' : 'Block Financial Allocation'}
                 </h4>
 
@@ -1695,18 +1695,18 @@ export function Financials({
       {/* Edit Financial Record Modal */}
       {editingFinancial && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn text-left">
-            <div className="flex justify-between items-center pb-2 border-b border-white/10">
-              <h3 className="text-sm font-black uppercase text-white">Edit Transaction Flow</h3>
-              <button onClick={() => setEditingFinancial(null)} className="text-slate-400 hover:text-slate-200 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn text-left">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-black uppercase text-slate-800">Edit Transaction Flow</h3>
+              <button onClick={() => setEditingFinancial(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Flow Type</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Flow Type</label>
                 <select
                   value={editingFinancial.type}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, type: e.target.value as 'income' | 'expense' })}
-                  className="bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
                 >
                   <option value="income">Income (+ Record)</option>
                   <option value="expense">Expense (- Loss)</option>
@@ -1714,12 +1714,12 @@ export function Financials({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Amount (Ksh)</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Amount (Ksh)</label>
                   <input
                     type="number"
                     value={editingFinancial.amount}
                     onChange={(e) => setEditingFinancial({ ...editingFinancial, amount: parseInt(e.target.value) || 0 })}
-                    className="bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1728,7 +1728,7 @@ export function Financials({
                     type="date"
                     value={editingFinancial.date}
                     onChange={(e) => setEditingFinancial({ ...editingFinancial, date: e.target.value })}
-                    className="bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
+                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono focus:outline-none"
                   />
                 </div>
               </div>
@@ -1738,23 +1738,23 @@ export function Financials({
                   type="text"
                   value={editingFinancial.category}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, category: e.target.value })}
-                  className="bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg p-3 w-full text-xs font-extrabold focus:outline-none"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-extrabold focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">Description</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Description</label>
                 <textarea
                   value={editingFinancial.description}
                   onChange={(e) => setEditingFinancial({ ...editingFinancial, description: e.target.value })}
                   rows={2}
-                  className="bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
+                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold focus:outline-none"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
               <button
                 onClick={() => setEditingFinancial(null)}
-                className="px-4 py-2 bg-black/40 text-white placeholder-slate-400 border border-white/10 rounded-lg text-xs font-bold text-slate-400 hover:bg-black/30 m-0 cursor-pointer bg-transparent"
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-transparent"
               >
                 Cancel
               </button>
@@ -1777,30 +1777,30 @@ export function Financials({
       {/* Printable Invoice / Receipt Modal */}
       {selectedInvoiceTx && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[999]">
-          <div className="bg-white/5 backdrop-blur-xl max-w-md w-full rounded-3xl border border-white/10 shadow-2xl p-8 text-left space-y-6 relative">
+          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-100 shadow-2xl p-8 text-left space-y-6 relative">
             <button
               onClick={() => setSelectedInvoiceTx(null)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-200 rounded-full hover:bg-black/40 cursor-pointer border-none bg-transparent"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 cursor-pointer border-none bg-transparent"
             >
               <X size={18} />
             </button>
  
             {/* Print Area */}
             <div id="printable-invoice" className="space-y-6 p-2">
-              <div className="text-center border-b border-white/10 pb-5">
+              <div className="text-center border-b border-slate-100 pb-5">
                 <span className="text-[10px] font-black tracking-widest text-emerald-800 uppercase font-mono">JR Farm Estate</span>
-                <h4 className="text-lg font-black text-white uppercase mt-1">Official Sales Receipt</h4>
+                <h4 className="text-lg font-black text-slate-800 uppercase mt-1">Official Sales Receipt</h4>
                 <p className="text-[10px] text-slate-400 font-mono mt-1 font-bold">Transaction Ref: {selectedInvoiceTx.id}</p>
               </div>
  
               <div className="space-y-4 text-xs">
                 <div className="flex justify-between border-b border-slate-50 pb-2">
                   <span className="text-slate-400 font-bold uppercase">Transaction Date</span>
-                  <span className="font-mono font-bold text-slate-200">{selectedInvoiceTx.date}</span>
+                  <span className="font-mono font-bold text-slate-700">{selectedInvoiceTx.date}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-50 pb-2">
                   <span className="text-slate-400 font-bold uppercase">Account Class</span>
-                  <span className="font-black text-white uppercase">{selectedInvoiceTx.category}</span>
+                  <span className="font-black text-slate-800 uppercase">{selectedInvoiceTx.category}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-50 pb-2">
                   <span className="text-slate-400 font-bold uppercase">Flow Direction</span>
@@ -1808,15 +1808,15 @@ export function Financials({
                 </div>
                 <div className="space-y-1">
                   <span className="text-slate-400 font-bold uppercase block text-[10px]">Description & Auditing Details</span>
-                  <p className="p-3 bg-black/30 rounded-xl font-medium text-slate-200 leading-normal">{selectedInvoiceTx.description}</p>
+                  <p className="p-3 bg-slate-50 rounded-xl font-medium text-slate-700 leading-normal">{selectedInvoiceTx.description}</p>
                 </div>
-                <div className="flex justify-between items-baseline pt-4 border-t border-white/10">
-                  <span className="text-white font-black uppercase text-sm">Amount Paid</span>
+                <div className="flex justify-between items-baseline pt-4 border-t border-slate-100">
+                  <span className="text-slate-800 font-black uppercase text-sm">Amount Paid</span>
                   <span className="text-2xl font-black text-emerald-950 font-mono">Ksh {selectedInvoiceTx.amount.toLocaleString()}</span>
                 </div>
               </div>
  
-              <div className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-wider pt-4 border-t border-dashed border-white/10">
+              <div className="text-center text-[9px] text-slate-400 font-bold uppercase tracking-wider pt-4 border-t border-dashed border-slate-200">
                 Thank you for your business! • certified GAP compliant
               </div>
             </div>
@@ -1825,7 +1825,7 @@ export function Financials({
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedInvoiceTx(null)}
-                className="w-1/2 py-2.5 border border-white/10 text-slate-400 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-black/30 cursor-pointer"
+                className="w-1/2 py-2.5 border border-slate-200 text-slate-500 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-50 cursor-pointer"
               >
                 Close
               </button>
@@ -1836,7 +1836,7 @@ export function Financials({
                     const printWindow = window.open('', '', 'height=600,width=400');
                     if (printWindow) {
                       printWindow.document.write('<html><head><title>Print Receipt</title>');
-                      printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;color:#333;}.text-center{text-align:center;}.font-mono{font-family:monospace;}.flex{display:flex;justify-content:space-between;}.border-b{border-bottom:1px solid #eee;}.pb-2{padding-bottom:8px;}.pb-5{padding-bottom:20px;}.pt-4{padding-top:16px;}.space-y-4>*{margin-bottom:12px;}.bg-black/30{background:#f8fafc;padding:12px;border-radius:8px;}</style></head><body>');
+                      printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;color:#333;}.text-center{text-align:center;}.font-mono{font-family:monospace;}.flex{display:flex;justify-content:space-between;}.border-b{border-bottom:1px solid #eee;}.pb-2{padding-bottom:8px;}.pb-5{padding-bottom:20px;}.pt-4{padding-top:16px;}.space-y-4>*{margin-bottom:12px;}.bg-slate-50{background:#f8fafc;padding:12px;border-radius:8px;}</style></head><body>');
                       printWindow.document.write(printContents);
                       printWindow.document.write('</body></html>');
                       printWindow.document.close();
