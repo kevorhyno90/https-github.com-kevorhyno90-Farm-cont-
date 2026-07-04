@@ -18,7 +18,7 @@ interface RosterProps {
 }
  
 export function Roster({
-  staffList,
+  staffList = [],
   onUpdateStatus,
   onAddStaff,
   onDeleteStaff,
@@ -397,9 +397,11 @@ export function Roster({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {staffList
               .filter((st) => {
+                const safeName = st.name || '';
+                const safeRole = st.role || '';
                 const matchSearch =
-                  st.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  st.role.toLowerCase().includes(searchTerm.toLowerCase());
+                  safeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  safeRole.toLowerCase().includes(searchTerm.toLowerCase());
                 const matchUnit = unitFilter === 'all' || st.unit === unitFilter;
                 return matchSearch && matchUnit;
               })
