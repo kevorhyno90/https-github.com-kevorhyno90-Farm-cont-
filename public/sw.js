@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jr-farm-estate-v4';
+const CACHE_NAME = 'jr-farm-estate-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
