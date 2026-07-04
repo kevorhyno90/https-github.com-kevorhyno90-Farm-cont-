@@ -389,3 +389,13 @@ export interface QuarantineRecord {
   vetInCharge: string;
   notes: string;
 }
+
+export interface AzollaRecord {
+  id: string;
+  date: string;
+  pondId: string;
+  harvestYieldKg: number;
+  distributedTo: string;
+  expensesKsh?: number;
+  notes?: string;
+}
