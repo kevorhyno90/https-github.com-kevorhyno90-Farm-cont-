@@ -52,7 +52,7 @@ import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
 import { LandingPage } from './components/LandingPage';
 import { auth } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -196,18 +196,31 @@ class ErrorBoundary extends React.Component<{children: any}, {hasError: boolean,
   }
 }
 
+
+
 export default function App() {
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [hasEnteredApp, setHasEnteredApp] = useState(() => {
     return sessionStorage.getItem('jr_farm_entered') === 'true';
   });
 
   useEffect(() => {
+    // Handle redirect result explicitly for mobile browsers
+    getRedirectResult(auth).then((result) => {
+      if (result && result.user) {
+        sessionStorage.setItem('jr_farm_entered', 'true');
+        setHasEnteredApp(true);
+      }
+    }).catch(console.error);
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         sessionStorage.setItem('jr_farm_entered', 'true');
         setHasEnteredApp(true);
       }
+      setIsAuthLoading(false);
     });
+    
     return () => unsubscribe();
   }, []);
 
@@ -215,6 +228,14 @@ export default function App() {
     sessionStorage.setItem('jr_farm_entered', 'true');
     setHasEnteredApp(true);
   };
+
+  if (isAuthLoading && !hasEnteredApp) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
 
   return (
     <FarmProvider>
