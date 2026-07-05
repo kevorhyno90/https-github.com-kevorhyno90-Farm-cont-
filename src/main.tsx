@@ -24,6 +24,43 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+// Global Interceptor to track deletions and trigger real-time auto-sync
+const originalSetItem = localStorage.setItem;
+localStorage.setItem = function(key: string, value: string) {
+  // Diff arrays to find deleted items and add to tombstone registry
+  if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
+    try {
+      const oldVal = localStorage.getItem(key);
+      if (oldVal) {
+        const oldArr = JSON.parse(oldVal);
+        const newArr = JSON.parse(value);
+        if (Array.isArray(oldArr) && Array.isArray(newArr)) {
+          const newIds = new Set(newArr.map(x => x?.id || x?.code || x?.ref).filter(Boolean));
+          const deleted = oldArr
+            .map(x => x?.id || x?.code || x?.ref)
+            .filter(id => id && !newIds.has(id));
+          
+          if (deleted.length > 0) {
+             const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
+             const existingDeleted = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
+             const combined = Array.from(new Set([...existingDeleted, ...deleted]));
+             originalSetItem.call(this, 'jr_farm_deleted_records', JSON.stringify(combined));
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors, some items may not be JSON arrays
+    }
+  }
+  
+  originalSetItem.apply(this, arguments as any);
+
+  // Dispatch event after saving to allow Syncer to push changes
+  if (key.startsWith('jr_farm_') && key !== 'jr_farm_cloud_last_synced_at') {
+    window.dispatchEvent(new Event('local-storage-update'));
+  }
+};
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
