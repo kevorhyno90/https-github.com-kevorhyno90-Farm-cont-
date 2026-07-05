@@ -69,13 +69,8 @@ export function FirebaseSyncer() {
   // Listen for remote changes via onSnapshot
   useEffect(() => {
     const storageRef = collection(db, `farmData/${FARM_ID}/storage`);
-    let initialLoad = true;
     
     const unsubscribe = onSnapshot(storageRef, (snapshot) => {
-      if (initialLoad) {
-        initialLoad = false;
-        return; // Skip initial fetch to avoid unnecessary merge on boot
-      }
       
       if (isSyncingRef.current) return;
       

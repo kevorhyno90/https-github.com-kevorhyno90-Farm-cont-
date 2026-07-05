@@ -27,10 +27,15 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 // Global Interceptor to track deletions and trigger real-time auto-sync
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key: string, value: string) {
-  // Diff arrays to find deleted items and add to tombstone registry
+  let hasChanges = false;
+  
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
     try {
       const oldVal = localStorage.getItem(key);
+      if (oldVal !== value) {
+        hasChanges = true;
+      }
+      
       if (oldVal) {
         const oldArr = JSON.parse(oldVal);
         const newArr = JSON.parse(value);
@@ -55,9 +60,9 @@ localStorage.setItem = function(key: string, value: string) {
   
   originalSetItem.apply(this, arguments as any);
 
-  // Dispatch event after saving to allow Syncer to push changes
-  if (key.startsWith('jr_farm_') && key !== 'jr_farm_cloud_last_synced_at') {
-    console.log(`[Sync] Dispatched local-storage-update for key: ${key}`);
+  // Dispatch event only if there were actual changes
+  if (hasChanges) {
+    console.log(`[Sync] Value changed for ${key}, dispatching push...`);
     window.dispatchEvent(new Event('local-storage-update'));
   }
 };
