@@ -17,8 +17,17 @@ export function LandingPage({ onEnter }: LandingPageProps) {
     try {
       setLoading(true);
       setErrorMsg('');
-      const result = await signInWithPopup(auth, googleProvider);
-      onEnter(result.user.uid);
+      // Use redirect for mobile/PWA compatibility instead of popup
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+         const { signInWithRedirect } = await import('firebase/auth');
+         await signInWithRedirect(auth, googleProvider);
+         // Redirect will reload the page, so we don't call onEnter here.
+      } else {
+         const { signInWithPopup } = await import('firebase/auth');
+         const result = await signInWithPopup(auth, googleProvider);
+         onEnter(result.user.uid);
+      }
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Login failed.');
