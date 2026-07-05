@@ -579,6 +579,31 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                 </div>
               </div>
 
+              {/* Advanced App State Controls */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-4 flex items-center">
+                  <span className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mr-3">⚠️</span>
+                  Account & System
+                </h3>
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-slate-800">Switch Account / Sign Out</div>
+                      <div className="text-xs text-slate-500 mt-1">Leave the current database room and return to the login screen.</div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        sessionStorage.removeItem('jr_farm_entered');
+                        window.location.reload();
+                      }}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-sm text-sm"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Data Import / Export Buttons */}
               <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-2">
                 <button
