@@ -592,7 +592,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                       <div className="text-xs text-slate-500 mt-1">Leave the current database room and return to the login screen.</div>
                     </div>
                     <button 
-                      onClick={() => {
+                      onClick={async () => {
+                        try {
+                          const { auth } = await import('../../firebase');
+                          await auth.signOut();
+                        } catch (e) {
+                          console.error("Sign out error", e);
+                        }
                         sessionStorage.removeItem('jr_farm_entered');
                         window.location.reload();
                       }}
