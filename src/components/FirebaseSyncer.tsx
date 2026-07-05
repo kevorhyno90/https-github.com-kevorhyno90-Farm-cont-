@@ -49,6 +49,7 @@ export function FirebaseSyncer() {
 
   // Listen for local changes to trigger push
   useEffect(() => {
+    console.log(`[Sync] Syncer Mounted. Listening to database room: ${FARM_ID}`);
     let timeoutId: NodeJS.Timeout;
     const handleLocalUpdate = () => {
       console.log("[Sync] local-storage-update event received, scheduling push...");
@@ -71,8 +72,12 @@ export function FirebaseSyncer() {
     const storageRef = collection(db, `farmData/${FARM_ID}/storage`);
     
     const unsubscribe = onSnapshot(storageRef, (snapshot) => {
+      console.log(`[Sync] Snapshot arrived! Contains ${snapshot.docs.length} documents.`);
       
-      if (isSyncingRef.current) return;
+      if (isSyncingRef.current) {
+         console.warn("[Sync] Ignored snapshot because app is currently syncing.");
+         return;
+      }
       
       if (!snapshot.empty) {
         let hasChanges = false;
@@ -122,7 +127,11 @@ export function FirebaseSyncer() {
           } finally {
              setTimeout(() => { isSyncingRef.current = false; }, 1000);
           }
+        } else {
+          console.log("[Sync] Snapshot ignored because local data is already identical to cloud data.");
         }
+      } else {
+        console.log("[Sync] Snapshot arrived but it is empty.");
       }
     }, (err) => {
        console.error("Snapshot error:", err);
