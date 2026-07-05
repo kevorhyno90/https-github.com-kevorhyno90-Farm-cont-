@@ -594,7 +594,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                     <button 
                       onClick={async () => {
                         try {
-                          const { auth } = await import('../../firebase');
+                          const { auth } = await import('../firebase');
                           await auth.signOut();
                         } catch (e) {
                           console.error("Sign out error", e);

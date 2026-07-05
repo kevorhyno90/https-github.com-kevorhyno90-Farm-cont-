@@ -2733,7 +2733,7 @@ function FarmCoreApp() {
         vet: withRecs.vet, vet_treatments: withRecs.vet, vet_withdrawal: withRecs.vet,
         academy: withRecs.academy, academy_casebook: withRecs.academy, academy_sop_logs: withRecs.academy,
         timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
-        quarantine: withRecs.quarantine, spray_quarantine: withRecs.quarantine, vet_withdrawal: withRecs.quarantine,
+        quarantine: withRecs.quarantine, quarantine_logs: withRecs.quarantine, quarantine_active: withRecs.quarantine,
         todos: withRecs.todos,
         azolla: withRecs.azolla
       });
