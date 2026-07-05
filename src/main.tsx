@@ -32,7 +32,7 @@ localStorage.setItem = function(key: string, value: string) {
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
     try {
       const oldVal = localStorage.getItem(key);
-      if (oldVal !== value) {
+      if (oldVal !== null && oldVal !== value) {
         hasChanges = true;
       }
       
