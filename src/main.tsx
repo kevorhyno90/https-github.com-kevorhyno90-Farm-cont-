@@ -57,6 +57,7 @@ localStorage.setItem = function(key: string, value: string) {
 
   // Dispatch event after saving to allow Syncer to push changes
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_cloud_last_synced_at') {
+    console.log(`[Sync] Dispatched local-storage-update for key: ${key}`);
     window.dispatchEvent(new Event('local-storage-update'));
   }
 };

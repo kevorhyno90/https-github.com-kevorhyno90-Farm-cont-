@@ -51,8 +51,12 @@ export function FirebaseSyncer() {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     const handleLocalUpdate = () => {
+      console.log("[Sync] local-storage-update event received, scheduling push...");
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => pushToCloud(false), 2000);
+      timeoutId = setTimeout(() => {
+        console.log("[Sync] Executing debounced push...");
+        pushToCloud(false);
+      }, 2000);
     };
 
     window.addEventListener('local-storage-update', handleLocalUpdate);
