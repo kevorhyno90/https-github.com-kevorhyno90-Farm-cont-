@@ -47,9 +47,9 @@ export function CowRegistry({
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
-      if (!(window as any).html2canvas) {
+      if (!(window as any).htmlToImage) {
         const script = document.createElement('script');
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js";
         script.async = false;
         document.body.appendChild(script);
         await new Promise(resolve => script.onload = resolve);
@@ -57,11 +57,10 @@ export function CowRegistry({
       
       const element = document.getElementById('pedigree-tree-container');
       if (element) {
-        const canvas = await (window as any).html2canvas(element, { 
+        const imgData = await (window as any).htmlToImage.toPng(element, { 
           backgroundColor: '#f8fafc',
-          scale: 2 
+          pixelRatio: 2 
         });
-        const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
         link.download = `JR_Farm_${pedigreeCow.name}_Pedigree.png`;
