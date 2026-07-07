@@ -1,5 +1,6 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import { nativeSetItem } from './utils/nativeStorage';
 import App from './App.tsx';
 import './index.css';
 
@@ -25,14 +26,14 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 // Global Interceptor to track deletions and trigger real-time auto-sync
-const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key: string, value: string) {
   let hasChanges = false;
   
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
     try {
       const oldVal = localStorage.getItem(key);
-      if (oldVal !== null && oldVal !== value) {
+      // Fire for both first-time writes (oldVal === null) and changed values
+      if (oldVal !== value) {
         hasChanges = true;
       }
       
@@ -49,7 +50,7 @@ localStorage.setItem = function(key: string, value: string) {
              const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
              const existingDeleted = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
              const combined = Array.from(new Set([...existingDeleted, ...deleted]));
-             originalSetItem.call(this, 'jr_farm_deleted_records', JSON.stringify(combined));
+             nativeSetItem('jr_farm_deleted_records', JSON.stringify(combined));
           }
         }
       }
@@ -58,7 +59,7 @@ localStorage.setItem = function(key: string, value: string) {
     }
   }
   
-  originalSetItem.apply(this, arguments as any);
+  nativeSetItem(key, value);
 
   // Dispatch event only if there were actual changes
   if (hasChanges) {
