@@ -125,6 +125,12 @@ interface FarmContextType {
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const getOffsetIso = (days: number): string => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const saved = localStorage.getItem('jr_farm_staff');
     let parsed: StaffMember[] = saved ? JSON.parse(saved) : INITIAL_STAFF;
@@ -322,8 +328,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rawMaterial: 'Maize',
         acres: 2.0,
         calculatedWeightKg: 36000,
-        dateMade: '2026-05-15',
-        dateOpened: '2026-06-10',
+        dateMade: getOffsetIso(-37),
+        dateOpened: getOffsetIso(-11),
         quality: 'Excellent (Golden yellow, lactic acid smell)',
         notes: 'Formic acid inoculant used. Well compacted. No visual moulds.',
         animalsFedCount: 15,
@@ -340,7 +346,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {
         id: 'heifer-1',
         cowId: 'C-083 (Precious)',
-        dateLogged: '2026-06-20',
+        dateLogged: getOffsetIso(-1),
         weightKg: 295,
         girthCm: 154,
         feedRationType: 'Boma Rhodes + Grower cake concentrate + legumes',
@@ -359,7 +365,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Chick',
         batchName: 'Batch G-9 Chicks',
         count: 500,
-        dateLogged: '2026-06-18',
+        dateLogged: getOffsetIso(-3),
         feedGivenKg: 35,
         feedType: 'Chick Start Crumble',
         mortalityCount: 1,
@@ -372,7 +378,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Grower',
         batchName: 'Batch F-2 Pullets',
         count: 400,
-        dateLogged: '2026-06-19',
+        dateLogged: getOffsetIso(-2),
         feedGivenKg: 48,
         feedType: 'Growers Mash',
         mortalityCount: 0,
@@ -384,7 +390,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Layer',
         batchName: 'Batch E-8 Layers',
         count: 600,
-        dateLogged: '2026-06-21',
+        dateLogged: getOffsetIso(0),
         feedGivenKg: 75,
         feedType: 'Layers High Calcium mash',
         mortalityCount: 0,
@@ -404,8 +410,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: 'quar-1',
         animalType: 'Cow',
         animalTagOrBatch: 'H-302 (Milly)',
-        dateStarted: '2026-06-15',
-        dateScheduledEnd: '2026-06-29',
+        dateStarted: getOffsetIso(-6),
+        dateScheduledEnd: getOffsetIso(8),
         quarantineReason: 'Newly purchased heifer from Nyeri showground',
         symptomsObserved: 'None, routine quarantine protocol for biosecurity',
         quarantineStatus: 'Under Observation',

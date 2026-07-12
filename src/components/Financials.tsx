@@ -42,6 +42,12 @@ export function Financials({
   vetRecords = [],
   aiRecords = []
 }: FinancialsProps) {
+  const getOffsetIso = (days: number): string => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
   // Navigation tabs for Financials view
   const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi' | 'granular_analysis'>('ledger');
   const [selectedInvoiceTx, setSelectedInvoiceTx] = useState<FinancialRecord | null>(null);
@@ -208,7 +214,7 @@ export function Financials({
     const monthsGroup: Record<string, { month: string; income: number; expense: number; sortingKey: string }> = {};
 
     financialRecords.forEach((r) => {
-      // Parse dates safely e.g. "2026-06-21" to "2026-06"
+      // Parse dates safely e.g. "YYYY-MM-DD" to "YYYY-MM"
       const dateParts = r.date.split('-');
       if (dateParts.length < 2) return;
       const yr = dateParts[0];
@@ -348,9 +354,9 @@ export function Financials({
     // Default fallbacks to prevent depressing empty screens if no local AI or Pregnancy index is generated yet
     const hasRealCows = upcomingCalvings.length > 0;
     const finalUpcoming = hasRealCows ? upcomingCalvings : [
-      { cowId: 'COW-04', cowName: 'Nyaronde Blossom II', breed: 'Friesian Champion', dueDate: '2026-07-15', daysLeft: 24 },
-      { cowId: 'COW-07', cowName: 'Serene Daisy', breed: 'Ayrshire cross', dueDate: '2026-08-01', daysLeft: 41 },
-      { cowId: 'COW-10', cowName: 'Mocha Gold', breed: 'Jersey Classic', dueDate: '2026-08-20', daysLeft: 60 }
+      { cowId: 'COW-04', cowName: 'Nyaronde Blossom II', breed: 'Friesian Champion', dueDate: getOffsetIso(24), daysLeft: 24 },
+      { cowId: 'COW-07', cowName: 'Serene Daisy', breed: 'Ayrshire cross', dueDate: getOffsetIso(41), daysLeft: 41 },
+      { cowId: 'COW-10', cowName: 'Mocha Gold', breed: 'Jersey Classic', dueDate: getOffsetIso(60), daysLeft: 60 }
     ];
 
     const fallback90DaysVol = hasRealCows ? projected90DaysPeakVolume : (28*90 + 24*90 + 19*90);
