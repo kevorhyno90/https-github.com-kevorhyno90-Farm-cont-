@@ -575,8 +575,10 @@ function FarmCoreApp() {
   });
   const [activeAudioSource, setActiveAudioSource] = useState<any>(null);
   const [alarmRenderLimit, setAlarmRenderLimit] = useState<number>(INITIAL_ALARM_RENDER_LIMIT);
+  const [bellTrayContentReady, setBellTrayContentReady] = useState<boolean>(false);
   const bellTrayWasOpenRef = useRef<boolean>(false);
   const alarmRenderUpgradeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bellTrayContentRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -2899,6 +2901,31 @@ function FarmCoreApp() {
   const visibleSensitiveSectionAlarms = useMemo(() => {
     return sensitiveSectionAlarms.slice(0, alarmRenderLimit);
   }, [sensitiveSectionAlarms, alarmRenderLimit]);
+
+  useEffect(() => {
+    if (bellTrayContentRafRef.current !== null) {
+      cancelAnimationFrame(bellTrayContentRafRef.current);
+      bellTrayContentRafRef.current = null;
+    }
+
+    if (!bellNotificationTrayOpen) {
+      setBellTrayContentReady(false);
+      return;
+    }
+
+    setBellTrayContentReady(false);
+    bellTrayContentRafRef.current = requestAnimationFrame(() => {
+      setBellTrayContentReady(true);
+      bellTrayContentRafRef.current = null;
+    });
+
+    return () => {
+      if (bellTrayContentRafRef.current !== null) {
+        cancelAnimationFrame(bellTrayContentRafRef.current);
+        bellTrayContentRafRef.current = null;
+      }
+    };
+  }, [bellNotificationTrayOpen]);
 
   useEffect(() => {
     if (alarmRenderUpgradeTimeoutRef.current) {
@@ -5873,183 +5900,191 @@ function FarmCoreApp() {
                     </button>
                   </div>
 
-                  {/* Device push state permission status */}
-                  <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-2">
-                    <p className="text-[11px] text-slate-500 leading-normal font-medium">
-                      Receive alerts on your **smartphone / PC lockscreen taskbar** dynamically in real time.
-                    </p>
-                    <div className="flex items-center justify-between gap-2.5">
-                      <span className="text-[10px] uppercase font-black text-slate-600 block">
-                        Status: <strong className={notificationPermissionState === 'granted' ? 'text-green-600' : 'text-amber-500'}>{notificationPermissionState.toUpperCase()}</strong>
-                      </span>
-                      {notificationPermissionState !== 'granted' ? (
-                        <button
-                          onClick={requestAppNotificationPermission}
-                          className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer shadow-xs"
-                        >
-                          🔔 Auth Taskbar Push
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            triggerAppLockscreenNotification(
-                              "Standard Push Active", 
-                              "Success! JR Farm tasks are now fully connected to your phone bar / PC lockscreen. You will receive active alarms of your farm."
-                            );
-                          }}
-                          className="bg-slate-200 hover:bg-slate-250 text-slate-700 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer"
-                        >
-                          ⚡ Test Phone Bar Push
-                        </button>
-                      )}
+                  {!bellTrayContentReady ? (
+                    <div className="p-6 bg-slate-50 text-center border-t border-slate-100">
+                      <span className="text-[10px] font-black uppercase tracking-wide text-slate-500">Loading reminders center...</span>
                     </div>
-                  </div>
-
-                  {/* Alarm Ringtone Sound Customizer */}
-                  <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-3">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-bold">🎶</span>
-                      <span className="text-[10px] uppercase font-black text-slate-600 tracking-wider">
-                        Ringtone Sound Customization
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Select Sound Track</label>
-                        <select
-                          value={selectedRingtone}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setSelectedRingtone(val);
-                            localStorage.setItem('jr_farm_notification_ringtone', val);
-                            playSyntheticBellChime(val, false); // Quick preview
-                          }}
-                          className="w-full bg-white border border-slate-200 text-[10px] p-2.5 rounded-lg font-black cursor-pointer"
-                        >
-                          <option value="chime">Country Chime 🔔</option>
-                          <option value="telephone">Classic Ringer 📞</option>
-                          <option value="siren">Emergency Siren 🚨</option>
-                          <option value="melody">Happy Barn ⛅</option>
-                        </select>
+                  ) : (
+                    <>
+                      {/* Device push state permission status */}
+                      <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-2">
+                        <p className="text-[11px] text-slate-500 leading-normal font-medium">
+                          Receive alerts on your **smartphone / PC lockscreen taskbar** dynamically in real time.
+                        </p>
+                        <div className="flex items-center justify-between gap-2.5">
+                          <span className="text-[10px] uppercase font-black text-slate-600 block">
+                            Status: <strong className={notificationPermissionState === 'granted' ? 'text-green-600' : 'text-amber-500'}>{notificationPermissionState.toUpperCase()}</strong>
+                          </span>
+                          {notificationPermissionState !== 'granted' ? (
+                            <button
+                              onClick={requestAppNotificationPermission}
+                              className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer shadow-xs"
+                            >
+                              🔔 Auth Taskbar Push
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                triggerAppLockscreenNotification(
+                                  "Standard Push Active", 
+                                  "Success! JR Farm tasks are now fully connected to your phone bar / PC lockscreen. You will receive active alarms of your farm."
+                                );
+                              }}
+                              className="bg-slate-200 hover:bg-slate-250 text-slate-700 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer"
+                            >
+                              ⚡ Test Phone Bar Push
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      
-                      <div className="flex flex-col justify-end">
-                        <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Ringtone Loop Mode</label>
-                        <button
-                          onClick={() => {
-                            const next = !continuousLoop;
-                            setContinuousLoop(next);
-                            localStorage.setItem('jr_farm_notification_loop', next ? 'true' : 'false');
-                            triggerAppToastMessage(next ? "✓ Ringtone continuous looping is now active!" : "Ringtone single play activated.");
-                          }}
-                          className={`w-full text-[10px] font-black uppercase p-2.5 border rounded-lg text-center transition-colors cursor-pointer ${
-                            continuousLoop 
-                              ? 'bg-amber-100 border-amber-300 text-amber-900 font-black' 
-                              : 'bg-white border-slate-200 text-slate-600 font-bold'
-                          }`}
-                        >
-                          {continuousLoop ? "🔄 Loop Mode" : "⚡ Single Play"}
-                        </button>
-                      </div>
-                    </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          playSyntheticBellChime(selectedRingtone, continuousLoop);
-                          triggerAppToastMessage("🔊 Playing alarm ringtone preview...");
-                        }}
-                        className="flex-1 bg-slate-905 hover:bg-slate-800 text-slate-900 border border-slate-350 bg-slate-100 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        🔊 Play Preview
-                      </button>
-                      <button
-                        onClick={() => {
-                          stopAlarmSound();
-                          triggerAppToastMessage("🔇 Alarm muted.");
-                        }}
-                        className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        🔇 Stop Ringtone
-                      </button>
-                    </div>
-                  </div>
+                      {/* Alarm Ringtone Sound Customizer */}
+                      <div className="bg-slate-50 p-4 border-b border-slate-100 space-y-3">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs font-bold">🎶</span>
+                          <span className="text-[10px] uppercase font-black text-slate-600 tracking-wider">
+                            Ringtone Sound Customization
+                          </span>
+                        </div>
 
-                  {/* Alarm stream list */}
-                  <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
-                    {sensitiveSectionAlarms.length === 0 ? (
-                      <div className="p-8 text-center space-y-2">
-                        <span className="text-3xl block">☘️</span>
-                        <p className="text-xs font-bold text-slate-550 uppercase font-mono">ALL SENSITIVE SECTIONS 100% CLEAR</p>
-                        <p className="text-[10px] text-slate-400 font-medium">No overdue births, active pesticide quarantines, low stock levels, or pending vaccinations.</p>
-                      </div>
-                    ) : (
-                      visibleSensitiveSectionAlarms.map((alarm) => (
-                        <div key={alarm.id} className="p-4 hover:bg-slate-50 space-y-2 transition-colors text-left">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                              alarm.severity === 'high'
-                                ? 'bg-red-50 border-red-200 text-red-600'
-                                : alarm.severity === 'medium'
-                                ? 'bg-amber-50 border-amber-200 text-amber-600'
-                                : 'bg-blue-50 border-blue-200 text-blue-600'
-                            }`}>
-                              ⚠️ {alarm.section}: {alarm.severity.toUpperCase()}
-                            </span>
-                            {alarm.date && (
-                              <span className="text-[9px] font-mono text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
-                                Due: {alarm.date}
-                              </span>
-                            )}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Select Sound Track</label>
+                            <select
+                              value={selectedRingtone}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSelectedRingtone(val);
+                                localStorage.setItem('jr_farm_notification_ringtone', val);
+                                playSyntheticBellChime(val, false); // Quick preview
+                              }}
+                              className="w-full bg-white border border-slate-200 text-[10px] p-2.5 rounded-lg font-black cursor-pointer"
+                            >
+                              <option value="chime">Country Chime 🔔</option>
+                              <option value="telephone">Classic Ringer 📞</option>
+                              <option value="siren">Emergency Siren 🚨</option>
+                              <option value="melody">Happy Barn ⛅</option>
+                            </select>
                           </div>
                           
-                          <h5 className="text-[11px] font-black text-slate-800 leading-tight">
-                            {alarm.title}
-                          </h5>
-                          
-                          <p className="text-[11px] text-slate-550 leading-relaxed font-semibold">
-                            {alarm.body}
-                          </p>
-
-                          <div className="flex gap-2 pt-1.5">
+                          <div className="flex flex-col justify-end">
+                            <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">Ringtone Loop Mode</label>
                             <button
                               onClick={() => {
-                                setActiveTab(alarm.actionTab);
-                                setBellNotificationTrayOpen(false);
-                                triggerAppToastMessage(`Redirected to ${alarm.actionLabel}...`);
+                                const next = !continuousLoop;
+                                setContinuousLoop(next);
+                                localStorage.setItem('jr_farm_notification_loop', next ? 'true' : 'false');
+                                triggerAppToastMessage(next ? "✓ Ringtone continuous looping is now active!" : "Ringtone single play activated.");
                               }}
-                              className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase py-2 rounded-lg border-0 block cursor-pointer transition-colors"
+                              className={`w-full text-[10px] font-black uppercase p-2.5 border rounded-lg text-center transition-colors cursor-pointer ${
+                                continuousLoop 
+                                  ? 'bg-amber-100 border-amber-300 text-amber-900 font-black' 
+                                  : 'bg-white border-slate-200 text-slate-600 font-bold'
+                              }`}
                             >
-                              ⚙️ Go Resolve
-                            </button>
-                            <button
-                              onClick={() => {
-                                triggerAppLockscreenNotification(alarm.title, alarm.body);
-                                triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
-                              }}
-                              className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
-                              title="Send this specific alarm to phone lockscreen tray"
-                            >
-                              📲 Push Alert
+                              {continuousLoop ? "🔄 Loop Mode" : "⚡ Single Play"}
                             </button>
                           </div>
                         </div>
-                      ))
-                    )}
 
-                    {visibleSensitiveSectionAlarms.length < sensitiveSectionAlarms.length && (
-                      <div className="p-3 text-center border-t border-slate-100 bg-slate-50/70">
-                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-wide">Loading more alarms...</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              playSyntheticBellChime(selectedRingtone, continuousLoop);
+                              triggerAppToastMessage("🔊 Playing alarm ringtone preview...");
+                            }}
+                            className="flex-1 bg-slate-905 hover:bg-slate-800 text-slate-900 border border-slate-350 bg-slate-100 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            🔊 Play Preview
+                          </button>
+                          <button
+                            onClick={() => {
+                              stopAlarmSound();
+                              triggerAppToastMessage("🔇 Alarm muted.");
+                            }}
+                            className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-black text-[9px] uppercase py-2.5 rounded-lg cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            🔇 Stop Ringtone
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-center">
-                    <span className="text-[9px] font-mono font-extrabold text-slate-400 uppercase">
-                      • JR Farm Sovereign Supervisor Suite •
-                    </span>
-                  </div>
+                      {/* Alarm stream list */}
+                      <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                        {sensitiveSectionAlarms.length === 0 ? (
+                          <div className="p-8 text-center space-y-2">
+                            <span className="text-3xl block">☘️</span>
+                            <p className="text-xs font-bold text-slate-550 uppercase font-mono">ALL SENSITIVE SECTIONS 100% CLEAR</p>
+                            <p className="text-[10px] text-slate-400 font-medium">No overdue births, active pesticide quarantines, low stock levels, or pending vaccinations.</p>
+                          </div>
+                        ) : (
+                          visibleSensitiveSectionAlarms.map((alarm) => (
+                            <div key={alarm.id} className="p-4 hover:bg-slate-50 space-y-2 transition-colors text-left">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                                  alarm.severity === 'high'
+                                    ? 'bg-red-50 border-red-200 text-red-600'
+                                    : alarm.severity === 'medium'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-600'
+                                    : 'bg-blue-50 border-blue-200 text-blue-600'
+                                }`}>
+                                  ⚠️ {alarm.section}: {alarm.severity.toUpperCase()}
+                                </span>
+                                {alarm.date && (
+                                  <span className="text-[9px] font-mono text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+                                    Due: {alarm.date}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <h5 className="text-[11px] font-black text-slate-800 leading-tight">
+                                {alarm.title}
+                              </h5>
+                              
+                              <p className="text-[11px] text-slate-550 leading-relaxed font-semibold">
+                                {alarm.body}
+                              </p>
+
+                              <div className="flex gap-2 pt-1.5">
+                                <button
+                                  onClick={() => {
+                                    setActiveTab(alarm.actionTab);
+                                    setBellNotificationTrayOpen(false);
+                                    triggerAppToastMessage(`Redirected to ${alarm.actionLabel}...`);
+                                  }}
+                                  className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase py-2 rounded-lg border-0 block cursor-pointer transition-colors"
+                                >
+                                  ⚙️ Go Resolve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    triggerAppLockscreenNotification(alarm.title, alarm.body);
+                                    triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
+                                  }}
+                                  className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
+                                  title="Send this specific alarm to phone lockscreen tray"
+                                >
+                                  📲 Push Alert
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+
+                        {visibleSensitiveSectionAlarms.length < sensitiveSectionAlarms.length && (
+                          <div className="p-3 text-center border-t border-slate-100 bg-slate-50/70">
+                            <span className="text-[10px] text-slate-500 font-black uppercase tracking-wide">Loading more alarms...</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-center">
+                        <span className="text-[9px] font-mono font-extrabold text-slate-400 uppercase">
+                          • JR Farm Sovereign Supervisor Suite •
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
