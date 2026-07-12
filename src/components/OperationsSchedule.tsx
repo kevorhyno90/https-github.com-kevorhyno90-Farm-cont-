@@ -37,6 +37,12 @@ interface TimetableItem {
 
 const getTodayIso = () => new Date().toISOString().split('T')[0];
 
+const getOffsetIso = (days: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split('T')[0];
+};
+
 const getDaysDiffText = (targetDateStr: string) => {
   if (!targetDateStr) return null;
   const todayVal = new Date();
@@ -81,7 +87,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, wipe dry with single-use towels, and seal post-milking with thick iodine.',
     why: 'Prevents mastitis infections and seals the physical teat sphincter against environmental germs while it contracts.',
     status: 'Completed',
-    targetDate: '2026-06-21',
+    targetDate: getOffsetIso(0),
     assignedTo: 'Milking Crew'
   },
   {
@@ -92,7 +98,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Apply a topical local lidocaine ring block, then use a hot iron dehorner precisely on the horn buds for 5 seconds.',
     why: 'Safer herd management. Prevents horn-gouging injuries among cows in restricted zero-grazing stalls.',
     status: 'Pending',
-    targetDate: '2026-06-24',
+    targetDate: getOffsetIso(3),
     assignedTo: 'Veterinary Officer (Dr. Peter)'
   },
   {
@@ -103,7 +109,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Inject or drench the dry pregnant cow with Vitamin E and Selenium mineral booster mixture.',
     why: 'Prevents retained placenta (delayed membranes separation) and raises calf baseline antibody absorption metrics.',
     status: 'Completed',
-    targetDate: '2026-06-18',
+    targetDate: getOffsetIso(-3),
     assignedTo: 'Livestock Manager'
   },
 
@@ -116,7 +122,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Trim excess hoof horn flat to parallel the growth ring using hand shear clippers. Dip in 5% Copper Sulfate solution.',
     why: 'Prevents lameness, foot-rot, and joint arthritis on moist concrete surfaces.',
     status: 'Pending',
-    targetDate: '2026-06-28',
+    targetDate: getOffsetIso(7),
     assignedTo: 'Small Ruminants Team'
   },
 
@@ -129,7 +135,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Spray orchard canopy with Micronized Copper Oxychloride fungicide solution.',
     why: 'Prevents anthracnose fruit spots, guaranteeing GlobalGAP premium export grade clearance.',
     status: 'Completed',
-    targetDate: '2026-06-20',
+    targetDate: getOffsetIso(-1),
     assignedTo: 'Agronomy Handler'
   },
   {
@@ -140,7 +146,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Cut tea branches back to a flat table 24-28 inches high. Paint large cuts with copper paste.',
     why: 'Resets the plucking table width and increases light penetration for vigorous young plucking shoots.',
     status: 'Pending',
-    targetDate: '2026-07-15',
+    targetDate: getOffsetIso(24),
     assignedTo: 'Field Operations'
   },
 
@@ -153,7 +159,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Starve birds of water for 2 hours, then mix soluble vaccine vials with cool clean water and dry milk powder stabilizer.',
     why: 'Builds vital antibody titles to protect flock from fatal virus sweep outages.',
     status: 'Completed',
-    targetDate: '2026-06-19',
+    targetDate: getOffsetIso(-2),
     assignedTo: 'Poultry Team'
   },
   {
@@ -164,7 +170,7 @@ const DEFAULT_TIMETABLE: TimetableItem[] = [
     how: 'Administer 1ml vaccine subcutaneously in the loose neck skin folds.',
     why: 'Rabies prevents fatal human spillover. Parvovirus is highly contagious and fatal to young puppies.',
     status: 'Pending',
-    targetDate: '2026-06-25',
+    targetDate: getOffsetIso(4),
     assignedTo: 'Canine Care Specialist'
   }
 ];

@@ -521,7 +521,9 @@ export function OtherSections({
       setVetCardName(found.name);
       setVetCardBreed(found.countOrBreed);
       // Sensible defaults to populate a premium medical card
-      setVetCardDob('2024-05-15');
+      const defaultDob = new Date();
+      defaultDob.setFullYear(defaultDob.getFullYear() - 2);
+      setVetCardDob(defaultDob.toISOString().split('T')[0]);
       setVetCardChip(`K9-CHIP-${found.id.slice(0, 4).toUpperCase()}`);
       setVetCardGender('Male');
       setVetCardSire('Rocky (K9 Alpha)');

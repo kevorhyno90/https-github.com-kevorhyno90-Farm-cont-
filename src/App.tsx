@@ -619,29 +619,159 @@ function FarmCoreApp() {
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
+  const toIsoDate = (date: Date): string => date.toISOString().split('T')[0];
+
+  const toTimestamp = (date: Date): string => {
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${toIsoDate(date)} ${hh}:${mm}`;
+  };
+
+  const shiftDays = (days: number): Date => {
+    const shifted = new Date();
+    shifted.setDate(shifted.getDate() + days);
+    return shifted;
+  };
+
+  const buildDefaultDiagnosticHistory = () => {
+    const first = new Date();
+    first.setHours(8, 30, 0, 0);
+    const second = new Date(first);
+    second.setMinutes(second.getMinutes() + 15);
+
+    return [
+      {
+        id: 'diag-init-1',
+        timestamp: toTimestamp(first),
+        specimen: 'cow',
+        symptom: 'udder quarters inflamed, milk clotted',
+        conditionName: 'Clinical Mastitis',
+        likelihood: 'High',
+        isOffline: true
+      },
+      {
+        id: 'diag-init-2',
+        timestamp: toTimestamp(second),
+        specimen: 'chicken',
+        symptom: 'coughing, sneezing, gasping, green liquid faeces',
+        conditionName: 'Newcastle Disease',
+        likelihood: 'High',
+        isOffline: true
+      }
+    ];
+  };
+
+  const buildDefaultDeductLogs = () => {
+    const init = new Date();
+    init.setHours(8, 0, 0, 0);
+    return [
+      {
+        id: 'log-init',
+        timestamp: toTimestamp(init),
+        taskTitle: 'Stock Engine Active',
+        deductionText: 'Ready for auto-deduction SOP protocols.',
+        success: true
+      }
+    ];
+  };
+
+  const buildDefaultTimetable = () => {
+    return [
+      {
+        id: 'tt-1',
+        category: 'Cows & Calves',
+        operation: 'Teat Dipping & Hygiene Routine',
+        when: 'Daily (Milking session)',
+        how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
+        why: 'Prevents mastitis infections and seals teat sphincter.',
+        status: 'Completed',
+        targetDate: toIsoDate(shiftDays(0)),
+        assignedTo: 'Milking Crew'
+      },
+      {
+        id: 'tt-2',
+        category: 'Cows & Calves',
+        operation: 'Calf Decorn/Dehorning',
+        when: 'At 2 to 6 Weeks of age',
+        how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
+        why: 'Safe management, prevents horn-gouging injuries.',
+        status: 'Pending',
+        targetDate: toIsoDate(shiftDays(3)),
+        assignedTo: 'Veterinary Officer (Dr. Peter)'
+      },
+      {
+        id: 'tt-3',
+        category: 'Cows & Calves',
+        operation: 'Postpartum Selenium Boost',
+        when: '4 Weeks before calving',
+        how: 'Inject cow with Vitamin E and Selenium booster mixture.',
+        why: 'Prevents placental complications, lifts calf immunity markers.',
+        status: 'Completed',
+        targetDate: toIsoDate(shiftDays(-3)),
+        assignedTo: 'Livestock Manager'
+      },
+      {
+        id: 'tt-4',
+        category: 'Goats & Pigs',
+        operation: 'Hoof Trimming and Copper Dip',
+        when: 'Every 4 to 6 Weeks',
+        how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
+        why: 'Prevents foot rot lameness on moist concrete.',
+        status: 'Pending',
+        targetDate: toIsoDate(shiftDays(7)),
+        assignedTo: 'Small Ruminants Team'
+      },
+      {
+        id: 'tt-5',
+        category: 'Crops & Orchards',
+        operation: 'Avocado Pre-Harvest Copper Spray',
+        when: '21 to 30 Days before Hass maturity',
+        how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
+        why: 'Prevents anthracnose spots and secures export quality standards.',
+        status: 'Completed',
+        targetDate: toIsoDate(shiftDays(-1)),
+        assignedTo: 'Agronomy Handler'
+      },
+      {
+        id: 'tt-6',
+        category: 'Crops & Orchards',
+        operation: 'Tea Triennial Hard Pruning',
+        when: 'Every 3 Years',
+        how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
+        why: 'Resets plucking table width, triggers young plucking shoots.',
+        status: 'Pending',
+        targetDate: toIsoDate(shiftDays(24)),
+        assignedTo: 'Field Operations'
+      },
+      {
+        id: 'tt-7',
+        category: 'Poultry & Dogs',
+        operation: 'Newcastle & Gumboro Vaccine',
+        when: 'Newcastle Week 1 & 3, Gumboro week 2',
+        how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
+        why: 'Creates immune defence against poultry virus epidemics.',
+        status: 'Completed',
+        targetDate: toIsoDate(shiftDays(-2)),
+        assignedTo: 'Poultry Team'
+      },
+      {
+        id: 'tt-8',
+        category: 'Poultry & Dogs',
+        operation: 'DHLPP + Rabies Vaccine',
+        when: 'DHLPP weeks 8, 12, 16; Rabies week 12',
+        how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
+        why: 'Rabies protection and puppy immunisation.',
+        status: 'Pending',
+        targetDate: toIsoDate(shiftDays(4)),
+        assignedTo: 'Canine Care Specialist'
+      }
+    ];
+  };
+
   const getStoredDiagHistory = () => {
     try {
       const saved = localStorage.getItem('jr_farm_diagnostic_history');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'diag-init-1',
-          timestamp: '2026-06-21 08:30',
-          specimen: 'cow',
-          symptom: 'udder quarters inflamed, milk clotted',
-          conditionName: 'Clinical Mastitis',
-          likelihood: 'High',
-          isOffline: true
-        },
-        {
-          id: 'diag-init-2',
-          timestamp: '2026-06-21 08:45',
-          specimen: 'chicken',
-          symptom: 'coughing, sneezing, gasping, green liquid faeces',
-          conditionName: 'Newcastle Disease',
-          likelihood: 'High',
-          isOffline: true
-        }
-      ];
+      return saved ? JSON.parse(saved) : buildDefaultDiagnosticHistory();
     } catch {
       return [];
     }
@@ -650,9 +780,7 @@ function FarmCoreApp() {
   const getStoredDeductLogs = () => {
     try {
       const saved = localStorage.getItem('jr_farm_academy_auto_deduct_logs');
-      return saved ? JSON.parse(saved) : [
-        { id: 'log-init', timestamp: '2026-06-21 08:00', taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
-      ];
+      return saved ? JSON.parse(saved) : buildDefaultDeductLogs();
     } catch {
       return [];
     }
@@ -661,96 +789,7 @@ function FarmCoreApp() {
   const getStoredTimetable = () => {
     try {
       const saved = localStorage.getItem('jr_farm_custom_timetable');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'tt-1',
-          category: 'Cows & Calves',
-          operation: 'Teat Dipping & Hygiene Routine',
-          when: 'Daily (Milking session)',
-          how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
-          why: 'Prevents mastitis infections and seals teat sphincter.',
-          status: 'Completed',
-          targetDate: '2026-06-21',
-          assignedTo: 'Milking Crew'
-        },
-        {
-          id: 'tt-2',
-          category: 'Cows & Calves',
-          operation: 'Calf Decorn/Dehorning',
-          when: 'At 2 to 6 Weeks of age',
-          how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
-          why: 'Safe management, prevents horn-gouging injuries.',
-          status: 'Pending',
-          targetDate: '2026-06-24',
-          assignedTo: 'Veterinary Officer (Dr. Peter)'
-        },
-        {
-          id: 'tt-3',
-          category: 'Cows & Calves',
-          operation: 'Postpartum Selenium Boost',
-          when: '4 Weeks before calving',
-          how: 'Inject cow with Vitamin E and Selenium booster mixture.',
-          why: 'Prevents placental complications, lifts calf immunity markers.',
-          status: 'Completed',
-          targetDate: '2026-06-18',
-          assignedTo: 'Livestock Manager'
-        },
-        {
-          id: 'tt-4',
-          category: 'Goats & Pigs',
-          operation: 'Hoof Trimming and Copper Dip',
-          when: 'Every 4 to 6 Weeks',
-          how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
-          why: 'Prevents foot rot lameness on moist concrete.',
-          status: 'Pending',
-          targetDate: '2026-06-28',
-          assignedTo: 'Small Ruminants Team'
-        },
-        {
-          id: 'tt-5',
-          category: 'Crops & Orchards',
-          operation: 'Avocado Pre-Harvest Copper Spray',
-          when: '21 to 30 Days before Hass maturity',
-          how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
-          why: 'Prevents anthracnose spots and secures export quality standards.',
-          status: 'Completed',
-          targetDate: '2026-06-20',
-          assignedTo: 'Agronomy Handler'
-        },
-        {
-          id: 'tt-6',
-          category: 'Crops & Orchards',
-          operation: 'Tea Triennial Hard Pruning',
-          when: 'Every 3 Years',
-          how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
-          why: 'Resets plucking table width, triggers young plucking shoots.',
-          status: 'Pending',
-          targetDate: '2026-07-15',
-          assignedTo: 'Field Operations'
-        },
-        {
-          id: 'tt-7',
-          category: 'Poultry & Dogs',
-          operation: 'Newcastle & Gumboro Vaccine',
-          when: 'Newcastle Week 1 & 3, Gumboro week 2',
-          how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
-          why: 'Creates immune defence against poultry virus epidemics.',
-          status: 'Completed',
-          targetDate: '2026-06-19',
-          assignedTo: 'Poultry Team'
-        },
-        {
-          id: 'tt-8',
-          category: 'Poultry & Dogs',
-          operation: 'DHLPP + Rabies Vaccine',
-          when: 'DHLPP weeks 8, 12, 16; Rabies week 12',
-          how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
-          why: 'Rabies protection and puppy immunisation.',
-          status: 'Pending',
-          targetDate: '2026-06-25',
-          assignedTo: 'Canine Care Specialist'
-        }
-      ];
+      return saved ? JSON.parse(saved) : buildDefaultTimetable();
     } catch {
       return [];
     }
@@ -1480,26 +1519,7 @@ function FarmCoreApp() {
       let diagHistList: any[] = [];
       try {
         const saved = localStorage.getItem('jr_farm_diagnostic_history');
-        diagHistList = saved ? JSON.parse(saved) : [
-          {
-            id: 'diag-init-1',
-            timestamp: '2026-06-21 08:30',
-            specimen: 'cow',
-            symptom: 'udder quarters inflamed, milk clotted',
-            conditionName: 'Clinical Mastitis',
-            likelihood: 'High',
-            isOffline: true
-          },
-          {
-            id: 'diag-init-2',
-            timestamp: '2026-06-21 08:45',
-            specimen: 'chicken',
-            symptom: 'coughing, sneezing, gasping, green liquid faeces',
-            conditionName: 'Newcastle Disease',
-            likelihood: 'High',
-            isOffline: true
-          }
-        ];
+        diagHistList = saved ? JSON.parse(saved) : buildDefaultDiagnosticHistory();
       } catch {
         diagHistList = [];
       }
@@ -1507,9 +1527,7 @@ function FarmCoreApp() {
       let deductLogs: any[] = [];
       try {
         const saved = localStorage.getItem('jr_farm_academy_auto_deduct_logs');
-        deductLogs = saved ? JSON.parse(saved) : [
-          { id: 'log-init', timestamp: '2026-06-21 08:00', taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
-        ];
+        deductLogs = saved ? JSON.parse(saved) : buildDefaultDeductLogs();
       } catch {
         deductLogs = [];
       }
@@ -1553,96 +1571,7 @@ function FarmCoreApp() {
       let timetableList: any[] = [];
       try {
         const saved = localStorage.getItem('jr_farm_custom_timetable');
-        timetableList = saved ? JSON.parse(saved) : [
-          {
-            id: 'tt-1',
-            category: 'Cows & Calves',
-            operation: 'Teat Dipping & Hygiene Routine',
-            when: 'Daily (Milking session)',
-            how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
-            why: 'Prevents mastitis infections and seals teat sphincter.',
-            status: 'Completed',
-            targetDate: '2026-06-21',
-            assignedTo: 'Milking Crew'
-          },
-          {
-            id: 'tt-2',
-            category: 'Cows & Calves',
-            operation: 'Calf Decorn/Dehorning',
-            when: 'At 2 to 6 Weeks of age',
-            how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
-            why: 'Safe management, prevents horn-gouging injuries.',
-            status: 'Pending',
-            targetDate: '2026-06-24',
-            assignedTo: 'Veterinary Officer (Dr. Peter)'
-          },
-          {
-            id: 'tt-3',
-            category: 'Cows & Calves',
-            operation: 'Postpartum Selenium Boost',
-            when: '4 Weeks before calving',
-            how: 'Inject cow with Vitamin E and Selenium booster mixture.',
-            why: 'Prevents placental complications, lifts calf immunity markers.',
-            status: 'Completed',
-            targetDate: '2026-06-18',
-            assignedTo: 'Livestock Manager'
-          },
-          {
-            id: 'tt-4',
-            category: 'Goats & Pigs',
-            operation: 'Hoof Trimming and Copper Dip',
-            when: 'Every 4 to 6 Weeks',
-            how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
-            why: 'Prevents foot rot lameness on moist concrete.',
-            status: 'Pending',
-            targetDate: '2026-06-28',
-            assignedTo: 'Small Ruminants Team'
-          },
-          {
-            id: 'tt-5',
-            category: 'Crops & Orchards',
-            operation: 'Avocado Pre-Harvest Copper Spray',
-            when: '21 to 30 Days before Hass maturity',
-            how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
-            why: 'Prevents anthracnose spots and secures export quality standards.',
-            status: 'Completed',
-            targetDate: '2026-06-20',
-            assignedTo: 'Agronomy Handler'
-          },
-          {
-            id: 'tt-6',
-            category: 'Crops & Orchards',
-            operation: 'Tea Triennial Hard Pruning',
-            when: 'Every 3 Years',
-            how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
-            why: 'Resets plucking table width, triggers young plucking shoots.',
-            status: 'Pending',
-            targetDate: '2026-07-15',
-            assignedTo: 'Field Operations'
-          },
-          {
-            id: 'tt-7',
-            category: 'Poultry & Dogs',
-            operation: 'Newcastle & Gumboro Vaccine',
-            when: 'Newcastle Week 1 & 3, Gumboro week 2',
-            how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
-            why: 'Creates immune defence against poultry virus epidemics.',
-            status: 'Completed',
-            targetDate: '2026-06-19',
-            assignedTo: 'Poultry Team'
-          },
-          {
-            id: 'tt-8',
-            category: 'Poultry & Dogs',
-            operation: 'DHLPP + Rabies Vaccine',
-            when: 'DHLPP weeks 8, 12, 16; Rabies week 12',
-            how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
-            why: 'Rabies protection and puppy immunisation.',
-            status: 'Pending',
-            targetDate: '2026-06-25',
-            assignedTo: 'Canine Care Specialist'
-          }
-        ];
+        timetableList = saved ? JSON.parse(saved) : buildDefaultTimetable();
       } catch {
         timetableList = [];
       }
