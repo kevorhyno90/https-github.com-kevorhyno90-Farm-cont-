@@ -75,6 +75,9 @@
     .farm-shell-panel,
     .farm-shell-card,
     .bg-white,
+    .bg-white\/20,
+    .bg-white\/30,
+    .bg-white\/40,
     .bg-white\/75,
     .bg-white\/80,
     .bg-white\/90,
@@ -114,7 +117,12 @@
     border-color: rgba(71, 85, 105, 0.42) !important;
   }
 
-  #root :is(.hover\:bg-slate-50:hover, .hover\:bg-slate-100:hover, .hover\:bg-white:hover, .hover\:bg-white\/30:hover) {
+  #root :is(.bg-white\/10, .bg-white\/15, .bg-white\/20, .bg-white\/30, .bg-white\/40) {
+    background-color: rgba(30, 41, 59, 0.72) !important;
+    border-color: rgba(71, 85, 105, 0.42) !important;
+  }
+
+  #root :is(.hover\:bg-slate-50:hover, .hover\:bg-slate-55:hover, .hover\:bg-slate-100:hover, .hover\:bg-white:hover, .hover\:bg-white\/30:hover) {
     background-color: rgba(30, 41, 59, 0.92) !important;
   }
 
@@ -134,12 +142,24 @@
     color: var(--color-app-accent-emerald) !important;
   }
 
+  #root :is(.text-emerald-900, .text-emerald-950) {
+    color: #a7f3d0 !important;
+  }
+
   #root :is(.text-amber-700, .text-amber-800, .text-yellow-300, .text-yellow-400, .text-yellow-500) {
     color: var(--color-app-accent-amber) !important;
   }
 
+  #root :is(.text-amber-900, .text-amber-950) {
+    color: #fde68a !important;
+  }
+
   #root :is(.text-rose-700, .text-rose-800, .text-rose-900) {
     color: var(--color-app-accent-rose) !important;
+  }
+
+  #root :is(.text-rose-950) {
+    color: #fecdd3 !important;
   }
 
   #root :is(.text-blue-400, .text-blue-600, .text-blue-700, .text-sky-600, .text-sky-700) {
@@ -245,6 +265,10 @@
 
   #root :is(.border-amber-100, .border-amber-200, .border-amber-300) {
     border-color: rgba(251, 191, 36, 0.35) !important;
+  }
+
+  #root :is(.border-slate-250, .border-slate-300) {
+    border-color: rgba(71, 85, 105, 0.55) !important;
   }
 }
 
