@@ -73,6 +73,17 @@ export default function FarmerAcademy({
   fields,
   onTriggerSectionReport
 }: FarmerAcademyProps) {
+  const formatCurrentTimestamp = () => {
+    const datePart = new Date().toISOString().split('T')[0];
+    const timePart = new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    return `${datePart} ${timePart}`;
+  };
+
   const fieldRecords = fields;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines' | 'forecasting'>('science');
@@ -386,7 +397,7 @@ export default function FarmerAcademy({
       return saved ? JSON.parse(saved) : [
         {
           id: 'diag-init-1',
-          timestamp: '2026-06-21 08:30',
+          timestamp: formatCurrentTimestamp(),
           specimen: 'cow',
           symptom: 'udder quarters inflamed, milk clotted',
           conditionName: 'Clinical Mastitis',
@@ -458,7 +469,7 @@ export default function FarmerAcademy({
   const [actionLogs, setActionLogs] = useState<Array<{ id: string; timestamp: string; taskTitle: string; deductionText: string; success: boolean }>>(() => {
     const saved = localStorage.getItem('jr_farm_academy_auto_deduct_logs');
     return saved ? JSON.parse(saved) : [
-      { id: 'log-init', timestamp: '2026-06-21 08:00', taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
+      { id: 'log-init', timestamp: formatCurrentTimestamp(), taskTitle: 'Stock Engine Active', deductionText: 'Ready for auto-deduction SOP protocols.', success: true }
     ];
   });
 
@@ -4155,10 +4166,9 @@ export default function FarmerAcademy({
                       updateInventoryStorage(nextInv);
 
                       // Log activity
-                      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                       const newLog = {
                          id: `log-${Date.now()}`,
-                         timestamp: `2026-06-21 ${timeStr}`,
+                         timestamp: formatCurrentTimestamp(),
                          taskTitle: activeSop.title,
                          deductionText: `Completed SOP: Deducted ${activeSop.count} ${activeSop.unit} from ${matchedStockItem.name}. Remaining: ${(matchedStockItem.quantity - activeSop.count).toFixed(2)} ${activeSop.unit}.`,
                          success: true
@@ -4249,7 +4259,7 @@ export default function FarmerAcademy({
                       <span className="text-xs font-black uppercase text-indigo-900 tracking-wider">Auto-Deduct Actions Audit Log</span>
                       <button
                         onClick={() => {
-                          const clean = [{ id: 'log-clean', timestamp: '2026-06-21 08:15', taskTitle: 'Wiped Log', deductionText: 'Ledger cleared by administrator.', success: true }];
+                          const clean = [{ id: 'log-clean', timestamp: formatCurrentTimestamp(), taskTitle: 'Wiped Log', deductionText: 'Ledger cleared by administrator.', success: true }];
                           setActionLogs(clean);
                           localStorage.setItem('jr_farm_academy_auto_deduct_logs', JSON.stringify(clean));
                         }}
