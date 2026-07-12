@@ -7,11 +7,17 @@
   --color-app-bg: #06111f;
   --color-app-surface: rgba(10, 20, 35, 0.84);
   --color-app-surface-strong: rgba(15, 23, 42, 0.92);
+  --color-app-surface-soft: rgba(15, 23, 42, 0.72);
   --color-app-border: rgba(71, 85, 105, 0.55);
   --color-app-text: #e2e8f0;
   --color-app-text-strong: #f8fafc;
   --color-app-text-soft: #cbd5e1;
   --color-app-text-muted: #94a3b8;
+  --color-app-accent-emerald: #6ee7b7;
+  --color-app-accent-amber: #fbbf24;
+  --color-app-accent-rose: #fda4af;
+  --color-app-accent-blue: #93c5fd;
+  --color-app-accent-indigo: #a5b4fc;
 }
 
 @layer base {
@@ -69,35 +75,86 @@
     .farm-shell-panel,
     .farm-shell-card,
     .bg-white,
+    .bg-white\/75,
+    .bg-white\/80,
+    .bg-white\/90,
     .bg-slate-50,
+    .bg-slate-50\/30,
     .bg-slate-50\/40,
     .bg-slate-50\/50,
-    .bg-emerald-50,
-    .bg-emerald-50\/50,
-    .bg-rose-50,
-    .bg-rose-50\/50,
-    .bg-amber-50,
-    .bg-amber-50\/50
+    .bg-slate-100,
+    .bg-slate-200,
+    .bg-slate-200\/80
   ) {
     background-color: var(--color-app-surface-strong) !important;
     color: var(--color-app-text) !important;
     border-color: var(--color-app-border) !important;
   }
 
-  #root :is(
-    .farm-shell-panel,
-    .farm-shell-card,
-    .bg-white,
-    .bg-slate-50,
-    .bg-slate-50\/40,
-    .bg-slate-50\/50,
-    .bg-emerald-50,
-    .bg-emerald-50\/50,
-    .bg-rose-50,
-    .bg-rose-50\/50,
-    .bg-amber-50,
-    .bg-amber-50\/50
-  ) :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700) {
+  #root :is(.bg-emerald-50, .bg-emerald-50\/30, .bg-emerald-50\/50, .bg-emerald-100) {
+    background-color: rgba(6, 78, 59, 0.28) !important;
+    color: var(--color-app-text) !important;
+    border-color: rgba(52, 211, 153, 0.28) !important;
+  }
+
+  #root :is(.bg-rose-50, .bg-rose-50\/30, .bg-rose-50\/50, .bg-rose-100) {
+    background-color: rgba(127, 29, 29, 0.28) !important;
+    color: var(--color-app-text) !important;
+    border-color: rgba(251, 113, 133, 0.28) !important;
+  }
+
+  #root :is(.bg-amber-50, .bg-amber-50\/30, .bg-amber-50\/50, .bg-amber-100) {
+    background-color: rgba(120, 53, 15, 0.28) !important;
+    color: var(--color-app-text) !important;
+    border-color: rgba(251, 191, 36, 0.28) !important;
+  }
+
+  #root :is(.bg-black\/20, .bg-black\/30, .bg-black\/40, .bg-black\/60, .bg-white\/5) {
+    background-color: var(--color-app-surface-soft) !important;
+    border-color: rgba(71, 85, 105, 0.42) !important;
+  }
+
+  #root :is(.hover\:bg-slate-50:hover, .hover\:bg-slate-100:hover, .hover\:bg-white:hover, .hover\:bg-white\/30:hover) {
+    background-color: rgba(30, 41, 59, 0.92) !important;
+  }
+
+  #root :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700) {
+    color: var(--color-app-text-strong) !important;
+  }
+
+  #root :is(.text-slate-600, .text-slate-500, .text-slate-400) {
+    color: var(--color-app-text-soft) !important;
+  }
+
+  #root :is(.text-slate-300, .text-slate-200, .text-slate-100) {
+    color: var(--color-app-text-muted) !important;
+  }
+
+  #root :is(.text-emerald-600, .text-emerald-700, .text-emerald-800) {
+    color: var(--color-app-accent-emerald) !important;
+  }
+
+  #root :is(.text-amber-700, .text-amber-800, .text-yellow-300, .text-yellow-400, .text-yellow-500) {
+    color: var(--color-app-accent-amber) !important;
+  }
+
+  #root :is(.text-rose-700, .text-rose-800, .text-rose-900) {
+    color: var(--color-app-accent-rose) !important;
+  }
+
+  #root :is(.text-blue-400, .text-blue-600, .text-blue-700, .text-sky-600, .text-sky-700) {
+    color: var(--color-app-accent-blue) !important;
+  }
+
+  #root :is(.text-indigo-400, .text-indigo-700, .text-indigo-800) {
+    color: var(--color-app-accent-indigo) !important;
+  }
+
+  #root :is(.bg-slate-100, .bg-slate-200, .bg-slate-300) {
+    background-color: rgba(30, 41, 59, 0.88) !important;
+  }
+
+  #root :is(.text-slate-950.text-emerald-950, .text-emerald-950) {
     color: var(--color-app-text-strong) !important;
   }
 
@@ -105,46 +162,20 @@
     .farm-shell-panel,
     .farm-shell-card,
     .bg-white,
+    .bg-white\/75,
+    .bg-white\/80,
+    .bg-white\/90,
     .bg-slate-50,
+    .bg-slate-50\/30,
     .bg-slate-50\/40,
     .bg-slate-50\/50,
+    .bg-slate-100,
+    .bg-slate-200,
     .bg-emerald-50,
+    .bg-emerald-50\/30,
     .bg-emerald-50\/50,
     .bg-rose-50,
-    .bg-rose-50\/50,
-    .bg-amber-50,
-    .bg-amber-50\/50
-  ) :is(.text-slate-600, .text-slate-500, .text-slate-400) {
-    color: var(--color-app-text-soft) !important;
-  }
-
-  #root :is(
-    .farm-shell-panel,
-    .farm-shell-card,
-    .bg-white,
-    .bg-slate-50,
-    .bg-slate-50\/40,
-    .bg-slate-50\/50,
-    .bg-emerald-50,
-    .bg-emerald-50\/50,
-    .bg-rose-50,
-    .bg-rose-50\/50,
-    .bg-amber-50,
-    .bg-amber-50\/50
-  ) :is(.text-slate-300, .text-slate-200, .text-slate-100) {
-    color: var(--color-app-text-muted) !important;
-  }
-
-  #root :is(
-    .farm-shell-panel,
-    .farm-shell-card,
-    .bg-white,
-    .bg-slate-50,
-    .bg-slate-50\/40,
-    .bg-slate-50\/50,
-    .bg-emerald-50,
-    .bg-emerald-50\/50,
-    .bg-rose-50,
+    .bg-rose-50\/30,
     .bg-rose-50\/50,
     .bg-amber-50,
     .bg-amber-50\/50
@@ -158,12 +189,20 @@
     .farm-shell-panel,
     .farm-shell-card,
     .bg-white,
+    .bg-white\/75,
+    .bg-white\/80,
+    .bg-white\/90,
     .bg-slate-50,
+    .bg-slate-50\/30,
     .bg-slate-50\/40,
     .bg-slate-50\/50,
+    .bg-slate-100,
+    .bg-slate-200,
     .bg-emerald-50,
+    .bg-emerald-50\/30,
     .bg-emerald-50\/50,
     .bg-rose-50,
+    .bg-rose-50\/30,
     .bg-rose-50\/50,
     .bg-amber-50,
     .bg-amber-50\/50
@@ -175,17 +214,37 @@
     .farm-shell-panel,
     .farm-shell-card,
     .bg-white,
+    .bg-white\/75,
+    .bg-white\/80,
+    .bg-white\/90,
     .bg-slate-50,
+    .bg-slate-50\/30,
     .bg-slate-50\/40,
     .bg-slate-50\/50,
+    .bg-slate-100,
+    .bg-slate-200,
     .bg-emerald-50,
+    .bg-emerald-50\/30,
     .bg-emerald-50\/50,
     .bg-rose-50,
+    .bg-rose-50\/30,
     .bg-rose-50\/50,
     .bg-amber-50,
     .bg-amber-50\/50
-  ) :is(.border-white\/70, .border-white\/50, .border-slate-100, .border-slate-150, .border-slate-200, .border-emerald-100, .border-emerald-200, .border-rose-150, .border-amber-200) {
+  ) :is(.border-white\/70, .border-white\/50, .border-white\/10, .border-white\/15, .border-slate-100, .border-slate-150, .border-slate-200, .border-emerald-100, .border-emerald-200, .border-rose-150, .border-amber-200) {
     border-color: var(--color-app-border) !important;
+  }
+
+  #root :is(.border-emerald-100, .border-emerald-200, .border-emerald-300) {
+    border-color: rgba(52, 211, 153, 0.35) !important;
+  }
+
+  #root :is(.border-rose-100, .border-rose-200, .border-rose-300) {
+    border-color: rgba(251, 113, 133, 0.35) !important;
+  }
+
+  #root :is(.border-amber-100, .border-amber-200, .border-amber-300) {
+    border-color: rgba(251, 191, 36, 0.35) !important;
   }
 }
 
