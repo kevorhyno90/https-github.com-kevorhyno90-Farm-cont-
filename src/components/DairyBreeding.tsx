@@ -941,6 +941,11 @@ export function DairyBreeding({
     const targetMilk = milkRecords.filter(filterFn);
     const targetOutflow = milkOutflows.filter(filterFn);
 
+    if (targetMilk.length === 0 && targetOutflow.length === 0) {
+      alert('No milk or outflow records exist for the selected period. Adjust the period or log records before exporting.');
+      return;
+    }
+
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'CONSOLIDATED DAIRY PRODUCTION & DISPATCH LEDGER\n';
     csv += `Generated: ${new Date().toLocaleString()} | Period: ${downloadPeriod.toUpperCase()}\n\n`;
@@ -985,6 +990,11 @@ export function DairyBreeding({
   };
 
   const downloadBreedersCSV = () => {
+    if (cows.length === 0) {
+      alert('No registered cows found to export. Add cow records first.');
+      return;
+    }
+
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'REGISTERED BREEDERS REGISTRY DIRECTORY\n';
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;
@@ -1002,6 +1012,11 @@ export function DairyBreeding({
   };
 
   const downloadAICyclesCSV = () => {
+    if (aiRecords.length === 0) {
+      alert('No AI records found to export. Log insemination cycles first.');
+      return;
+    }
+
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'ARTIFICIAL INSEMINATION AND GESTATION TIMESCALES\n';
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;
@@ -1019,6 +1034,11 @@ export function DairyBreeding({
   };
 
   const downloadVetClinicalCSV = () => {
+    if (vetRecords.length === 0) {
+      alert('No veterinary records found to export. Add clinical interventions first.');
+      return;
+    }
+
     let csv = 'data:text/csv;charset=utf-8,';
     csv += 'HERD VETERINARY CLINICS AND INTERVENTIONS LOG\n';
     csv += `Generated: ${new Date().toLocaleString()}\n\n`;

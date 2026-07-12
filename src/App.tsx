@@ -49,6 +49,7 @@ import { ref, push, set } from 'firebase/database';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { toIsoDate } from './utils/dateHelper';
 import { buildDefaultDeductLogs, buildDefaultDiagnosticHistory, buildDefaultTimetable } from './utils/appFallbacks';
+import { buildReportPdfFilename } from './utils/reportHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
@@ -2098,19 +2099,14 @@ function FarmCoreApp() {
       tempSections = { ...selectedSections };
     }
 
-    const htmlContent = generateHtmlReportContent(tempSections);
-    
-    let filename = 'JR_Farm_Compiled_Report.pdf';
     const activeKeys = Object.keys(tempSections).filter(k => tempSections[k]);
-    if (activeKeys.length === 1) {
-      const key = activeKeys[0];
-      const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
-      filename = `JR_Farm_${formattedKey}_Report_${toIsoDate()}.pdf`;
-    } else if (activeKeys.length < 17) {
-      filename = `JR_Farm_Active_Sections_Report_${toIsoDate()}.pdf`;
-    } else {
-      filename = `JR_Farm_Master_Estate_Report_${toIsoDate()}.pdf`;
+    if (activeKeys.length === 0) {
+      triggerAppToastMessage('Select at least one section before generating a PDF report.');
+      return;
     }
+
+    const htmlContent = generateHtmlReportContent(tempSections);
+    const filename = buildReportPdfFilename(activeKeys, 17);
 
     const loadScript = (url: string) => {
       return new Promise<void>((resolve, reject) => {

@@ -138,7 +138,7 @@ export function Financials({
     setExpAmt('');
     setExpSrc('');
     setExpDesc('');
-    setExpDate(new Date().toISOString().split('T')[0]);
+    setExpDate(toIsoDate());
   };
 
   // Base aggregate sums
@@ -203,6 +203,14 @@ export function Financials({
       })
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [financialRecords, term, typeFilter, datePreset, customStartDate, customEndDate]);
+
+  const hasActiveLedgerFilters = Boolean(
+    term ||
+    typeFilter !== 'all' ||
+    datePreset !== 'all' ||
+    customStartDate ||
+    customEndDate
+  );
 
   // Aggregate monthly data for recharts timeline charts (Improvement 1)
   const monthlyChartData = useMemo(() => {
@@ -574,7 +582,13 @@ export function Financials({
       f.description,
       f.amount
     ]);
-    exportToCsv(`Financial_Ledger_${new Date().toISOString().split('T')[0]}`, headers, rows);
+
+    if (rows.length === 0) {
+      alert('No ledger entries match the current filters. Clear filters or add transactions before exporting CSV.');
+      return;
+    }
+
+    exportToCsv(`Financial_Ledger_${toIsoDate()}`, headers, rows);
   };
 
   // Pie colors for Recharts category breakdowns
@@ -956,8 +970,29 @@ export function Financials({
                 <tbody className="divide-y divide-slate-100">
                   {filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="text-center text-slate-400 italic py-10">
-                        No transactions qualify the current filters or custom range constraints.
+                      <td colSpan={5} className="text-center py-10">
+                        <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
+                          <p className="text-slate-700 font-bold text-sm">No ledger rows match the current filters.</p>
+                          <p className="text-slate-500 text-xs">
+                            Add income/expense entries or reset filters to restore the operational audit stream.
+                          </p>
+                          {hasActiveLedgerFilters && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTerm('');
+                                setTypeFilter('all');
+                                setDatePreset('all');
+                                setCustomStartDate('');
+                                setCustomEndDate('');
+                              }}
+                              className="mt-2 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
+                            >
+                              <RefreshCw size={12} />
+                              Clear Filters
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
