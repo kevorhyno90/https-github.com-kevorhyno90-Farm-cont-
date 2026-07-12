@@ -4777,7 +4777,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingCow.registrationNo || ''}
                     onChange={(e) => setEditingCow({ ...editingCow, registrationNo: e.target.value })}
-                    placeholder="E.g. KAG-HF-2023-1120"
+                    placeholder="E.g. KAG-HF-YYYY-1120"
                     className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>

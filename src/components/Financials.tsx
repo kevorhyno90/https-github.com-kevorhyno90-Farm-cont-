@@ -48,6 +48,12 @@ export function Financials({
     return date.toISOString().split('T')[0];
   };
 
+  const getOffsetYearsIso = (years: number): string => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + years);
+    return date.toISOString().split('T')[0];
+  };
+
   // Navigation tabs for Financials view
   const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi' | 'granular_analysis'>('ledger');
   const [selectedInvoiceTx, setSelectedInvoiceTx] = useState<FinancialRecord | null>(null);
@@ -376,10 +382,10 @@ export function Financials({
     // Vet, milk, and breeding AI records are passed down dynamically as reactive props
 
     const animalList = (cows && cows.length > 0) ? cows : [
-      { id: 'COW-01', name: 'Zesta', breed: 'Friesian Pure', dob: '2021-04-12', status: 'Lactating', notes: 'Peak producer' },
-      { id: 'COW-02', name: 'Goldie', breed: 'Jersey Grade', dob: '2022-01-05', status: 'Lactating', notes: 'High butterfat content' },
-      { id: 'COW-03', name: 'Asha', breed: 'Ayrshire Cross', dob: '2022-06-18', status: 'In-Calf', notes: 'Due soon' },
-      { id: 'COW-04', name: 'Ruby', breed: 'Guernsey', dob: '2023-03-22', status: 'Heifer', notes: 'Replacement stock' }
+      { id: 'COW-01', name: 'Zesta', breed: 'Friesian Pure', dob: getOffsetYearsIso(-5), status: 'Lactating', notes: 'Peak producer' },
+      { id: 'COW-02', name: 'Goldie', breed: 'Jersey Grade', dob: getOffsetYearsIso(-4), status: 'Lactating', notes: 'High butterfat content' },
+      { id: 'COW-03', name: 'Asha', breed: 'Ayrshire Cross', dob: getOffsetYearsIso(-4), status: 'In-Calf', notes: 'Due soon' },
+      { id: 'COW-04', name: 'Ruby', breed: 'Guernsey', dob: getOffsetYearsIso(-3), status: 'Heifer', notes: 'Replacement stock' }
     ];
 
     const blockList = (fields && fields.length > 0) ? fields : [
