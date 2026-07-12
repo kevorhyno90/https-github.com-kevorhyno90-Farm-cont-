@@ -58,6 +58,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
+const INITIAL_ALARM_RENDER_LIMIT = 8;
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -573,7 +574,9 @@ function FarmCoreApp() {
     return localStorage.getItem('jr_farm_notification_loop') === 'true';
   });
   const [activeAudioSource, setActiveAudioSource] = useState<any>(null);
+  const [alarmRenderLimit, setAlarmRenderLimit] = useState<number>(INITIAL_ALARM_RENDER_LIMIT);
   const bellTrayWasOpenRef = useRef<boolean>(false);
+  const alarmRenderUpgradeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -2892,6 +2895,39 @@ function FarmCoreApp() {
     bsfRecords,
     alarmComputationDay
   ]);
+
+  const visibleSensitiveSectionAlarms = useMemo(() => {
+    return sensitiveSectionAlarms.slice(0, alarmRenderLimit);
+  }, [sensitiveSectionAlarms, alarmRenderLimit]);
+
+  useEffect(() => {
+    if (alarmRenderUpgradeTimeoutRef.current) {
+      clearTimeout(alarmRenderUpgradeTimeoutRef.current);
+      alarmRenderUpgradeTimeoutRef.current = null;
+    }
+
+    if (!bellNotificationTrayOpen) {
+      setAlarmRenderLimit(INITIAL_ALARM_RENDER_LIMIT);
+      return;
+    }
+
+    setAlarmRenderLimit(INITIAL_ALARM_RENDER_LIMIT);
+    if (sensitiveSectionAlarms.length <= INITIAL_ALARM_RENDER_LIMIT) {
+      return;
+    }
+
+    alarmRenderUpgradeTimeoutRef.current = setTimeout(() => {
+      setAlarmRenderLimit(sensitiveSectionAlarms.length);
+      alarmRenderUpgradeTimeoutRef.current = null;
+    }, 120);
+
+    return () => {
+      if (alarmRenderUpgradeTimeoutRef.current) {
+        clearTimeout(alarmRenderUpgradeTimeoutRef.current);
+        alarmRenderUpgradeTimeoutRef.current = null;
+      }
+    };
+  }, [bellNotificationTrayOpen, sensitiveSectionAlarms.length]);
 
   // Web Notification controller
   const requestAppNotificationPermission = async () => {
@@ -5949,7 +5985,7 @@ function FarmCoreApp() {
                         <p className="text-[10px] text-slate-400 font-medium">No overdue births, active pesticide quarantines, low stock levels, or pending vaccinations.</p>
                       </div>
                     ) : (
-                      sensitiveSectionAlarms.map((alarm) => (
+                      visibleSensitiveSectionAlarms.map((alarm) => (
                         <div key={alarm.id} className="p-4 hover:bg-slate-50 space-y-2 transition-colors text-left">
                           <div className="flex items-center justify-between gap-2">
                             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${
@@ -6000,6 +6036,12 @@ function FarmCoreApp() {
                           </div>
                         </div>
                       ))
+                    )}
+
+                    {visibleSensitiveSectionAlarms.length < sensitiveSectionAlarms.length && (
+                      <div className="p-3 text-center border-t border-slate-100 bg-slate-50/70">
+                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-wide">Loading more alarms...</span>
+                      </div>
                     )}
                   </div>
 
