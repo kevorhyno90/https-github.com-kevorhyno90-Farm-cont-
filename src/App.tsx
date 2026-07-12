@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, Component, type ReactNode } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Component, type ReactNode } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -44,7 +44,7 @@ import {
   Monitor
 } from 'lucide-react';
 
-import { realtimeDb } from './firebase';
+import { realtimeDb, db, isFirestoreSyncEnabled } from './firebase';
 import { ref, push, set } from 'firebase/database';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { toIsoDate } from './utils/dateHelper';
@@ -56,6 +56,8 @@ import { FarmProvider, useFarmState } from './context/FarmContext';
 import { LandingPage } from './components/LandingPage';
 import { auth } from './firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+
+const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
 
 // Modular Subcomponents (Lazy Loaded)
 const Dashboard = React.lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -556,6 +558,13 @@ function FarmCoreApp() {
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermission>('default');
   const [failSafeNotificationModal, setFailSafeNotificationModal] = useState<{ title: string; body: string } | null>(null);
   const [appToastMessage, setAppToastMessage] = useState<string | null>(null);
+  const [userCloudSyncEnabled, setUserCloudSyncEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(CLOUD_SYNC_PREF_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   const [selectedRingtone, setSelectedRingtone] = useState<string>(() => {
     return localStorage.getItem('jr_farm_notification_ringtone') || 'chime';
@@ -564,6 +573,7 @@ function FarmCoreApp() {
     return localStorage.getItem('jr_farm_notification_loop') === 'true';
   });
   const [activeAudioSource, setActiveAudioSource] = useState<any>(null);
+  const bellTrayWasOpenRef = useRef<boolean>(false);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -579,6 +589,31 @@ function FarmCoreApp() {
       console.warn("Could not apply initial orientation settings:", e);
     }
   }, []);
+
+  useEffect(() => {
+    const refreshCloudSyncPreference = () => {
+      try {
+        setUserCloudSyncEnabled(localStorage.getItem(CLOUD_SYNC_PREF_KEY) !== 'false');
+      } catch (_) {
+        setUserCloudSyncEnabled(true);
+      }
+    };
+
+    window.addEventListener('storage', refreshCloudSyncPreference);
+    window.addEventListener('jr-farm-sync-pref-updated', refreshCloudSyncPreference as EventListener);
+    return () => {
+      window.removeEventListener('storage', refreshCloudSyncPreference);
+      window.removeEventListener('jr-farm-sync-pref-updated', refreshCloudSyncPreference as EventListener);
+    };
+  }, []);
+
+  const headerCloudSyncStatus = !isFirestoreSyncEnabled
+    ? { label: 'SYNC LOCKED', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
+    : !userCloudSyncEnabled
+      ? { label: 'SYNC PAUSED', tone: 'text-amber-800 bg-amber-50 border-amber-200' }
+      : !db
+        ? { label: 'SYNC OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
+        : { label: 'SYNC ENABLED', tone: 'text-emerald-800 bg-emerald-50 border-emerald-200' };
 
   const triggerAppToastMessage = (txt: string) => {
     setAppToastMessage(txt);
@@ -2619,8 +2654,10 @@ function FarmCoreApp() {
 
   const upcomingDueAlarm = getUpcomingDueAlarm();
 
+  const alarmComputationDay = new Date().toISOString().slice(0, 10);
+
   // Unified Sensitive Alarms engine
-  const getSensitiveSectionAlarms = () => {
+  const sensitiveSectionAlarms = useMemo(() => {
     const list: Array<{
       id: string;
       section: 'Dairy' | 'Vet' | 'Spray' | 'Stock' | 'Roster' | 'Crops' | 'Schedule';
@@ -2844,7 +2881,17 @@ function FarmCoreApp() {
     } catch (_) {}
 
     return list;
-  };
+  }, [
+    aiRecords,
+    vetRecords,
+    sprayRecords,
+    inventory,
+    staffOffRecords,
+    cropOps,
+    azollaRecords,
+    bsfRecords,
+    alarmComputationDay
+  ]);
 
   // Web Notification controller
   const requestAppNotificationPermission = async () => {
@@ -2915,6 +2962,62 @@ function FarmCoreApp() {
       setActiveAudioSource(null);
     }
   };
+
+  const markBellToggleInteraction = () => {
+    if (typeof performance === 'undefined' || typeof requestAnimationFrame === 'undefined') {
+      return;
+    }
+
+    const warningThresholdMs = 50;
+    const startMark = 'jr-farm-bell-toggle-start';
+    const endMark = 'jr-farm-bell-toggle-end';
+    const measureName = 'jr-farm-bell-toggle';
+
+    performance.mark(startMark);
+    requestAnimationFrame(() => {
+      performance.mark(endMark);
+      performance.measure(measureName, startMark, endMark);
+      const entries = performance.getEntriesByName(measureName);
+      const latest = entries[entries.length - 1];
+      if (latest && latest.duration >= warningThresholdMs) {
+        console.warn(`[Perf] ${measureName} slow interaction: ${latest.duration.toFixed(1)}ms (threshold ${warningThresholdMs}ms)`);
+      }
+      performance.clearMarks(startMark);
+      performance.clearMarks(endMark);
+      performance.clearMeasures(measureName);
+    });
+  };
+
+  useEffect(() => {
+    const wasOpen = bellTrayWasOpenRef.current;
+    bellTrayWasOpenRef.current = bellNotificationTrayOpen;
+
+    if (wasOpen || !bellNotificationTrayOpen) {
+      return;
+    }
+    if (typeof performance === 'undefined' || typeof requestAnimationFrame === 'undefined') {
+      return;
+    }
+
+    const warningThresholdMs = 50;
+    const startMark = 'jr-farm-bell-list-render-start';
+    const endMark = 'jr-farm-bell-list-render-end';
+    const measureName = 'jr-farm-bell-list-render';
+
+    performance.mark(startMark);
+    requestAnimationFrame(() => {
+      performance.mark(endMark);
+      performance.measure(measureName, startMark, endMark);
+      const entries = performance.getEntriesByName(measureName);
+      const latest = entries[entries.length - 1];
+      if (latest && latest.duration >= warningThresholdMs) {
+        console.warn(`[Perf] ${measureName} slow render: ${latest.duration.toFixed(1)}ms (threshold ${warningThresholdMs}ms)`);
+      }
+      performance.clearMarks(startMark);
+      performance.clearMarks(endMark);
+      performance.clearMeasures(measureName);
+    });
+  }, [bellNotificationTrayOpen]);
 
   const playSyntheticBellChime = (ringtoneId?: string, overrideLoop?: boolean) => {
     try {
@@ -5684,20 +5787,29 @@ function FarmCoreApp() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 relative text-slate-800">
+            <span
+              className={`hidden sm:inline-flex text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
+              title="Cloud sync runtime status"
+            >
+              {headerCloudSyncStatus.label}
+            </span>
             {/* Unified Notification Bell */}
             <div className="relative">
               <button
-                onClick={() => setBellNotificationTrayOpen(!bellNotificationTrayOpen)}
+                onClick={() => {
+                  markBellToggleInteraction();
+                  setBellNotificationTrayOpen((prev) => !prev);
+                }}
                 className={`p-2.5 rounded-xl border transition-all relative flex items-center justify-center cursor-pointer m-0 active:scale-95 ${
-                  getSensitiveSectionAlarms().length > 0
+                  sensitiveSectionAlarms.length > 0
                     ? 'bg-amber-50 hover:bg-amber-100/80 border-amber-200 text-amber-600 animate-pulse'
                     : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-500'
                 }`}
                 title="Unified Sensitive Reminders"
               >
                 <div className="flex items-center gap-1.5 font-bold">
-                  <span className="text-[10px] font-black shrink-0 tracking-tight font-mono">{getSensitiveSectionAlarms().length}</span>
-                  {getSensitiveSectionAlarms().length > 0 ? (
+                  <span className="text-[10px] font-black shrink-0 tracking-tight font-mono">{sensitiveSectionAlarms.length}</span>
+                  {sensitiveSectionAlarms.length > 0 ? (
                     <span className="relative flex h-3.5 w-3.5 shrink-0">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 text-[8px] text-white font-extrabold items-center justify-center">!</span>
@@ -5830,14 +5942,14 @@ function FarmCoreApp() {
 
                   {/* Alarm stream list */}
                   <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
-                    {getSensitiveSectionAlarms().length === 0 ? (
+                    {sensitiveSectionAlarms.length === 0 ? (
                       <div className="p-8 text-center space-y-2">
                         <span className="text-3xl block">☘️</span>
                         <p className="text-xs font-bold text-slate-550 uppercase font-mono">ALL SENSITIVE SECTIONS 100% CLEAR</p>
                         <p className="text-[10px] text-slate-400 font-medium">No overdue births, active pesticide quarantines, low stock levels, or pending vaccinations.</p>
                       </div>
                     ) : (
-                      getSensitiveSectionAlarms().map((alarm) => (
+                      sensitiveSectionAlarms.map((alarm) => (
                         <div key={alarm.id} className="p-4 hover:bg-slate-50 space-y-2 transition-colors text-left">
                           <div className="flex items-center justify-between gap-2">
                             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${

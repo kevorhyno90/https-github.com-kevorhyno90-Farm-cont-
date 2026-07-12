@@ -1235,7 +1235,7 @@ export function Financials({
             </div>
             
             <div className="h-72 w-full min-w-0">
-              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
+              <ResponsiveContainer width="100%" height={280} minWidth={240} minHeight={240}>
                 <BarChart
                   data={[
                     { name: 'Crops (Tea/Avo)', revenue: Math.round(granularPnlData.totalBlockRevenue), cost: Math.round(granularPnlData.totalBlockCost), roi: Math.round(granularPnlData.totalBlockCost > 0 ? ((granularPnlData.totalBlockRevenue - granularPnlData.totalBlockCost) / granularPnlData.totalBlockCost) * 100 : 65) },

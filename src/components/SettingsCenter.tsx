@@ -21,6 +21,9 @@ import {
   Monitor
 } from 'lucide-react';
 import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference } from '../utils/settingsHelper';
+import { isFirestoreSyncEnabled } from '../firebase';
+
+const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
 
 interface SettingsProps {
   onSaveConfig?: (config: any) => void;
@@ -51,6 +54,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState<boolean>(false);
   const [isInIframe, setIsInIframe] = useState<boolean>(false);
+  const [cloudSyncEnabled, setCloudSyncEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(CLOUD_SYNC_PREF_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     // Check if running in iframe
@@ -136,6 +146,14 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
       setIsPurging(false);
       alert("Purge failed. Try refreshing manually.");
     }
+  };
+
+  const handleCloudSyncPreference = (enabled: boolean) => {
+    setCloudSyncEnabled(enabled);
+    try {
+      localStorage.setItem(CLOUD_SYNC_PREF_KEY, enabled ? 'true' : 'false');
+      window.dispatchEvent(new Event('jr-farm-sync-pref-updated'));
+    } catch (_) {}
   };
 
   const handleUpdate = (key: string, value: any) => {
@@ -575,6 +593,40 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
                       <RefreshCw size={11} className={isPurging ? "animate-spin" : ""} />
                       {isPurging ? 'Purging Cache...' : 'Purge Cache & Force Update'}
                     </button>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left sm:col-span-2">
+                    <div>
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Cloud Sync Control</span>
+                      <p className="text-[9.5px] text-slate-500 leading-normal font-semibold mt-1">
+                        Use this switch to pause/resume Firestore cloud sync without editing code.
+                      </p>
+                      {!isFirestoreSyncEnabled && (
+                        <p className="text-[9px] mt-2 text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 font-semibold">
+                          Cloud sync is locked by deployment config (VITE_ENABLE_FIRESTORE_SYNC is off).
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <div className="text-[10px] font-black uppercase tracking-wide text-slate-700">
+                        Status: {isFirestoreSyncEnabled ? (cloudSyncEnabled ? 'Enabled' : 'Paused') : 'Config Locked'}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!isFirestoreSyncEnabled}
+                        onClick={() => handleCloudSyncPreference(!cloudSyncEnabled)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-black tracking-wide border transition-colors cursor-pointer ${
+                          !isFirestoreSyncEnabled
+                            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                            : cloudSyncEnabled
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                              : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+                        }`}
+                      >
+                        {cloudSyncEnabled ? 'Pause Cloud Sync' : 'Resume Cloud Sync'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

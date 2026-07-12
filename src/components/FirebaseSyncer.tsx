@@ -1,17 +1,55 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { db, auth } from '../firebase';
+import { db, auth, isFirestoreSyncEnabled } from '../firebase';
 import { collection, doc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { executeSmartMerge } from '../utils/syncHelper';
 import { nativeSetItem } from '../utils/nativeStorage';
 
+const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
+
 export function FirebaseSyncer() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error' | 'success'>('idle');
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [farmId, setFarmId] = useState<string | null>(null);
+  const [firestoreUnavailable, setFirestoreUnavailable] = useState(false);
+  const [userCloudSyncEnabled, setUserCloudSyncEnabled] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem(CLOUD_SYNC_PREF_KEY);
+      return raw !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   const isSyncingRef = useRef(false);
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
+  const canUseFirestore = isFirestoreSyncEnabled && userCloudSyncEnabled && !!db && !firestoreUnavailable;
+  const cloudSyncDisabledReason = !isFirestoreSyncEnabled
+    ? 'Disabled by config'
+    : !userCloudSyncEnabled
+      ? 'Disabled by user'
+    : firestoreUnavailable
+      ? 'Firestore unavailable'
+      : !db
+        ? 'Firestore not initialized'
+        : null;
+
+  useEffect(() => {
+    const refreshPreference = () => {
+      try {
+        setUserCloudSyncEnabled(localStorage.getItem(CLOUD_SYNC_PREF_KEY) !== 'false');
+      } catch (_) {
+        setUserCloudSyncEnabled(true);
+      }
+    };
+
+    window.addEventListener('storage', refreshPreference);
+    window.addEventListener('jr-farm-sync-pref-updated', refreshPreference as EventListener);
+    return () => {
+      window.removeEventListener('storage', refreshPreference);
+      window.removeEventListener('jr-farm-sync-pref-updated', refreshPreference as EventListener);
+    };
+  }, []);
 
   // Bug 1 & 4 fix: Track auth state reactively so FARM_ID is never stale
   useEffect(() => {
@@ -26,7 +64,7 @@ export function FirebaseSyncer() {
   // Push local changes to cloud
   const pushToCloud = async (isManual = false) => {
     if (isSyncingRef.current && !isManual) return;
-    if (!farmId) return;
+    if (!farmId || !canUseFirestore || !db) return;
     try {
       isSyncingRef.current = true;
       setSyncStatus('syncing');
@@ -52,6 +90,9 @@ export function FirebaseSyncer() {
       setTimeout(() => setSyncStatus('idle'), 3000);
     } catch (err) {
       console.error("Firebase Push Error:", err);
+      if ((err as any)?.code === 'not-found') {
+        setFirestoreUnavailable(true);
+      }
       setSyncStatus('error');
     } finally {
       isSyncingRef.current = false;
@@ -60,7 +101,7 @@ export function FirebaseSyncer() {
 
   // Bug 4 fix: Re-subscribe to push listener whenever farmId changes
   useEffect(() => {
-    if (!farmId) return;
+    if (!farmId || !canUseFirestore) return;
     console.log(`[Sync] Syncer Mounted. Listening to database room: ${farmId}`);
     let timeoutId: ReturnType<typeof setTimeout>;
     const handleLocalUpdate = () => {
@@ -77,11 +118,11 @@ export function FirebaseSyncer() {
       window.removeEventListener('local-storage-update', handleLocalUpdate);
       clearTimeout(timeoutId);
     };
-  }, [farmId]);
+  }, [farmId, canUseFirestore]);
 
   // Bug 4 fix: Re-subscribe snapshot listener whenever farmId changes
   useEffect(() => {
-    if (!farmId) return;
+    if (!farmId || !canUseFirestore || !db) return;
     const storageRef = collection(db, `farmData/${farmId}/storage`);
 
     const unsubscribe = onSnapshot(storageRef, (snapshot) => {
@@ -150,13 +191,20 @@ export function FirebaseSyncer() {
       }
     }, (err) => {
       console.error("Snapshot error:", err);
+      if ((err as any)?.code === 'not-found') {
+        setFirestoreUnavailable(true);
+      }
       setSyncStatus('error');
     });
 
     return () => unsubscribe();
-  }, [farmId]);
+  }, [farmId, canUseFirestore, db]);
 
   const handleManualSync = async () => {
+    if (!canUseFirestore) {
+      alert(`Cloud Sync is disabled (${cloudSyncDisabledReason || 'Unavailable'}). If needed, enable VITE_ENABLE_FIRESTORE_SYNC=true and provision Firestore.`);
+      return;
+    }
     await pushToCloud(true);
     alert("Local data successfully backed up to the Cloud!");
     window.location.reload();
@@ -183,26 +231,36 @@ export function FirebaseSyncer() {
       )}
       <button
         onClick={handleManualSync}
+        disabled={!canUseFirestore}
         className={`fixed bottom-6 right-6 p-4 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center
-          ${syncStatus === 'syncing' ? 'bg-blue-500 animate-pulse' :
+          ${!canUseFirestore ? 'bg-slate-500 cursor-not-allowed opacity-90' :
+            syncStatus === 'syncing' ? 'bg-blue-500 animate-pulse' :
             syncStatus === 'error' ? 'bg-red-500 hover:bg-red-600' :
             syncStatus === 'success' ? 'bg-emerald-500' :
             'bg-slate-800 hover:bg-slate-700'
           } text-white group`}
-        title="Cloud Sync (Click to Force Sync)"
+        title={canUseFirestore ? 'Cloud Sync (Click to Force Sync)' : `Cloud Sync (${cloudSyncDisabledReason || 'Unavailable'})`}
       >
-        {syncStatus === 'syncing' ? <RefreshCw className="animate-spin" size={24} /> :
+        {!canUseFirestore ? <CloudOff size={24} /> :
+         syncStatus === 'syncing' ? <RefreshCw className="animate-spin" size={24} /> :
          syncStatus === 'error' ? <CloudOff size={24} /> :
          <Cloud size={24} />}
 
         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 pl-0 group-hover:pl-3 font-bold text-sm">
-          {syncStatus === 'syncing' ? 'Syncing...' :
+          {!canUseFirestore ? `Sync Off (${cloudSyncDisabledReason || 'Unavailable'})` :
+           syncStatus === 'syncing' ? 'Syncing...' :
            syncStatus === 'error' ? 'Sync Failed' :
            syncStatus === 'success' ? 'Synced!' :
            lastSync ? `Synced ${lastSync.toLocaleTimeString()}` :
            'Cloud Sync'}
         </span>
       </button>
+
+      {!canUseFirestore && (
+        <div className="fixed bottom-22 right-6 z-50 bg-amber-100 text-amber-900 border border-amber-300 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wide shadow-lg">
+          {`Cloud sync ${cloudSyncDisabledReason ? cloudSyncDisabledReason.toLowerCase() : 'unavailable'}`}
+        </div>
+      )}
     </>
   );
 }

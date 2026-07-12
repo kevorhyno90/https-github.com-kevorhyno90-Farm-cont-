@@ -276,7 +276,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Yield Trend</h4>
             <div className="h-64 w-full min-w-0">
-              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
+              <ResponsiveContainer width="100%" height={260} minWidth={240} minHeight={240}>
                 <LineChart data={recentChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
@@ -290,7 +290,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
             <h4 className="text-sm font-black text-slate-800 mb-6 uppercase tracking-wide">14-Day Revenue Trend</h4>
             <div className="h-64 w-full min-w-0">
-              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
+              <ResponsiveContainer width="100%" height={260} minWidth={240} minHeight={240}>
                 <BarChart data={recentChartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
@@ -330,7 +330,7 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
         {selectedCowId ? (
           lactationCurveData.length > 0 ? (
             <div className="h-72 w-full min-w-0">
-              <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={0}>
+              <ResponsiveContainer width="100%" height={280} minWidth={240} minHeight={240}>
                 <LineChart data={lactationCurveData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />

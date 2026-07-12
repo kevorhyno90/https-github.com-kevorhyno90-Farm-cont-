@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, type Firestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
@@ -16,9 +16,18 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const isFirestoreSyncEnabled = String(import.meta.env.VITE_ENABLE_FIRESTORE_SYNC || '').toLowerCase() === 'true';
+let db: Firestore | null = null;
+if (isFirestoreSyncEnabled) {
+  try {
+    db = getFirestore(app);
+  } catch (error) {
+    console.warn('[Firebase] Firestore init failed. Cloud sync will be disabled.', error);
+    db = null;
+  }
+}
 const realtimeDb = getDatabase(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-export { db, realtimeDb, auth, googleProvider };
+export { db, realtimeDb, auth, googleProvider, isFirestoreSyncEnabled };
