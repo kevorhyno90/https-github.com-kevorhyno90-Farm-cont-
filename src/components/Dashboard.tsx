@@ -597,13 +597,13 @@ export function Dashboard({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Off Today */}
-              <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
-                  <span className="text-xs uppercase font-black text-slate-300 tracking-wider">Off-Duty Today ({activeOffsToday.length})</span>
+                  <span className="text-xs uppercase font-black text-slate-100 tracking-wider">Off-Duty Today ({activeOffsToday.length})</span>
                 </div>
                 {activeOffsToday.length === 0 ? (
-                  <p className="text-xs text-slate-400 font-medium italic py-2">✓ Entire farm workforce is active.</p>
+                  <p className="text-xs text-slate-200 font-medium italic py-2">✓ Entire farm workforce is active.</p>
                 ) : (
                   <div className="space-y-3">
                     {activeOffsToday.map((r) => {
@@ -617,7 +617,7 @@ export function Dashboard({
                                 {r.type}
                               </span>
                             </div>
-                            <span className="text-[10px] uppercase font-black bg-white/10 text-slate-300 px-2 py-1 rounded">
+                            <span className="text-[10px] uppercase font-black bg-white/15 text-slate-100 px-2 py-1 rounded">
                               {sMatch?.unit || 'Unit'}
                             </span>
                           </div>
@@ -629,13 +629,13 @@ export function Dashboard({
               </div>
 
               {/* Upcoming Offs */}
-              <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
-                  <span className="text-xs uppercase font-black text-slate-300 tracking-wider">Scheduled Leaves ({upcomingOffs.length})</span>
+                  <span className="text-xs uppercase font-black text-slate-100 tracking-wider">Scheduled Leaves ({upcomingOffs.length})</span>
                 </div>
                 {upcomingOffs.length === 0 ? (
-                  <p className="text-xs text-slate-400 font-medium italic py-2">No departures planned in next 3 days.</p>
+                  <p className="text-xs text-slate-200 font-medium italic py-2">No departures planned in next 3 days.</p>
                 ) : (
                   <div className="space-y-3">
                     {upcomingOffs.map((r) => {
@@ -649,11 +649,11 @@ export function Dashboard({
                                 {r.type}
                               </span>
                             </div>
-                            <span className="text-[10px] uppercase font-black bg-white/10 text-slate-300 px-2 py-1 rounded">
+                            <span className="text-[10px] uppercase font-black bg-white/15 text-slate-100 px-2 py-1 rounded">
                               {sMatch?.unit || 'Unit'}
                             </span>
                           </div>
-                          <p className="text-[10px] text-amber-400 mt-3 font-mono font-bold uppercase tracking-wider">
+                          <p className="text-[10px] text-amber-300 mt-3 font-mono font-bold uppercase tracking-wider">
                             Starts: {r.startDate}
                           </p>
                         </div>
@@ -664,10 +664,10 @@ export function Dashboard({
               </div>
 
               {/* Conflicts */}
-              <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
+              <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]"></span>
-                  <span className="text-xs uppercase font-black text-slate-300 tracking-wider">Labor Overlap Security ({conflicts.length})</span>
+                  <span className="text-xs uppercase font-black text-slate-100 tracking-wider">Labor Overlap Security ({conflicts.length})</span>
                 </div>
                 {conflicts.length === 0 ? (
                   <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold leading-relaxed">
@@ -676,7 +676,7 @@ export function Dashboard({
                 ) : (
                   <div className="space-y-3 max-h-[12rem] overflow-y-auto pr-2 custom-scrollbar">
                     {conflicts.map((msg, idx) => (
-                      <div key={idx} className="p-4 bg-rose-950/30 border border-rose-500/30 rounded-xl text-[11px] text-rose-300 font-bold leading-relaxed flex gap-3 items-start">
+                      <div key={idx} className="p-4 bg-rose-950/30 border border-rose-400/35 rounded-xl text-[11px] text-rose-200 font-bold leading-relaxed flex gap-3 items-start">
                         <ShieldAlert size={14} className="text-rose-400 shrink-0 mt-0.5" />
                         <span>{msg}</span>
                       </div>
@@ -766,11 +766,11 @@ export function Dashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden"
+            className="bg-white/5 backdrop-blur-xl border border-white/15 p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-5 border-b border-white/10 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-5 border-b border-white/15 relative z-10">
               <div className="flex items-center gap-4">
                 <div className={`p-4 rounded-2xl border ${bioScore >= 90 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
                   {bioScore >= 90 ? <ShieldCheck size={28} className="animate-pulse" /> : <ShieldAlert size={28} className="animate-bounce" />}
@@ -779,15 +779,15 @@ export function Dashboard({
                   <h3 className="text-base font-black uppercase tracking-wider text-white">
                     {isSwahili ? "Mizani ya Afya ya Shamba & Biosecurity" : "Real-time Biosecurity Core"}
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium mt-1">
+                  <p className="text-xs text-slate-200 font-medium mt-1">
                     Automated GlobalGAP quarantine tracking & pesticide pre-harvest audits.
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/5">
+              <div className="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/10">
                 <div className="text-right">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Quality Index</span>
+                  <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest block mb-1">Quality Index</span>
                   <span className={`text-xl font-mono font-black ${bioScore >= 90 ? 'text-emerald-400' : bioScore >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
                     {bioScore}%
                   </span>
@@ -821,14 +821,14 @@ export function Dashboard({
               </div>
 
               <div className="lg:col-span-8 space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
+                <h4 className="text-xs font-black uppercase tracking-widest text-slate-200 mb-3">
                   Detected Warnings & PHI Audits ({allAlarms.length})
                 </h4>
                 {allAlarms.length === 0 ? (
-                  <div className="p-8 bg-black/20 border border-white/10 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
+                  <div className="p-8 bg-black/20 border border-white/15 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
                     <ShieldCheck size={36} className="text-emerald-500" />
                     <p className="text-sm text-white font-extrabold uppercase tracking-wide">✓ No active biological warnings</p>
-                    <p className="text-xs text-slate-400 font-medium">Your farm complies 100% with GlobalGAP food export standards.</p>
+                    <p className="text-xs text-slate-200 font-medium">Your farm complies 100% with GlobalGAP food export standards.</p>
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-[22rem] overflow-y-auto pr-2 custom-scrollbar">
@@ -842,7 +842,7 @@ export function Dashboard({
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-5 bg-black/20 border border-white/10 rounded-2xl hover:bg-black/30 transition-colors"
+                            className="p-5 bg-black/20 border border-white/15 rounded-2xl hover:bg-black/30 transition-colors"
                           >
                             <div className="flex justify-between items-start gap-4">
                               <div className="flex gap-4 items-start">
@@ -856,7 +856,7 @@ export function Dashboard({
                                   <h5 className="text-sm font-black text-white uppercase leading-normal">
                                     {alarm.title}
                                   </h5>
-                                  <p className="text-xs text-slate-400 font-medium mt-1 leading-relaxed">
+                                  <p className="text-xs text-slate-200 font-medium mt-1 leading-relaxed">
                                     {alarm.desc}
                                   </p>
                                 </div>
@@ -880,7 +880,7 @@ export function Dashboard({
                                   initial={{ opacity: 0, height: 0 }}
                                   animate={{ opacity: 1, height: 'auto' }}
                                   exit={{ opacity: 0, height: 0 }}
-                                  className="mt-4 pt-4 border-t border-white/10 bg-black/40 text-emerald-300 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
+                                  className="mt-4 pt-4 border-t border-white/15 bg-black/40 text-emerald-200 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
                                 >
                                   <div className="flex items-center gap-2 text-emerald-400 font-black uppercase tracking-widest mb-3 border-b border-emerald-500/30 pb-2 text-[10px]">
                                     <ShieldCheck size={14} />
@@ -910,17 +910,17 @@ export function Dashboard({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.7 }}
-          className="bg-white/5 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl lg:col-span-2"
+          className="bg-white/5 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/15 shadow-2xl lg:col-span-2"
         >
           <div className="flex justify-between items-center mb-8">
             <div>
               <h4 className="text-white font-black text-base uppercase tracking-widest">7-Day Milk Production Trend</h4>
-              <p className="text-xs text-slate-400 font-medium mt-1">Morning (AM) vs Afternoon (PM) yield</p>
+              <p className="text-xs text-slate-200 font-medium mt-1">Morning (AM) vs Afternoon (PM) yield</p>
             </div>
           </div>
           <div className="h-80 w-full bg-black/20 rounded-2xl p-4 border border-white/5 min-w-0">
             {chartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm font-mono">
+              <div className="h-full flex items-center justify-center text-slate-200 text-sm font-mono">
                 No milking records compiled yet.
               </div>
             ) : (
@@ -960,11 +960,11 @@ export function Dashboard({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.8 }}
-          className="bg-white/5 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col"
+          className="bg-white/5 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-white/15 shadow-2xl flex flex-col"
         >
           <div className="mb-6">
             <h4 className="text-white font-black text-base uppercase tracking-widest">Strategic Assignment</h4>
-            <p className="text-xs text-slate-400 font-medium mt-1">Link operations to key officers</p>
+            <p className="text-xs text-slate-200 font-medium mt-1">Link operations to key officers</p>
           </div>
 
           <form onSubmit={handleSubmitTodo} className="space-y-4 mb-6">
@@ -979,7 +979,7 @@ export function Dashboard({
               <select
                 value={todoAssignee}
                 onChange={(e) => setTodoAssignee(e.target.value)}
-                className="flex-1 text-sm border border-white/10 rounded-xl px-4 py-2.5 bg-black/40 text-slate-300 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
+                className="flex-1 text-sm border border-white/15 rounded-xl px-4 py-2.5 bg-black/40 text-slate-100 font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
               >
                 <option value="" className="bg-slate-900">-- Assign (Optional) --</option>
                 {staffList.map((s) => (
@@ -1002,7 +1002,7 @@ export function Dashboard({
           <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar flex-1">
             <AnimatePresence>
               {todos.length === 0 ? (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-500 italic text-center py-8">All tasks completed successfully!</motion.p>
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-200 italic text-center py-8">All tasks completed successfully!</motion.p>
               ) : (
                 todos.map((todo) => (
                   <motion.div
@@ -1042,7 +1042,7 @@ export function Dashboard({
                     }`}
                   >
                     <button onClick={() => onToggleTodo(todo.id)} className="flex items-start gap-4 flex-1 text-left cursor-pointer">
-                      <span className={`mt-0.5 shrink-0 ${todo.completed ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      <span className={`mt-0.5 shrink-0 ${todo.completed ? 'text-emerald-500' : 'text-slate-200'}`}>
                         {todo.completed ? <CheckSquare size={18} /> : <Square size={18} />}
                       </span>
                       <div>
@@ -1058,7 +1058,7 @@ export function Dashboard({
                         )}
                       </div>
                     </button>
-                    <button onClick={() => onDeleteTodo(todo.id)} className="text-slate-500 hover:text-rose-500 p-2 rounded-xl hover:bg-rose-500/10 transition-colors shrink-0 ml-2 cursor-pointer">
+                    <button onClick={() => onDeleteTodo(todo.id)} className="text-slate-300 hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-colors shrink-0 ml-2 cursor-pointer">
                       <Trash2 size={16} />
                     </button>
                   </motion.div>
