@@ -52,6 +52,37 @@
   .farm-soft-ring {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32), 0 18px 45px rgba(15, 23, 42, 0.10);
   }
+
+  /* Boost contrast for muted text inside bright/glassy surfaces. */
+  :is(
+    .farm-shell-panel,
+    .farm-shell-card,
+    .bg-white,
+    .bg-slate-50,
+    .bg-slate-50\/40,
+    .bg-slate-50\/50,
+    .bg-emerald-50,
+    .bg-emerald-50\/50,
+    .bg-rose-50,
+    .bg-rose-50\/50
+  ) :is(.text-slate-300, .text-slate-400) {
+    color: #475569 !important;
+  }
+
+  :is(
+    .farm-shell-panel,
+    .farm-shell-card,
+    .bg-white,
+    .bg-slate-50,
+    .bg-slate-50\/40,
+    .bg-slate-50\/50,
+    .bg-emerald-50,
+    .bg-emerald-50\/50,
+    .bg-rose-50,
+    .bg-rose-50\/50
+  ) :is(.text-slate-500, .text-slate-600) {
+    color: #334155 !important;
+  }
 }
 
 ::-webkit-scrollbar {
