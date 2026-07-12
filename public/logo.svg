@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <!-- Circular Badge Backdrop -->
+  <rect width="256" height="256" rx="48" fill="#022c22" />
+  <!-- Main Emblem -->
+  <!-- Outer glowing green-gold circle -->
+  <circle cx="128" cy="128" r="96" fill="none" stroke="url(#gold)" stroke-width="6" />
+  <circle cx="128" cy="128" r="88" fill="none" stroke="url(#emerald)" stroke-width="1.5" stroke-dasharray="8 4" />
+
+  <!-- Stylized Sunrays at top -->
+  <g stroke="url(#gold)" stroke-width="3" stroke-linecap="round" opacity="0.8">
+    <line x1="128" y1="52" x2="128" y2="60" />
+    <line x1="108" y1="56" x2="112" y2="64" />
+    <line x1="148" y1="56" x2="144" y2="64" />
+    <line x1="92" y1="68" x2="98" y2="74" />
+    <line x1="164" y1="68" x2="158" y2="74" />
+  </g>
+
+  <!-- Elegant Tea Plant & Crown design -->
+  <g transform="translate(128, 130)">
+    <!-- Center Tea Leaf -->
+    <path d="M0,-50 C12,-20 8,-5 0,10 C-8,-5 -12,-20 0,-50 Z" fill="url(#emerald)" />
+    <!-- Left Leaf -->
+    <path d="M-3,-35 C-25,-25 -25,-5 -8,5 C-5,-5 2,-20 -3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    <!-- Right Leaf -->
+    <path d="M3,-35 C25,-25 25,-5 8,5 C5,-5 -2,-20 3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    
+    <!-- Central stalk with grain details -->
+    <path d="M0,10 L0,-30" stroke="url(#gold)" stroke-width="3.5" stroke-linecap="round" />
+    
+    <!-- Grain kernels (L & R) -->
+    <path d="M-2,-10 C-10,-14 -10,-8 -2,-4" fill="url(#gold)" />
+    <path d="M2,-10 C10,-14 10,-8 2,-4" fill="url(#gold)" />
+    <path d="M-2,-20 C-10,-24 -10,-18 -2,-14" fill="url(#gold)" />
+    <path d="M2,-20 C10,-24 10,-18 2,-14" fill="url(#gold)" />
+
+    <!-- Dairy Cow Silhouette overlay Representing Dairy -->
+    <path d="M-22,12 C-22,-2 -30,2 -35,2 C-38,2 -36,8 -30,10 C-24,11 -18,18 0,18 C18,18 24,11 30,10 C36,8 38,2 35,2 C30,2 22,-2 22,12 C20,24 15,28 0,28 C-15,28 -20,24 -22,12 Z" fill="#ffffff" />
+    <!-- Golden Horns -->
+    <path d="M-20,6 C-24,-2 -28,-6 -34,-4 C-32,2 -26,4 -21,8" fill="url(#gold)" />
+    <path d="M20,6 C24,-2 28,-6 34,-4 C32,2 26,4 21,8" fill="url(#gold)" />
+  </g>
+
+  <!-- Crown on Top -->
+  <path d="M112,82 L116,92 L128,86 L140,92 L144,82 L136,85 L128,78 L120,85 Z" fill="url(#gold)" />
+  
+  <!-- "JR" initials in the middle center base -->
+  <text x="128" y="205" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="2">JR</text>
+  <text x="128" y="218" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="9" fill="url(#gold)" text-anchor="middle" letter-spacing="1.5" opacity="0.95">ESTATE</text>
+</svg>

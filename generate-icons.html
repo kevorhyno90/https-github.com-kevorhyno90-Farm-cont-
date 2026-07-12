@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fix JR Farm Icons</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f0fdf4; padding: 2rem; color: #064e3b; text-align: center; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 2px solid #10b981; }
+        h1 { color: #047857; margin-bottom: 0.5rem; }
+        p { font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.5; }
+        .images { display: flex; flex-direction: column; gap: 2rem; align-items: center; }
+        .img-box { background: #f8fafc; padding: 1.5rem; border-radius: 0.75rem; border: 1px dashed #cbd5e1; }
+        .img-box p { font-weight: bold; margin-top: 0; margin-bottom: 1rem; color: #334155; }
+        img { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 12px; }
+        .instruction { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; font-weight: bold; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Icon Generator for Windows</h1>
+        <div class="instruction">
+            Because Windows sometimes fails to use SVG icons for desktop shortcuts, we must convert your logo to standard PNGs.
+            <br/><br/>
+            <strong>Instructions:</strong><br/>
+            1. Right-click the LARGE image below and choose "Save image as..."<br/>
+            2. Save it exactly as <code>icon-512.png</code> inside your project's <code>public</code> folder (overwrite the old one).<br/>
+            3. Right-click the SMALL image below and choose "Save image as..."<br/>
+            4. Save it exactly as <code>icon-192.png</code> inside your project's <code>public</code> folder (overwrite the old one).<br/>
+        </div>
+        
+        <div class="images">
+            <div class="img-box">
+                <p>icon-512.png (512x512)</p>
+                <img id="img512" alt="512x512 Icon" />
+            </div>
+            <div class="img-box">
+                <p>icon-192.png (192x192)</p>
+                <img id="img192" alt="192x192 Icon" />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="emerald" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="#022c22" />
+  <circle cx="128" cy="128" r="96" fill="none" stroke="url(#gold)" stroke-width="6" />
+  <circle cx="128" cy="128" r="88" fill="none" stroke="url(#emerald)" stroke-width="1.5" stroke-dasharray="8 4" />
+  <g stroke="url(#gold)" stroke-width="3" stroke-linecap="round" opacity="0.8">
+    <line x1="128" y1="52" x2="128" y2="60" />
+    <line x1="108" y1="56" x2="112" y2="64" />
+    <line x1="148" y1="56" x2="144" y2="64" />
+    <line x1="92" y1="68" x2="98" y2="74" />
+    <line x1="164" y1="68" x2="158" y2="74" />
+  </g>
+  <g transform="translate(128, 130)">
+    <path d="M0,-50 C12,-20 8,-5 0,10 C-8,-5 -12,-20 0,-50 Z" fill="url(#emerald)" />
+    <path d="M-3,-35 C-25,-25 -25,-5 -8,5 C-5,-5 2,-20 -3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    <path d="M3,-35 C25,-25 25,-5 8,5 C5,-5 -2,-20 3,-35 Z" fill="url(#emerald)" opacity="0.9" />
+    <path d="M0,10 L0,-30" stroke="url(#gold)" stroke-width="3.5" stroke-linecap="round" />
+    <path d="M-2,-10 C-10,-14 -10,-8 -2,-4" fill="url(#gold)" />
+    <path d="M2,-10 C10,-14 10,-8 2,-4" fill="url(#gold)" />
+    <path d="M-2,-20 C-10,-24 -10,-18 -2,-14" fill="url(#gold)" />
+    <path d="M2,-20 C10,-24 10,-18 2,-14" fill="url(#gold)" />
+    <path d="M-22,12 C-22,-2 -30,2 -35,2 C-38,2 -36,8 -30,10 C-24,11 -18,18 0,18 C18,18 24,11 30,10 C36,8 38,2 35,2 C30,2 22,-2 22,12 C20,24 15,28 0,28 C-15,28 -20,24 -22,12 Z" fill="#ffffff" />
+    <path d="M-20,6 C-24,-2 -28,-6 -34,-4 C-32,2 -26,4 -21,8" fill="url(#gold)" />
+    <path d="M20,6 C24,-2 28,-6 34,-4 C32,2 26,4 21,8" fill="url(#gold)" />
+  </g>
+  <path d="M112,82 L116,92 L128,86 L140,92 L144,82 L136,85 L128,78 L120,85 Z" fill="url(#gold)" />
+  <text x="128" y="205" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" letter-spacing="2">JR</text>
+  <text x="128" y="218" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="9" fill="url(#gold)" text-anchor="middle" letter-spacing="1.5" opacity="0.95">ESTATE</text>
+</svg>`;
+
+        function renderSvgToPng(size, imgId) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, size, size);
+                document.getElementById(imgId).src = canvas.toDataURL('image/png');
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+        }
+
+        // Render both sizes
+        renderSvgToPng(512, 'img512');
+        renderSvgToPng(192, 'img192');
+    </script>
+</body>
+</html>
