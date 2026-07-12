@@ -348,7 +348,7 @@ export function Dashboard({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-[10px] uppercase font-black tracking-widest bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-4 py-1.5 rounded-full font-mono shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+              className="text-[10px] uppercase font-black tracking-widest bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-1.5 rounded-full font-mono shadow-[0_0_15px_rgba(234,179,8,0.12)]"
             >
               🛡️ {t("Sovereign Compliance Registered")}
             </motion.span>
@@ -356,7 +356,7 @@ export function Dashboard({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-[10px] uppercase font-black tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-4 py-1.5 rounded-full font-mono shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+              className="text-[10px] uppercase font-black tracking-widest bg-emerald-100 text-emerald-800 border border-emerald-300 px-4 py-1.5 rounded-full font-mono shadow-[0_0_15px_rgba(16,185,129,0.12)]"
             >
               {t("GlobalGAP Plot: KT-205A")}
             </motion.span>
@@ -386,13 +386,13 @@ export function Dashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/10 max-w-4xl text-left"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-200/80 max-w-4xl text-left"
           >
             {[
-              { label: "Management Core", value: "Sovereign Active", color: "text-white" },
-              { label: "Audit Compliance", value: "100% Certified", color: "text-emerald-400" },
-              { label: "Traceback Records", value: "Blockchain Latch", color: "text-yellow-400" },
-              { label: "System Node", value: "Online & Synced", color: "text-blue-400" }
+              { label: "Management Core", value: "Sovereign Active", color: "text-slate-900" },
+              { label: "Audit Compliance", value: "100% Certified", color: "text-emerald-700" },
+              { label: "Traceback Records", value: "Blockchain Latch", color: "text-amber-700" },
+              { label: "System Node", value: "Online & Synced", color: "text-blue-700" }
             ].map((stat, i) => (
               <div key={i} className="space-y-1">
                 <span className="text-[9px] uppercase font-black text-slate-500 tracking-widest">{t(stat.label)}</span>
@@ -502,15 +502,15 @@ export function Dashboard({
           </div>
           <h4 className="text-sm font-black text-slate-950 uppercase tracking-wide">Active Alerts Check</h4>
           <div className="mt-2.5 space-y-2">
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-rose-300">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-rose-700">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
               <span>{quarantineRecords.filter((q: any) => q.quarantineStatus !== 'Cleared & Released').length} Livestock in quarantine.</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-yellow-300">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-700">
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
               <span>Warehouse: {inventory.filter((i: any) => i.quantity <= i.minStock).length} feeds/chemicals below minimum.</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-700">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
               <span>{todos.filter((t: any) => !t.completed).length} checklist task items pending.</span>
             </div>
