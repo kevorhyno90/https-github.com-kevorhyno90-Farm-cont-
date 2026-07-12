@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { FinancialRecord, AIRecord, Cow, FieldRecord } from '../types';
 import { exportToCsv } from '../utils/csvHelper';
+import { offsetIsoDate, offsetIsoYears, toIsoDate } from '../utils/dateHelper';
 import { 
   Coins, Plus, TrendingUp, TrendingDown, Trash2, Search, Filter, 
   BookOpen, Edit2, FileSpreadsheet, FileDown, Calendar, Sparkles, 
@@ -42,18 +43,6 @@ export function Financials({
   vetRecords = [],
   aiRecords = []
 }: FinancialsProps) {
-  const getOffsetIso = (days: number): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-  };
-
-  const getOffsetYearsIso = (years: number): string => {
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + years);
-    return date.toISOString().split('T')[0];
-  };
-
   // Navigation tabs for Financials view
   const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi' | 'granular_analysis'>('ledger');
   const [selectedInvoiceTx, setSelectedInvoiceTx] = useState<FinancialRecord | null>(null);
@@ -62,7 +51,7 @@ export function Financials({
   const [incAmt, setIncAmt] = useState<number | ''>('');
   const [incSrc, setIncSrc] = useState('');
   const [incDesc, setIncDesc] = useState('');
-  const [incDate, setIncDate] = useState(new Date().toISOString().split('T')[0]);
+  const [incDate, setIncDate] = useState(toIsoDate());
 
   // Editing state
   const [editingFinancial, setEditingFinancial] = useState<FinancialRecord | null>(null);
@@ -71,7 +60,7 @@ export function Financials({
   const [expAmt, setExpAmt] = useState<number | ''>('');
   const [expSrc, setExpSrc] = useState('');
   const [expDesc, setExpDesc] = useState('');
-  const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
+  const [expDate, setExpDate] = useState(toIsoDate());
 
   // Search/Filter state
   const [term, setTerm] = useState('');
@@ -360,9 +349,9 @@ export function Financials({
     // Default fallbacks to prevent depressing empty screens if no local AI or Pregnancy index is generated yet
     const hasRealCows = upcomingCalvings.length > 0;
     const finalUpcoming = hasRealCows ? upcomingCalvings : [
-      { cowId: 'COW-04', cowName: 'Nyaronde Blossom II', breed: 'Friesian Champion', dueDate: getOffsetIso(24), daysLeft: 24 },
-      { cowId: 'COW-07', cowName: 'Serene Daisy', breed: 'Ayrshire cross', dueDate: getOffsetIso(41), daysLeft: 41 },
-      { cowId: 'COW-10', cowName: 'Mocha Gold', breed: 'Jersey Classic', dueDate: getOffsetIso(60), daysLeft: 60 }
+      { cowId: 'COW-04', cowName: 'Nyaronde Blossom II', breed: 'Friesian Champion', dueDate: offsetIsoDate(24), daysLeft: 24 },
+      { cowId: 'COW-07', cowName: 'Serene Daisy', breed: 'Ayrshire cross', dueDate: offsetIsoDate(41), daysLeft: 41 },
+      { cowId: 'COW-10', cowName: 'Mocha Gold', breed: 'Jersey Classic', dueDate: offsetIsoDate(60), daysLeft: 60 }
     ];
 
     const fallback90DaysVol = hasRealCows ? projected90DaysPeakVolume : (28*90 + 24*90 + 19*90);
@@ -382,10 +371,10 @@ export function Financials({
     // Vet, milk, and breeding AI records are passed down dynamically as reactive props
 
     const animalList = (cows && cows.length > 0) ? cows : [
-      { id: 'COW-01', name: 'Zesta', breed: 'Friesian Pure', dob: getOffsetYearsIso(-5), status: 'Lactating', notes: 'Peak producer' },
-      { id: 'COW-02', name: 'Goldie', breed: 'Jersey Grade', dob: getOffsetYearsIso(-4), status: 'Lactating', notes: 'High butterfat content' },
-      { id: 'COW-03', name: 'Asha', breed: 'Ayrshire Cross', dob: getOffsetYearsIso(-4), status: 'In-Calf', notes: 'Due soon' },
-      { id: 'COW-04', name: 'Ruby', breed: 'Guernsey', dob: getOffsetYearsIso(-3), status: 'Heifer', notes: 'Replacement stock' }
+      { id: 'COW-01', name: 'Zesta', breed: 'Friesian Pure', dob: offsetIsoYears(-5), status: 'Lactating', notes: 'Peak producer' },
+      { id: 'COW-02', name: 'Goldie', breed: 'Jersey Grade', dob: offsetIsoYears(-4), status: 'Lactating', notes: 'High butterfat content' },
+      { id: 'COW-03', name: 'Asha', breed: 'Ayrshire Cross', dob: offsetIsoYears(-4), status: 'In-Calf', notes: 'Due soon' },
+      { id: 'COW-04', name: 'Ruby', breed: 'Guernsey', dob: offsetIsoYears(-3), status: 'Heifer', notes: 'Replacement stock' }
     ];
 
     const blockList = (fields && fields.length > 0) ? fields : [

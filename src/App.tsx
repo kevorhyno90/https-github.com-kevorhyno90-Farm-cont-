@@ -47,6 +47,7 @@ import {
 import { realtimeDb } from './firebase';
 import { ref, push, set } from 'firebase/database';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
+import { offsetIsoDate, toIsoDate, toTimestamp } from './utils/dateHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { FarmProvider, useFarmState } from './context/FarmContext';
@@ -619,20 +620,6 @@ function FarmCoreApp() {
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
-  const toIsoDate = (date: Date): string => date.toISOString().split('T')[0];
-
-  const toTimestamp = (date: Date): string => {
-    const hh = String(date.getHours()).padStart(2, '0');
-    const mm = String(date.getMinutes()).padStart(2, '0');
-    return `${toIsoDate(date)} ${hh}:${mm}`;
-  };
-
-  const shiftDays = (days: number): Date => {
-    const shifted = new Date();
-    shifted.setDate(shifted.getDate() + days);
-    return shifted;
-  };
-
   const buildDefaultDiagnosticHistory = () => {
     const first = new Date();
     first.setHours(8, 30, 0, 0);
@@ -685,7 +672,7 @@ function FarmCoreApp() {
         how: 'Strip foremilk, dip teats in Chlorhexidine for 30s, post-milking seal with iodine.',
         why: 'Prevents mastitis infections and seals teat sphincter.',
         status: 'Completed',
-        targetDate: toIsoDate(shiftDays(0)),
+        targetDate: offsetIsoDate(0),
         assignedTo: 'Milking Crew'
       },
       {
@@ -696,7 +683,7 @@ function FarmCoreApp() {
         how: 'Apply topical lidocaine, use hot iron dehorner precisely on buds for 5 seconds.',
         why: 'Safe management, prevents horn-gouging injuries.',
         status: 'Pending',
-        targetDate: toIsoDate(shiftDays(3)),
+        targetDate: offsetIsoDate(3),
         assignedTo: 'Veterinary Officer (Dr. Peter)'
       },
       {
@@ -707,7 +694,7 @@ function FarmCoreApp() {
         how: 'Inject cow with Vitamin E and Selenium booster mixture.',
         why: 'Prevents placental complications, lifts calf immunity markers.',
         status: 'Completed',
-        targetDate: toIsoDate(shiftDays(-3)),
+        targetDate: offsetIsoDate(-3),
         assignedTo: 'Livestock Manager'
       },
       {
@@ -718,7 +705,7 @@ function FarmCoreApp() {
         how: 'Trim excess hoof horn flat. Dip in 5% Copper Sulfate solution.',
         why: 'Prevents foot rot lameness on moist concrete.',
         status: 'Pending',
-        targetDate: toIsoDate(shiftDays(7)),
+        targetDate: offsetIsoDate(7),
         assignedTo: 'Small Ruminants Team'
       },
       {
@@ -729,7 +716,7 @@ function FarmCoreApp() {
         how: 'Spray canopy with Micronized Copper Oxychloride fungicide.',
         why: 'Prevents anthracnose spots and secures export quality standards.',
         status: 'Completed',
-        targetDate: toIsoDate(shiftDays(-1)),
+        targetDate: offsetIsoDate(-1),
         assignedTo: 'Agronomy Handler'
       },
       {
@@ -740,7 +727,7 @@ function FarmCoreApp() {
         how: 'Cut tea branches to a flat 24-28 inches high table, paint with copper paste.',
         why: 'Resets plucking table width, triggers young plucking shoots.',
         status: 'Pending',
-        targetDate: toIsoDate(shiftDays(24)),
+        targetDate: offsetIsoDate(24),
         assignedTo: 'Field Operations'
       },
       {
@@ -751,7 +738,7 @@ function FarmCoreApp() {
         how: 'Water starvation for 2 hours, mix vaccine vials with cool clean water.',
         why: 'Creates immune defence against poultry virus epidemics.',
         status: 'Completed',
-        targetDate: toIsoDate(shiftDays(-2)),
+        targetDate: offsetIsoDate(-2),
         assignedTo: 'Poultry Team'
       },
       {
@@ -762,7 +749,7 @@ function FarmCoreApp() {
         how: 'Administer 1ml vaccine subcutaneously in the neck skin fold.',
         why: 'Rabies protection and puppy immunisation.',
         status: 'Pending',
-        targetDate: toIsoDate(shiftDays(4)),
+        targetDate: offsetIsoDate(4),
         assignedTo: 'Canine Care Specialist'
       }
     ];
@@ -2252,11 +2239,11 @@ function FarmCoreApp() {
     if (activeKeys.length === 1) {
       const key = activeKeys[0];
       const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
-      filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      filename = `JR_Farm_${formattedKey}_Report_${toIsoDate()}.pdf`;
     } else if (activeKeys.length < 17) {
-      filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      filename = `JR_Farm_Active_Sections_Report_${toIsoDate()}.pdf`;
     } else {
-      filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      filename = `JR_Farm_Master_Estate_Report_${toIsoDate()}.pdf`;
     }
 
     const loadScript = (url: string) => {
@@ -2475,11 +2462,11 @@ function FarmCoreApp() {
       if (activeKeys.length === 1) {
         const key = activeKeys[0];
         const formattedKey = key === 'ai' ? 'Insemination_Breeding' : key.charAt(0).toUpperCase() + key.slice(1);
-        filename = `JR_Farm_${formattedKey}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        filename = `JR_Farm_${formattedKey}_Report_${toIsoDate()}.pdf`;
       } else if (activeKeys.length < 15) {
-        filename = `JR_Farm_Active_Sections_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        filename = `JR_Farm_Active_Sections_Report_${toIsoDate()}.pdf`;
       } else {
-        filename = `JR_Farm_Master_Estate_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        filename = `JR_Farm_Master_Estate_Report_${toIsoDate()}.pdf`;
       }
 
       const opt = {
@@ -3333,7 +3320,7 @@ function FarmCoreApp() {
       id: `todo-${Date.now()}`,
       text,
       completed: false,
-      date: new Date().toISOString().split('T')[0],
+      date: toIsoDate(),
       assigneeName
     };
     setTodos([...todos, newTodoItem]);
@@ -3481,7 +3468,7 @@ function FarmCoreApp() {
     setStaffOffRecords([newRecord, ...staffOffRecords]);
     
     // Automatically update the main staffList status field if the off start date is <= today and today is <= end date!
-    const today = new Date().toISOString().split('T')[0];
+    const today = toIsoDate();
     if (newRecord.startDate <= today && today <= newRecord.endDate && newRecord.status === 'Approved') {
       const liveStatus = newRecord.type === 'Day Off' ? 'Off' : 'On Leave';
       setStaffList((prev) => prev.map((s) => s.id === newRecord.staffId ? { ...s, status: liveStatus } : s));
@@ -3501,7 +3488,7 @@ function FarmCoreApp() {
       prevList.map((r) => {
         if (r.id === id) {
           const updated = { ...r, status };
-          const today = new Date().toISOString().split('T')[0];
+          const today = toIsoDate();
           if (updated.startDate <= today && today <= updated.endDate) {
             if (status === 'Approved') {
               const liveStatus = updated.type === 'Day Off' ? 'Off' : 'On Leave';

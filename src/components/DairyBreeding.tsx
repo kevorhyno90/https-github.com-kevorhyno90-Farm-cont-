@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import { MilkingRecord, AIRecord, StaffMember, Cow, VetRecord, MilkOutflowRecord, SemenInventoryItem, CalfRecord } from '../types';
 import { exportToCsv } from '../utils/csvHelper';
+import { toIsoDate } from '../utils/dateHelper';
 import {
   Plus,
   Calendar,
@@ -129,7 +130,7 @@ export function DairyBreeding({
 
   // Breeding Wheel states
   const [selectedWheelCow, setSelectedWheelCow] = useState<string>('');
-  const [simulatedDate, setSimulatedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [simulatedDate, setSimulatedDate] = useState<string>(toIsoDate());
   const [wheelHoveredMonth, setWheelHoveredMonth] = useState<number | null>(null);
 
   // Edit States for Milk, AI, Cow, Vet
@@ -162,7 +163,7 @@ export function DairyBreeding({
 
   // AI record states
   const [aiCowId, setAiCowId] = useState('');
-  const [aiDate, setAiDate] = useState(new Date().toISOString().split('T')[0]);
+  const [aiDate, setAiDate] = useState(toIsoDate());
   const [aiBull, setAiBull] = useState('');
   const [aiCheckDate, setAiCheckDate] = useState('');
   const [aiOrigin, setAiOrigin] = useState('Imported');
@@ -188,7 +189,7 @@ export function DairyBreeding({
   const [newCowGdm, setNewCowGdm] = useState('');
   const [newCowReg, setNewCowReg] = useState('');
   const [newCowPeakYield, setNewCowPeakYield] = useState<number | ''>('');
-  const [milkingDate, setMilkingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [milkingDate, setMilkingDate] = useState(toIsoDate());
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
   const [pedigreeSubTab, setPedigreeSubTab] = useState<'tree' | 'offspring' | 'genetics'>('tree');
   const [selectedMateId, setSelectedMateId] = useState<string>('');
@@ -200,7 +201,7 @@ export function DairyBreeding({
   // Vet log form states
   const [vetCowId, setVetCowId] = useState('');
   const [vetAnimalCategory, setVetAnimalCategory] = useState<VetRecord['animalCategory']>('Cow');
-  const [vetDate, setVetDate] = useState(new Date().toISOString().split('T')[0]);
+  const [vetDate, setVetDate] = useState(toIsoDate());
   const [vetType, setVetType] = useState<VetRecord['type']>('Deworming');
   const [vetTreatment, setVetTreatment] = useState('');
   const [vetCost, setVetCost] = useState<number | ''>('');
@@ -227,7 +228,7 @@ export function DairyBreeding({
   const [filterCow, setFilterCow] = useState('');
 
   // Daily Outflow states
-  const [outflowDate, setOutflowDate] = useState(new Date().toISOString().split('T')[0]);
+  const [outflowDate, setOutflowDate] = useState(toIsoDate());
   const [outflowHome, setOutflowHome] = useState<number | ''>('');
   const [outflowWorkers, setOutflowWorkers] = useState<number | ''>('');
   const [outflowSpoiled, setOutflowSpoiled] = useState<number | ''>('');
@@ -503,7 +504,7 @@ export function DairyBreeding({
     });
     
     // Save generated PDF file with date stamp
-    const fileDateStr = new Date().toISOString().split('T')[0];
+    const fileDateStr = toIsoDate();
     doc.save(`milk_production_and_dispatch_ledger_${fileDateStr}.pdf`);
   };
 
@@ -713,7 +714,7 @@ export function DairyBreeding({
     });
     
     // Save generated PDF file with date stamp
-    const fileDateStr = new Date().toISOString().split('T')[0];
+    const fileDateStr = toIsoDate();
     doc.save(`artificial_insemination_breeding_report_${fileDateStr}.pdf`);
   };
 
@@ -755,7 +756,7 @@ export function DairyBreeding({
     setCowTag('');
     setAmLiters('');
     setPmLiters('');
-    setMilkingDate(new Date().toISOString().split('T')[0]);
+    setMilkingDate(toIsoDate());
   };
 
   const handleAISubmit = (e: React.FormEvent) => {
@@ -766,12 +767,12 @@ export function DairyBreeding({
     // Estimate due date (standard cow gestation is ~283 days)
     const dueDateObj = new Date(serviceDateObj);
     dueDateObj.setDate(dueDateObj.getDate() + 283);
-    const estimatedDue = dueDateObj.toISOString().split('T')[0];
+    const estimatedDue = toIsoDate(dueDateObj);
 
     // Return heat date is ~21 days after service date
     const returnHeatObj = new Date(serviceDateObj);
     returnHeatObj.setDate(returnHeatObj.getDate() + 21);
-    const calculatedReturnHeat = returnHeatObj.toISOString().split('T')[0];
+    const calculatedReturnHeat = toIsoDate(returnHeatObj);
 
     onAddAIRecord({
       cowId: aiCowId.trim(),
@@ -815,7 +816,7 @@ export function DairyBreeding({
     }
 
     setAiCowId('');
-    setAiDate(new Date().toISOString().split('T')[0]);
+    setAiDate(toIsoDate());
     setAiBull('');
     setAiCheckDate('');
     setAiOrigin('Imported');
@@ -920,12 +921,12 @@ export function DairyBreeding({
   // CSV Exporters for individual sections
   const downloadMilkCSV = () => {
     // Filter data by selected period
-    const today = new Date().toISOString().split('T')[0];
+    const today = toIsoDate();
     const getStartOfWeek = (d: string) => {
       const date = new Date(d);
       const day = date.getDay();
       const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(date.setDate(diff)).toISOString().split('T')[0];
+      return toIsoDate(new Date(date.setDate(diff)));
     };
     const startOfWeek = getStartOfWeek(today);
     const startOfMonth = today.substring(0, 8) + '01';
@@ -976,7 +977,7 @@ export function DairyBreeding({
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Sovereign_Dairy_Consolidated_${downloadPeriod}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Sovereign_Dairy_Consolidated_${downloadPeriod}_${toIsoDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -994,7 +995,7 @@ export function DairyBreeding({
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Breeders_Cow_Registry_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Breeders_Cow_Registry_${toIsoDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1011,7 +1012,7 @@ export function DairyBreeding({
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `AI_Breeding_Interventions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `AI_Breeding_Interventions_${toIsoDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1028,7 +1029,7 @@ export function DairyBreeding({
     const encodedUri = encodeURI(csv);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Herd_Veterinary_Interventions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Herd_Veterinary_Interventions_${toIsoDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1069,7 +1070,7 @@ export function DairyBreeding({
 
   // Deworming alerts/reminders calculation
   // Find cows that haven't been dewormed in the last 90 days or have an overdue nextDueDate
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toIsoDate();
   const dewormingReminders = cows.map(cow => {
     // Find latest deworming record
     const cowDoses = vetRecords
@@ -1087,7 +1088,7 @@ export function DairyBreeding({
         // Fallback to average 90 days after last dose
         const lastDateObj = new Date(latestDose.date);
         lastDateObj.setDate(lastDateObj.getDate() + 90);
-        nextDate = lastDateObj.toISOString().split('T')[0];
+        nextDate = toIsoDate(lastDateObj);
       }
     } else if (cow.status !== 'Heifer' && cow.status !== 'Dry' && cow.status !== 'Lactating' && cow.status !== 'In-Calf') {
       return null; // Skip non-relevant
@@ -1858,7 +1859,7 @@ export function DairyBreeding({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Date</label>
-                    <input type="date" name="saleDate" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                    <input type="date" name="saleDate" defaultValue={toIsoDate()} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Value (Ksh)</label>
@@ -1982,7 +1983,7 @@ export function DairyBreeding({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Incident Date</label>
-                    <input type="date" name="mortalityDate" defaultValue={new Date().toISOString().split('T')[0]} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                    <input type="date" name="mortalityDate" defaultValue={toIsoDate()} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Cause of Death</label>

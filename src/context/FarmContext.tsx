@@ -58,6 +58,7 @@ import {
   INITIAL_MILK_OUTFLOW_RECORDS,
   INITIAL_SEMEN_INVENTORY
 } from '../initialData';
+import { offsetIsoDate, toIsoDate } from '../utils/dateHelper';
 
 interface FarmContextType {
   staffList: StaffMember[];
@@ -125,12 +126,6 @@ interface FarmContextType {
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const getOffsetIso = (days: number): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-  };
-
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const saved = localStorage.getItem('jr_farm_staff');
     let parsed: StaffMember[] = saved ? JSON.parse(saved) : INITIAL_STAFF;
@@ -190,7 +185,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return parsed.map((item: any) => ({
         qty: Number(item.qty ?? 0),
         ref: item.ref || 'KTDA-UNKNOWN',
-        date: item.date || new Date().toISOString().split('T')[0],
+        date: item.date || toIsoDate(),
         pricePerKg: Number(item.pricePerKg ?? 58),
         buyer: item.buyer || 'Chinga KTDA Factory',
         totalSales: Number(item.totalSales ?? (Number(item.qty ?? 0) * Number(item.pricePerKg ?? 58)))
@@ -211,7 +206,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const totalSales = Number(item.totalSales ?? ((grade1Kg * grade1PricePerKg) + (rejectKg * priceForRejects)));
         return {
           ref: item.ref || 'EXP-UNKNOWN',
-          date: item.date || new Date().toISOString().split('T')[0],
+          date: item.date || toIsoDate(),
           grade1Kg,
           grade1PricePerKg,
           rejectKg,
@@ -328,8 +323,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rawMaterial: 'Maize',
         acres: 2.0,
         calculatedWeightKg: 36000,
-        dateMade: getOffsetIso(-37),
-        dateOpened: getOffsetIso(-11),
+        dateMade: offsetIsoDate(-37),
+        dateOpened: offsetIsoDate(-11),
         quality: 'Excellent (Golden yellow, lactic acid smell)',
         notes: 'Formic acid inoculant used. Well compacted. No visual moulds.',
         animalsFedCount: 15,
@@ -346,7 +341,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {
         id: 'heifer-1',
         cowId: 'C-083 (Precious)',
-        dateLogged: getOffsetIso(-1),
+        dateLogged: offsetIsoDate(-1),
         weightKg: 295,
         girthCm: 154,
         feedRationType: 'Boma Rhodes + Grower cake concentrate + legumes',
@@ -365,7 +360,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Chick',
         batchName: 'Batch G-9 Chicks',
         count: 500,
-        dateLogged: getOffsetIso(-3),
+        dateLogged: offsetIsoDate(-3),
         feedGivenKg: 35,
         feedType: 'Chick Start Crumble',
         mortalityCount: 1,
@@ -378,7 +373,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Grower',
         batchName: 'Batch F-2 Pullets',
         count: 400,
-        dateLogged: getOffsetIso(-2),
+        dateLogged: offsetIsoDate(-2),
         feedGivenKg: 48,
         feedType: 'Growers Mash',
         mortalityCount: 0,
@@ -390,7 +385,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stage: 'Layer',
         batchName: 'Batch E-8 Layers',
         count: 600,
-        dateLogged: getOffsetIso(0),
+        dateLogged: offsetIsoDate(0),
         feedGivenKg: 75,
         feedType: 'Layers High Calcium mash',
         mortalityCount: 0,
@@ -410,8 +405,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: 'quar-1',
         animalType: 'Cow',
         animalTagOrBatch: 'H-302 (Milly)',
-        dateStarted: getOffsetIso(-6),
-        dateScheduledEnd: getOffsetIso(8),
+        dateStarted: offsetIsoDate(-6),
+        dateScheduledEnd: offsetIsoDate(8),
         quarantineReason: 'Newly purchased heifer from Nyeri showground',
         symptomsObserved: 'None, routine quarantine protocol for biosecurity',
         quarantineStatus: 'Under Observation',
