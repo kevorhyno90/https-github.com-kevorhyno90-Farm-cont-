@@ -392,9 +392,19 @@ function FarmCoreApp() {
   const [reportDateFilter, setReportDateFilter] = useState<string>('all'); // all, today, week, month, last3months, last6months, specific_month, month_interval, year, custom
   const [reportStartDate, setReportStartDate] = useState<string>('');
   const [reportEndDate, setReportEndDate] = useState<string>('');
-  const [reportSpecificMonth, setReportSpecificMonth] = useState<string>('2026-06');
-  const [reportStartMonth, setReportStartMonth] = useState<string>('2026-01');
-  const [reportEndMonth, setReportEndMonth] = useState<string>('2026-06');
+  const [reportSpecificMonth, setReportSpecificMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [reportStartMonth, setReportStartMonth] = useState<string>(() => {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    return `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [reportEndMonth, setReportEndMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const isRecordInSelectedDateRange = (dateInput: any): boolean => {
     if (!dateInput) return true;
@@ -2844,8 +2854,9 @@ function FarmCoreApp() {
       actionTab: string;
     }> = [];
 
-    const todayDate = '2026-06-21';
-    const todayNum = new Date(todayDate).getTime();
+    const now = new Date();
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayNum = todayDate.getTime();
 
     // 1. Dairy Breeding AI expected birth / heats
     aiRecords.forEach((ai) => {

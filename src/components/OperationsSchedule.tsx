@@ -35,9 +35,11 @@ interface TimetableItem {
   custom?: boolean;
 }
 
+const getTodayIso = () => new Date().toISOString().split('T')[0];
+
 const getDaysDiffText = (targetDateStr: string) => {
   if (!targetDateStr) return null;
-  const todayVal = new Date('2026-06-21'); // Current local time is 2026-06-21
+  const todayVal = new Date();
   const targetVal = new Date(targetDateStr);
   
   todayVal.setHours(0, 0, 0, 0);
@@ -180,7 +182,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
         // Ensure older custom items get a default date
         return parsed.map((item: any) => ({
           ...item,
-          targetDate: item.targetDate || '2026-06-21',
+          targetDate: item.targetDate || getTodayIso(),
           assignedTo: item.assignedTo || 'Unassigned'
         }));
       } catch (e) {
@@ -202,7 +204,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   const [when, setWhen] = useState('');
   const [how, setHow] = useState('');
   const [why, setWhy] = useState('');
-  const [targetDate, setTargetDate] = useState('2026-06-21');
+  const [targetDate, setTargetDate] = useState(getTodayIso());
   const [assignedTo, setAssignedTo] = useState('');
 
   // Notification states
@@ -380,7 +382,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
     setWhen('');
     setHow('');
     setWhy('');
-    setTargetDate('2026-06-21');
+    setTargetDate(getTodayIso());
     setAssignedTo('');
     setShowAddModal(false);
   };
@@ -392,7 +394,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
     setWhen(item.when);
     setHow(item.how);
     setWhy(item.why);
-    setTargetDate(item.targetDate || '2026-06-21');
+    setTargetDate(item.targetDate || getTodayIso());
     setAssignedTo(item.assignedTo || '');
     setShowAddModal(true);
   };
