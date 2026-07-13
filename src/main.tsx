@@ -4,6 +4,17 @@ import { nativeSetItem } from './utils/nativeStorage';
 import App from './App.tsx';
 import './index.css';
 
+// Guard against detached-node Range.selectNode errors thrown by third-party instrumentation scripts.
+if (typeof window !== 'undefined' && typeof Range !== 'undefined') {
+  const originalSelectNode = Range.prototype.selectNode;
+  Range.prototype.selectNode = function(node: Node) {
+    if (!node || !node.parentNode) {
+      return;
+    }
+    return originalSelectNode.call(this, node);
+  };
+}
+
 // Register PWA Service Worker for offline resilience only in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
