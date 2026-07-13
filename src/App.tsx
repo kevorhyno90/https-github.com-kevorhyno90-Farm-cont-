@@ -3601,6 +3601,17 @@ function FarmCoreApp() {
       }
     }
   };
+
+  const deferNotificationWork = (work: () => void) => {
+    if (typeof requestAnimationFrame === 'undefined') {
+      setTimeout(work, 0);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      setTimeout(work, 0);
+    });
+  };
  
   const handleAddFields = (rec: FieldRecord) => {
     setFields([rec, ...fields]);
@@ -5939,10 +5950,13 @@ function FarmCoreApp() {
                           ) : (
                             <button
                               onClick={() => {
-                                triggerAppLockscreenNotification(
-                                  "Standard Push Active", 
-                                  "Success! JR Farm tasks are now fully connected to your phone bar / PC lockscreen. You will receive active alarms of your farm."
-                                );
+                                triggerAppToastMessage("Scheduling push test...");
+                                deferNotificationWork(() => {
+                                  triggerAppLockscreenNotification(
+                                    "Standard Push Active", 
+                                    "Success! JR Farm tasks are now fully connected to your phone bar / PC lockscreen. You will receive active alarms of your farm."
+                                  );
+                                });
                               }}
                               className="bg-slate-200 hover:bg-slate-250 text-slate-700 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer"
                             >
@@ -6072,8 +6086,11 @@ function FarmCoreApp() {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    triggerAppLockscreenNotification(alarm.title, alarm.body);
-                                    triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
+                                    triggerAppToastMessage("Scheduling lockscreen push...");
+                                    deferNotificationWork(() => {
+                                      triggerAppLockscreenNotification(alarm.title, alarm.body);
+                                      triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
+                                    });
                                   }}
                                   className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
                                   title="Send this specific alarm to phone lockscreen tray"
