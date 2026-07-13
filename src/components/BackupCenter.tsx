@@ -22,13 +22,26 @@ import {
   FileCode
 } from 'lucide-react';
 import { realtimeDb } from '../firebase';
-import { ref, set, get, child } from 'firebase/database';
+import { ref, set, get, child, onValue } from 'firebase/database';
+import { nativeSetItem } from '../utils/nativeStorage';
 
 const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => 
   Promise.race([
     promise,
     new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Connection timed out. Please ensure the Realtime Database is created and accessible in your Firebase Console.')), ms))
   ]);
+
+const CLOUD_SYNC_KEYS = [
+  'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
+  'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
+  'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
+  'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
+  'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+  'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
+  'jr_farm_estate_settings'
+];
+
+const CLOUD_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
 
 
 interface BackupCenterProps {
@@ -73,6 +86,44 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     }>;
   }>>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
+  const liveSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isApplyingRemoteSyncRef = useRef(false);
+  const lastRemoteUpdatedAtRef = useRef('');
+
+  const buildCloudPayload = () => {
+    const databasePayload: Record<string, any> = {};
+
+    CLOUD_SYNC_KEYS.forEach((key) => {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+
+      try {
+        databasePayload[key] = JSON.parse(raw);
+      } catch {
+        databasePayload[key] = raw;
+      }
+    });
+
+    return databasePayload;
+  };
+
+  const applyRemoteCloudPayload = (database: Record<string, any>, updatedAt?: string) => {
+    isApplyingRemoteSyncRef.current = true;
+
+    try {
+      Object.entries(database).forEach(([key, value]) => {
+        if (!key.startsWith('jr_farm_')) return;
+        nativeSetItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      });
+
+      const syncedLabel = updatedAt ? new Date(updatedAt).toLocaleString() : new Date().toLocaleString();
+      nativeSetItem('jr_farm_cloud_last_synced_at', syncedLabel);
+      setLastSyncedAt(syncedLabel);
+      window.dispatchEvent(new Event(CLOUD_SYNC_APPLIED_EVENT));
+    } finally {
+      isApplyingRemoteSyncRef.current = false;
+    }
+  };
 
   const analyzeAndShowConflicts = (retrievedDb: Record<string, any>): boolean => {
     const keys = [
@@ -409,28 +460,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     setStatusMsg({ type: null, text: '' });
 
     try {
-      const keys = [
-        'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
-        'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
-        'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
-        'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
-        'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
-        'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
-        'jr_farm_estate_settings'
-      ];
-
-      const databasePayload: Record<string, any> = {};
-      keys.forEach(k => {
-        const raw = localStorage.getItem(k);
-        if (raw) {
-          try {
-            databasePayload[k] = JSON.parse(raw);
-          } catch {
-            databasePayload[k] = raw;
-          }
-        }
-      });
-
+      const databasePayload = buildCloudPayload();
       const dbRef = ref(realtimeDb, `cloudSyncRooms/${cleanKey}`);
       await withTimeout(set(dbRef, { database: databasePayload, updatedAt: new Date().toISOString() }), 10000);
 
@@ -516,6 +546,71 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       setIsSyncLoading(false);
     }
   };
+
+  useEffect(() => {
+    const cleanKey = syncKey.trim().toLowerCase();
+    if (!cleanKey) return;
+
+    const dbRef = ref(realtimeDb, `cloudSyncRooms/${cleanKey}`);
+
+    const unsubscribe = onValue(dbRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+
+      const reply = snapshot.val();
+      if (!reply || typeof reply !== 'object' || !reply.database || typeof reply.database !== 'object') {
+        return;
+      }
+
+      const remoteUpdatedAt = typeof reply.updatedAt === 'string' ? reply.updatedAt : '';
+      if (remoteUpdatedAt && remoteUpdatedAt === lastRemoteUpdatedAtRef.current) {
+        return;
+      }
+
+      if (isApplyingRemoteSyncRef.current) {
+        return;
+      }
+
+      lastRemoteUpdatedAtRef.current = remoteUpdatedAt || new Date().toISOString();
+      applyRemoteCloudPayload(reply.database, remoteUpdatedAt || undefined);
+    }, (err) => {
+      console.error('Live cloud sync listener failed:', err);
+    });
+
+    const handleLocalUpdate = () => {
+      if (isApplyingRemoteSyncRef.current) return;
+
+      if (liveSyncTimerRef.current) {
+        clearTimeout(liveSyncTimerRef.current);
+      }
+
+      liveSyncTimerRef.current = setTimeout(async () => {
+        if (isApplyingRemoteSyncRef.current) return;
+
+        try {
+          const databasePayload = buildCloudPayload();
+          const updatedAt = new Date().toISOString();
+          lastRemoteUpdatedAtRef.current = updatedAt;
+          await withTimeout(set(dbRef, { database: databasePayload, updatedAt }), 10000);
+
+          const nowStr = new Date().toLocaleString();
+          nativeSetItem('jr_farm_cloud_last_synced_at', nowStr);
+          setLastSyncedAt(nowStr);
+        } catch (err) {
+          console.error('Live cloud sync push failed:', err);
+        }
+      }, 1200);
+    };
+
+    window.addEventListener('local-storage-update', handleLocalUpdate);
+
+    return () => {
+      window.removeEventListener('local-storage-update', handleLocalUpdate);
+      if (liveSyncTimerRef.current) {
+        clearTimeout(liveSyncTimerRef.current);
+      }
+      unsubscribe();
+    };
+  }, [syncKey]);
 
   // Export Full JSON Snapshot
   const handleExportBackup = () => {

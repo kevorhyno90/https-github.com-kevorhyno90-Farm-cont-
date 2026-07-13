@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   StaffMember,
   Ingredient,
@@ -59,6 +59,7 @@ import {
   INITIAL_SEMEN_INVENTORY
 } from '../initialData';
 import { offsetIsoDate, toIsoDate } from '../utils/dateHelper';
+import { nativeSetItem } from '../utils/nativeStorage';
 
 interface FarmContextType {
   staffList: StaffMember[];
@@ -125,7 +126,87 @@ interface FarmContextType {
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
+const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
+
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isRemoteHydrationRef = useRef(false);
+
+  const persistJson = (key: string, value: any) => {
+    const serialized = JSON.stringify(value);
+    if (isRemoteHydrationRef.current) {
+      nativeSetItem(key, serialized);
+      return;
+    }
+
+    localStorage.setItem(key, serialized);
+  };
+
+  const reloadFromLocalStorage = () => {
+    isRemoteHydrationRef.current = true;
+
+    try {
+      const loadJson = <T,>(key: string, fallback: T): T => {
+        const saved = localStorage.getItem(key);
+        if (!saved) return fallback;
+
+        try {
+          return JSON.parse(saved) as T;
+        } catch {
+          return fallback;
+        }
+      };
+
+      setStaffList(loadJson('jr_farm_staff', INITIAL_STAFF));
+      setIngredients(loadJson('jr_farm_ingredients', INITIAL_INGREDIENTS));
+      setMilkRecords(loadJson('jr_farm_milk', INITIAL_MILK_RECORDS));
+      setAiRecords(loadJson('jr_farm_ai', INITIAL_AI_RECORDS));
+      setTeaRecords(loadJson('jr_farm_tea', INITIAL_TEA_RECORDS));
+      setAvoRecords(loadJson('jr_farm_avo', INITIAL_AVOCADO_RECORDS));
+      setFinancials(loadJson('jr_farm_financials', INITIAL_FINICAL_RECORDS));
+      setSprayRecords(loadJson('jr_farm_sprays', INITIAL_SPRAY_RECORDS));
+      setMilkOutflows(loadJson('jr_farm_milk_outflows', INITIAL_MILK_OUTFLOW_RECORDS));
+      setTodos(loadJson('jr_farm_todos', INITIAL_TODOS));
+      setFields(loadJson('jr_farm_fields', INITIAL_FIELDS));
+      setLivestock(loadJson('jr_farm_livestock', INITIAL_LIVESTOCK));
+      setInventory(loadJson('jr_farm_inventory', INITIAL_INVENTORY));
+      setStaffOffRecords(loadJson('jr_farm_staff_off', INITIAL_STAFF_OFF_RECORDS));
+      setCows(loadJson('jr_farm_cows', INITIAL_COWS));
+      setVetRecords(loadJson('jr_farm_vets', INITIAL_VET_RECORDS));
+      setGoatRecords(loadJson('jr_farm_goats', INITIAL_GOAT_RECORDS));
+      setCalfRecords(loadJson('jr_farm_calves', INITIAL_CALF_RECORDS));
+      setBsfRecords(loadJson('jr_farm_bsfs', INITIAL_BSF_RECORDS));
+      setCropOps(loadJson('jr_farm_crop_ops', INITIAL_CROP_OP_RECORDS));
+      setCropSales(loadJson('jr_farm_crop_sales', INITIAL_CROP_SALES));
+      setAnimalSales(loadJson('jr_farm_animal_sales', INITIAL_ANIMAL_SALES));
+      setMortalities(loadJson('jr_farm_mortalities', INITIAL_MORTALITY_RECORDS));
+      setActivityLogs(loadJson('jr_farm_activity_logs', []));
+      setSilageRecords(loadJson('jr_farm_silages', []));
+      setHeiferRecords(loadJson('jr_farm_heifers', []));
+      setPoultryRecords(loadJson('jr_farm_poultries', []));
+      setQuarantineRecords(loadJson('jr_farm_quarantines', []));
+      setSemenInventory(loadJson('jr_farm_semen_inventory', INITIAL_SEMEN_INVENTORY));
+      setAzollaRecords(loadJson('jr_farm_azolla', []));
+    } finally {
+      window.setTimeout(() => {
+        isRemoteHydrationRef.current = false;
+      }, 0);
+    }
+  };
+
+  useEffect(() => {
+    const handleRemoteSyncApplied = () => {
+      reloadFromLocalStorage();
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSyncApplied);
+    window.addEventListener('storage', handleRemoteSyncApplied);
+
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSyncApplied);
+      window.removeEventListener('storage', handleRemoteSyncApplied);
+    };
+  }, []);
+
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const saved = localStorage.getItem('jr_farm_staff');
     let parsed: StaffMember[] = saved ? JSON.parse(saved) : INITIAL_STAFF;
@@ -427,36 +508,36 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   // LocalStorage synchronizations
-  useEffect(() => { localStorage.setItem('jr_farm_staff', JSON.stringify(staffList)); }, [staffList]);
-  useEffect(() => { localStorage.setItem('jr_farm_ingredients', JSON.stringify(ingredients)); }, [ingredients]);
-  useEffect(() => { localStorage.setItem('jr_farm_milk', JSON.stringify(milkRecords)); }, [milkRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_ai', JSON.stringify(aiRecords)); }, [aiRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_tea', JSON.stringify(teaRecords)); }, [teaRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_avo', JSON.stringify(avoRecords)); }, [avoRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_financials', JSON.stringify(financials)); }, [financials]);
-  useEffect(() => { localStorage.setItem('jr_farm_sprays', JSON.stringify(sprayRecords)); }, [sprayRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_milk_outflows', JSON.stringify(milkOutflows)); }, [milkOutflows]);
-  useEffect(() => { localStorage.setItem('jr_farm_todos', JSON.stringify(todos)); }, [todos]);
-  useEffect(() => { localStorage.setItem('jr_farm_fields', JSON.stringify(fields)); }, [fields]);
-  useEffect(() => { localStorage.setItem('jr_farm_livestock', JSON.stringify(livestock)); }, [livestock]);
-  useEffect(() => { localStorage.setItem('jr_farm_inventory', JSON.stringify(inventory)); }, [inventory]);
-  useEffect(() => { localStorage.setItem('jr_farm_staff_off', JSON.stringify(staffOffRecords)); }, [staffOffRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_cows', JSON.stringify(cows)); }, [cows]);
-  useEffect(() => { localStorage.setItem('jr_farm_vets', JSON.stringify(vetRecords)); }, [vetRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_goats', JSON.stringify(goatRecords)); }, [goatRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_calves', JSON.stringify(calfRecords)); }, [calfRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_bsfs', JSON.stringify(bsfRecords)); }, [bsfRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_crop_ops', JSON.stringify(cropOps)); }, [cropOps]);
-  useEffect(() => { localStorage.setItem('jr_farm_crop_sales', JSON.stringify(cropSales)); }, [cropSales]);
-  useEffect(() => { localStorage.setItem('jr_farm_animal_sales', JSON.stringify(animalSales)); }, [animalSales]);
-  useEffect(() => { localStorage.setItem('jr_farm_mortalities', JSON.stringify(mortalities)); }, [mortalities]);
-  useEffect(() => { localStorage.setItem('jr_farm_activity_logs', JSON.stringify(activityLogs)); }, [activityLogs]);
-  useEffect(() => { localStorage.setItem('jr_farm_silages', JSON.stringify(silageRecords)); }, [silageRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_heifers', JSON.stringify(heiferRecords)); }, [heiferRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_poultries', JSON.stringify(poultryRecords)); }, [poultryRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_quarantines', JSON.stringify(quarantineRecords)); }, [quarantineRecords]);
-  useEffect(() => { localStorage.setItem('jr_farm_semen_inventory', JSON.stringify(semenInventory)); }, [semenInventory]);
-  useEffect(() => { localStorage.setItem('jr_farm_azolla', JSON.stringify(azollaRecords)); }, [azollaRecords]);
+  useEffect(() => { persistJson('jr_farm_staff', staffList); }, [staffList]);
+  useEffect(() => { persistJson('jr_farm_ingredients', ingredients); }, [ingredients]);
+  useEffect(() => { persistJson('jr_farm_milk', milkRecords); }, [milkRecords]);
+  useEffect(() => { persistJson('jr_farm_ai', aiRecords); }, [aiRecords]);
+  useEffect(() => { persistJson('jr_farm_tea', teaRecords); }, [teaRecords]);
+  useEffect(() => { persistJson('jr_farm_avo', avoRecords); }, [avoRecords]);
+  useEffect(() => { persistJson('jr_farm_financials', financials); }, [financials]);
+  useEffect(() => { persistJson('jr_farm_sprays', sprayRecords); }, [sprayRecords]);
+  useEffect(() => { persistJson('jr_farm_milk_outflows', milkOutflows); }, [milkOutflows]);
+  useEffect(() => { persistJson('jr_farm_todos', todos); }, [todos]);
+  useEffect(() => { persistJson('jr_farm_fields', fields); }, [fields]);
+  useEffect(() => { persistJson('jr_farm_livestock', livestock); }, [livestock]);
+  useEffect(() => { persistJson('jr_farm_inventory', inventory); }, [inventory]);
+  useEffect(() => { persistJson('jr_farm_staff_off', staffOffRecords); }, [staffOffRecords]);
+  useEffect(() => { persistJson('jr_farm_cows', cows); }, [cows]);
+  useEffect(() => { persistJson('jr_farm_vets', vetRecords); }, [vetRecords]);
+  useEffect(() => { persistJson('jr_farm_goats', goatRecords); }, [goatRecords]);
+  useEffect(() => { persistJson('jr_farm_calves', calfRecords); }, [calfRecords]);
+  useEffect(() => { persistJson('jr_farm_bsfs', bsfRecords); }, [bsfRecords]);
+  useEffect(() => { persistJson('jr_farm_crop_ops', cropOps); }, [cropOps]);
+  useEffect(() => { persistJson('jr_farm_crop_sales', cropSales); }, [cropSales]);
+  useEffect(() => { persistJson('jr_farm_animal_sales', animalSales); }, [animalSales]);
+  useEffect(() => { persistJson('jr_farm_mortalities', mortalities); }, [mortalities]);
+  useEffect(() => { persistJson('jr_farm_activity_logs', activityLogs); }, [activityLogs]);
+  useEffect(() => { persistJson('jr_farm_silages', silageRecords); }, [silageRecords]);
+  useEffect(() => { persistJson('jr_farm_heifers', heiferRecords); }, [heiferRecords]);
+  useEffect(() => { persistJson('jr_farm_poultries', poultryRecords); }, [poultryRecords]);
+  useEffect(() => { persistJson('jr_farm_quarantines', quarantineRecords); }, [quarantineRecords]);
+  useEffect(() => { persistJson('jr_farm_semen_inventory', semenInventory); }, [semenInventory]);
+  useEffect(() => { persistJson('jr_farm_azolla', azollaRecords); }, [azollaRecords]);
 
   return (
     <FarmContext.Provider
