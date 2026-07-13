@@ -332,16 +332,10 @@ function FarmCoreApp() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.innerWidth >= 1024) return;
-
-    try {
-      const seen = localStorage.getItem(MOBILE_MENU_HINT_SEEN_KEY) === 'true';
-      if (!seen) {
-        setMobileMenuOpen(true);
-        localStorage.setItem(MOBILE_MENU_HINT_SEEN_KEY, 'true');
-      }
-    } catch (_) {}
-  }, []);
+    if (window.innerWidth < 1024) {
+      setMobileMenuOpen(false);
+    }
+  }, [activeTab]);
  
   // Sidebar enhancement states
   const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
