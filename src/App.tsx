@@ -5856,13 +5856,15 @@ function FarmCoreApp() {
 
         <header className="farm-shell-panel border-b border-white/50 px-6 py-4 flex justify-between items-center z-30 sticky top-0">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 -ml-2 text-slate-900 hover:bg-slate-100 rounded-lg transition-colors m-0"
-              aria-label="Toggle Menu"
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            {activeTab === 'dash' && (
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 -ml-2 text-slate-900 hover:bg-slate-100 rounded-lg transition-colors m-0"
+                aria-label="Toggle Menu"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            )}
             {activeTab !== 'dash' && (
               <button
                 onClick={() => setActiveTab('dash')}
@@ -6154,7 +6156,7 @@ function FarmCoreApp() {
           </div>
         </header>
 
-        {!mobileMenuOpen && (
+        {activeTab === 'dash' && !mobileMenuOpen && (
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="fixed bottom-5 left-5 lg:hidden z-40 bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-3 rounded-full shadow-xl border border-emerald-500/60 flex items-center gap-2 text-xs font-black uppercase tracking-wider cursor-pointer"
