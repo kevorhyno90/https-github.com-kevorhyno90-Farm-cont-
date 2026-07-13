@@ -557,6 +557,7 @@ function FarmCoreApp() {
   // Unified Sensitive Alarms Notification engine states
   const [bellNotificationTrayOpen, setBellNotificationTrayOpen] = useState<boolean>(false);
   const [notificationPermissionState, setNotificationPermissionState] = useState<NotificationPermission>('default');
+  const [isAuthorizingPush, setIsAuthorizingPush] = useState<boolean>(false);
   const [failSafeNotificationModal, setFailSafeNotificationModal] = useState<{ title: string; body: string } | null>(null);
   const [appToastMessage, setAppToastMessage] = useState<string | null>(null);
   const [userCloudSyncEnabled, setUserCloudSyncEnabled] = useState<boolean>(() => {
@@ -2956,64 +2957,76 @@ function FarmCoreApp() {
     };
   }, [bellNotificationTrayOpen, sensitiveSectionAlarms.length]);
 
+  const setupPushSubscription = async () => {
+    try {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+
+      const reg = await navigator.serviceWorker.ready;
+      const publicVapidKey = 'BEjz8oIUeEp29dUbSKWjNFvo0Rtt1hWCi0SvFSBVePNFamrVbIb_CarvRxLY5Av0wnURkaNtoArFeBRPs0XMfnc';
+
+      const urlBase64ToUint8Array = (base64String: string) => {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      };
+
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+      });
+
+      const subId = subscription.endpoint.split('/').pop() || Date.now().toString();
+      const subRef = ref(realtimeDb, `pushSubscriptions/${subId}`);
+      await set(subRef, JSON.parse(JSON.stringify(subscription)));
+      console.log('Push subscription saved successfully.');
+    } catch (pushErr) {
+      console.error('Failed to subscribe to Web Push:', pushErr);
+    }
+
+    try {
+      new Notification("JR Farm Pro", {
+        body: "Perfect! Lockscreen push and taskbar reminders authorized successfully! You will now receive alerts for all breeding, medication, the quarantine, and stock warnings.",
+        icon: "/icon-192.png"
+      });
+    } catch (_) {}
+  };
+
   // Web Notification controller
   const requestAppNotificationPermission = async () => {
     if (!('Notification' in window)) {
       triggerAppToastMessage("Web Notifications are not supported in this browser.");
       return;
     }
+    if (isAuthorizingPush) {
+      return;
+    }
+
+    setIsAuthorizingPush(true);
     try {
       const res = await Notification.requestPermission();
       setNotificationPermissionState(res);
       if (res === 'granted') {
         triggerAppToastMessage("✓ Smartphone Taskbar Alerts Authorized!");
 
-        // Subscribe to Web Push Background Notifications
-        try {
-          if ('serviceWorker' in navigator) {
-            const reg = await navigator.serviceWorker.ready;
-            const publicVapidKey = 'BEjz8oIUeEp29dUbSKWjNFvo0Rtt1hWCi0SvFSBVePNFamrVbIb_CarvRxLY5Av0wnURkaNtoArFeBRPs0XMfnc'; 
-            
-            // Helper to convert base64 to Uint8Array
-            const urlBase64ToUint8Array = (base64String: string) => {
-              const padding = '='.repeat((4 - base64String.length % 4) % 4);
-              const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-              const rawData = window.atob(base64);
-              const outputArray = new Uint8Array(rawData.length);
-              for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-              }
-              return outputArray;
-            };
-
-            const subscription = await reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-            });
-
-            // Save subscription to Firebase Realtime Database
-            const subId = subscription.endpoint.split('/').pop() || Date.now().toString();
-            const subRef = ref(realtimeDb, `pushSubscriptions/${subId}`);
-            await set(subRef, JSON.parse(JSON.stringify(subscription)));
-            console.log('Push subscription saved successfully.');
-          }
-        } catch (pushErr) {
-          console.error('Failed to subscribe to Web Push:', pushErr);
-        }
-
-        // Fire a test welcome notification
-        try {
-          new Notification("JR Farm Pro", {
-            body: "Perfect! Lockscreen push and taskbar reminders authorized successfully! You will now receive alerts for all breeding, medication, the quarantine, and stock warnings.",
-            icon: "/icon-192.png"
-          });
-        } catch (_) {}
+        // Defer heavier push setup so UI can paint right after interaction.
+        setTimeout(() => {
+          void setupPushSubscription();
+        }, 0);
       } else {
         triggerAppToastMessage("⚠️ Permissions were denied or dismissed.");
       }
     } catch (_) {
       setNotificationPermissionState('denied');
       triggerAppToastMessage("⚠️ Standard browser sandbox blocked permission. Use New Tab.");
+    } finally {
+      setIsAuthorizingPush(false);
     }
   };
 
@@ -5918,9 +5931,10 @@ function FarmCoreApp() {
                           {notificationPermissionState !== 'granted' ? (
                             <button
                               onClick={requestAppNotificationPermission}
-                              className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer shadow-xs"
+                              disabled={isAuthorizingPush}
+                              className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-yellow-300 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border-0 cursor-pointer disabled:cursor-not-allowed shadow-xs"
                             >
-                              🔔 Auth Taskbar Push
+                              {isAuthorizingPush ? '⏳ Authorizing...' : '🔔 Auth Taskbar Push'}
                             </button>
                           ) : (
                             <button
