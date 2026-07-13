@@ -37,32 +37,75 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 // Global Interceptor to track deletions and trigger real-time auto-sync
+type PendingDeletionJob = {
+  oldVal: string;
+  newVal: string;
+};
+
+const pendingDeletionJobs = new Map<string, PendingDeletionJob>();
+let pendingDeletionFlushHandle: number | null = null;
+let pendingSyncDispatchHandle: number | null = null;
+
+const flushPendingDeletionJobs = () => {
+  pendingDeletionFlushHandle = null;
+
+  for (const [key, job] of pendingDeletionJobs.entries()) {
+    try {
+      if (!job.oldVal || !job.newVal) continue;
+
+      const oldArr = JSON.parse(job.oldVal);
+      const newArr = JSON.parse(job.newVal);
+      if (!Array.isArray(oldArr) || !Array.isArray(newArr)) continue;
+
+      const newIds = new Set(newArr.map(x => x?.id || x?.code || x?.ref).filter(Boolean));
+      const deleted = oldArr
+        .map(x => x?.id || x?.code || x?.ref)
+        .filter(id => id && !newIds.has(id));
+
+      if (deleted.length > 0) {
+        const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
+        const existingDeleted = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
+        const combined = Array.from(new Set([...existingDeleted, ...deleted]));
+        nativeSetItem('jr_farm_deleted_records', JSON.stringify(combined));
+      }
+    } catch (e) {
+      // Ignore parse errors, some items may not be JSON arrays
+    }
+  }
+
+  pendingDeletionJobs.clear();
+};
+
+const scheduleSyncDispatch = () => {
+  if (pendingSyncDispatchHandle !== null) return;
+
+  pendingSyncDispatchHandle = window.setTimeout(() => {
+    pendingSyncDispatchHandle = null;
+    window.dispatchEvent(new Event('local-storage-update'));
+  }, 0);
+};
+
 localStorage.setItem = function(key: string, value: string) {
   let hasChanges = false;
-  
+  let oldVal: string | null = null;
+
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
     try {
-      const oldVal = localStorage.getItem(key);
+      oldVal = localStorage.getItem(key);
       // Fire for both first-time writes (oldVal === null) and changed values
       if (oldVal !== value) {
         hasChanges = true;
       }
-      
+
       if (oldVal) {
-        const oldArr = JSON.parse(oldVal);
-        const newArr = JSON.parse(value);
-        if (Array.isArray(oldArr) && Array.isArray(newArr)) {
-          const newIds = new Set(newArr.map(x => x?.id || x?.code || x?.ref).filter(Boolean));
-          const deleted = oldArr
-            .map(x => x?.id || x?.code || x?.ref)
-            .filter(id => id && !newIds.has(id));
-          
-          if (deleted.length > 0) {
-             const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
-             const existingDeleted = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
-             const combined = Array.from(new Set([...existingDeleted, ...deleted]));
-             nativeSetItem('jr_farm_deleted_records', JSON.stringify(combined));
-          }
+        const existingJob = pendingDeletionJobs.get(key);
+        pendingDeletionJobs.set(key, {
+          oldVal: existingJob?.oldVal || oldVal,
+          newVal: value
+        });
+
+        if (pendingDeletionFlushHandle === null) {
+          pendingDeletionFlushHandle = window.setTimeout(flushPendingDeletionJobs, 0);
         }
       }
     } catch (e) {
@@ -75,7 +118,7 @@ localStorage.setItem = function(key: string, value: string) {
   // Dispatch event only if there were actual changes
   if (hasChanges) {
     console.log(`[Sync] Value changed for ${key}, dispatching push...`);
-    window.dispatchEvent(new Event('local-storage-update'));
+    scheduleSyncDispatch();
   }
 };
 

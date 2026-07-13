@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Truck, Scale, Sparkles, Check, Trash2, ClipboardCheck, Activity, Calendar, FlaskConical, RefreshCw, Layers, Printer, Download } from 'lucide-react';
 
 interface TmrMixingProps {
@@ -11,6 +11,8 @@ interface TmrMixingProps {
 }
 
 export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
+  const deferredMixLogWriteRef = useRef<number | null>(null);
+
   const [sorghum, setSorghum] = useState<number>(20);
   const [napier, setNapier] = useState<number>(15);
   const [rhodes, setRhodes] = useState<number>(3);
@@ -97,7 +99,21 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
   });
 
   React.useEffect(() => {
-    localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
+    if (deferredMixLogWriteRef.current !== null) {
+      window.clearTimeout(deferredMixLogWriteRef.current);
+    }
+
+    deferredMixLogWriteRef.current = window.setTimeout(() => {
+      deferredMixLogWriteRef.current = null;
+      localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
+    }, 0);
+
+    return () => {
+      if (deferredMixLogWriteRef.current !== null) {
+        window.clearTimeout(deferredMixLogWriteRef.current);
+        deferredMixLogWriteRef.current = null;
+      }
+    };
   }, [mixLogs]);
 
   // Math with moisture tuning (Sorghum is scaled to maintain constant Dry Matter intake)

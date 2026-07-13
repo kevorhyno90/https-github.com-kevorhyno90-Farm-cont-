@@ -43,6 +43,16 @@ export function Financials({
   vetRecords = [],
   aiRecords = []
 }: FinancialsProps) {
+  const deferredBudgetWriteRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (deferredBudgetWriteRef.current !== null) {
+        window.clearTimeout(deferredBudgetWriteRef.current);
+      }
+    };
+  }, []);
+
   // Navigation tabs for Financials view
   const [subTab, setSubTab] = useState<'ledger' | 'analytics' | 'budgets' | 'breeding_roi' | 'granular_analysis'>('ledger');
   const [selectedInvoiceTx, setSelectedInvoiceTx] = useState<FinancialRecord | null>(null);
@@ -99,7 +109,14 @@ export function Financials({
 
   const handleSaveBudgetCaps = (updated: Record<string, number>) => {
     setBudgetCaps(updated);
-    localStorage.setItem('jr_farm_exp_budget_caps', JSON.stringify(updated));
+    if (deferredBudgetWriteRef.current !== null) {
+      window.clearTimeout(deferredBudgetWriteRef.current);
+    }
+
+    deferredBudgetWriteRef.current = window.setTimeout(() => {
+      deferredBudgetWriteRef.current = null;
+      localStorage.setItem('jr_farm_exp_budget_caps', JSON.stringify(updated));
+    }, 0);
   };
 
   // State to simulate or adjust active milk price/day in ROI calculations

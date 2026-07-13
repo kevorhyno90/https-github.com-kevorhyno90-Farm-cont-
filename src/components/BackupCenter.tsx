@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Database, 
   DownloadCloud, 
@@ -42,6 +42,8 @@ const CLOUD_SYNC_KEYS = [
 ];
 
 const CLOUD_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
+const ROOM_SYNC_HEARTBEAT_EVENT = 'jr-farm-live-sync-heartbeat';
+const ROOM_SYNC_STATE_EVENT = 'jr-farm-room-sync-state-updated';
 
 
 interface BackupCenterProps {
@@ -107,6 +109,13 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
     return databasePayload;
   };
 
+  const emitRoomSyncSignal = (source: 'local' | 'remote' | 'manual', lastSyncedLabel?: string) => {
+    window.dispatchEvent(new CustomEvent(ROOM_SYNC_HEARTBEAT_EVENT, {
+      detail: { source, lastSyncedAt: lastSyncedLabel || '' }
+    }));
+    window.dispatchEvent(new Event(ROOM_SYNC_STATE_EVENT));
+  };
+
   const applyRemoteCloudPayload = (database: Record<string, any>, updatedAt?: string) => {
     isApplyingRemoteSyncRef.current = true;
 
@@ -119,6 +128,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       const syncedLabel = updatedAt ? new Date(updatedAt).toLocaleString() : new Date().toLocaleString();
       nativeSetItem('jr_farm_cloud_last_synced_at', syncedLabel);
       setLastSyncedAt(syncedLabel);
+      emitRoomSyncSignal('remote', syncedLabel);
       window.dispatchEvent(new Event(CLOUD_SYNC_APPLIED_EVENT));
     } finally {
       isApplyingRemoteSyncRef.current = false;
@@ -249,6 +259,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       const nowStr = new Date().toLocaleString();
       localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
       setLastSyncedAt(nowStr);
+      emitRoomSyncSignal('manual', nowStr);
       setShowConflictModal(false);
 
       setStatusMsg({
@@ -469,6 +480,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
       localStorage.setItem('jr_farm_cloud_sync_key', cleanKey);
       localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
       setLastSyncedAt(nowStr);
+      emitRoomSyncSignal('manual', nowStr);
 
       setStatusMsg({
         type: 'success',
@@ -525,6 +537,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
         localStorage.setItem('jr_farm_cloud_sync_key', cleanKey);
         localStorage.setItem('jr_farm_cloud_last_synced_at', nowStr);
         setLastSyncedAt(nowStr);
+        emitRoomSyncSignal('manual', nowStr);
 
         setStatusMsg({
           type: 'success',
@@ -595,6 +608,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
           const nowStr = new Date().toLocaleString();
           nativeSetItem('jr_farm_cloud_last_synced_at', nowStr);
           setLastSyncedAt(nowStr);
+          emitRoomSyncSignal('local', nowStr);
         } catch (err) {
           console.error('Live cloud sync push failed:', err);
         }

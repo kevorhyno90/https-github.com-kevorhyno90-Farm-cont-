@@ -58,6 +58,10 @@ import { auth } from './firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
+const ROOM_SYNC_KEY_STORAGE_KEY = 'jr_farm_cloud_sync_key';
+const ROOM_SYNC_LAST_SYNC_STORAGE_KEY = 'jr_farm_cloud_last_synced_at';
+const ROOM_SYNC_HEARTBEAT_EVENT = 'jr-farm-live-sync-heartbeat';
+const ROOM_SYNC_STATE_EVENT = 'jr-farm-room-sync-state-updated';
 const MOBILE_MENU_HINT_SEEN_KEY = 'jr_farm_mobile_menu_hint_seen';
 const INITIAL_ALARM_RENDER_LIMIT = 8;
 
@@ -575,6 +579,23 @@ function FarmCoreApp() {
       return true;
     }
   });
+  const [roomSyncKey, setRoomSyncKey] = useState<string>(() => {
+    try {
+      return localStorage.getItem(ROOM_SYNC_KEY_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [roomSyncLastSeen, setRoomSyncLastSeen] = useState<string>(() => {
+    try {
+      return localStorage.getItem(ROOM_SYNC_LAST_SYNC_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [roomSyncPulse, setRoomSyncPulse] = useState<{ source: 'local' | 'remote' | 'manual' | 'idle'; at: number }>({ source: 'idle', at: 0 });
+  const [latestInteractionDuration, setLatestInteractionDuration] = useState<number | null>(null);
+  const [supportsInteractionObserver, setSupportsInteractionObserver] = useState<boolean>(false);
 
   const [selectedRingtone, setSelectedRingtone] = useState<string>(() => {
     return localStorage.getItem('jr_farm_notification_ringtone') || 'chime';
@@ -621,6 +642,67 @@ function FarmCoreApp() {
     };
   }, []);
 
+  useEffect(() => {
+    const refreshRoomSyncState = () => {
+      try {
+        setRoomSyncKey(localStorage.getItem(ROOM_SYNC_KEY_STORAGE_KEY) || '');
+        setRoomSyncLastSeen(localStorage.getItem(ROOM_SYNC_LAST_SYNC_STORAGE_KEY) || '');
+      } catch (_) {
+        setRoomSyncKey('');
+        setRoomSyncLastSeen('');
+      }
+    };
+
+    const handleRoomSyncHeartbeat = (event: Event) => {
+      refreshRoomSyncState();
+      const detail = (event as CustomEvent<{ source?: 'local' | 'remote' | 'manual' }>).detail;
+      setRoomSyncPulse({ source: detail?.source || 'remote', at: Date.now() });
+    };
+
+    refreshRoomSyncState();
+    window.addEventListener('storage', refreshRoomSyncState);
+    window.addEventListener(ROOM_SYNC_STATE_EVENT, refreshRoomSyncState as EventListener);
+    window.addEventListener(ROOM_SYNC_HEARTBEAT_EVENT, handleRoomSyncHeartbeat as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', refreshRoomSyncState);
+      window.removeEventListener(ROOM_SYNC_STATE_EVENT, refreshRoomSyncState as EventListener);
+      window.removeEventListener(ROOM_SYNC_HEARTBEAT_EVENT, handleRoomSyncHeartbeat as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof PerformanceObserver === 'undefined') {
+      return;
+    }
+
+    const supportedEntryTypes = (PerformanceObserver as any).supportedEntryTypes || [];
+    if (!supportedEntryTypes.includes('event')) {
+      return;
+    }
+
+    setSupportsInteractionObserver(true);
+
+    const observer = new PerformanceObserver((list) => {
+      let maxDuration: number | null = null;
+
+      for (const entry of list.getEntries() as Array<PerformanceEntry & { duration?: number; interactionId?: number }>) {
+        if (!(entry as any).interactionId || !entry.duration) continue;
+        maxDuration = maxDuration === null ? entry.duration : Math.max(maxDuration, entry.duration);
+      }
+
+      if (maxDuration !== null) {
+        setLatestInteractionDuration((prev) => {
+          if (prev === null) return Math.round(maxDuration as number);
+          return Math.round(Math.max(prev * 0.65, maxDuration as number));
+        });
+      }
+    });
+
+    observer.observe({ type: 'event', buffered: true, durationThreshold: 16 } as any);
+    return () => observer.disconnect();
+  }, []);
+
   const headerCloudSyncStatus = !isFirestoreSyncEnabled
     ? { label: 'SYNC LOCKED', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
     : !userCloudSyncEnabled
@@ -628,6 +710,27 @@ function FarmCoreApp() {
       : !db
         ? { label: 'SYNC OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
         : { label: 'SYNC ENABLED', tone: 'text-emerald-800 bg-emerald-50 border-emerald-200' };
+    const headerRoomSyncStatus = !roomSyncKey
+      ? { label: 'ROOM IDLE', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
+      : !navigator.onLine
+        ? { label: 'ROOM OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
+        : roomSyncPulse.at > 0 && Date.now() - roomSyncPulse.at < 15000
+          ? {
+              label: roomSyncPulse.source === 'remote' ? 'ROOM LIVE RX' : roomSyncPulse.source === 'manual' ? 'ROOM LIVE MANUAL' : 'ROOM LIVE TX',
+              tone: 'text-cyan-800 bg-cyan-50 border-cyan-200'
+            }
+          : roomSyncLastSeen
+            ? { label: 'ROOM READY', tone: 'text-indigo-800 bg-indigo-50 border-indigo-200' }
+            : { label: 'ROOM LINKED', tone: 'text-indigo-800 bg-indigo-50 border-indigo-200' };
+    const headerInteractionStatus = !supportsInteractionObserver
+      ? { label: 'RESP N/A', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
+      : latestInteractionDuration === null
+        ? { label: 'RESP READY', tone: 'text-sky-800 bg-sky-50 border-sky-200' }
+        : latestInteractionDuration < 100
+          ? { label: `RESP FAST ${latestInteractionDuration}MS`, tone: 'text-emerald-800 bg-emerald-50 border-emerald-200' }
+          : latestInteractionDuration < 200
+            ? { label: `RESP FAIR ${latestInteractionDuration}MS`, tone: 'text-amber-800 bg-amber-50 border-amber-200' }
+            : { label: `RESP SLOW ${latestInteractionDuration}MS`, tone: 'text-rose-800 bg-rose-50 border-rose-200' };
 
   const triggerAppToastMessage = (txt: string) => {
     setAppToastMessage(txt);
@@ -5889,6 +5992,18 @@ function FarmCoreApp() {
               title="Cloud sync runtime status"
             >
               {headerCloudSyncStatus.label}
+            </span>
+            <span
+              className={`hidden lg:inline-flex text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${headerRoomSyncStatus.tone}`}
+              title={roomSyncKey ? `Shared room sync key active. Last sync: ${roomSyncLastSeen || 'Pending first sync.'}` : 'No shared room sync key configured yet.'}
+            >
+              {headerRoomSyncStatus.label}
+            </span>
+            <span
+              className={`hidden xl:inline-flex text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${headerInteractionStatus.tone}`}
+              title={supportsInteractionObserver ? 'Recent worst interaction duration observed by the browser. Use this on phone while tapping around sections.' : 'Interaction timing API is not available in this browser.'}
+            >
+              {headerInteractionStatus.label}
             </span>
             {/* Unified Notification Bell */}
             <div className="relative">

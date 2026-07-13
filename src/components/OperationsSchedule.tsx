@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -190,6 +190,22 @@ interface OperationsScheduleProps {
 }
 
 export default function OperationsSchedule({ onTriggerSectionReport }: OperationsScheduleProps = {}) {
+  const deferredStorageHandlesRef = useRef<Map<string, number>>(new Map());
+
+  const scheduleJsonStorageWrite = (key: string, value: unknown) => {
+    const existingHandle = deferredStorageHandlesRef.current.get(key);
+    if (existingHandle !== undefined) {
+      window.clearTimeout(existingHandle);
+    }
+
+    const handle = window.setTimeout(() => {
+      deferredStorageHandlesRef.current.delete(key);
+      localStorage.setItem(key, JSON.stringify(value));
+    }, 0);
+
+    deferredStorageHandlesRef.current.set(key, handle);
+  };
+
   const [items, setItems] = useState<TimetableItem[]>(() => {
     const saved = localStorage.getItem('jr_farm_custom_timetable');
     if (saved) {
@@ -229,6 +245,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeReminders, setActiveReminders] = useState<ActiveReminder[]>([]);
   const [activeNotificationAlert, setActiveNotificationAlert] = useState<{ title: string; bodyText: string } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      deferredStorageHandlesRef.current.forEach((handle) => window.clearTimeout(handle));
+      deferredStorageHandlesRef.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -281,7 +304,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
         localStorage.removeItem(ACTIVE_REMINDER_STORAGE_KEY);
         return;
       }
-      localStorage.setItem(ACTIVE_REMINDER_STORAGE_KEY, JSON.stringify(activeReminders));
+      scheduleJsonStorageWrite(ACTIVE_REMINDER_STORAGE_KEY, activeReminders);
     } catch (_) {}
   }, [activeReminders]);
 
@@ -309,7 +332,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       );
 
       parsed[today] = [...alreadyAlerted, ...pendingIds];
-      localStorage.setItem(DAILY_DUE_ALERTS_STORAGE_KEY, JSON.stringify(parsed));
+      scheduleJsonStorageWrite(DAILY_DUE_ALERTS_STORAGE_KEY, parsed);
     } catch (_) {}
   }, [items]);
 
@@ -399,7 +422,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
 
   const handleSaveToLocalStorage = (newItems: TimetableItem[]) => {
     setItems(newItems);
-    localStorage.setItem('jr_farm_custom_timetable', JSON.stringify(newItems));
+    scheduleJsonStorageWrite('jr_farm_custom_timetable', newItems);
   };
 
   const handleToggleStatus = (id: string) => {

@@ -73,6 +73,22 @@ export default function FarmerAcademy({
   fields,
   onTriggerSectionReport
 }: FarmerAcademyProps) {
+  const deferredStorageHandlesRef = React.useRef<Map<string, number>>(new Map());
+
+  const scheduleJsonStorageWrite = (key: string, value: unknown) => {
+    const existingHandle = deferredStorageHandlesRef.current.get(key);
+    if (existingHandle !== undefined) {
+      window.clearTimeout(existingHandle);
+    }
+
+    const handle = window.setTimeout(() => {
+      deferredStorageHandlesRef.current.delete(key);
+      localStorage.setItem(key, JSON.stringify(value));
+    }, 0);
+
+    deferredStorageHandlesRef.current.set(key, handle);
+  };
+
   const formatCurrentTimestamp = () => {
     const datePart = new Date().toISOString().split('T')[0];
     const timePart = new Date().toLocaleTimeString('en-US', {
@@ -94,6 +110,13 @@ export default function FarmerAcademy({
     }
   }, [initialTab]);
 
+  React.useEffect(() => {
+    return () => {
+      deferredStorageHandlesRef.current.forEach((handle) => window.clearTimeout(handle));
+      deferredStorageHandlesRef.current.clear();
+    };
+  }, []);
+
   // Local inventory backing if props not provided
   const [localInventory, setLocalInventory] = useState<InventoryItem[]>(() => {
     const saved = localStorage.getItem('jr_farm_inventory');
@@ -107,7 +130,7 @@ export default function FarmerAcademy({
       setInventory(next);
     } else {
       setLocalInventory(next);
-      localStorage.setItem('jr_farm_inventory', JSON.stringify(next));
+      scheduleJsonStorageWrite('jr_farm_inventory', next);
     }
   };
 
@@ -753,7 +776,7 @@ export default function FarmerAcademy({
       try {
         const saved = localStorage.getItem('jr_farm_vet_records');
         const existing = saved ? JSON.parse(saved) : [];
-        localStorage.setItem('jr_farm_vet_records', JSON.stringify([newRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_vet_records', [newRecord, ...existing]);
       } catch (e) {
         console.error("Local vet logging failed:", e);
       }
@@ -807,7 +830,7 @@ export default function FarmerAcademy({
         };
         currentInv = [newItem, ...currentInv];
       }
-      localStorage.setItem('jr_farm_inventory', JSON.stringify(currentInv));
+      scheduleJsonStorageWrite('jr_farm_inventory', currentInv);
       if (setInventory) {
         setInventory(currentInv);
       }
@@ -830,7 +853,7 @@ export default function FarmerAcademy({
       try {
         const saved = localStorage.getItem('jr_farm_financials');
         const existing = saved ? JSON.parse(saved) : [];
-        localStorage.setItem('jr_farm_financials', JSON.stringify([offsetRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [offsetRecord, ...existing]);
       } catch (e) {
         console.error("Local financial logging failed:", e);
       }
@@ -920,7 +943,7 @@ export default function FarmerAcademy({
       try {
         const saved = localStorage.getItem('jr_farm_financials');
         const existing = saved ? JSON.parse(saved) : [];
-        localStorage.setItem('jr_farm_financials', JSON.stringify([expenseRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [expenseRecord, ...existing]);
       } catch (e) {
         console.error("Local financial expense logging failed:", e);
       }
@@ -959,7 +982,7 @@ export default function FarmerAcademy({
       try {
         const saved = localStorage.getItem('jr_farm_financials');
         const existing = saved ? JSON.parse(saved) : [];
-        localStorage.setItem('jr_farm_financials', JSON.stringify([revRecord, expRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [revRecord, expRecord, ...existing]);
       } catch (e) {
         console.error("Local financial logging failed:", e);
       }
@@ -1007,7 +1030,7 @@ export default function FarmerAcademy({
         };
         setDiagnosticHistory(prev => {
           const updated = [newCase, ...prev];
-          localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+          scheduleJsonStorageWrite('jr_farm_diagnostic_history', updated);
           return updated;
         });
       }, 700);
@@ -1055,7 +1078,7 @@ export default function FarmerAcademy({
         };
         setDiagnosticHistory(prev => {
           const updated = [newCase, ...prev];
-          localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+          scheduleJsonStorageWrite('jr_farm_diagnostic_history', updated);
           return updated;
         });
       } else {
@@ -1097,7 +1120,7 @@ export default function FarmerAcademy({
       };
       setDiagnosticHistory(prev => {
         const updated = [newCase, ...prev];
-        localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+        scheduleJsonStorageWrite('jr_farm_diagnostic_history', updated);
         return updated;
       });
     } finally {
@@ -1122,7 +1145,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_spray_records') || '[]');
-        localStorage.setItem('jr_farm_spray_records', JSON.stringify([nextSprayRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_spray_records', [nextSprayRecord, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -1143,7 +1166,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_financials') || '[]');
-        localStorage.setItem('jr_farm_financials', JSON.stringify([nextExpense, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [nextExpense, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -1182,7 +1205,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_vet_records') || '[]');
-        localStorage.setItem('jr_farm_vet_records', JSON.stringify([nextVetRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_vet_records', [nextVetRecord, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -1203,7 +1226,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_financials') || '[]');
-        localStorage.setItem('jr_farm_financials', JSON.stringify([nextExpense, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [nextExpense, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -1242,7 +1265,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_vet_records') || '[]');
-        localStorage.setItem('jr_farm_vet_records', JSON.stringify([nextVetRecord, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_vet_records', [nextVetRecord, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -1263,7 +1286,7 @@ export default function FarmerAcademy({
     } else {
       try {
         const existing = JSON.parse(localStorage.getItem('jr_farm_financials') || '[]');
-        localStorage.setItem('jr_farm_financials', JSON.stringify([nextExpense, ...existing]));
+        scheduleJsonStorageWrite('jr_farm_financials', [nextExpense, ...existing]);
       } catch (e) {
         console.error(e);
       }
@@ -2869,7 +2892,7 @@ export default function FarmerAcademy({
                             };
                             setActionLogs(prev => {
                               const updated = [newLog, ...prev];
-                              localStorage.setItem('jr_farm_academy_auto_deduct_logs', JSON.stringify(updated));
+                              scheduleJsonStorageWrite('jr_farm_academy_auto_deduct_logs', updated);
                               return updated;
                             });
                             alert(`✓ Formulated TMR Ration saved successfully to Action Logs history!`);
@@ -3770,7 +3793,7 @@ export default function FarmerAcademy({
                                         onClick={() => {
                                           setDiagnosticHistory(prev => {
                                             const updated = prev.filter(item => item.id !== historyItem.id);
-                                            localStorage.setItem('jr_farm_diagnostic_history', JSON.stringify(updated));
+                                            scheduleJsonStorageWrite('jr_farm_diagnostic_history', updated);
                                             return updated;
                                           });
                                           if (expandedCaseId === historyItem.id) {
@@ -4176,7 +4199,7 @@ export default function FarmerAcademy({
 
                       const updatedLogs = [newLog, ...actionLogs];
                       setActionLogs(updatedLogs);
-                      localStorage.setItem('jr_farm_academy_auto_deduct_logs', JSON.stringify(updatedLogs));
+                      scheduleJsonStorageWrite('jr_farm_academy_auto_deduct_logs', updatedLogs);
                     };
 
                     return (
@@ -4261,7 +4284,7 @@ export default function FarmerAcademy({
                         onClick={() => {
                           const clean = [{ id: 'log-clean', timestamp: formatCurrentTimestamp(), taskTitle: 'Wiped Log', deductionText: 'Ledger cleared by administrator.', success: true }];
                           setActionLogs(clean);
-                          localStorage.setItem('jr_farm_academy_auto_deduct_logs', JSON.stringify(clean));
+                          scheduleJsonStorageWrite('jr_farm_academy_auto_deduct_logs', clean);
                         }}
                         className="text-[9px] font-black text-indigo-700 hover:text-indigo-900 uppercase cursor-pointer border-0 bg-transparent"
                       >
