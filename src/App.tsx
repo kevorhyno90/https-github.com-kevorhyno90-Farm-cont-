@@ -5514,7 +5514,7 @@ function FarmCoreApp() {
 
   return (
     <ErrorBoundary>
-    <div className="farm-app-shell relative flex min-h-screen overflow-hidden text-slate-900 font-sans">
+    <div className="farm-app-shell relative flex min-h-screen overflow-x-hidden overflow-y-auto lg:overflow-hidden text-slate-900 font-sans">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.14),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(245,158,11,0.12),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#f1f5f9_48%,_#e2e8f0_100%)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-40 bg-[linear-gradient(rgba(15,23,42,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.03)_1px,transparent_1px)] bg-[size:42px_42px]" />
       {/* Dynamic Screen Orientation Blocker Overlay */}
