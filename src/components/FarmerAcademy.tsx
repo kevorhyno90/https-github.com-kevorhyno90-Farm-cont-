@@ -42,20 +42,20 @@ import {
   Printer,
   Download
 } from 'lucide-react';
-import { InventoryItem } from '../types';
+import { InventoryItem, SprayRecord, VetRecord, Cow, FinancialRecord, FieldRecord } from '../types';
 
 interface FarmerAcademyProps {
   inventory?: InventoryItem[];
   setInventory?: React.Dispatch<React.SetStateAction<InventoryItem[]>>;
   initialTab?: 'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines' | 'forecasting';
-  sprayRecords?: any[];
-  setSprayRecords?: React.Dispatch<React.SetStateAction<any[]>>;
-  vetRecords?: any[];
-  setVetRecords?: React.Dispatch<React.SetStateAction<any[]>>;
-  cows?: any[];
-  financials?: any[];
-  setFinancials?: React.Dispatch<React.SetStateAction<any[]>>;
-  fields?: any[];
+  sprayRecords?: SprayRecord[];
+  setSprayRecords?: React.Dispatch<React.SetStateAction<SprayRecord[]>>;
+  vetRecords?: VetRecord[];
+  setVetRecords?: React.Dispatch<React.SetStateAction<VetRecord[]>>;
+  cows?: Cow[];
+  financials?: FinancialRecord[];
+  setFinancials?: React.Dispatch<React.SetStateAction<FinancialRecord[]>>;
+  fields?: FieldRecord[];
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
@@ -84,7 +84,7 @@ export default function FarmerAcademy({
     return `${datePart} ${timePart}`;
   };
 
-  const fieldRecords = fields;
+  const fieldRecords = fields || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'science' | 'crops' | 'livestock' | 'calculators' | 'diagnostics' | 'inventory_deduct' | 'timelines' | 'forecasting'>('science');
 

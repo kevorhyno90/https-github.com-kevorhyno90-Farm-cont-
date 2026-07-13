@@ -40,6 +40,26 @@ import {
   Database
 } from 'lucide-react';
 
+interface DairyAnimalSaleRecord {
+  id: string;
+  animalId: string;
+  type: 'Cow' | 'Calf' | 'Other';
+  date: string;
+  price: number;
+  buyer: string;
+  notes: string;
+}
+
+interface DairyMortalityRecord {
+  id: string;
+  animalId: string;
+  type: 'Cow' | 'Calf' | 'Other';
+  date: string;
+  causeOfDeath: string;
+  disposalMethod: string;
+  notes: string;
+}
+
 interface DairyBreedingProps {
   milkRecords: MilkingRecord[];
   aiRecords: AIRecord[];
@@ -64,11 +84,11 @@ interface DairyBreedingProps {
   onEditAIRecord?: (cowId: string, date: string, updated: AIRecord) => void;
   onEditCow?: (id: string, updated: Cow) => void;
   onEditVetRecord?: (id: string, updated: VetRecord) => void;
-  animalSales: any[];
-  onAddAnimalSale: (rec: any) => void;
+  animalSales: DairyAnimalSaleRecord[];
+  onAddAnimalSale: (rec: DairyAnimalSaleRecord) => void;
   onDeleteAnimalSale: (id: string) => void;
-  mortalities: any[];
-  onAddMortality: (rec: any) => void;
+  mortalities: DairyMortalityRecord[];
+  onAddMortality: (rec: DairyMortalityRecord) => void;
   onDeleteMortality: (id: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
   semenInventory?: SemenInventoryItem[];
@@ -165,6 +185,7 @@ export function DairyBreeding({
   const [aiCowId, setAiCowId] = useState('');
   const [aiDate, setAiDate] = useState(toIsoDate());
   const [aiBull, setAiBull] = useState('');
+  const [aiSelectedSemenId, setAiSelectedSemenId] = useState('');
   const [aiCheckDate, setAiCheckDate] = useState('');
   const [aiOrigin, setAiOrigin] = useState('Imported');
   const [aiSemenType, setAiSemenType] = useState('Sexed (Female)');
@@ -761,7 +782,18 @@ export function DairyBreeding({
 
   const handleAISubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiCowId.trim() || !aiDate || !aiBull.trim()) return;
+
+    const selectedSemen = aiSelectedSemenId
+      ? semenInventory.find(item => item.id === aiSelectedSemenId)
+      : null;
+
+    if (semenInventory.length > 0 && !selectedSemen) {
+      alert('Select a tracked semen straw from Genetic Inventory before saving AI service.');
+      return;
+    }
+
+    const resolvedBull = selectedSemen ? selectedSemen.bullName : aiBull.trim();
+    if (!aiCowId.trim() || !aiDate || !resolvedBull) return;
 
     const serviceDateObj = new Date(aiDate);
     // Estimate due date (standard cow gestation is ~283 days)
@@ -777,26 +809,26 @@ export function DairyBreeding({
     onAddAIRecord({
       cowId: aiCowId.trim(),
       date: aiDate,
-      bull: aiBull.trim(),
+      bull: resolvedBull,
+      semenRefId: selectedSemen?.id,
       due: estimatedDue,
       status: aiStatus,
       checkDate: aiCheckDate || undefined,
-      origin: aiOrigin,
-      semenType: aiSemenType,
-      cost: aiCost === '' ? undefined : Number(aiCost),
+      origin: selectedSemen?.origin || aiOrigin,
+      semenType: selectedSemen?.semenType || aiSemenType,
+      cost: selectedSemen?.cost ?? (aiCost === '' ? undefined : Number(aiCost)),
       returnHeatDate: calculatedReturnHeat,
       calfName: aiCalfName.trim() || undefined,
       notes: aiNotes.trim() || undefined
     });
 
-    // Auto-deduct from semen inventory straw count
-    if (setSemenInventory) {
-      setSemenInventory(prev => prev.map(item => {
-        if (item.id === aiBull || item.bullName === aiBull) {
-          return { ...item, quantity: Math.max(0, item.quantity - 1) };
-        }
-        return item;
-      }));
+    // Auto-deduct from linked semen inventory straw count
+    if (setSemenInventory && selectedSemen) {
+      setSemenInventory(prev => prev.map(item => (
+        item.id === selectedSemen.id
+          ? { ...item, quantity: Math.max(0, item.quantity - 1) }
+          : item
+      )));
     }
 
     // Auto-add calf to registry if calved
@@ -818,6 +850,7 @@ export function DairyBreeding({
     setAiCowId('');
     setAiDate(toIsoDate());
     setAiBull('');
+    setAiSelectedSemenId('');
     setAiCheckDate('');
     setAiOrigin('Imported');
     setAiSemenType('Sexed (Female)');
@@ -1840,7 +1873,7 @@ export function DairyBreeding({
                   e.preventDefault();
                   const target = e.currentTarget as HTMLFormElement;
                   const data = new FormData(target);
-                  const aType = data.get('animalType') as string;
+                  const aType = (data.get('animalType') as DairyAnimalSaleRecord['type']) || 'Other';
                   const aId = data.get('animalId') as string;
                   const date = data.get('saleDate') as string;
                   const price = Number(data.get('salePrice'));
@@ -1964,7 +1997,7 @@ export function DairyBreeding({
                   e.preventDefault();
                   const target = e.currentTarget as HTMLFormElement;
                   const data = new FormData(target);
-                  const mType = data.get('animalType') as string;
+                  const mType = (data.get('animalType') as DairyMortalityRecord['type']) || 'Other';
                   const mId = data.get('animalId') as string;
                   const date = data.get('mortalityDate') as string;
                   const cause = data.get('mortalityCause') as string;
@@ -2620,13 +2653,14 @@ export function DairyBreeding({
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Select Semen Straw (From Genetic Inventory)</label>
                   <select
-                    value={semenInventory.some(s => s.id === aiBull || s.bullName === aiBull) ? semenInventory.find(s => s.id === aiBull || s.bullName === aiBull)?.id : ""}
+                    value={aiSelectedSemenId}
                     onChange={(e) => {
                       const selectedId = e.target.value;
+                      setAiSelectedSemenId(selectedId);
                       if (selectedId) {
                         const item = semenInventory.find(s => s.id === selectedId);
                         if (item) {
-                          setAiBull(item.id);
+                          setAiBull(item.bullName);
                           setAiOrigin(item.origin);
                           setAiSemenType(item.semenType);
                           setAiCost(item.cost);
@@ -2640,7 +2674,7 @@ export function DairyBreeding({
                     }}
                     className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
                   >
-                    <option value="">-- Custom / Manual Entry --</option>
+                      <option value="">{semenInventory.length > 0 ? '-- Select tracked straw --' : '-- Custom / Manual Entry --'}</option>
                     {semenInventory.map(item => (
                       <option key={item.id} value={item.id}>
                         {item.id} - {item.bullName} ({item.quantity} straws left)
@@ -2653,12 +2687,18 @@ export function DairyBreeding({
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Bull Name / Semen straw reference</label>
                   <input
                     type="text"
-                    required
+                    required={semenInventory.length === 0}
                     value={aiBull}
                     onChange={(e) => setAiBull(e.target.value)}
-                    placeholder="E.g. SEMEN-HO-991 (Holstein Elite)"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                    disabled={semenInventory.length > 0}
+                    placeholder={semenInventory.length > 0 ? 'Auto-filled from selected tracked straw' : 'E.g. SEMEN-HO-991 (Holstein Elite)'}
+                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono disabled:bg-slate-100 disabled:text-slate-500"
                   />
+                  {semenInventory.length > 0 && (
+                    <p className="mt-1 text-[10px] font-semibold text-slate-500">
+                      Genetic inventory lock is active. Pick a tracked straw to keep breeding and stock ledgers synchronized.
+                    </p>
+                  )}
                 </div>
               </div>
 

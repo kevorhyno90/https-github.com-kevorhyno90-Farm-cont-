@@ -27,6 +27,7 @@ export interface AIRecord {
   cowId: string;
   date: string; // Service Date YYYY-MM-DD (Date inseminated)
   bull: string; // Semen / Bull details (Bull Name)
+  semenRefId?: string; // Linked semen inventory straw ID when sourced from stock
   due: string; // Expected due date YYYY-MM-DD (Expected calving date)
   status: 'Pending' | 'Confirmed Pregnant' | 'Calved' | 'Failed';
   checkDate?: string; // Verification check date YYYY-MM-DD

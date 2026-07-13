@@ -29,11 +29,21 @@ interface TimetableItem {
   when: string; // E.g., "Every 3 Months"
   how: string; // SOP details
   why: string; // Agricultural or medical reason
-  status: 'Completed' | 'Pending';
+  status: 'Completed' | 'Pending' | 'In Progress';
   targetDate: string; // Target execution date e.g. "YYYY-MM-DD"
   assignedTo?: string; // Opt assigned team or person
   custom?: boolean;
 }
+
+interface ActiveReminder {
+  id: string;
+  operation: string;
+  secondsLeft: number;
+  fireAt: number;
+}
+
+const ACTIVE_REMINDER_STORAGE_KEY = 'jr_farm_active_reminders_v1';
+const DAILY_DUE_ALERTS_STORAGE_KEY = 'jr_farm_daily_due_alerts_v1';
 
 const getTodayIso = () => new Date().toISOString().split('T')[0];
 
@@ -184,13 +194,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
     const saved = localStorage.getItem('jr_farm_custom_timetable');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.parse(saved) as Array<Partial<TimetableItem>>;
         // Ensure older custom items get a default date
-        return parsed.map((item: any) => ({
+        return parsed.map((item) => ({
           ...item,
+          status: item.status || 'Pending',
           targetDate: item.targetDate || getTodayIso(),
           assignedTo: item.assignedTo || 'Unassigned'
-        }));
+        })) as TimetableItem[];
       } catch (e) {
         return DEFAULT_TIMETABLE;
       }
@@ -216,7 +227,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   // Notification states
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [activeReminders, setActiveReminders] = useState<{ id: string; operation: string; secondsLeft: number }[]>([]);
+  const [activeReminders, setActiveReminders] = useState<ActiveReminder[]>([]);
   const [activeNotificationAlert, setActiveNotificationAlert] = useState<{ title: string; bodyText: string } | null>(null);
 
   useEffect(() => {
@@ -224,22 +235,83 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       setPermission(Notification.permission);
     }
 
-    // Interval to count down test schedule alerts
+    // Recover any queued countdown reminders after refresh/reopen.
+    try {
+      const raw = localStorage.getItem(ACTIVE_REMINDER_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as ActiveReminder[];
+        const now = Date.now();
+        const recovered = parsed
+          .filter((r) => Number.isFinite(r.fireAt) && r.fireAt > now)
+          .map((r) => ({
+            ...r,
+            secondsLeft: Math.max(1, Math.ceil((r.fireAt - now) / 1000))
+          }));
+        setActiveReminders(recovered);
+      }
+    } catch (_) {
+      localStorage.removeItem(ACTIVE_REMINDER_STORAGE_KEY);
+    }
+
+    // Interval to count down alerts using absolute fireAt timestamps.
     const timer = setInterval(() => {
       setActiveReminders((prev) => {
-        const next = prev.map(r => ({ ...r, secondsLeft: r.secondsLeft - 1 })).filter(r => {
-          if (r.secondsLeft <= 0) {
-            triggerActualNotification(r.operation);
-            return false;
+        const now = Date.now();
+        const next: ActiveReminder[] = [];
+
+        for (const reminder of prev) {
+          const secondsLeft = Math.ceil((reminder.fireAt - now) / 1000);
+          if (secondsLeft <= 0) {
+            triggerActualNotification(reminder.operation);
+          } else {
+            next.push({ ...reminder, secondsLeft });
           }
-          return true;
-        });
+        }
+
         return next;
       });
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    try {
+      if (activeReminders.length === 0) {
+        localStorage.removeItem(ACTIVE_REMINDER_STORAGE_KEY);
+        return;
+      }
+      localStorage.setItem(ACTIVE_REMINDER_STORAGE_KEY, JSON.stringify(activeReminders));
+    } catch (_) {}
+  }, [activeReminders]);
+
+  useEffect(() => {
+    const today = getTodayIso();
+    const dueOrOverdue = items.filter((item) => {
+      if (item.status === 'Completed') return false;
+      if (!item.targetDate) return false;
+      return new Date(item.targetDate).getTime() <= new Date(today).getTime();
+    });
+
+    if (dueOrOverdue.length === 0) return;
+
+    try {
+      const raw = localStorage.getItem(DAILY_DUE_ALERTS_STORAGE_KEY);
+      const parsed: Record<string, string[]> = raw ? JSON.parse(raw) : {};
+      const alreadyAlerted = new Set(parsed[today] || []);
+      const pendingIds = dueOrOverdue.map((item) => item.id).filter((id) => !alreadyAlerted.has(id));
+
+      if (pendingIds.length === 0) return;
+
+      triggerActualNotification(
+        `Operations Due: ${pendingIds.length} item${pendingIds.length === 1 ? '' : 's'}`,
+        'Recovered on app open: You have pending or overdue SOP operations that need attention.'
+      );
+
+      parsed[today] = [...alreadyAlerted, ...pendingIds];
+      localStorage.setItem(DAILY_DUE_ALERTS_STORAGE_KEY, JSON.stringify(parsed));
+    } catch (_) {}
+  }, [items]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -318,7 +390,8 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
     const newRem = {
       id: `rem-${Date.now()}`,
       operation: opName,
-      secondsLeft: secs
+      secondsLeft: secs,
+      fireAt: Date.now() + (secs * 1000)
     };
     setActiveReminders(prev => [...prev, newRem]);
     showToast(`⏱️ Queued "${opName}" check alert in ${secs} seconds.`);
@@ -332,7 +405,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   const handleToggleStatus = (id: string) => {
     const updated = items.map(item => {
       if (item.id === id) {
-        return { ...item, status: (item.status === 'Completed' ? 'Pending' : 'Completed') as any };
+        return { ...item, status: item.status === 'Completed' ? 'Pending' : 'Completed' };
       }
       return item;
     });
@@ -423,7 +496,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       if (a.status === b.status) {
         return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
       }
-      return a.status === 'Pending' ? -1 : 1;
+      const statusOrder: Record<TimetableItem['status'], number> = {
+        'Pending': 0,
+        'In Progress': 1,
+        'Completed': 2
+      };
+      return statusOrder[a.status] - statusOrder[b.status];
     } else {
       return a.category.localeCompare(b.category);
     }
@@ -647,7 +725,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             <span className="text-[10px] font-black uppercase text-slate-405 shrink-0">Sort By:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'dateAsc' | 'dateDesc' | 'status' | 'category')}
               className="bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase px-2.5 py-1.5 text-slate-700 w-full sm:w-auto"
             >
               <option value="dateAsc">Planned Date (Soonest first)</option>
@@ -999,7 +1077,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value as any)}
+                  onChange={(e) => setCategory(e.target.value as TimetableItem['category'])}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs"
                 >
                   <option value="Cows & Calves">Cows & Calves</option>
