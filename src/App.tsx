@@ -58,6 +58,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
+const MOBILE_MENU_HINT_SEEN_KEY = 'jr_farm_mobile_menu_hint_seen';
 const INITIAL_ALARM_RENDER_LIMIT = 8;
 
 // Modular Subcomponents (Lazy Loaded)
@@ -328,6 +329,19 @@ function FarmCoreApp() {
   const [activeTab, setActiveTab] = useState<string>('dash');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth >= 1024) return;
+
+    try {
+      const seen = localStorage.getItem(MOBILE_MENU_HINT_SEEN_KEY) === 'true';
+      if (!seen) {
+        setMobileMenuOpen(true);
+        localStorage.setItem(MOBILE_MENU_HINT_SEEN_KEY, 'true');
+      }
+    } catch (_) {}
+  }, []);
  
   // Sidebar enhancement states
   const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
@@ -6145,6 +6159,19 @@ function FarmCoreApp() {
             </button>
           </div>
         </header>
+
+        {!mobileMenuOpen && (
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="fixed bottom-5 left-5 lg:hidden z-40 bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-3 rounded-full shadow-xl border border-emerald-500/60 flex items-center gap-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+            aria-label="Open Menu"
+            title="Open Menu"
+            type="button"
+          >
+            <Menu size={14} />
+            Menu
+          </button>
+        )}
  
         {/* 3. MOBILE SYSTEM SLIDING DRAWER MENU */}
         {mobileMenuOpen && (
