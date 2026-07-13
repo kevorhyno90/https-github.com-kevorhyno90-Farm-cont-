@@ -68,6 +68,18 @@ How can I assist you with livestock, crop health, or navigating this app today?`
     setMessages(prev => [...prev, { role: 'user', text: query }]);
     setIsLoading(true);
 
+    const forcedOffline = localStorage.getItem('jr_farm_forced_offline') === 'true';
+    const deviceOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+    if (forcedOffline || deviceOffline) {
+      const localResponse = generateFreeAgroAdvisorResponse(query, farmState, settings);
+      const offlineSuffix = forcedOffline
+        ? "\n\n[Offline simulation enabled: running local advisory engine.]"
+        : "\n\n[Device is offline: running local advisory engine.]";
+      setMessages(prev => [...prev, { role: 'model', text: `${localResponse}${offlineSuffix}` }]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/ai-chat', {
         method: 'POST',

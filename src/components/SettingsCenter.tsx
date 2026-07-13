@@ -108,6 +108,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
     setConnState('checking');
     setServerError('');
     setAiInitialized(null);
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setConnState('error');
+      setServerError('Device is offline. Core farm modules still run from local storage and cached app shell.');
+      return;
+    }
+
     try {
       const res = await fetch('/api/health');
       if (!res.ok) {

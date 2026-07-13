@@ -12,6 +12,7 @@ export function FirebaseSyncer() {
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [farmId, setFarmId] = useState<string | null>(null);
   const [firestoreUnavailable, setFirestoreUnavailable] = useState(false);
+  const [isDeviceOnline, setIsDeviceOnline] = useState<boolean>(typeof navigator === 'undefined' ? true : navigator.onLine);
   const [userCloudSyncEnabled, setUserCloudSyncEnabled] = useState<boolean>(() => {
     try {
       const raw = localStorage.getItem(CLOUD_SYNC_PREF_KEY);
@@ -23,16 +24,30 @@ export function FirebaseSyncer() {
 
   const isSyncingRef = useRef(false);
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
-  const canUseFirestore = isFirestoreSyncEnabled && userCloudSyncEnabled && !!db && !firestoreUnavailable;
+  const canUseFirestore = isFirestoreSyncEnabled && userCloudSyncEnabled && isDeviceOnline && !!db && !firestoreUnavailable;
   const cloudSyncDisabledReason = !isFirestoreSyncEnabled
     ? 'Disabled by config'
     : !userCloudSyncEnabled
       ? 'Disabled by user'
+    : !isDeviceOnline
+      ? 'Device offline'
     : firestoreUnavailable
       ? 'Firestore unavailable'
       : !db
         ? 'Firestore not initialized'
         : null;
+
+  useEffect(() => {
+    const handleOnline = () => setIsDeviceOnline(true);
+    const handleOffline = () => setIsDeviceOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const refreshPreference = () => {
