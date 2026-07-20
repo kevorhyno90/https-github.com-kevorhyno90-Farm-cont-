@@ -87,26 +87,38 @@
     .bg-slate-50\/50,
     .bg-slate-100,
     .bg-slate-200,
-    .bg-slate-200\/80
+    .bg-slate-200\/80,
+    .bg-zinc-50,
+    .bg-zinc-100,
+    .bg-zinc-200,
+    .bg-gray-50,
+    .bg-gray-100,
+    .bg-gray-200,
+    .bg-neutral-50,
+    .bg-neutral-100,
+    .bg-neutral-200,
+    .bg-stone-50,
+    .bg-stone-100,
+    .bg-stone-200
   ) {
     background-color: var(--color-app-surface-strong) !important;
     color: var(--color-app-text) !important;
     border-color: var(--color-app-border) !important;
   }
 
-  #root :is(.bg-emerald-50, .bg-emerald-50\/30, .bg-emerald-50\/50, .bg-emerald-100) {
+  #root :is(.bg-emerald-50, .bg-emerald-50\/30, .bg-emerald-50\/50, .bg-emerald-100, .bg-green-50, .bg-green-100) {
     background-color: rgba(6, 78, 59, 0.28) !important;
     color: var(--color-app-text) !important;
     border-color: rgba(52, 211, 153, 0.28) !important;
   }
 
-  #root :is(.bg-rose-50, .bg-rose-50\/30, .bg-rose-50\/50, .bg-rose-100) {
+  #root :is(.bg-rose-50, .bg-rose-50\/30, .bg-rose-50\/50, .bg-rose-100, .bg-red-50, .bg-red-100) {
     background-color: rgba(127, 29, 29, 0.28) !important;
     color: var(--color-app-text) !important;
     border-color: rgba(251, 113, 133, 0.28) !important;
   }
 
-  #root :is(.bg-amber-50, .bg-amber-50\/30, .bg-amber-50\/50, .bg-amber-100) {
+  #root :is(.bg-amber-50, .bg-amber-50\/30, .bg-amber-50\/50, .bg-amber-100, .bg-orange-50, .bg-orange-100, .bg-yellow-50, .bg-yellow-100) {
     background-color: rgba(120, 53, 15, 0.28) !important;
     color: var(--color-app-text) !important;
     border-color: rgba(251, 191, 36, 0.28) !important;
@@ -126,23 +138,23 @@
     background-color: rgba(30, 41, 59, 0.92) !important;
   }
 
-  #root :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700) {
+  #root :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700, .text-zinc-950, .text-zinc-900, .text-zinc-800, .text-zinc-700, .text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700, .text-neutral-950, .text-neutral-900, .text-neutral-800, .text-neutral-700, .text-stone-950, .text-stone-900, .text-stone-800, .text-stone-700, .text-black) {
     color: var(--color-app-text-strong) !important;
   }
 
-  #root :is(.text-slate-600, .text-slate-500, .text-slate-400) {
+  #root :is(.text-slate-600, .text-slate-500, .text-slate-400, .text-zinc-600, .text-zinc-500, .text-zinc-400, .text-gray-600, .text-gray-500, .text-gray-400, .text-neutral-600, .text-neutral-500, .text-neutral-400, .text-stone-600, .text-stone-500, .text-stone-400) {
     color: var(--color-app-text-soft) !important;
   }
 
-  #root :is(.text-slate-300, .text-slate-200, .text-slate-100) {
+  #root :is(.text-slate-300, .text-slate-200, .text-slate-100, .text-zinc-300, .text-zinc-200, .text-zinc-100, .text-gray-300, .text-gray-200, .text-gray-100, .text-neutral-300, .text-neutral-200, .text-neutral-100, .text-stone-300, .text-stone-200, .text-stone-100) {
     color: var(--color-app-text-muted) !important;
   }
 
-  #root :is(.text-emerald-600, .text-emerald-700, .text-emerald-800) {
+  #root :is(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-green-600, .text-green-700, .text-green-800) {
     color: var(--color-app-accent-emerald) !important;
   }
 
-  #root :is(.text-emerald-900, .text-emerald-950) {
+  #root :is(.text-emerald-900, .text-emerald-950, .text-green-900, .text-green-950) {
     color: #a7f3d0 !important;
   }
 
@@ -154,11 +166,11 @@
     color: #fde68a !important;
   }
 
-  #root :is(.text-rose-700, .text-rose-800, .text-rose-900) {
+  #root :is(.text-rose-700, .text-rose-800, .text-rose-900, .text-red-700, .text-red-800, .text-red-900) {
     color: var(--color-app-accent-rose) !important;
   }
 
-  #root :is(.text-rose-950) {
+  #root :is(.text-rose-950, .text-red-950) {
     color: #fecdd3 !important;
   }
 
@@ -170,11 +182,11 @@
     color: var(--color-app-accent-indigo) !important;
   }
 
-  #root :is(.bg-slate-100, .bg-slate-200, .bg-slate-300) {
+  #root :is(.bg-slate-100, .bg-slate-200, .bg-slate-300, .bg-zinc-100, .bg-zinc-200, .bg-zinc-300, .bg-gray-100, .bg-gray-200, .bg-gray-300, .bg-neutral-100, .bg-neutral-200, .bg-neutral-300, .bg-stone-100, .bg-stone-200, .bg-stone-300) {
     background-color: rgba(30, 41, 59, 0.88) !important;
   }
 
-  #root :is(.text-slate-950.text-emerald-950, .text-emerald-950) {
+  #root :is(.text-slate-950.text-emerald-950, .text-emerald-950, .text-green-950) {
     color: var(--color-app-text-strong) !important;
   }
 
@@ -191,12 +203,18 @@
     .bg-slate-50\/50,
     .bg-slate-100,
     .bg-slate-200,
+    .bg-zinc-50,
+    .bg-zinc-100,
+    .bg-gray-50,
+    .bg-gray-100,
     .bg-emerald-50,
     .bg-emerald-50\/30,
     .bg-emerald-50\/50,
+    .bg-green-50,
     .bg-rose-50,
     .bg-rose-50\/30,
     .bg-rose-50\/50,
+    .bg-red-50,
     .bg-amber-50,
     .bg-amber-50\/50
   ) :is(input, select, textarea) {
@@ -218,12 +236,18 @@
     .bg-slate-50\/50,
     .bg-slate-100,
     .bg-slate-200,
+    .bg-zinc-50,
+    .bg-zinc-100,
+    .bg-gray-50,
+    .bg-gray-100,
     .bg-emerald-50,
     .bg-emerald-50\/30,
     .bg-emerald-50\/50,
+    .bg-green-50,
     .bg-rose-50,
     .bg-rose-50\/30,
     .bg-rose-50\/50,
+    .bg-red-50,
     .bg-amber-50,
     .bg-amber-50\/50
   ) :is(input, textarea)::placeholder {
@@ -243,31 +267,37 @@
     .bg-slate-50\/50,
     .bg-slate-100,
     .bg-slate-200,
+    .bg-zinc-50,
+    .bg-zinc-100,
+    .bg-gray-50,
+    .bg-gray-100,
     .bg-emerald-50,
     .bg-emerald-50\/30,
     .bg-emerald-50\/50,
+    .bg-green-50,
     .bg-rose-50,
     .bg-rose-50\/30,
     .bg-rose-50\/50,
+    .bg-red-50,
     .bg-amber-50,
     .bg-amber-50\/50
-  ) :is(.border-white\/70, .border-white\/50, .border-white\/10, .border-white\/15, .border-slate-100, .border-slate-150, .border-slate-200, .border-emerald-100, .border-emerald-200, .border-rose-150, .border-amber-200) {
+  ) :is(.border-white\/70, .border-white\/50, .border-white\/10, .border-white\/15, .border-slate-100, .border-slate-150, .border-slate-200, .border-emerald-100, .border-emerald-200, .border-rose-150, .border-amber-200, .border-zinc-100, .border-zinc-200, .border-gray-100, .border-gray-200, .border-red-100, .border-red-200, .border-green-100, .border-green-200) {
     border-color: var(--color-app-border) !important;
   }
 
-  #root :is(.border-emerald-100, .border-emerald-200, .border-emerald-300) {
+  #root :is(.border-emerald-100, .border-emerald-200, .border-emerald-300, .border-green-100, .border-green-200, .border-green-300) {
     border-color: rgba(52, 211, 153, 0.35) !important;
   }
 
-  #root :is(.border-rose-100, .border-rose-200, .border-rose-300) {
+  #root :is(.border-rose-100, .border-rose-200, .border-rose-300, .border-red-100, .border-red-200, .border-red-300) {
     border-color: rgba(251, 113, 133, 0.35) !important;
   }
 
-  #root :is(.border-amber-100, .border-amber-200, .border-amber-300) {
+  #root :is(.border-amber-100, .border-amber-200, .border-amber-300, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-orange-100, .border-orange-200, .border-orange-300) {
     border-color: rgba(251, 191, 36, 0.35) !important;
   }
 
-  #root :is(.border-slate-250, .border-slate-300) {
+  #root :is(.border-slate-250, .border-slate-300, .border-zinc-250, .border-zinc-300, .border-gray-250, .border-gray-300) {
     border-color: rgba(71, 85, 105, 0.55) !important;
   }
 }
