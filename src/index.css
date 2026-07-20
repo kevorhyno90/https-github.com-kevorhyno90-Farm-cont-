@@ -9,15 +9,15 @@
   --color-app-surface-strong: rgba(15, 23, 42, 0.92);
   --color-app-surface-soft: rgba(15, 23, 42, 0.72);
   --color-app-border: rgba(71, 85, 105, 0.55);
-  --color-app-text: #e2e8f0;
-  --color-app-text-strong: #f8fafc;
-  --color-app-text-soft: #cbd5e1;
-  --color-app-text-muted: #94a3b8;
-  --color-app-accent-emerald: #6ee7b7;
-  --color-app-accent-amber: #fbbf24;
-  --color-app-accent-rose: #fda4af;
-  --color-app-accent-blue: #93c5fd;
-  --color-app-accent-indigo: #a5b4fc;
+  --color-app-text: #f1f5f9;
+  --color-app-text-strong: #ffffff;
+  --color-app-text-soft: #e2e8f0;
+  --color-app-text-muted: #cbd5e1;
+  --color-app-accent-emerald: #34d399;
+  --color-app-accent-amber: #f59e0b;
+  --color-app-accent-rose: #fb7185;
+  --color-app-accent-blue: #60a5fa;
+  --color-app-accent-indigo: #818cf8;
 }
 
 @layer base {
