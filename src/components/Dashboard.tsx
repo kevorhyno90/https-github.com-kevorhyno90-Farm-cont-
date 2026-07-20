@@ -367,7 +367,7 @@ export function Dashboard({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-2xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-900 to-amber-700 tracking-tight uppercase"
+              className="text-2xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-emerald-400 to-amber-400 tracking-tight uppercase"
             >
               {t("JR Farm Omni-Estate")}
             </motion.h1>
