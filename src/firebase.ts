@@ -16,7 +16,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const isFirestoreSyncEnabled = String(import.meta.env.VITE_ENABLE_FIRESTORE_SYNC || '').toLowerCase() === 'true';
+const isFirestoreSyncEnabled = String(import.meta.env.VITE_ENABLE_FIRESTORE_SYNC || 'true').toLowerCase() === 'true';
 let db: Firestore | null = null;
 if (isFirestoreSyncEnabled) {
   try {
