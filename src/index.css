@@ -127,7 +127,27 @@
     .bg-stone-250,
     .bg-stone-300,
     .bg-stone-305,
-    .bg-stone-350
+    .bg-stone-350,
+    .bg-indigo-50,
+    [class*="bg-indigo-50/"],
+    .bg-indigo-100,
+    [class*="bg-indigo-100/"],
+    .bg-blue-50,
+    [class*="bg-blue-50/"],
+    .bg-blue-100,
+    [class*="bg-blue-100/"],
+    .bg-teal-50,
+    [class*="bg-teal-50/"],
+    .bg-teal-100,
+    [class*="bg-teal-100/"],
+    .bg-cyan-50,
+    [class*="bg-cyan-50/"],
+    .bg-cyan-100,
+    [class*="bg-cyan-100/"],
+    .bg-purple-50,
+    [class*="bg-purple-50/"],
+    .bg-purple-100,
+    [class*="bg-purple-100/"]
   ) {
     background-color: var(--color-app-surface-strong) !important;
     color: var(--color-app-text) !important;
