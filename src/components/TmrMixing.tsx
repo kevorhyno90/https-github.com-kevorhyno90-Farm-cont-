@@ -164,14 +164,14 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Introduction Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4 text-left">
           <div className="p-3 bg-emerald-100 text-emerald-950 rounded-xl shrink-0">
             <Truck size={24} className="text-emerald-800" />
           </div>
           <div>
-            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">TMR Mixer Wagon Calculator</h4>
-            <p className="text-xs text-slate-400 font-medium">
+            <h4 className="text-white font-black text-sm uppercase tracking-wider">TMR Mixer Wagon Calculator</h4>
+            <p className="text-xs text-slate-500 font-medium">
               Calculate Total Mixed Rations (TMR) to secure uniform lactation nutrition, adjust for forage dry matter, and prevent sorting by dairy cows.
             </p>
           </div>
@@ -181,7 +181,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
         <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
           <button
             onClick={handleReloadFormula}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-105 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer m-0"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-105 bg-slate-800/60 hover:bg-slate-800/80 text-white border border-white/15 hover:border-white/20 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer m-0"
           >
             <RefreshCw size={13} className="text-emerald-800" />
             <span>Sync Lab Formula</span>
@@ -208,10 +208,10 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Diet Formulation Inputs */}
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm lg:col-span-5 space-y-6">
+        <div className="bg-slate-900/40 backdrop-blur-md p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-5 space-y-6">
           <div className="text-left">
             <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Interactive Diet Parameters</h5>
-            <p className="text-xs text-slate-400 mt-1 font-semibold">Adjust weight variables in kilograms (fresh weight)</p>
+            <p className="text-xs text-slate-500 mt-1 font-semibold">Adjust weight variables in kilograms (fresh weight)</p>
           </div>
 
           <div className="space-y-4 text-left">
@@ -227,12 +227,12 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 value={sorghum}
                 onChange={(e) => setSorghum(parseFloat(e.target.value) || 0)}
                 placeholder="KG"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
               />
             </div>
 
             {/* Moisture Compensator slider */}
-            <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 space-y-2">
+            <div className="bg-amber-900/20 p-4 rounded-2xl border border-amber-100 space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-[10px] font-black uppercase text-amber-800">Silage Moisture Compensator</span>
                 <span className="font-extrabold text-amber-900 font-mono text-[11px]">{silageMoisture}% Moisture</span>
@@ -243,14 +243,14 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 max="85"
                 value={silageMoisture}
                 onChange={(e) => setSilageMoisture(Number(e.target.value))}
-                className="w-full h-1 appearance-none bg-slate-200 rounded-lg cursor-pointer accent-amber-700"
+                className="w-full h-1 appearance-none bg-slate-800/80 rounded-lg cursor-pointer accent-amber-700"
               />
               <div className="flex justify-between text-[9px] text-amber-700 font-bold uppercase tracking-wide">
                 <span>Standard (65%)</span>
                 <span>Wet Rain (80%)</span>
               </div>
               <p className="text-[10px] text-slate-500 font-medium leading-relaxed pt-1">
-                Compensates for wet harvested silages. Adjusted Silage Fresh Weight per Cow: <strong className="text-slate-800 font-mono">{adjustedSorghum.toFixed(1)} KG</strong> (Original: {sorghum} KG) to preserve strict dry-matter targets.
+                Compensates for wet harvested silages. Adjusted Silage Fresh Weight per Cow: <strong className="text-white font-mono">{adjustedSorghum.toFixed(1)} KG</strong> (Original: {sorghum} KG) to preserve strict dry-matter targets.
               </p>
             </div>
 
@@ -266,7 +266,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 value={napier}
                 onChange={(e) => setNapier(parseFloat(e.target.value) || 0)}
                 placeholder="KG"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
               />
             </div>
 
@@ -282,12 +282,12 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 value={rhodes}
                 onChange={(e) => setRhodes(parseFloat(e.target.value) || 0)}
                 placeholder="KG"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none"
               />
             </div>
 
             {/* Premium Cross-Module Feed-to-TMR Integrator Controller */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="pt-4 border-t border-white/10 space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Concentrate Customization</label>
                 <span className="text-[11px] text-emerald-950 font-bold font-mono">{getPercent(dairyMeal)}% of TMR</span>
@@ -303,11 +303,11 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                     value={dairyMeal}
                     onChange={(e) => setDairyMeal(parseFloat(e.target.value) || 0)}
                     placeholder="KG"
-                    className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none text-center"
+                    className="text-xs border border-white/15 rounded-lg p-2.5 w-full font-mono font-bold focus:ring-1 focus:ring-emerald-700 focus:outline-none text-center"
                   />
                 </div>
                 <div className="col-span-2 text-right">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Est. Concentrate per Cow</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Est. Concentrate per Cow</span>
                   <span className="text-[11px] font-mono text-emerald-900 font-extrabold">{dairyMeal.toFixed(1)} KG/Cow/day</span>
                 </div>
               </div>
@@ -331,7 +331,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 </p>
 
                 {useCustomFormula && (
-                  <div className="border-t border-emerald-500/10 pt-2 text-[9.5px] font-semibold text-slate-600 space-y-1">
+                  <div className="border-t border-emerald-500/10 pt-2 text-[9.5px] font-semibold text-slate-500 space-y-1">
                     <span className="text-[8px] font-black uppercase text-emerald-800 tracking-wider block">Pushed Ratios Breakdown:</span>
                     {activeRecipeItems.map((item, idz) => (
                       <div key={idz} className="flex justify-between items-center font-mono">
@@ -345,7 +345,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
             </div>
 
             {/* Scale multiplier (Herd Size) */}
-            <div className="pt-3 border-t border-slate-100">
+            <div className="pt-3 border-t border-white/10">
               <label className="text-[10px] font-black text-emerald-900 uppercase tracking-widest block mb-1">Active Milking Herd Size</label>
               <input
                 type="number"
@@ -354,7 +354,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                 value={cowsCount}
                 onChange={(e) => setCowsCount(parseInt(e.target.value) || 1)}
                 placeholder="Number of Cows"
-                className="text-xs border border-emerald-250 rounded-lg p-3 w-full font-mono font-bold bg-emerald-50/20 focus:ring-1 focus:ring-emerald-700 focus:outline-none"
+                className="text-xs border border-emerald-250 rounded-lg p-3 w-full font-mono font-bold bg-emerald-900/20 focus:ring-1 focus:ring-emerald-700 focus:outline-none"
               />
               <span className="text-[10px] text-slate-450 mt-1 block font-semibold uppercase">Used to scale batch mixing instructions on wagon scale</span>
             </div>
@@ -364,23 +364,23 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
         {/* Diagnostic mixing visualization */}
         <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
           {/* Main classic double border container */}
-          <div className="bg-white p-10 border-8 border-double border-emerald-900/60 rounded-[40px] shadow-sm text-center flex flex-col justify-center items-center space-y-6 min-h-[300px]">
+          <div className="bg-slate-900/40 backdrop-blur-md p-10 border-8 border-double border-emerald-900/60 rounded-[40px] shadow-sm text-center flex flex-col justify-center items-center space-y-6 min-h-[300px]">
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Adjusted TMR Feed Weight</p>
-              <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full uppercase">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Adjusted TMR Feed Weight</p>
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-900/20 border border-emerald-100 px-3 py-1 rounded-full uppercase">
                 Per Cow / Day (Fresh Basis)
               </span>
             </div>
             <div>
-              <h1 className="text-8xl font-black text-slate-800 font-mono tracking-tighter leading-none">
+              <h1 className="text-8xl font-black text-white font-mono tracking-tighter leading-none">
                 {weightPerCow.toFixed(1)} <span className="text-xl font-bold text-slate-500 uppercase font-mono">KG</span>
               </h1>
             </div>
 
             {/* Total mixer load scale display */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 w-full max-w-sm flex items-center justify-between">
+            <div className="bg-slate-800/40 border border-white/10 rounded-2xl p-5 w-full max-w-sm flex items-center justify-between">
               <div className="text-left">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Mixer Target ({cowsCount} Cows)</span>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Mixer Target ({cowsCount} Cows)</span>
                 <h3 className="text-2xl font-black font-mono text-emerald-950 mt-1">
                   {totalMixForHerd.toFixed(1)} KG
                 </h3>
@@ -515,7 +515,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                         {isLoaded ? (
                           <Check size={14} className="text-yellow-400 shrink-0" />
                         ) : (
-                          <span className="text-[8px] border border-white/20 text-slate-400 px-1 py-0.2 rounded font-mono shrink-0 uppercase">Load</span>
+                          <span className="text-[8px] border border-white/20 text-slate-500 px-1 py-0.2 rounded font-mono shrink-0 uppercase">Load</span>
                         )}
                       </button>
                     );
@@ -537,8 +537,8 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
       </div>
 
       {/* Historical Mix Logs */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 text-left">
-        <div className="flex items-center gap-2 text-slate-800 pb-2 border-b border-slate-100">
+      <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-4 text-left">
+        <div className="flex items-center gap-2 text-white pb-2 border-b border-white/10">
           <ClipboardCheck size={18} className="text-emerald-700" />
           <h5 className="text-xs font-black uppercase tracking-wider">Mixer Run Operations Log</h5>
         </div>
@@ -547,9 +547,9 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
           <p className="text-center text-slate-450 text-xs italic py-6">No historical runs recorded today.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600">
+            <table className="w-full text-left text-xs text-slate-500">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] uppercase font-black text-slate-400">
+                <tr className="border-b border-white/10 text-[10px] uppercase font-black text-slate-500">
                   <th className="py-3">Date</th>
                   <th className="py-3">Milking Herd size</th>
                   <th className="py-3">silage moisture</th>
@@ -560,9 +560,9 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
               </thead>
               <tbody className="divide-y divide-slate-50 font-medium">
                 {mixLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50">
+                  <tr key={log.id} className="hover:bg-slate-800/40">
                     <td className="py-3 flex items-center gap-2">
-                       <Calendar size={12} className="text-slate-450 font-mono text-slate-400" />
+                       <Calendar size={12} className="text-slate-450 font-mono text-slate-500" />
                       <span className="font-mono font-bold text-slate-750">{log.date}</span>
                     </td>
                     <td className="py-3 font-mono text-slate-750 font-black">{log.cows} Head</td>
@@ -573,7 +573,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
                     </td>
                     <td className="py-3">
                       <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
-                        log.mode ? (log.mode.includes('Lab') ? 'bg-indigo-100 text-indigo-950 border border-indigo-200' : 'bg-slate-100 text-slate-750') : 'bg-slate-100 text-slate-750'
+                        log.mode ? (log.mode.includes('Lab') ? 'bg-indigo-100 text-indigo-950 border border-indigo-200' : 'bg-slate-800/60 text-slate-750') : 'bg-slate-800/60 text-slate-750'
                       }`}>
                         {log.mode || 'Standard Template'}
                       </span>

@@ -1475,20 +1475,20 @@ export function DairyBreeding({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Dairy Master Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3.5 bg-emerald-100 text-emerald-950 rounded-2xl shrink-0">
             <Activity size={24} className="text-emerald-800" />
           </div>
           <div>
-            <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">
+            <h4 className="text-white font-black text-sm uppercase tracking-wider">
               {activeSubModule === 'milk' ? 'Daily Milking & Milk Sales' :
                activeSubModule === 'breeding' ? 'Artificial Insemination & Breeding' :
                activeSubModule === 'veterinary' ? 'Veterinary Treatment Clinic' :
                activeSubModule === 'cows' ? 'Cattle Pedigree & Registry' :
                'Premium Dairy & Lactation Hub'}
             </h4>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               {activeSubModule === 'milk' ? 'Track daily cow milking volumes, sales, home usage, and customer outflows.' :
                activeSubModule === 'breeding' ? 'Monitor cow heat events, inseminations, pregnancy status, and semen straw reserves.' :
                activeSubModule === 'veterinary' ? 'Record deworming, vaccines, mastitis treatments, and milk safety withdrawal calendars.' :
@@ -1500,12 +1500,12 @@ export function DairyBreeding({
 
         {/* Dynamic sub navigation tabs */}
         {(!activeSubModule || activeSubModule === 'breeding' || activeSubModule === 'cows') && (
-          <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200/60 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
+          <div className="flex bg-slate-800/60 p-1.5 rounded-xl border border-white/15 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
             {(!activeSubModule) && (
               <button
                 onClick={() => setSubTab('lactation')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 ${
-                  subTab === 'lactation' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  subTab === 'lactation' ? 'bg-slate-900/40 backdrop-blur-md text-white shadow-sm' : 'text-slate-500 hover:text-white'
                 }`}
               >
                 Lactation & AI
@@ -1515,7 +1515,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('registry')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-                  subTab === 'registry' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-805'
+                  subTab === 'registry' ? 'bg-slate-900/40 backdrop-blur-md text-white shadow-sm' : 'text-slate-500 hover:text-slate-805'
                 }`}
               >
                 Cow Directory
@@ -1525,7 +1525,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('breeding_ledger')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-                  subTab === 'breeding_ledger' ? 'bg-white text-slate-955 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
+                  subTab === 'breeding_ledger' ? 'bg-slate-900/40 backdrop-blur-md text-slate-955 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
                 }`}
               >
                 📋 Breeding Ledger
@@ -1535,7 +1535,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('breeding_wheel')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-                  subTab === 'breeding_wheel' ? 'bg-white text-slate-950 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
+                  subTab === 'breeding_wheel' ? 'bg-slate-900/40 backdrop-blur-md text-slate-950 shadow-sm ring-1 ring-emerald-500/20' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-500/5'
                 }`}
               >
                 🎡 Breeding Wheel
@@ -1545,7 +1545,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('veterinary')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 relative ${
-                  subTab === 'veterinary' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  subTab === 'veterinary' ? 'bg-slate-900/40 backdrop-blur-md text-white shadow-sm' : 'text-slate-500 hover:text-white'
                 }`}
               >
                 Vet & Deworming
@@ -1558,7 +1558,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('life_ledger')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-                  subTab === 'life_ledger' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  subTab === 'life_ledger' ? 'bg-slate-900/40 backdrop-blur-md text-white shadow-sm' : 'text-slate-500 hover:text-white'
                 }`}
               >
                 Sales & Loss
@@ -1568,7 +1568,7 @@ export function DairyBreeding({
               <button
                 onClick={() => setSubTab('semen_inventory')}
                 className={`px-3 py-2 text-xs uppercase tracking-wider font-extrabold rounded-lg transition-all m-0 shrink-0 flex items-center gap-1.5 ${
-                  subTab === 'semen_inventory' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  subTab === 'semen_inventory' ? 'bg-slate-900/40 backdrop-blur-md text-white shadow-sm' : 'text-slate-500 hover:text-white'
                 }`}
               >
                 🧬 Semen Straws
@@ -1588,7 +1588,7 @@ export function DairyBreeding({
                   🧬 Genetic Stock Center
                 </span>
                 <h3 className="text-xl font-black text-white">Semen Straws & Breeding Sire Inventory</h3>
-                <p className="text-slate-400 text-xs font-medium">Manage and monitor high-yield genetic straws in stock. Select these genetic resources during artificial insemination (AI) service logs to track usage and auto-deduct straw inventory.</p>
+                <p className="text-slate-500 text-xs font-medium">Manage and monitor high-yield genetic straws in stock. Select these genetic resources during artificial insemination (AI) service logs to track usage and auto-deduct straw inventory.</p>
               </div>
               {onTriggerSectionReport && (
                 <button
@@ -1606,8 +1606,8 @@ export function DairyBreeding({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Add New Straw Form */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs space-y-4">
-              <h4 className="text-xs font-black uppercase text-slate-800 border-b border-slate-100 pb-2 flex items-center gap-1.5">
+            <div className="bg-slate-900/40 backdrop-blur-md p-5 rounded-3xl border border-white/10 shadow-xs space-y-4">
+              <h4 className="text-xs font-black uppercase text-white border-b border-white/10 pb-2 flex items-center gap-1.5">
                 ➕ Register Semen Straw
               </h4>
               <form onSubmit={(e) => {
@@ -1641,7 +1641,7 @@ export function DairyBreeding({
                     type="text"
                     required
                     placeholder="E.g. SEMEN-JE-800"
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -1651,7 +1651,7 @@ export function DairyBreeding({
                     type="text"
                     required
                     placeholder="E.g. Jersey Prime Elite"
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -1660,7 +1660,7 @@ export function DairyBreeding({
                     <select
                       name="breed"
                       required
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                     >
                       <option value="Holstein-Friesian">Holstein-Friesian</option>
                       <option value="Jersey">Jersey</option>
@@ -1674,7 +1674,7 @@ export function DairyBreeding({
                     <select
                       name="semenType"
                       required
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                     >
                       <option value="Sexed (Female)">Sexed (Female)</option>
                       <option value="Sexed (Male)">Sexed (Male)</option>
@@ -1690,7 +1690,7 @@ export function DairyBreeding({
                       type="text"
                       required
                       placeholder="E.g. Imported (USA)"
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                     />
                   </div>
                   <div>
@@ -1701,7 +1701,7 @@ export function DairyBreeding({
                       required
                       min="0"
                       placeholder="Cost"
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                     />
                   </div>
                 </div>
@@ -1713,7 +1713,7 @@ export function DairyBreeding({
                     required
                     min="1"
                     placeholder="E.g. 10"
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <button
@@ -1726,19 +1726,19 @@ export function DairyBreeding({
             </div>
 
             {/* Inventory Table */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-xs md:col-span-2 space-y-4">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                <h4 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+            <div className="bg-slate-900/40 backdrop-blur-md p-5 rounded-3xl border border-white/10 shadow-xs md:col-span-2 space-y-4">
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <h4 className="text-xs font-black uppercase text-white flex items-center gap-1.5">
                   📋 Straws Registry Ledger
                 </h4>
-                <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-800/40 px-2 py-0.5 rounded">
                   {semenInventory.length} types registered
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                    <tr className="border-b border-white/10 text-[10px] font-black uppercase text-slate-500 tracking-wider">
                       <th className="p-2.5">Straw Code / Sire</th>
                       <th className="p-2.5">Breed / Type</th>
                       <th className="p-2.5">Origin</th>
@@ -1749,17 +1749,17 @@ export function DairyBreeding({
                   </thead>
                   <tbody>
                     {semenInventory.map((item) => (
-                      <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                      <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-800/40/50">
                         <td className="p-2.5 font-bold">
-                          <span className="font-mono text-slate-900 block">{item.id}</span>
-                          <span className="text-[10px] text-slate-400 font-medium block">{item.bullName}</span>
+                          <span className="font-mono text-white block">{item.id}</span>
+                          <span className="text-[10px] text-slate-500 font-medium block">{item.bullName}</span>
                         </td>
                         <td className="p-2.5 font-medium">
                           <span className="text-slate-850 block">{item.breed}</span>
-                          <span className="text-[9px] text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded font-black uppercase inline-block mt-0.5">{item.semenType}</span>
+                          <span className="text-[9px] text-indigo-700 bg-indigo-900/20 px-1.5 py-0.2 rounded font-black uppercase inline-block mt-0.5">{item.semenType}</span>
                         </td>
                         <td className="p-2.5 text-slate-500 font-semibold">{item.origin}</td>
-                        <td className="p-2.5 text-right font-mono font-bold text-slate-700">Ksh {item.cost.toLocaleString()}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-slate-200">Ksh {item.cost.toLocaleString()}</td>
                         <td className="p-2.5 text-center">
                           <span className={`px-2 py-0.5 rounded font-black text-[10px] font-mono ${
                             item.quantity <= 2 
@@ -1776,7 +1776,7 @@ export function DairyBreeding({
                                 setSemenInventory(semenInventory.filter(s => s.id !== item.id));
                               }
                             }}
-                            className="text-rose-600 hover:text-rose-850 font-bold hover:bg-rose-50 px-2 py-1 rounded transition-colors text-[10px] uppercase cursor-pointer"
+                            className="text-rose-600 hover:text-rose-850 font-bold hover:bg-rose-900/20 px-2 py-1 rounded transition-colors text-[10px] uppercase cursor-pointer"
                           >
                             Delete
                           </button>
@@ -1796,13 +1796,13 @@ export function DairyBreeding({
         <div className="space-y-6 animate-fadeIn" id="life-ledger-dairy">
           
           {/* Header Actions for Sales & Loss */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <h4 className="text-white font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
                 <TrendingUp size={16} className="text-rose-700" />
                 Cattle Sales & Mortality Ledger
               </h4>
-              <p className="text-xs text-slate-400 font-medium">Download reports of livestock sales, capital disposal, and sanitary mortality audits.</p>
+              <p className="text-xs text-slate-500 font-medium">Download reports of livestock sales, capital disposal, and sanitary mortality audits.</p>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
               {onTriggerSectionReport && (
@@ -1834,7 +1834,7 @@ export function DairyBreeding({
               </p>
             </div>
 
-            <div className="bg-rose-50 border border-rose-150 rounded-3xl p-5 shadow-xs">
+            <div className="bg-rose-900/20 border border-rose-150 rounded-3xl p-5 shadow-xs">
               <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest block mb-1">Cattle Mortalities</span>
               <span className="text-2xl font-black font-mono text-rose-950">
                 {mortalities.filter(m => m.type === 'Cow' || m.type === 'Calf').length} Animals
@@ -1844,9 +1844,9 @@ export function DairyBreeding({
               </p>
             </div>
 
-            <div className="bg-white border border-slate-150 rounded-3xl p-5 shadow-xs flex flex-col justify-center">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Herd Active Rate</span>
-              <span className="text-base font-extrabold text-slate-900 mt-1">
+            <div className="bg-slate-900/40 backdrop-blur-md border border-slate-150 rounded-3xl p-5 shadow-xs flex flex-col justify-center">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Herd Active Rate</span>
+              <span className="text-base font-extrabold text-white mt-1">
                 {cows.length} Live Cattle Registered
               </span>
               <p className="text-[10px] text-slate-500 font-medium">
@@ -1858,10 +1858,10 @@ export function DairyBreeding({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* COLUMN 1: ANIMAL SALES HISTORY */}
-            <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
-              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+            <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 space-y-6 shadow-sm">
+              <div className="border-b border-white/10 pb-3 flex justify-between items-center">
                 <div className="space-y-0.5">
-                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">Cattle Sales & Culling Logs</h4>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Cattle Sales & Culling Logs</h4>
                   <p className="text-[10px] text-slate-450 font-semibold uppercase">Manage bovine disposals and secondary revenue</p>
                 </div>
                 <span className="bg-emerald-100 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded uppercase">Ledger</span>
@@ -1893,44 +1893,44 @@ export function DairyBreeding({
                   });
                   target.reset();
                 }}
-                className="space-y-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl"
+                className="space-y-4 bg-slate-800/40 border border-white/10 p-4 rounded-2xl"
               >
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Animal Category</label>
-                    <select name="animalType" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Animal Category</label>
+                    <select name="animalType" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2.5 font-bold text-xs">
                       <option value="Cow">Milking Cow</option>
                       <option value="Calf">Young Calf</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Tag / ID Number</label>
-                    <input type="text" name="animalId" required placeholder="e.g., J-601" className="w-full bg-white border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Tag / ID Number</label>
+                    <input type="text" name="animalId" required placeholder="e.g., J-601" className="w-full bg-slate-900/40 backdrop-blur-md border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Date</label>
-                    <input type="date" name="saleDate" defaultValue={toIsoDate()} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Sale Date</label>
+                    <input type="date" name="saleDate" defaultValue={toIsoDate()} required className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Sale Value (Ksh)</label>
-                    <input type="number" name="salePrice" required placeholder="80000" className="w-full bg-white border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Buyer / Purchaser Details</label>
-                    <input type="text" name="saleBuyer" placeholder="Brookside heifers breeder or local dealer" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Sale Value (Ksh)</label>
+                    <input type="number" name="salePrice" required placeholder="80000" className="w-full bg-slate-900/40 backdrop-blur-md border border-slate-205 focus:border-emerald-700 rounded-xl px-3 py-2 font-bold text-xs" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Transaction Notes (e.g. Weight, Breed, Lineage, Pedigree status)</label>
-                    <input type="text" name="saleNotes" placeholder="e.g. Sold due to low daily lactation yield of 8L or pedigree grade upgrade" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Buyer / Purchaser Details</label>
+                    <input type="text" name="saleBuyer" placeholder="Brookside heifers breeder or local dealer" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">Transaction Notes (e.g. Weight, Breed, Lineage, Pedigree status)</label>
+                    <input type="text" name="saleNotes" placeholder="e.g. Sold due to low daily lactation yield of 8L or pedigree grade upgrade" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs" />
                   </div>
                 </div>
 
@@ -1942,21 +1942,21 @@ export function DairyBreeding({
               {/* Sales List */}
               <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                 {animalSales.filter(s => s.type === 'Cow' || s.type === 'Calf').length === 0 ? (
-                  <p className="text-center text-slate-400 py-6 text-xs font-bold">No cattle sales transactions recorded.</p>
+                  <p className="text-center text-slate-500 py-6 text-xs font-bold">No cattle sales transactions recorded.</p>
                 ) : (
                   animalSales
                     .filter(s => s.type === 'Cow' || s.type === 'Calf')
                     .map(sale => (
-                      <div key={sale.id} className="p-3.5 bg-white border border-slate-100 rounded-2xl flex justify-between items-center shadow-xs">
+                      <div key={sale.id} className="p-3.5 bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl flex justify-between items-center shadow-xs">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-black text-xs text-slate-900 uppercase">
+                            <span className="font-black text-xs text-white uppercase">
                               {sale.animalId}
                             </span>
-                            <span className="bg-slate-150 text-slate-700 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+                            <span className="bg-slate-150 text-slate-200 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
                               {sale.type}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-bold font-mono">
+                            <span className="text-[10px] text-slate-500 font-bold font-mono">
                               {sale.date}
                             </span>
                           </div>
@@ -1965,7 +1965,7 @@ export function DairyBreeding({
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs font-black text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                          <span className="font-mono text-xs font-black text-emerald-800 bg-emerald-900/20 px-2.5 py-1 rounded-lg">
                             Ksh {sale.price.toLocaleString()}
                           </span>
                           <button
@@ -1982,10 +1982,10 @@ export function DairyBreeding({
             </div>
 
             {/* COLUMN 2: ANIMAL MORTALITY LEDGER */}
-            <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-6 shadow-sm">
-              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+            <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 space-y-6 shadow-sm">
+              <div className="border-b border-white/10 pb-3 flex justify-between items-center">
                 <div className="space-y-0.5">
-                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">Cattle Mortality Ledger</h4>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wide">Cattle Mortality Ledger</h4>
                   <p className="text-[10px] text-slate-450 font-semibold uppercase">Log sanitations, post-mortems and disease casualties</p>
                 </div>
                 <span className="bg-rose-100 text-rose-950 text-[9px] font-black px-2 py-0.5 rounded uppercase">Loss Register</span>
@@ -2017,30 +2017,30 @@ export function DairyBreeding({
                   });
                   target.reset();
                 }}
-                className="space-y-4 bg-rose-50/20 border border-rose-100/50 p-4 rounded-2xl"
+                className="space-y-4 bg-rose-900/20 border border-rose-100/50 p-4 rounded-2xl"
               >
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Animal Category</label>
-                    <select name="animalType" className="w-full bg-white border border-slate-205 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
+                    <select name="animalType" className="w-full bg-slate-900/40 backdrop-blur-md border border-slate-205 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
                       <option value="Cow">Milking Cow</option>
                       <option value="Calf">Young Calf</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Tag / ID Number</label>
-                    <input type="text" name="animalId" required placeholder="e.g., J-603" className="w-full bg-white border border-slate-205 focus:border-red-700 rounded-xl px-3 py-2 font-bold text-xs" />
+                    <input type="text" name="animalId" required placeholder="e.g., J-603" className="w-full bg-slate-900/40 backdrop-blur-md border border-slate-205 focus:border-red-700 rounded-xl px-3 py-2 font-bold text-xs" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Incident Date</label>
-                    <input type="date" name="mortalityDate" defaultValue={toIsoDate()} required className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
+                    <input type="date" name="mortalityDate" defaultValue={toIsoDate()} required className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs font-mono" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Cause of Death</label>
-                    <select name="mortalityCause" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
+                    <select name="mortalityCause" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2.5 font-bold text-xs text-rose-950">
                       <option value="Bloat (Frothy/Gaseous)">Bloat (Frothy/Gaseous)</option>
                       <option value="East Coast Fever (ECF)">East Coast Fever (ECF)</option>
                       <option value="Milk Fever (Severe Hypocalcaemia)">Milk Fever (Severe Hypocalcaemia)</option>
@@ -2054,14 +2054,14 @@ export function DairyBreeding({
                 <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Safe Disposal Protocol (How disposing?)</label>
-                    <input type="text" name="mortalityDisposal" placeholder="e.g. Buried 6ft deep with agricultural chemical lime" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                    <input type="text" name="mortalityDisposal" placeholder="e.g. Buried 6ft deep with agricultural chemical lime" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-wider text-rose-900 block mb-1">Autopsy / Post-Mortem & Diagnosis Notes</label>
-                    <input type="text" name="mortalityNotes" placeholder="e.g. Diagnosed by Dr Devin; triggered by extreme early-morning wet clover bloat" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 font-semibold text-xs" />
+                    <input type="text" name="mortalityNotes" placeholder="e.g. Diagnosed by Dr Devin; triggered by extreme early-morning wet clover bloat" className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl px-3 py-2 font-semibold text-xs" />
                   </div>
                 </div>
 
@@ -2073,12 +2073,12 @@ export function DairyBreeding({
               {/* Mortality List */}
               <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                 {mortalities.filter(m => m.type === 'Cow' || m.type === 'Calf').length === 0 ? (
-                  <p className="text-center text-slate-400 py-6 text-xs font-bold">No cattle mortality incidents recorded.</p>
+                  <p className="text-center text-slate-500 py-6 text-xs font-bold">No cattle mortality incidents recorded.</p>
                 ) : (
                   mortalities
                     .filter(m => m.type === 'Cow' || m.type === 'Calf')
                     .map(inc => (
-                      <div key={inc.id} className="p-3.5 bg-rose-50/10 border border-rose-100 rounded-2xl flex justify-between items-center shadow-xs">
+                      <div key={inc.id} className="p-3.5 bg-rose-900/20 border border-rose-100 rounded-2xl flex justify-between items-center shadow-xs">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-black text-xs text-rose-950 uppercase">
@@ -2087,7 +2087,7 @@ export function DairyBreeding({
                             <span className="bg-rose-100 text-rose-900 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
                               {inc.type}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-bold font-mono">
+                            <span className="text-[10px] text-slate-500 font-bold font-mono">
                               {inc.date}
                             </span>
                             <span className="bg-red-950/50 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">
@@ -2124,12 +2124,12 @@ export function DairyBreeding({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* COLUMN 1: Individual Cow Milking Form */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-              <div className="border-b border-slate-100 pb-3">
+            <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-6">
+              <div className="border-b border-white/10 pb-3">
                 <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase flex items-center gap-1">
                   <TrendingUp size={12} /> Cow Milking Console
                 </h5>
-                <p className="text-[10px] text-slate-400 mt-1 font-bold">Record individual morning & afternoon yields</p>
+                <p className="text-[10px] text-slate-500 mt-1 font-bold">Record individual morning & afternoon yields</p>
               </div>
 
               <form onSubmit={handleMilkingSubmit} className="space-y-4">
@@ -2140,7 +2140,7 @@ export function DairyBreeding({
                       required
                       value={cowTag}
                       onChange={(e) => setCowTag(e.target.value)}
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold bg-white outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md outline-none"
                     >
                       <option value="">-- Choose registered cow --</option>
                       {cows.map(c => (
@@ -2154,7 +2154,7 @@ export function DairyBreeding({
                       value={cowTag}
                       onChange={(e) => setCowTag(e.target.value)}
                       placeholder="E.g. Cow-104 (Blossom)"
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full font-bold outline-none"
                     />
                   )}
                 </div>
@@ -2170,7 +2170,7 @@ export function DairyBreeding({
                       value={amLiters}
                       onChange={(e) => setAmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       placeholder="Morning L"
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
                     />
                   </div>
                   <div>
@@ -2183,7 +2183,7 @@ export function DairyBreeding({
                       value={pmLiters}
                       onChange={(e) => setPmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       placeholder="Afternoon L"
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
                     />
                   </div>
                 </div>
@@ -2196,7 +2196,7 @@ export function DairyBreeding({
                       required
                       value={milkingDate}
                       onChange={(e) => setMilkingDate(e.target.value)}
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none"
                     />
                   </div>
                   <div>
@@ -2204,7 +2204,7 @@ export function DairyBreeding({
                     <select
                       value={staffName}
                       onChange={(e) => setStaffName(e.target.value)}
-                      className="text-xs border border-slate-200 focus:border-emerald-500 rounded-xl p-3 w-full bg-white font-medium text-slate-700 outline-none"
+                      className="text-xs border border-white/15 focus:border-emerald-500 rounded-xl p-3 w-full bg-slate-900/40 backdrop-blur-md font-medium text-slate-200 outline-none"
                     >
                       {staffList.map((st) => (
                         <option key={st.id} value={st.name}>
@@ -2230,13 +2230,13 @@ export function DairyBreeding({
                 <h5 className="text-[11px] font-black tracking-widest text-emerald-400 uppercase flex items-center gap-1">
                   <Truck size={12} /> Daily Global Dispatch
                 </h5>
-                <p className="text-[10px] text-slate-400 mt-1 font-bold">Record consumption, spoils & set today's price</p>
+                <p className="text-[10px] text-slate-500 mt-1 font-bold">Record consumption, spoils & set today's price</p>
               </div>
 
               <form onSubmit={handleOutflowSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Dispatch Date</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1">Dispatch Date</label>
                     <input
                       type="date"
                       required
@@ -2261,7 +2261,7 @@ export function DairyBreeding({
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-slate-800 p-3 rounded-xl bg-slate-950/50">
                   <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Used at Home">Home (L)</label>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1" title="Used at Home">Home (L)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -2273,7 +2273,7 @@ export function DairyBreeding({
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Used by Workers">Staff (L)</label>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1" title="Used by Workers">Staff (L)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -2285,7 +2285,7 @@ export function DairyBreeding({
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1" title="Consumed by Calf">Calf (L)</label>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1" title="Consumed by Calf">Calf (L)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -2367,19 +2367,19 @@ export function DairyBreeding({
           </div>
 
           {/* Unified Ledger Log */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <div className="flex justify-between items-end border-b border-slate-100 pb-3">
+          <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-6">
+            <div className="flex justify-between items-end border-b border-white/10 pb-3">
               <div>
-                <h5 className="text-[11px] font-black tracking-widest text-slate-800 uppercase flex items-center gap-1">
+                <h5 className="text-[11px] font-black tracking-widest text-white uppercase flex items-center gap-1">
                   <Database size={12} /> Combined Production & Dispatch Ledger
                 </h5>
-                <p className="text-[10px] text-slate-400 mt-1 font-bold">Historical data computed automatically per day</p>
+                <p className="text-[10px] text-slate-500 mt-1 font-bold">Historical data computed automatically per day</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { setDownloadType('csv'); setShowDownloadModal(true); }}
                   type="button"
-                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-900 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-900/20 hover:bg-emerald-100 border border-emerald-250 text-emerald-900 rounded-lg font-black text-[9px] uppercase transition-all shadow-xs cursor-pointer"
                   title="Export Yield History as CSV"
                 >
                   <FileSpreadsheet size={12} />
@@ -2404,7 +2404,7 @@ export function DairyBreeding({
                 
                 if (allDates.length === 0) {
                   return (
-                    <div className="text-center py-8 text-slate-400 font-bold uppercase text-[10px]">
+                    <div className="text-center py-8 text-slate-500 font-bold uppercase text-[10px]">
                       No production or dispatch records found
                     </div>
                   );
@@ -2428,32 +2428,32 @@ export function DairyBreeding({
                   const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
 
                   return (
-                    <div key={dateStr} className="bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-xs hover:border-slate-200 transition-all">
+                    <div key={dateStr} className="bg-slate-800/40 border border-white/10 rounded-2xl overflow-hidden shadow-xs hover:border-white/15 transition-all">
                       {/* Day Header */}
-                      <div className="bg-slate-100/50 p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <div className="bg-slate-800/60/50 p-4 border-b border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs">
-                            <span className="font-extrabold text-slate-800 text-xs uppercase tracking-widest block font-mono">
+                          <div className="bg-slate-900/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/15 shadow-xs">
+                            <span className="font-extrabold text-white text-xs uppercase tracking-widest block font-mono">
                               {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           </div>
                           {dayOutflow && (
-                            <span className="text-[9px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                            <span className="text-[9px] font-black uppercase text-amber-600 bg-amber-900/20 px-2 py-1 rounded-md border border-amber-100">
                               Price: Ksh {price}/L
                             </span>
                           )}
                         </div>
 
                         <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider">
-                          <span className="bg-white text-slate-700 border border-slate-200 px-2 py-1 rounded-md shadow-xs">
+                          <span className="bg-slate-900/40 backdrop-blur-md text-slate-200 border border-white/15 px-2 py-1 rounded-md shadow-xs">
                             Yield: {yieldTotal.toFixed(1)} L
                           </span>
                           {consumed > 0 && (
-                            <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded-md shadow-xs">
+                            <span className="bg-amber-900/20 text-amber-700 border border-amber-200 px-2 py-1 rounded-md shadow-xs">
                               Dispatch: {consumed.toFixed(1)} L
                             </span>
                           )}
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-md shadow-xs">
+                          <span className="bg-emerald-900/20 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-md shadow-xs">
                             Net: {netSold.toFixed(1)} L
                           </span>
                           <span className="bg-emerald-600 text-white border border-emerald-700 px-2 py-1 rounded-md shadow-xs">
@@ -2465,23 +2465,23 @@ export function DairyBreeding({
                       <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Left: Milking Detail */}
                         <div className="space-y-2">
-                          <h6 className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 border-b border-slate-200 pb-1">Cow Yields ({dayMilks.length})</h6>
+                          <h6 className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 border-b border-white/15 pb-1">Cow Yields ({dayMilks.length})</h6>
                           {dayMilks.length === 0 ? (
-                            <span className="text-[10px] text-slate-400 font-bold italic">No cow records logged.</span>
+                            <span className="text-[10px] text-slate-500 font-bold italic">No cow records logged.</span>
                           ) : (
                             <div className="space-y-1.5">
                               {dayMilks.map(m => {
                                 const mTotal = (m.am ?? 0) + (m.pm ?? 0);
                                 const isHigh = isHighProducer(m.am ?? 0, m.pm ?? 0, m.id);
                                 return (
-                                  <div key={m.id} className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-2xs group">
+                                  <div key={m.id} className="flex justify-between items-center bg-slate-900/40 backdrop-blur-md p-2 rounded-lg border border-white/10 shadow-2xs group">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-bold text-slate-800 text-xs">{m.id}</span>
+                                      <span className="font-bold text-white text-xs">{m.id}</span>
                                       {isHigh && <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded font-black uppercase tracking-wider">Peak</span>}
                                     </div>
                                     <div className="flex items-center gap-3">
                                       <span className="text-[9px] font-mono text-slate-500">AM:{m.am} PM:{m.pm}</span>
-                                      <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
+                                      <span className="text-[10px] font-mono font-black text-emerald-700 bg-emerald-900/20 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
                                       {onEditMilkRecord && (
                                         <button onClick={() => setEditingMilk(m)} className="text-slate-300 hover:text-emerald-500 transition-colors opacity-100"><PenSquare size={12}/></button>
                                       )}
@@ -2496,42 +2496,42 @@ export function DairyBreeding({
 
                         {/* Right: Dispatch Detail */}
                         <div className="space-y-2">
-                          <h6 className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 border-b border-slate-200 pb-1">Dispatch & Debts</h6>
+                          <h6 className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 border-b border-white/15 pb-1">Dispatch & Debts</h6>
                           {!dayOutflow ? (
-                            <span className="text-[10px] text-slate-400 font-bold italic">No dispatch logged.</span>
+                            <span className="text-[10px] text-slate-500 font-bold italic">No dispatch logged.</span>
                           ) : (
                             <div className="space-y-2">
                               {consumed > 0 && (
                                 <div className="flex flex-wrap gap-2 text-[9px] font-bold">
-                                  {home > 0 && <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">🏠 Home: {home}L</span>}
-                                  {workers > 0 && <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded border border-amber-100">👥 Staff: {workers}L</span>}
-                                  {calf > 0 && <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100">🍼 Calf: {calf}L</span>}
-                                  {spoiled > 0 && <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded border border-rose-100">⚠️ Spoilt: {spoiled}L</span>}
+                                  {home > 0 && <span className="bg-blue-900/20 text-blue-700 px-2 py-1 rounded border border-blue-100">🏠 Home: {home}L</span>}
+                                  {workers > 0 && <span className="bg-amber-900/20 text-amber-700 px-2 py-1 rounded border border-amber-100">👥 Staff: {workers}L</span>}
+                                  {calf > 0 && <span className="bg-purple-900/20 text-purple-700 px-2 py-1 rounded border border-purple-100">🍼 Calf: {calf}L</span>}
+                                  {spoiled > 0 && <span className="bg-rose-900/20 text-rose-700 px-2 py-1 rounded border border-rose-100">⚠️ Spoilt: {spoiled}L</span>}
                                 </div>
                               )}
                               
                               {debtsKsh > 0 && (
-                                <div className="bg-rose-50 p-2 rounded-lg border border-rose-100">
+                                <div className="bg-rose-900/20 p-2 rounded-lg border border-rose-100">
                                   <span className="text-[9px] font-black text-rose-600 uppercase tracking-wide block mb-1">Unpaid Debts (Ksh {debtsKsh.toLocaleString()})</span>
                                   <div className="flex flex-wrap gap-1">
                                     {dayOutflow.debtsList && dayOutflow.debtsList.length > 0 ? (
                                       dayOutflow.debtsList.map((d, i) => (
-                                        <span key={i} className="text-[9px] font-mono text-rose-800 bg-white px-1.5 py-0.5 rounded shadow-2xs">👤 {d.debtor}: Ksh {d.amount}</span>
+                                        <span key={i} className="text-[9px] font-mono text-rose-800 bg-slate-900/40 backdrop-blur-md px-1.5 py-0.5 rounded shadow-2xs">👤 {d.debtor}: Ksh {d.amount}</span>
                                       ))
                                     ) : (
-                                      <span className="text-[9px] font-mono text-rose-800 bg-white px-1.5 py-0.5 rounded shadow-2xs">👤 {dayOutflow.debtCustomer}</span>
+                                      <span className="text-[9px] font-mono text-rose-800 bg-slate-900/40 backdrop-blur-md px-1.5 py-0.5 rounded shadow-2xs">👤 {dayOutflow.debtCustomer}</span>
                                     )}
                                   </div>
                                 </div>
                               )}
 
-                              <div className="flex justify-end gap-3 mt-2 border-t border-slate-100 pt-2">
+                              <div className="flex justify-end gap-3 mt-2 border-t border-white/10 pt-2">
                                 {onEditMilkOutflow && (
-                                  <button onClick={() => setEditingOutflow(dayOutflow)} className="text-[9px] text-slate-400 hover:text-emerald-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
+                                  <button onClick={() => setEditingOutflow(dayOutflow)} className="text-[9px] text-slate-500 hover:text-emerald-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
                                     <PenSquare size={10}/> Edit Dispatch
                                   </button>
                                 )}
-                                <button onClick={() => onDeleteMilkOutflow(dayOutflow.id)} className="text-[9px] text-slate-400 hover:text-red-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
+                                <button onClick={() => onDeleteMilkOutflow(dayOutflow.id)} className="text-[9px] text-slate-500 hover:text-red-500 font-black uppercase tracking-wider flex items-center gap-1 transition-colors">
                                   <Trash2 size={10}/> Delete Dispatch Log
                                 </button>
                               </div>
@@ -2550,19 +2550,19 @@ export function DairyBreeding({
       {subTab === 'breeding_ledger' && (
         <div className="space-y-6">
           {/* Header Actions for Breeding Ledger */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <h4 className="text-white font-black text-sm uppercase tracking-wider flex items-center gap-1.5 font-bold">
                 <FlaskConical size={16} className="text-[#8b0000]" />
                 Breeding Registry & AI Ledger
               </h4>
-              <p className="text-xs text-slate-400 font-medium">Download artificial insemination logs, gestation timetables, and PDF reports.</p>
+              <p className="text-xs text-slate-500 font-medium">Download artificial insemination logs, gestation timetables, and PDF reports.</p>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
               <button
                 onClick={downloadAICyclesCSV}
                 type="button"
-                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-950 hover:bg-rose-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 font-bold"
+                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-rose-900/20 border border-rose-200 text-rose-950 hover:bg-rose-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0 font-bold"
                 title="Download AI Records CSV"
               >
                 <FileSpreadsheet size={13} />
@@ -2592,12 +2592,12 @@ export function DairyBreeding({
           </div>
 
           {/* Breeding Ledger (AI Tracker) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3">
+          <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-6">
+            <div className="border-b border-white/10 pb-3">
               <h5 className="text-[11px] font-black tracking-widest text-[#8b0000] uppercase flex items-center gap-1">
                 <FlaskConical size={12} /> Breeding Ledger
               </h5>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Artificial Insemination (AI) tracker & gestations</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">Artificial Insemination (AI) tracker & gestations</p>
             </div>
 
             <form onSubmit={handleAISubmit} className="grid grid-cols-2 gap-4">
@@ -2608,7 +2608,7 @@ export function DairyBreeding({
                     required
                     value={aiCowId}
                     onChange={(e) => setAiCowId(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="">-- Choose cow --</option>
                     {cows.map(c => (
@@ -2622,7 +2622,7 @@ export function DairyBreeding({
                     value={aiCowId}
                     onChange={(e) => setAiCowId(e.target.value)}
                     placeholder="E.g. Cow-101 (Daisy)"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                   />
                 )}
               </div>
@@ -2634,7 +2634,7 @@ export function DairyBreeding({
                   required
                   value={aiDate}
                   onChange={(e) => setAiDate(e.target.value)}
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                 />
               </div>
 
@@ -2644,7 +2644,7 @@ export function DairyBreeding({
                   type="date"
                   value={aiCheckDate}
                   onChange={(e) => setAiCheckDate(e.target.value)}
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                  className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                 />
               </div>
 
@@ -2672,7 +2672,7 @@ export function DairyBreeding({
                         setAiCost('');
                       }
                     }}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                       <option value="">{semenInventory.length > 0 ? '-- Select tracked straw --' : '-- Custom / Manual Entry --'}</option>
                     {semenInventory.map(item => (
@@ -2692,7 +2692,7 @@ export function DairyBreeding({
                     onChange={(e) => setAiBull(e.target.value)}
                     disabled={semenInventory.length > 0}
                     placeholder={semenInventory.length > 0 ? 'Auto-filled from selected tracked straw' : 'E.g. SEMEN-HO-991 (Holstein Elite)'}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono disabled:bg-slate-100 disabled:text-slate-500"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono disabled:bg-slate-800/60 disabled:text-slate-500"
                   />
                   {semenInventory.length > 0 && (
                     <p className="mt-1 text-[10px] font-semibold text-slate-500">
@@ -2712,7 +2712,7 @@ export function DairyBreeding({
                     value={aiOrigin}
                     onChange={(e) => setAiOrigin(e.target.value)}
                     placeholder="E.g. KAGRC (Local)"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                   />
                 </div>
 
@@ -2721,7 +2721,7 @@ export function DairyBreeding({
                   <select
                     value={aiSemenType}
                     onChange={(e) => setAiSemenType(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Sexed (Female)">Sexed (Female)</option>
                     <option value="Sexed (Male)">Sexed (Male)</option>
@@ -2736,19 +2736,19 @@ export function DairyBreeding({
                     value={aiCost}
                     onChange={(e) => setAiCost(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="E.g. 1500"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono"
                   />
                 </div>
               </div>
 
               {/* AI pregnancy status and calf option */}
-              <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-100 pt-3">
+              <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/10 pt-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">AI Straw status</label>
                   <select
                     value={aiStatus}
                     onChange={(e) => setAiStatus(e.target.value as any)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Pending">Pending Scan/Confirmation</option>
                     <option value="Confirmed Pregnant">Confirmed Pregnant</option>
@@ -2767,7 +2767,7 @@ export function DairyBreeding({
                         value={aiCalfName}
                         onChange={(e) => setAiCalfName(e.target.value)}
                         placeholder="E.g. Precious Junior"
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                       />
                     </div>
                     <div>
@@ -2775,7 +2775,7 @@ export function DairyBreeding({
                       <select
                         value={aiCalfSex}
                         onChange={(e) => setAiCalfSex(e.target.value as any)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                        className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                       >
                         <option value="Female">Female (Heifer)</option>
                         <option value="Male">Male (Bull Calf)</option>
@@ -2787,7 +2787,7 @@ export function DairyBreeding({
 
               {/* Autocalculated Breeding Dates Alert Panel */}
               {aiDate && (
-                <div className="col-span-2 bg-indigo-50/70 p-3.5 rounded-2xl border border-indigo-100/50 flex flex-col sm:flex-row justify-between text-xs font-semibold text-indigo-950 gap-3">
+                <div className="col-span-2 bg-indigo-900/20 p-3.5 rounded-2xl border border-indigo-100/50 flex flex-col sm:flex-row justify-between text-xs font-semibold text-indigo-950 gap-3">
                   <div>
                     🔄 Expected Return Heat Date: <span className="font-extrabold text-rose-800">
                       {(() => {
@@ -2815,7 +2815,7 @@ export function DairyBreeding({
                   value={aiNotes}
                   onChange={(e) => setAiNotes(e.target.value)}
                   placeholder="Notes about the straw batch, sire details, or cow's condition during insemination..."
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium h-16"
+                  className="text-xs border border-white/15 rounded-lg p-3 w-full font-medium h-16"
                 />
               </div>
 
@@ -2828,8 +2828,8 @@ export function DairyBreeding({
             </form>
 
             {/* Dynamic breeding registry table list */}
-            <div className="border-t border-slate-100 pt-5 space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 font-bold">Registered Breeding Gestations</label>
+            <div className="border-t border-white/10 pt-5 space-y-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 font-bold">Registered Breeding Gestations</label>
               <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
                 {aiRecords.map((cycle, idx) => {
                   // Determine gestation safety alerts
@@ -2839,32 +2839,32 @@ export function DairyBreeding({
                   const isClose = daysLeft > 0 && daysLeft <= 30;
 
                   return (
-                    <div key={idx} className="p-3.5 border border-slate-100 rounded-2xl bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div key={idx} className="p-3.5 border border-white/10 rounded-2xl bg-slate-800/40/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-xs text-slate-800">{cycle.cowId}</span>
+                          <span className="font-extrabold text-xs text-white">{cycle.cowId}</span>
                           {cycle.status === 'Confirmed Pregnant' && (
                             <span className="text-[8px] bg-emerald-150 bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-black uppercase">
                               Pregnant
                             </span>
                           )}
                           {cycle.status === 'Pending' && (
-                            <span className="text-[8px] bg-blue-50 text-blue-800 border border-blue-100 px-2 py-0.5 rounded-full font-black uppercase">
+                            <span className="text-[8px] bg-blue-900/20 text-blue-800 border border-blue-100 px-2 py-0.5 rounded-full font-black uppercase">
                               Awaiting scan
                             </span>
                           )}
                           {cycle.status === 'Calved' && (
-                            <span className="text-[8px] bg-purple-50 text-purple-800 border border-purple-100 px-2 py-0.5 rounded-full font-black uppercase">
+                            <span className="text-[8px] bg-purple-900/20 text-purple-800 border border-purple-100 px-2 py-0.5 rounded-full font-black uppercase">
                               Calved
                             </span>
                           )}
                           {cycle.status === 'Failed' && (
-                            <span className="text-[8px] bg-red-50 text-red-800 border border-red-100 px-2 py-0.5 rounded-full font-black uppercase">
+                            <span className="text-[8px] bg-red-900/20 text-red-800 border border-red-100 px-2 py-0.5 rounded-full font-black uppercase">
                               Failed Straw
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-400 font-bold font-mono uppercase">
+                        <p className="text-[10px] text-slate-500 font-bold font-mono uppercase">
                           Semen: {cycle.bull} {cycle.semenType ? `(${cycle.semenType})` : ''} {cycle.origin ? `• Origin: ${cycle.origin}` : ''} • Service: {cycle.date}
                         </p>
                         {cycle.cost && (
@@ -2874,23 +2874,23 @@ export function DairyBreeding({
                         )}
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {cycle.returnHeatDate && (
-                            <span className="text-[10px] text-rose-700 bg-rose-50 border border-rose-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                            <span className="text-[10px] text-rose-700 bg-rose-900/20 border border-rose-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
                               🔄 Return Heat: {new Date(cycle.returnHeatDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           )}
                           {cycle.checkDate && (
-                            <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                            <span className="text-[10px] text-teal-700 bg-teal-900/20 border border-teal-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
                               🔍 Check Date: {new Date(cycle.checkDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           )}
                           {cycle.calfName && (
-                            <span className="text-[10px] text-purple-800 bg-purple-50 border border-purple-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
+                            <span className="text-[10px] text-purple-800 bg-purple-900/20 border border-purple-100/50 rounded-lg px-2 py-0.5 inline-block font-black font-mono">
                               🍼 Calf: {cycle.calfName}
                             </span>
                           )}
                         </div>
                         {cycle.notes && (
-                          <div className="text-[10px] text-slate-500 bg-slate-50 border border-slate-100 rounded-lg p-2 max-w-[450px] italic">
+                          <div className="text-[10px] text-slate-500 bg-slate-800/40 border border-white/10 rounded-lg p-2 max-w-[450px] italic">
                             Notes: {cycle.notes}
                           </div>
                         )}
@@ -2898,7 +2898,7 @@ export function DairyBreeding({
                           <Calendar size={12} className="text-rose-700 font-bold shrink-0" />
                           <span>Expected Calving: {new Date(cycle.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           {daysLeft > 0 && (
-                            <span className={`text-[10px] font-black font-mono px-1.5 py-0.5 rounded ${isClose ? 'text-rose-600 bg-rose-50' : 'text-slate-400 bg-slate-100'}`}>
+                            <span className={`text-[10px] font-black font-mono px-1.5 py-0.5 rounded ${isClose ? 'text-rose-600 bg-rose-900/20' : 'text-slate-500 bg-slate-800/60'}`}>
                               ({daysLeft} days)
                             </span>
                           )}
@@ -2906,12 +2906,12 @@ export function DairyBreeding({
                       </div>
 
                       <div className="flex flex-row sm:flex-col items-end gap-2 text-right">
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Update Status</span>
+                        <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">Update Status</span>
                         <div className="flex items-center gap-2">
                           <select
                             value={cycle.status}
                             onChange={(e) => onUpdateAIStatus(cycle.cowId, cycle.date, e.target.value as any)}
-                            className="text-[10px] font-black uppercase border border-slate-200 rounded p-1.5 bg-white shrink-0 cursor-pointer focus:outline-none"
+                            className="text-[10px] font-black uppercase border border-white/15 rounded p-1.5 bg-slate-900/40 backdrop-blur-md shrink-0 cursor-pointer focus:outline-none"
                           >
                             <option value="Pending">Pending Scan</option>
                             <option value="Confirmed Pregnant">Confirmed</option>
@@ -2921,7 +2921,7 @@ export function DairyBreeding({
                           {onEditAIRecord && (
                             <button
                               onClick={() => setEditingAI(cycle)}
-                              className="text-slate-300 hover:text-indigo-800 p-1.5 border border-slate-100 hover:bg-slate-55 rounded transition-colors cursor-pointer m-0"
+                              className="text-slate-300 hover:text-indigo-800 p-1.5 border border-white/10 hover:bg-slate-55 rounded transition-colors cursor-pointer m-0"
                               title="Edit Service Record"
                             >
                               <PenSquare size={13} />
@@ -2929,7 +2929,7 @@ export function DairyBreeding({
                           )}
                           <button
                             onClick={() => onDeleteAIRecord(cycle.cowId, cycle.date)}
-                            className="text-slate-300 hover:text-red-655 p-1.5 border border-slate-100 hover:bg-slate-50 rounded transition-colors cursor-pointer m-0"
+                            className="text-slate-300 hover:text-red-655 p-1.5 border border-white/10 hover:bg-slate-800/40 rounded transition-colors cursor-pointer m-0"
                             title="Delete Service record"
                           >
                             <Trash2 size={13} />
@@ -2965,7 +2965,7 @@ export function DairyBreeding({
         <div className="space-y-6">
           {/* Active Deworming Alerts section */}
           {activeRemindersCount > 0 ? (
-            <div className="bg-red-50 border border-red-150 p-6 rounded-3xl space-y-3 shadow-xs">
+            <div className="bg-red-900/20 border border-red-150 p-6 rounded-3xl space-y-3 shadow-xs">
               <div className="flex items-center gap-2.5 text-red-950">
                 <BadgeAlert size={20} className="text-red-700 animate-pulse shrink-0" />
                 <h5 className="font-extrabold text-[#7b1f1f] uppercase tracking-wider text-xs">VET WARNING: ACTIVE DEWORMING PROTOCOLS REQUIRED</h5>
@@ -2977,10 +2977,10 @@ export function DairyBreeding({
                 {dewormingReminders
                   .filter(r => r.status !== 'safe')
                   .map(rem => (
-                    <div key={rem.cow.id} className="p-3 bg-white border border-red-100 rounded-2xl flex justify-between items-center shadow-xs">
+                    <div key={rem.cow.id} className="p-3 bg-slate-900/40 backdrop-blur-md border border-red-100 rounded-2xl flex justify-between items-center shadow-xs">
                       <div>
-                        <span className="text-xs font-black text-slate-800 block uppercase">{rem.cow.id} ({rem.cow.name})</span>
-                        <span className="text-[10px] text-slate-400 font-extrabold block uppercase mt-0.5 mt-1">{rem.cow.breed} • Status: {rem.cow.status}</span>
+                        <span className="text-xs font-black text-white block uppercase">{rem.cow.id} ({rem.cow.name})</span>
+                        <span className="text-[10px] text-slate-500 font-extrabold block uppercase mt-0.5 mt-1">{rem.cow.breed} • Status: {rem.cow.status}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase text-red-700 bg-red-100 border border-red-200">
@@ -2993,7 +2993,7 @@ export function DairyBreeding({
               </div>
             </div>
           ) : (
-            <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl flex items-center gap-3">
+            <div className="bg-emerald-900/20 border border-emerald-100 p-5 rounded-2xl flex items-center gap-3">
               <CheckCircle2 size={20} className="text-emerald-800 shrink-0" />
               <div>
                 <h5 className="text-[#0e4d29] text-xs font-extrabold uppercase">ALL HERD DEWORMING COMPLIANT</h5>
@@ -3003,22 +3003,22 @@ export function DairyBreeding({
           )}
 
           {/* Controls & Search */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-3.5 text-slate-400" size={14} />
+              <Search className="absolute left-3 top-3.5 text-slate-500" size={14} />
               <input
                 type="text"
                 placeholder="Search medications or diagnosis..."
                 value={vetSearch}
                 onChange={(e) => setVetSearch(e.target.value)}
-                className="text-xs pl-9 pr-4 py-3 border border-slate-200 rounded-xl w-full font-bold focus:outline-none"
+                className="text-xs pl-9 pr-4 py-3 border border-white/15 rounded-xl w-full font-bold focus:outline-none"
               />
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
               <button
                 onClick={downloadVetClinicalCSV}
                 type="button"
-                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-50 border border-red-205 text-red-950 hover:bg-red-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
+                className="flex items-center justify-center gap-1.5 px-4 py-3 bg-red-900/20 border border-red-205 text-red-950 hover:bg-red-100 font-black text-xs uppercase rounded-xl transition-all shadow-xs cursor-pointer m-0"
                 title="Download Vet Logs CSV"
               >
                 <FileSpreadsheet size={13} />
@@ -3045,8 +3045,8 @@ export function DairyBreeding({
           </div>
 
           {showAddVetForm && (
-            <form onSubmit={handleVetSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-6">
-              <div className="border-b border-slate-100 pb-3 flex justify-between items-center bg-slate-50 -m-6 mb-4 p-6 rounded-t-2xl">
+            <form onSubmit={handleVetSubmit} className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl border border-slate-150 shadow-md space-y-6">
+              <div className="border-b border-white/10 pb-3 flex justify-between items-center bg-slate-800/40 -m-6 mb-4 p-6 rounded-t-2xl">
                 <div>
                   <h5 className="text-sm uppercase font-black tracking-widest text-[#1a237e]">Log Comprehensive Veterinary Clinical Intervention</h5>
                   <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Professional clinical-grade chart for veterinarians & caregivers</p>
@@ -3057,11 +3057,11 @@ export function DairyBreeding({
               {/* SECTION A: PATIENT IDENTITY & ENTRY TIMING */}
               <div className="space-y-3">
                 {/* Clinical Diagnostic Presets */}
-                <div className="p-3.5 bg-blue-50/50 border border-blue-200/60 rounded-2xl space-y-2 mb-4">
+                <div className="p-3.5 bg-blue-900/20 border border-blue-200/60 rounded-2xl space-y-2 mb-4">
                   <span className="text-[9.5px] uppercase font-black text-blue-900 tracking-wider flex items-center gap-1">
                     💉 EXCLUSIVE CLINICAL DIAGNOSTIC PRESETS
                   </span>
-                  <p className="text-[10.5px] text-slate-600 leading-tight">Click one to pre-fill standard clinical parameters & withholding times:</p>
+                  <p className="text-[10.5px] text-slate-500 leading-tight">Click one to pre-fill standard clinical parameters & withholding times:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
                     {[
                       { label: '🩺 East Coast Fever', type: 'Treatment' as const, diagnosis: 'Theileria parva (East Coast Fever) - High fever, swollen nodes', temp: 40.5, hr: 95, rr: 38, drug: 'Buparvaquone + Oxytetracycline', dosage: '1ml per 20kg bodyweight', route: 'IM' as const, milkWithholding: 3, meatWithholding: 28, cost: 4500, notes: 'Target lymph node injection block' },
@@ -3090,7 +3090,7 @@ export function DairyBreeding({
                           dateObj.setDate(dateObj.getDate() + (p.type === 'Vaccination' ? 180 : 30));
                           setVetNextDue(dateObj.toISOString().split('T')[0]);
                         }}
-                        className="text-left bg-white hover:bg-indigo-50/50 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-350 text-[10.5px] text-slate-700 transition-all font-bold m-0 flex flex-col justify-between cursor-pointer shadow-xs"
+                        className="text-left bg-slate-900/40 backdrop-blur-md hover:bg-indigo-900/20 p-2.5 rounded-xl border border-white/15 hover:border-indigo-350 text-[10.5px] text-slate-200 transition-all font-bold m-0 flex flex-col justify-between cursor-pointer shadow-xs"
                       >
                         <span className="text-indigo-950 font-extrabold truncate">{p.label}</span>
                         <span className="text-[9px] text-[#2c3e50] font-mono mt-0.5 font-bold">{p.type} • Milk WH {p.milkWithholding}d</span>
@@ -3106,7 +3106,7 @@ export function DairyBreeding({
                     <select
                       value={vetAnimalCategory}
                       onChange={(e) => setVetAnimalCategory(e.target.value as any)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900/40 backdrop-blur-md font-bold"
                     >
                       <option value="Cow">Dairy Cow (Adult)</option>
                       <option value="Goat">Dairy/Meat Goat</option>
@@ -3123,7 +3123,7 @@ export function DairyBreeding({
                         required
                         value={vetCowId}
                         onChange={(e) => setVetCowId(e.target.value)}
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold bg-white"
+                        className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold bg-slate-900/40 backdrop-blur-md"
                       >
                         <option value="">-- Choose cow --</option>
                         {cows.map(c => (
@@ -3137,7 +3137,7 @@ export function DairyBreeding({
                         value={vetCowId}
                         onChange={(e) => setVetCowId(e.target.value)}
                         placeholder="E.g. Goat-04, Pen B, K9-Max..."
-                        className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                        className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                       />
                     )}
                   </div>
@@ -3148,7 +3148,7 @@ export function DairyBreeding({
                       required
                       value={vetDate}
                       onChange={(e) => setVetDate(e.target.value)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3156,7 +3156,7 @@ export function DairyBreeding({
                     <select
                       value={vetType}
                       onChange={(e) => setVetType(e.target.value as any)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900/40 backdrop-blur-md font-bold"
                     >
                       <option value="Deworming">Deworming Bolus/Liquid</option>
                       <option value="Treatment">Medical Treatment (Sick Animal)</option>
@@ -3168,7 +3168,7 @@ export function DairyBreeding({
               </div>
 
               {/* SECTION B: CLINICAL VITALS & OBSERVATIONS */}
-              <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="space-y-3 pt-2 border-t border-white/10">
                 <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">2. Clinical Vitals & Diagnosis</h6>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -3179,7 +3179,7 @@ export function DairyBreeding({
                       value={vetTemp}
                       onChange={(e) => setVetTemp(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       placeholder="E.g. 38.5"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3189,7 +3189,7 @@ export function DairyBreeding({
                       value={vetHeartRate}
                       onChange={(e) => setVetHeartRate(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="E.g. 60"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3199,7 +3199,7 @@ export function DairyBreeding({
                       value={vetRespRate}
                       onChange={(e) => setVetRespRate(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="E.g. 24"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3209,14 +3209,14 @@ export function DairyBreeding({
                       value={vetDiagnosis}
                       onChange={(e) => setVetDiagnosis(e.target.value)}
                       placeholder="E.g. Sub-clinical Mastitis, Anaplasmosis"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION C: PHARMACOLOGY, ROUTE & COST */}
-              <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="space-y-3 pt-2 border-t border-white/10">
                 <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">3. Pharmacological Treatment Plan</h6>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div className="md:col-span-2">
@@ -3227,7 +3227,7 @@ export function DairyBreeding({
                       value={vetTreatment}
                       onChange={(e) => setVetTreatment(e.target.value)}
                       placeholder="E.g. Intramammary antibiotic infusion, Alben_bolus..."
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
                     />
                   </div>
                   <div>
@@ -3237,7 +3237,7 @@ export function DairyBreeding({
                       value={vetDrug}
                       onChange={(e) => setVetDrug(e.target.value)}
                       placeholder="E.g. Penicillin G, Albendazole"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
                     />
                   </div>
                   <div>
@@ -3247,7 +3247,7 @@ export function DairyBreeding({
                       value={vetDosage}
                       onChange={(e) => setVetDosage(e.target.value)}
                       placeholder="E.g. 20ml IM, 1 bolus"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
                     />
                   </div>
                   <div>
@@ -3255,7 +3255,7 @@ export function DairyBreeding({
                     <select
                       value={vetRoute}
                       onChange={(e) => setVetRoute(e.target.value as any)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900/40 backdrop-blur-md font-bold"
                     >
                       <option value="IM">IM (Intramuscular)</option>
                       <option value="IV">IV (Intravenous)</option>
@@ -3270,7 +3270,7 @@ export function DairyBreeding({
               </div>
 
               {/* SECTION D: WITHDRAWALS, REMINDERS & FORECASTS */}
-              <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="space-y-3 pt-2 border-t border-white/10">
                 <h6 className="text-[10px] font-black tracking-wider text-indigo-900 uppercase">4. Withdrawal Regulations & Compliance Alerts</h6>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
@@ -3280,7 +3280,7 @@ export function DairyBreeding({
                       value={vetWithdrawalMilk}
                       onChange={(e) => setVetWithdrawalMilk(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="E.g. 3 (Milk discard)"
-                      className="text-xs border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-amber-200 bg-amber-900/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3290,7 +3290,7 @@ export function DairyBreeding({
                       value={vetWithdrawalMeat}
                       onChange={(e) => setVetWithdrawalMeat(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="E.g. 21 (No slaughter)"
-                      className="text-xs border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-amber-200 bg-amber-900/20 text-amber-955 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3300,7 +3300,7 @@ export function DairyBreeding({
                       value={vetCost}
                       onChange={(e) => setVetCost(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="E.g. 1500"
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full font-mono font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full font-mono font-bold"
                     />
                   </div>
                   <div>
@@ -3308,7 +3308,7 @@ export function DairyBreeding({
                     <select
                       value={vetPrognosis}
                       onChange={(e) => setVetPrognosis(e.target.value as any)}
-                      className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold"
+                      className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900/40 backdrop-blur-md font-bold"
                     >
                       <option value="Good">Good (Favorable recovery expected)</option>
                       <option value="Fair">Fair (Moderate recovery chance)</option>
@@ -3327,13 +3327,13 @@ export function DairyBreeding({
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
+                <div className="flex items-center gap-2 bg-blue-900/20 p-2.5 rounded-xl border border-blue-100">
                   <input
                     type="checkbox"
                     id="vetRetreatmentScheduled"
                     checked={vetRetreatmentScheduled}
                     onChange={(e) => setVetRetreatmentScheduled(e.target.checked)}
-                    className="w-4 h-4 text-indigo-900 border-slate-300 rounded"
+                    className="w-4 h-4 text-indigo-900 border-white/20 rounded"
                   />
                   <label htmlFor="vetRetreatmentScheduled" className="text-[11px] font-extrabold text-slate-705 uppercase selection:bg-transparent">
                     Flag for scheduled Retreatment Visit (System-monitored follow-up)
@@ -3342,7 +3342,7 @@ export function DairyBreeding({
               </div>
 
               {/* NOTES & STAFF SECTION */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-white/10">
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Practitioner Notes & Observational Observations</label>
                   <input
@@ -3350,7 +3350,7 @@ export function DairyBreeding({
                     value={vetNotes}
                     onChange={(e) => setVetNotes(e.target.value)}
                     placeholder="E.g. Normal rumination index, mild congestion of mucosal membrane. Advised owner to avoid damp stalls."
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
                   />
                 </div>
                 <div>
@@ -3358,7 +3358,7 @@ export function DairyBreeding({
                   <select
                     value={vetStaff}
                     onChange={(e) => setVetStaff(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white font-bold text-indigo-950"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900/40 backdrop-blur-md font-bold text-indigo-950"
                   >
                     <option value="Dr. Devin Omwenga (Vet)">Dr. Devin Omwenga (Vet Manager)</option>
                     {staffList.map(st => (
@@ -3372,7 +3372,7 @@ export function DairyBreeding({
                 <button
                   type="button"
                   onClick={() => setShowAddVetForm(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 m-0 cursor-pointer"
+                  className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 m-0 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -3384,39 +3384,39 @@ export function DairyBreeding({
           )}
 
           {/* History ledger */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-            <h5 className="text-[10px] font-black tracking-wider text-slate-400 uppercase font-bold uppercase">HERD INTERVENTION HISTORY TIMELINE</h5>
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-sm space-y-4">
+            <h5 className="text-[10px] font-black tracking-wider text-slate-500 uppercase font-bold uppercase">HERD INTERVENTION HISTORY TIMELINE</h5>
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
               {[...vetRecords]
                 .filter(r => r.treatment.toLowerCase().includes(vetSearch.toLowerCase()) || r.cowId.toLowerCase().includes(vetSearch.toLowerCase()) || r.notes.toLowerCase().includes(vetSearch.toLowerCase()))
                 .sort((a,b) => b.date.localeCompare(a.date))
                 .map((record) => (
-                  <div key={record.id} className="p-4 border border-slate-100 rounded-2xl bg-white hover:bg-slate-50/50 shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
+                  <div key={record.id} className="p-4 border border-white/10 rounded-2xl bg-slate-900/40 backdrop-blur-md hover:bg-slate-800/40/50 shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
                     <div className="space-y-2 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
-                          record.type === 'Deworming' ? 'bg-cyan-50 text-cyan-800 border-cyan-200' :
-                          record.type === 'Treatment' ? 'bg-rose-50 text-rose-800 border-rose-200' :
-                          record.type === 'Vaccination' ? 'bg-purple-50 text-purple-800 border-purple-200' :
-                          'bg-indigo-50 text-indigo-805 border-indigo-200'
+                          record.type === 'Deworming' ? 'bg-cyan-900/20 text-cyan-800 border-cyan-200' :
+                          record.type === 'Treatment' ? 'bg-rose-900/20 text-rose-800 border-rose-200' :
+                          record.type === 'Vaccination' ? 'bg-purple-900/20 text-purple-800 border-purple-200' :
+                          'bg-indigo-900/20 text-indigo-805 border-indigo-200'
                         }`}>
                           {record.type}
                         </span>
                         
-                        <span className="bg-slate-100 text-slate-800 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-slate-200">
+                        <span className="bg-slate-800/60 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded border border-white/15">
                           {record.animalCategory || 'Cow'}
                         </span>
                         
-                        <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wide">
+                        <h6 className="font-extrabold text-xs text-white uppercase tracking-wide">
                           Identifier / Tag: <span className="text-emerald-900 font-extrabold">{record.cowId}</span>
                         </h6>
 
                         {record.prognosis && (
                           <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ml-auto ${
-                            record.prognosis === 'Good' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
-                            record.prognosis === 'Fair' ? 'bg-blue-50 text-blue-800 border-blue-200' :
-                            record.prognosis === 'Guarded' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                            'bg-red-50 text-red-800 border-red-200'
+                            record.prognosis === 'Good' ? 'bg-emerald-900/20 text-emerald-800 border-emerald-200' :
+                            record.prognosis === 'Fair' ? 'bg-blue-900/20 text-blue-800 border-blue-200' :
+                            record.prognosis === 'Guarded' ? 'bg-amber-900/20 text-amber-800 border-amber-200' :
+                            'bg-red-900/20 text-red-800 border-red-200'
                           }`}>
                             Prognosis: {record.prognosis}
                           </span>
@@ -3424,27 +3424,27 @@ export function DairyBreeding({
                       </div>
 
                       {/* Diagnosis & Treatment */}
-                      <div className="p-3 bg-slate-50/60 rounded-xl border border-slate-100 space-y-1">
+                      <div className="p-3 bg-slate-800/40/60 rounded-xl border border-white/10 space-y-1">
                         {record.diagnosis && (
                           <p className="text-xs font-bold text-indigo-950">
-                            Clinical Diagnosis: <span className="font-black text-slate-900">{record.diagnosis}</span>
+                            Clinical Diagnosis: <span className="font-black text-white">{record.diagnosis}</span>
                           </p>
                         )}
-                        <p className="text-xs font-medium text-slate-700 leading-relaxed">
+                        <p className="text-xs font-medium text-slate-200 leading-relaxed">
                           Medication / Intervention: <span className="font-extrabold text-slate-950">{record.treatment}</span>
                         </p>
                         {(record.drugAdministered || record.dosage) && (
                           <div className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider flex flex-wrap gap-x-3 gap-y-1">
-                            {record.drugAdministered && <span>💊 Active Drug: <b className="text-slate-800">{record.drugAdministered}</b></span>}
-                            {record.dosage && <span>⚖️ Dosage: <b className="text-slate-800">{record.dosage}</b></span>}
-                            {record.administrationRoute && <span>💉 Route: <b className="text-slate-800">{record.administrationRoute}</b></span>}
+                            {record.drugAdministered && <span>💊 Active Drug: <b className="text-white">{record.drugAdministered}</b></span>}
+                            {record.dosage && <span>⚖️ Dosage: <b className="text-white">{record.dosage}</b></span>}
+                            {record.administrationRoute && <span>💉 Route: <b className="text-white">{record.administrationRoute}</b></span>}
                           </div>
                         )}
                       </div>
 
                       {/* Clinical Vitals */}
                       {(record.temperature || record.heartRate || record.respiratoryRate) && (
-                        <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-600 bg-slate-50/30 p-2 rounded-lg border border-slate-100">
+                        <div className="flex flex-wrap gap-4 text-[11px] font-bold text-slate-500 bg-slate-800/40/30 p-2 rounded-lg border border-white/10">
                           {record.temperature && <span>🌡️ Temp: <b className="text-slate-950">{record.temperature}°C</b></span>}
                           {record.heartRate && <span>❤️ Heart Rate: <b className="text-slate-950">{record.heartRate} bpm</b></span>}
                           {record.respiratoryRate && <span>🫁 Resp Rate: <b className="text-slate-950">{record.respiratoryRate} bpm</b></span>}
@@ -3453,7 +3453,7 @@ export function DairyBreeding({
 
                       {/* Withdrawal Periods Warnings */}
                       {(record.withdrawalMilkDays || record.withdrawalMeatDays) && (
-                        <div className="flex flex-wrap gap-3 p-2 rounded-xl bg-amber-50/40 border border-amber-100">
+                        <div className="flex flex-wrap gap-3 p-2 rounded-xl bg-amber-900/20 border border-amber-100">
                           {record.withdrawalMilkDays ? (
                             <span className="text-[10px] font-black text-amber-850 uppercase">
                               ⚠️ Milk Withdrawal: <b className="font-bold underline text-amber-950">{record.withdrawalMilkDays} Days</b> (Discard yield)
@@ -3472,35 +3472,35 @@ export function DairyBreeding({
                       </p>
 
                       {record.nextDueDate && (
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-900 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 w-fit">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-900 bg-indigo-900/20 p-2 rounded-lg border border-indigo-100 w-fit">
                           <Timer size={12} />
                           <span>Deadline reminder / Follow-up due: <b className="font-black underline">{record.nextDueDate}</b></span>
                         </div>
                       )}
 
                       {record.retreatmentScheduled && (
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-red-900 bg-red-50 p-1.5 px-2.5 rounded-lg border border-red-100 w-fit uppercase">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-red-900 bg-red-900/20 p-1.5 px-2.5 rounded-lg border border-red-100 w-fit uppercase">
                           <span>🔔 Critical: Retreatment Scheduled</span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex flex-row md:flex-col items-start md:items-end justify-between md:justify-start gap-4 text-left md:text-right shrink-0 border-t md:border-t-0 border-slate-100 pt-3 md:pt-0">
+                    <div className="flex flex-row md:flex-col items-start md:items-end justify-between md:justify-start gap-4 text-left md:text-right shrink-0 border-t md:border-t-0 border-white/10 pt-3 md:pt-0">
                       <div>
-                        <span className="text-[9px] uppercase font-black text-slate-400 block font-bold">Intervention Timestamp</span>
+                        <span className="text-[9px] uppercase font-black text-slate-500 block font-bold">Intervention Timestamp</span>
                         <span className="text-xs font-black font-semibold text-indigo-950 block mt-0.5 font-mono">{record.date}</span>
                         <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{record.staff}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
                         {record.cost > 0 && (
-                          <span className="text-xs font-mono font-black text-red-700 bg-red-50/50 border border-red-100 px-2.5 py-0.5 rounded-full inline-block">
+                          <span className="text-xs font-mono font-black text-red-700 bg-red-900/20 border border-red-100 px-2.5 py-0.5 rounded-full inline-block">
                             Ksh {record.cost.toLocaleString()}
                           </span>
                         )}
                         {onEditVetRecord && (
                           <button
                             onClick={() => setEditingVet(record)}
-                            className="text-slate-300 hover:text-indigo-805 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
+                            className="text-slate-300 hover:text-indigo-805 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-white/10 hover:bg-slate-800/40 m-0"
                             title="Edit health record"
                           >
                             <PenSquare size={13} />
@@ -3508,7 +3508,7 @@ export function DairyBreeding({
                         )}
                         <button
                           onClick={() => onDeleteVetRecord(record.id)}
-                          className="text-slate-300 hover:text-red-650 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
+                          className="text-slate-300 hover:text-red-650 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-white/10 hover:bg-slate-800/40 m-0"
                           title="Delete health record"
                         >
                           <Trash2 size={13} />
@@ -3662,7 +3662,7 @@ export function DairyBreeding({
                 date: dryOffStr,
                 daysLeft: daysToDryOff,
                 severity: 'warning',
-                color: 'text-amber-600 bg-amber-50 border-amber-200'
+                color: 'text-amber-600 bg-amber-900/20 border-amber-200'
               });
             }
 
@@ -3674,7 +3674,7 @@ export function DairyBreeding({
                 date: calvingStr,
                 daysLeft: daysToCalving,
                 severity: 'danger',
-                color: 'text-rose-600 bg-rose-50 border-rose-200 animate-pulse'
+                color: 'text-rose-600 bg-rose-900/20 border-rose-200 animate-pulse'
               });
             }
           }
@@ -3724,7 +3724,7 @@ export function DairyBreeding({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start text-left">
               
               {/* Left pane: The Circular SVG Wheel (col 6) */}
-              <div className="lg:col-span-6 bg-white border border-slate-150 p-6 rounded-3xl shadow-xs flex flex-col items-center justify-center space-y-4">
+              <div className="lg:col-span-6 bg-slate-900/40 backdrop-blur-md border border-slate-150 p-6 rounded-3xl shadow-xs flex flex-col items-center justify-center space-y-4">
                 
                 {/* SVG Dial canvas */}
                 <div className="relative w-full max-w-[420px] aspect-square">
@@ -3928,11 +3928,11 @@ export function DairyBreeding({
                 
                 {/* 1. Selected cow focus card */}
                 {focusedCowData ? (
-                  <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                  <div className="bg-slate-900/40 backdrop-blur-md border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
                     <div className="flex justify-between items-start border-b pb-3">
                       <div>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block font-sans">Focus Cow Scorecard</span>
-                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block font-sans">Focus Cow Scorecard</span>
+                        <h4 className="text-sm font-black text-white uppercase tracking-wide">
                           {focusedCowData.name} ({focusedCowData.id})
                         </h4>
                         <span className="text-slate-450 text-[10px] font-semibold block mt-0.5 font-sans">
@@ -3952,9 +3952,9 @@ export function DairyBreeding({
 
                     {/* Timeline Scoreboard metrics list */}
                     <div className="grid grid-cols-2 gap-3.5 text-xs">
-                      <div className="bg-slate-50 p-3 rounded-2xl border">
-                        <span className="text-[8.5px] uppercase font-bold text-slate-400 block mb-0.5">Lineage AI Straw</span>
-                        <span className="font-extrabold text-slate-800 block">
+                      <div className="bg-slate-800/40 p-3 rounded-2xl border">
+                        <span className="text-[8.5px] uppercase font-bold text-slate-500 block mb-0.5">Lineage AI Straw</span>
+                        <span className="font-extrabold text-white block">
                           {focusedCowData.latestAI ? focusedCowData.latestAI.bull : 'None Logged'}
                         </span>
                         <span className="text-[8.5px] font-semibold text-slate-450 block mt-1">
@@ -3962,8 +3962,8 @@ export function DairyBreeding({
                         </span>
                       </div>
 
-                      <div className="bg-slate-50 p-3 rounded-2xl border">
-                        <span className="text-[8.5px] uppercase font-bold text-slate-400 block mb-0.5">Calculated Calving due</span>
+                      <div className="bg-slate-800/40 p-3 rounded-2xl border">
+                        <span className="text-[8.5px] uppercase font-bold text-slate-500 block mb-0.5">Calculated Calving due</span>
                         <span className="font-extrabold text-rose-800 block">
                           {focusedCowData.latestAI ? focusedCowData.latestAI.due : 'None Logged'}
                         </span>
@@ -4019,7 +4019,7 @@ export function DairyBreeding({
                               </p>
 
                               {/* Horizontal or Vertical scrollable step milestones */}
-                              <span className="text-[9.5px] uppercase font-black text-slate-400 block mb-1">Gestation Milestone Milestones:</span>
+                              <span className="text-[9.5px] uppercase font-black text-slate-500 block mb-1">Gestation Milestone Milestones:</span>
                               <div className="grid grid-cols-1 gap-2 max-h-[190px] overflow-y-auto pr-1">
                                 {gestationMilestones.map((ms, idx) => {
                                   const isCompleted = daysGestation > ms.day;
@@ -4042,9 +4042,9 @@ export function DairyBreeding({
                                       <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline gap-1">
                                           <span className="font-extrabold text-[11px] truncate uppercase">{ms.title}</span>
-                                          <span className="text-[8.5px] font-mono text-slate-400 shrink-0 font-extrabold">{ms.label}</span>
+                                          <span className="text-[8.5px] font-mono text-slate-500 shrink-0 font-extrabold">{ms.label}</span>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium leading-normal">{ms.desc}</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5 font-medium leading-normal">{ms.desc}</p>
                                         {isActive && (
                                           <p className="text-[9.5px] text-yellow-300 mt-1 font-bold bg-yellow-405/10 p-1 rounded border border-yellow-500/10">
                                             💡 Veterinary Tip: {ms.tip}
@@ -4091,7 +4091,7 @@ export function DairyBreeding({
                                 📌 {focusedCowData.scoreText}
                               </p>
 
-                              <span className="text-[9.5px] uppercase font-black text-slate-400 block mb-1">Yearly Breeding Cycle Milestones:</span>
+                              <span className="text-[9.5px] uppercase font-black text-slate-500 block mb-1">Yearly Breeding Cycle Milestones:</span>
                               <div className="grid grid-cols-1 gap-2 max-h-[190px] overflow-y-auto pr-1">
                                 {cycleMilestones.map((ms, idx) => {
                                   const isCompleted = daysPostCalving > ms.day;
@@ -4113,9 +4113,9 @@ export function DairyBreeding({
                                       <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline gap-1">
                                           <span className="font-extrabold text-[11px] truncate uppercase">{ms.title}</span>
-                                          <span className="text-[8.5px] font-mono text-slate-400 shrink-0 font-bold">{ms.label}</span>
+                                          <span className="text-[8.5px] font-mono text-slate-500 shrink-0 font-bold">{ms.label}</span>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium leading-normal">{ms.desc}</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5 font-medium leading-normal">{ms.desc}</p>
                                         {isActive && (
                                           <p className="text-[9.5px] text-emerald-300 mt-1 font-bold bg-emerald-500/10 p-1 rounded border border-emerald-500/10">
                                             💡 Herd Manager Tip: {ms.tip}
@@ -4167,19 +4167,19 @@ export function DairyBreeding({
 
                   </div>
                 ) : (
-                  <div className="bg-slate-50 border p-6 rounded-3xl text-center text-slate-450 py-12">
+                  <div className="bg-slate-800/40 border p-6 rounded-3xl text-center text-slate-450 py-12">
                     Select a cow node or name from the list to display interactive cycle statistics.
                   </div>
                 )}
 
                 {/* 2. Urgent Events Forecasting Window */}
-                <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                <div className="bg-slate-900/40 backdrop-blur-md border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
                   <div className="flex justify-between items-center border-b pb-3">
                     <div className="text-left">
-                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">30-Day Gestation Forecast Planner</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase mt-0.5">Calculated countdowns from simulated clock date</p>
+                      <h4 className="text-xs font-black text-white uppercase tracking-wide">30-Day Gestation Forecast Planner</h4>
+                      <p className="text-[10px] text-slate-500 font-semibold uppercase mt-0.5">Calculated countdowns from simulated clock date</p>
                     </div>
-                    <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-2.5 py-1 rounded font-mono">
+                    <span className="bg-slate-800/60 text-slate-200 text-[9px] font-black px-2.5 py-1 rounded font-mono">
                       {forecastEvents.length} Events Pending
                     </span>
                   </div>
@@ -4205,7 +4205,7 @@ export function DairyBreeding({
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="font-mono text-xs font-black px-2.5 py-1 bg-white/60 border rounded-lg inline-block">
+                            <span className="font-mono text-xs font-black px-2.5 py-1 bg-slate-900/40 backdrop-blur-md/60 border rounded-lg inline-block">
                               {evt.daysLeft === 0 ? 'DUE TODAY' : `In ${evt.daysLeft} days`}
                             </span>
                           </div>
@@ -4216,10 +4216,10 @@ export function DairyBreeding({
                 </div>
 
                 {/* 3. Cow Directory Listing for quick wheel selection */}
-                <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
+                <div className="bg-slate-900/40 backdrop-blur-md border border-slate-150 p-6 rounded-3xl shadow-xs space-y-4">
                   <div className="border-b pb-3 flex justify-between items-center">
-                    <h5 className="text-xs font-black text-slate-900 uppercase tracking-wide">Herd Reproductive Directory</h5>
-                    <span className="text-[9px] text-slate-400 uppercase font-black">Quick Selector</span>
+                    <h5 className="text-xs font-black text-white uppercase tracking-wide">Herd Reproductive Directory</h5>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Quick Selector</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
@@ -4232,7 +4232,7 @@ export function DairyBreeding({
                           className={`p-2.5 text-left rounded-xl border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer m-0 flex flex-col justify-between ${
                             isSelected 
                               ? 'bg-emerald-950 border-emerald-950 text-white shadow-sm ring-2 ring-emerald-500/20' 
-                              : 'bg-slate-50 border-slate-100 hover:border-slate-300 text-slate-700'
+                              : 'bg-slate-800/40 border-white/10 hover:border-white/20 text-slate-200'
                           }`}
                         >
                           <span className="text-[10px] font-black">{cow.id}</span>
@@ -4255,15 +4255,15 @@ export function DairyBreeding({
       {/* Edit Milking Record Modal */}
       {editingMilk && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Milk Record & Dispatch</h3>
-              <button onClick={() => setEditingMilk(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase text-white">Edit Milk Record & Dispatch</h3>
+              <button onClick={() => setEditingMilk(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer">✕</button>
             </div>
             <div className="space-y-3 font-sans text-xs">
               
               {/* Primary details */}
-              <div className="bg-slate-50 p-2.5 rounded-2xl space-y-2.5 border border-slate-100">
+              <div className="bg-slate-800/40 p-2.5 rounded-2xl space-y-2.5 border border-white/10">
                 <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">1. Production Yield</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -4272,7 +4272,7 @@ export function DairyBreeding({
                       type="text"
                       value={editingMilk.id}
                       disabled
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-500 font-mono"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold bg-slate-800/60 text-slate-500 font-mono"
                     />
                   </div>
                   <div>
@@ -4281,14 +4281,14 @@ export function DairyBreeding({
                       placeholder="YYYY-MM-DD or DD/MM/YYYY"
                       value={editingCow.dob || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, dob: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                     />
                     <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Record Date</label>
                     <input
                       type="text"
                       value={editingMilk.date}
                       onChange={(e) => setEditingMilk({ ...editingMilk, date: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-100 text-slate-700 font-mono"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold bg-slate-800/60 text-slate-200 font-mono"
                     />
                   </div>
                 </div>
@@ -4300,7 +4300,7 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingMilk.am}
                       onChange={(e) => setEditingMilk({ ...editingMilk, am: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold font-mono"
                     />
                   </div>
                   <div>
@@ -4310,14 +4310,14 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingMilk.pm}
                       onChange={(e) => setEditingMilk({ ...editingMilk, pm: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Commercial and Staff details */}
-              <div className="bg-slate-50 p-2.5 rounded-2xl space-y-2.5 border border-slate-100">
+              <div className="bg-slate-800/40 p-2.5 rounded-2xl space-y-2.5 border border-white/10">
                 <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">2. Commercial & Buyer</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -4327,7 +4327,7 @@ export function DairyBreeding({
                       value={editingMilk.pricePerLiter ?? ''}
                       placeholder="e.g. 52"
                       onChange={(e) => setEditingMilk({ ...editingMilk, pricePerLiter: parseFloat(e.target.value) || undefined })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold font-mono"
                     />
                   </div>
                   <div>
@@ -4337,7 +4337,7 @@ export function DairyBreeding({
                       value={editingMilk.buyer ?? ''}
                       placeholder="e.g. Brookside Dairy"
                       onChange={(e) => setEditingMilk({ ...editingMilk, buyer: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold"
                     />
                   </div>
                 </div>
@@ -4346,7 +4346,7 @@ export function DairyBreeding({
                   <select
                     value={editingMilk.staff}
                     onChange={(e) => setEditingMilk({ ...editingMilk, staff: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold"
                   >
                     {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
                   </select>
@@ -4356,10 +4356,10 @@ export function DairyBreeding({
 
 
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
               <button
                 onClick={() => setEditingMilk(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-white"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-800/40 m-0 cursor-pointer bg-slate-900/40 backdrop-blur-md"
               >
                 Cancel
               </button>
@@ -4389,10 +4389,10 @@ export function DairyBreeding({
       {/* Edit Milk Outflow & Dispatch Record Modal */}
       {editingOutflow && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Milk Outflow & Dispatch</h3>
-              <button onClick={() => setEditingOutflow(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase text-white">Edit Milk Outflow & Dispatch</h3>
+              <button onClick={() => setEditingOutflow(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
             </div>
             
             <div className="space-y-3.5 text-xs">
@@ -4404,7 +4404,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingOutflow.date}
                     onChange={(e) => setEditingOutflow({ ...editingOutflow, date: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-100 text-slate-700 font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-800/60 text-slate-200 font-mono"
                   />
                 </div>
                 <div>
@@ -4413,13 +4413,13 @@ export function DairyBreeding({
                     type="number"
                     value={editingOutflow.salesPricePerLiter ?? 52}
                     onChange={(e) => setEditingOutflow({ ...editingOutflow, salesPricePerLiter: e.target.value === '' ? undefined : Number(e.target.value) })}
-                    className="border border-amber-200 rounded-lg p-2.5 w-full text-xs font-bold bg-amber-50 text-amber-900 font-mono"
+                    className="border border-amber-200 rounded-lg p-2.5 w-full text-xs font-bold bg-amber-900/20 text-amber-900 font-mono"
                   />
                 </div>
               </div>
 
               {/* Volumes Section */}
-              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-3">
+              <div className="bg-slate-800/40 p-3 rounded-2xl border border-white/10 space-y-3">
                 <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">1. Milk Allocation Volumes (Liters)</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -4429,7 +4429,7 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingOutflow.milkUsedAtHome}
                       onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedAtHome: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                     />
                   </div>
                   <div>
@@ -4439,7 +4439,7 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingOutflow.milkUsedByWorkers}
                       onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByWorkers: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                     />
                   </div>
                   <div>
@@ -4449,7 +4449,7 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingOutflow.milkUsedByCalf ?? 0}
                       onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByCalf: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                     />
                   </div>
                   <div>
@@ -4459,17 +4459,17 @@ export function DairyBreeding({
                       step="0.1"
                       value={editingOutflow.milkSpoiled}
                       onChange={(e) => setEditingOutflow({ ...editingOutflow, milkSpoiled: parseFloat(e.target.value) || 0 })}
-                      className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                      className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Debtors list and entry */}
-              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-3">
+              <div className="bg-slate-800/40 p-3 rounded-2xl border border-white/10 space-y-3">
                 <div className="flex justify-between items-center">
                   <h4 className="font-extrabold uppercase text-[9px] text-slate-500 tracking-wider">2. Unpaid Credit / Debts (Ksh)</h4>
-                  <span className="text-[9px] font-black text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+                  <span className="text-[9px] font-black text-rose-800 bg-rose-900/20 px-2 py-0.5 rounded border border-rose-100">
                     Total: Ksh {(editingOutflow.debtsKsh || 0).toLocaleString()}
                   </span>
                 </div>
@@ -4477,11 +4477,11 @@ export function DairyBreeding({
                 {/* Existing Debtors List */}
                 <div className="space-y-1.5 max-h-24 overflow-y-auto">
                   {(editingOutflow.debtsList || []).length === 0 ? (
-                    <div className="text-[10px] text-slate-400 font-bold italic py-1">No debtors recorded for this dispatch date.</div>
+                    <div className="text-[10px] text-slate-500 font-bold italic py-1">No debtors recorded for this dispatch date.</div>
                   ) : (
                     (editingOutflow.debtsList || []).map((debt, dIdx) => (
-                      <div key={dIdx} className="flex justify-between items-center bg-white border border-slate-150 rounded-lg px-2.5 py-1 text-[11px] font-bold">
-                        <span className="text-slate-700">{debt.debtor}</span>
+                      <div key={dIdx} className="flex justify-between items-center bg-slate-900/40 backdrop-blur-md border border-slate-150 rounded-lg px-2.5 py-1 text-[11px] font-bold">
+                        <span className="text-slate-200">{debt.debtor}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-emerald-700">Ksh {debt.amount}</span>
                           <button
@@ -4506,26 +4506,26 @@ export function DairyBreeding({
                 </div>
 
                 {/* Add Debt Input Form inside Edit Modal */}
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60">
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/15">
                   <div>
-                    <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Add Debtor Customer</label>
+                    <label className="text-[8.5px] font-black text-slate-500 uppercase block mb-1">Add Debtor Customer</label>
                     <input
                       type="text"
                       value={editNewDebtorName}
                       onChange={(e) => setEditNewDebtorName(e.target.value)}
                       placeholder="E.g. Mama Amara"
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold bg-white"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                     />
                   </div>
                   <div className="flex gap-2 items-end">
                     <div className="flex-1">
-                      <label className="text-[8.5px] font-black text-slate-400 uppercase block mb-1">Debt Ksh</label>
+                      <label className="text-[8.5px] font-black text-slate-500 uppercase block mb-1">Debt Ksh</label>
                       <input
                         type="number"
                         value={editNewDebtorAmount}
                         onChange={(e) => setEditNewDebtorAmount(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
                         placeholder="Amount"
-                        className="border border-slate-200 rounded-lg p-2 w-full text-xs font-bold font-mono bg-white"
+                        className="border border-white/15 rounded-lg p-2 w-full text-xs font-bold font-mono bg-slate-900/40 backdrop-blur-md"
                       />
                     </div>
                     <button
@@ -4559,17 +4559,17 @@ export function DairyBreeding({
                   onChange={(e) => setEditingOutflow({ ...editingOutflow, notes: e.target.value })}
                   placeholder="Notes or descriptions about the dispatch allocation..."
                   rows={2}
-                  className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-medium"
+                  className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-medium"
                 />
               </div>
 
             </div>
 
             {/* Modal Actions */}
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
               <button
                 onClick={() => setEditingOutflow(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer bg-white"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-800/40 m-0 cursor-pointer bg-slate-900/40 backdrop-blur-md"
               >
                 Cancel
               </button>
@@ -4593,10 +4593,10 @@ export function DairyBreeding({
       {/* Edit AI Breeding Record Modal */}
       {editingAI && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Insemination Log</h3>
-              <button onClick={() => setEditingAI(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase text-white">Edit Insemination Log</h3>
+              <button onClick={() => setEditingAI(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer">✕</button>
             </div>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
@@ -4606,7 +4606,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingAI.cowId}
                     disabled
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 text-slate-400 font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-800/40 text-slate-500 font-mono"
                   />
                 </div>
                 <div>
@@ -4615,7 +4615,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingAI.date}
                     disabled
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 text-slate-400 font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-800/40 text-slate-500 font-mono"
                   />
                 </div>
               </div>
@@ -4626,7 +4626,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingAI.bull}
                     onChange={(e) => setEditingAI({ ...editingAI, bull: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -4634,7 +4634,7 @@ export function DairyBreeding({
                   <select
                     value={editingAI.status}
                     onChange={(e) => setEditingAI({ ...editingAI, status: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Pending">Pending Scan</option>
                     <option value="Confirmed Pregnant">Confirmed Pregnant</option>
@@ -4651,7 +4651,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingAI.origin || ''}
                     onChange={(e) => setEditingAI({ ...editingAI, origin: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                   />
                 </div>
                 <div>
@@ -4659,7 +4659,7 @@ export function DairyBreeding({
                   <select
                     value={editingAI.semenType || 'Conventional'}
                     onChange={(e) => setEditingAI({ ...editingAI, semenType: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Sexed (Female)">Sexed (Female)</option>
                     <option value="Sexed (Male)">Sexed (Male)</option>
@@ -4672,7 +4672,7 @@ export function DairyBreeding({
                     type="number"
                     value={editingAI.cost ?? ''}
                     onChange={(e) => setEditingAI({ ...editingAI, cost: e.target.value === '' ? undefined : Number(e.target.value) })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
@@ -4684,7 +4684,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingAI.returnHeatDate || ''}
                     onChange={(e) => setEditingAI({ ...editingAI, returnHeatDate: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -4693,7 +4693,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingAI.due}
                     onChange={(e) => setEditingAI({ ...editingAI, due: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
@@ -4718,14 +4718,14 @@ export function DairyBreeding({
                   value={editingAI.notes || ''}
                   onChange={(e) => setEditingAI({ ...editingAI, notes: e.target.value })}
                   placeholder="Notes about the breeding session..."
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-medium h-16"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-medium h-16"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
               <button
                 onClick={() => setEditingAI(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-55 m-0 cursor-pointer"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-55 m-0 cursor-pointer"
               >
                 Cancel
               </button>
@@ -4762,10 +4762,10 @@ export function DairyBreeding({
       {/* Edit Cow Registry Modal */}
       {editingCow && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Cow Record & Pedigree</h3>
-              <button onClick={() => setEditingCow(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase text-white">Edit Cow Record & Pedigree</h3>
+              <button onClick={() => setEditingCow(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer">✕</button>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -4775,7 +4775,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingCow.id}
                     disabled
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 text-slate-400 font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-800/40 text-slate-500 font-mono"
                   />
                 </div>
                 <div>
@@ -4784,7 +4784,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingCow.name}
                     onChange={(e) => setEditingCow({ ...editingCow, name: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                   />
                 </div>
               </div>
@@ -4795,7 +4795,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingCow.breed}
                     onChange={(e) => setEditingCow({ ...editingCow, breed: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                   />
                 </div>
                 <div>
@@ -4804,7 +4804,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingCow.dob}
                     onChange={(e) => setEditingCow({ ...editingCow, dob: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
@@ -4814,7 +4814,7 @@ export function DairyBreeding({
                   <select
                     value={editingCow.status}
                     onChange={(e) => setEditingCow({ ...editingCow, status: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Lactating">Lactating</option>
                     <option value="Dry">Dry Rest</option>
@@ -4829,7 +4829,7 @@ export function DairyBreeding({
                     value={editingCow.peakYieldTarget || ''}
                     onChange={(e) => setEditingCow({ ...editingCow, peakYieldTarget: e.target.value === '' ? undefined : Number(e.target.value) })}
                     placeholder="E.g. 30"
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -4839,13 +4839,13 @@ export function DairyBreeding({
                     value={editingCow.registrationNo || ''}
                     onChange={(e) => setEditingCow({ ...editingCow, registrationNo: e.target.value })}
                     placeholder="E.g. KAG-HF-YYYY-1120"
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
 
               {/* Pedigree section border divider */}
-              <div className="border-t border-slate-100 pt-3">
+              <div className="border-t border-white/10 pt-3">
                 <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block mb-2">Pedigree Tree Config (Ancestry Ledger)</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -4854,7 +4854,7 @@ export function DairyBreeding({
                       type="text"
                       value={editingCow.sire || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, sire: e.target.value })}
-                      className="border border-slate-205 border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                      className="border border-slate-205 border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                     />
                   </div>
                   <div>
@@ -4863,47 +4863,47 @@ export function DairyBreeding({
                       type="text"
                       value={editingCow.dam || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, dam: e.target.value })}
-                      className="border border-slate-205 border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                      className="border border-slate-205 border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                   <div>
-                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Paternal Grand Sire</label>
+                    <label className="text-[9px] font-semibold text-slate-500 uppercase block mb-1">Paternal Grand Sire</label>
                     <input
                       type="text"
                       value={editingCow.grandSirePaternal || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, grandSirePaternal: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs"
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Paternal Grand Dam</label>
+                    <label className="text-[9px] font-semibold text-slate-500 uppercase block mb-1">Paternal Grand Dam</label>
                     <input
                       type="text"
                       value={editingCow.grandDamPaternal || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, grandDamPaternal: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                   <div>
-                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Maternal Grand Sire</label>
+                    <label className="text-[9px] font-semibold text-slate-500 uppercase block mb-1">Maternal Grand Sire</label>
                     <input
                       type="text"
                       value={editingCow.grandSireMaternal || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, grandSireMaternal: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs"
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] font-semibold text-slate-400 uppercase block mb-1">Maternal Grand Dam</label>
+                    <label className="text-[9px] font-semibold text-slate-500 uppercase block mb-1">Maternal Grand Dam</label>
                     <input
                       type="text"
                       value={editingCow.grandDamMaternal || ''}
                       onChange={(e) => setEditingCow({ ...editingCow, grandDamMaternal: e.target.value })}
-                      className="border border-slate-200 rounded-lg p-2 w-full text-xs"
+                      className="border border-white/15 rounded-lg p-2 w-full text-xs"
                     />
                   </div>
                 </div>
@@ -4915,14 +4915,14 @@ export function DairyBreeding({
                   type="text"
                   value={editingCow.notes || ''}
                   onChange={(e) => setEditingCow({ ...editingCow, notes: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-semibold"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-semibold"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
               <button
                 onClick={() => setEditingCow(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-800/40 m-0 cursor-pointer"
               >
                 Cancel
               </button>
@@ -4945,13 +4945,13 @@ export function DairyBreeding({
       {/* Edit Veterinary Record Modal */}
       {editingVet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
               <div>
-                <h3 className="text-sm font-black uppercase text-slate-800">Edit Clinical Veterinary Log</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Adjust clinical parameters and medical records</p>
+                <h3 className="text-sm font-black uppercase text-white">Edit Clinical Veterinary Log</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">Adjust clinical parameters and medical records</p>
               </div>
-              <button onClick={() => setEditingVet(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+              <button onClick={() => setEditingVet(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer">✕</button>
             </div>
             
             <div className="space-y-4 text-left">
@@ -4962,7 +4962,7 @@ export function DairyBreeding({
                   <select
                     value={editingVet.animalCategory || 'Cow'}
                     onChange={(e) => setEditingVet({ ...editingVet, animalCategory: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Cow">Cow</option>
                     <option value="Goat">Goat</option>
@@ -4978,7 +4978,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingVet.cowId}
                     onChange={(e) => setEditingVet({ ...editingVet, cowId: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                   />
                 </div>
                 <div>
@@ -4986,7 +4986,7 @@ export function DairyBreeding({
                   <select
                     value={editingVet.type}
                     onChange={(e) => setEditingVet({ ...editingVet, type: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Deworming">Deworming</option>
                     <option value="Treatment">Treatment</option>
@@ -4997,7 +4997,7 @@ export function DairyBreeding({
               </div>
 
               {/* Vitals and Diagnosis */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-white/10">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Temp (°C)</label>
                   <input
@@ -5005,7 +5005,7 @@ export function DairyBreeding({
                     step="0.1"
                     value={editingVet.temperature || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, temperature: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5014,7 +5014,7 @@ export function DairyBreeding({
                     type="number"
                     value={editingVet.heartRate || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, heartRate: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5023,7 +5023,7 @@ export function DairyBreeding({
                     type="number"
                     value={editingVet.respiratoryRate || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, respiratoryRate: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5032,13 +5032,13 @@ export function DairyBreeding({
                     type="text"
                     value={editingVet.diagnosis || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, diagnosis: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-semibold"
                   />
                 </div>
               </div>
 
               {/* Treatment and Pharmacology */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-white/10">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Intervention</label>
                   <input
@@ -5046,7 +5046,7 @@ export function DairyBreeding({
                     required
                     value={editingVet.treatment}
                     onChange={(e) => setEditingVet({ ...editingVet, treatment: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold"
                   />
                 </div>
                 <div>
@@ -5055,7 +5055,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingVet.drugAdministered || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, drugAdministered: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-semibold"
                   />
                 </div>
                 <div>
@@ -5064,19 +5064,19 @@ export function DairyBreeding({
                     type="text"
                     value={editingVet.dosage || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, dosage: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-semibold"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-semibold"
                   />
                 </div>
               </div>
 
               {/* Routing, Cost, and Timeline */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2 border-t border-white/10">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Route</label>
                   <select
                     value={editingVet.administrationRoute || 'IM'}
                     onChange={(e) => setEditingVet({ ...editingVet, administrationRoute: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="IM">IM</option>
                     <option value="IV">IV</option>
@@ -5093,7 +5093,7 @@ export function DairyBreeding({
                     type="number"
                     value={editingVet.cost}
                     onChange={(e) => setEditingVet({ ...editingVet, cost: parseInt(e.target.value) || 0 })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5102,7 +5102,7 @@ export function DairyBreeding({
                     type="date"
                     value={editingVet.date}
                     onChange={(e) => setEditingVet({ ...editingVet, date: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5110,7 +5110,7 @@ export function DairyBreeding({
                   <select
                     value={editingVet.prognosis || 'Good'}
                     onChange={(e) => setEditingVet({ ...editingVet, prognosis: e.target.value as any })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-900/40 backdrop-blur-md"
                   >
                     <option value="Good">Good</option>
                     <option value="Fair">Fair</option>
@@ -5121,14 +5121,14 @@ export function DairyBreeding({
               </div>
 
               {/* Withdrawals and Follow-ups */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-white/10">
                 <div>
                   <label className="text-[10px] font-black text-amber-700 uppercase block mb-1">Milk Withdrawal (Days)</label>
                   <input
                     type="number"
                     value={editingVet.withdrawalMilkDays || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, withdrawalMilkDays: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                    className="border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-amber-200 bg-amber-900/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5137,7 +5137,7 @@ export function DairyBreeding({
                     type="number"
                     value={editingVet.withdrawalMeatDays || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, withdrawalMeatDays: e.target.value === '' ? undefined : parseInt(e.target.value) })}
-                    className="border border-amber-200 bg-amber-50/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-amber-200 bg-amber-900/20 text-amber-955 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -5146,20 +5146,20 @@ export function DairyBreeding({
                     type="date"
                     value={editingVet.nextDueDate || ''}
                     onChange={(e) => setEditingVet({ ...editingVet, nextDueDate: e.target.value || undefined })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
 
               {/* Retreatment alert and Staff */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                <div className="flex items-center gap-2 bg-rose-50/50 p-2 rounded-xl border border-rose-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2 bg-rose-900/20 p-2 rounded-xl border border-rose-100">
                   <input
                     type="checkbox"
                     id="editVetRetreatment"
                     checked={editingVet.retreatmentScheduled || false}
                     onChange={(e) => setEditingVet({ ...editingVet, retreatmentScheduled: e.target.checked })}
-                    className="w-4 h-4 text-indigo-900 border-slate-300 rounded"
+                    className="w-4 h-4 text-indigo-900 border-white/20 rounded"
                   />
                   <label htmlFor="editVetRetreatment" className="text-[10px] font-black text-rose-950 uppercase selection:bg-transparent">
                     Retreatment Scheduled visit
@@ -5171,7 +5171,7 @@ export function DairyBreeding({
                     type="text"
                     value={editingVet.staff}
                     onChange={(e) => setEditingVet({ ...editingVet, staff: e.target.value })}
-                    className="border border-slate-200 rounded-lg p-2.5 w-full text-xs font-bold text-indigo-950"
+                    className="border border-white/15 rounded-lg p-2.5 w-full text-xs font-bold text-indigo-950"
                   />
                 </div>
               </div>
@@ -5182,15 +5182,15 @@ export function DairyBreeding({
                   value={editingVet.notes}
                   onChange={(e) => setEditingVet({ ...editingVet, notes: e.target.value })}
                   rows={2}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                 />
               </div>
             </div>
             
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
               <button
                 onClick={() => setEditingVet(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-800/40 m-0 cursor-pointer"
               >
                 Cancel
               </button>
@@ -5212,26 +5212,26 @@ export function DairyBreeding({
       {/* Pedigree & Relationship Tree Modal */}
       {pedigreeCow && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl p-6 md:p-8 border border-slate-100 flex flex-col space-y-6 max-h-[90vh] overflow-y-auto animate-fadeIn">
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-4xl shadow-2xl p-6 md:p-8 border border-white/10 flex flex-col space-y-6 max-h-[90vh] overflow-y-auto animate-fadeIn">
             
             {/* Modal Header */}
-            <div className="flex justify-between items-start pb-4 border-b border-slate-100">
+            <div className="flex justify-between items-start pb-4 border-b border-white/10">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-850 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
                     Official Pedigree Deed
                   </span>
                   {pedigreeCow.registrationNo && (
-                    <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider border border-blue-200">
+                    <span className="bg-blue-900/20 text-blue-700 px-2.5 py-1 rounded-lg text-[10px] font-mono font-black uppercase tracking-wider border border-blue-200">
                       Reg: {pedigreeCow.registrationNo}
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-black text-slate-900 mt-2 flex items-center gap-2">
+                <h3 className="text-xl font-black text-white mt-2 flex items-center gap-2">
                   <Award className="text-amber-500" size={20} />
                   Lineage: {pedigreeCow.name}
                 </h3>
-                <p className="text-xs text-slate-400 font-bold mt-1">
+                <p className="text-xs text-slate-500 font-bold mt-1">
                   Tag ID: {pedigreeCow.id} | Breed: {pedigreeCow.breed} | DOB: {pedigreeCow.dob}
                 </p>
               </div>
@@ -5240,21 +5240,21 @@ export function DairyBreeding({
                   setPedigreeCow(null);
                   setSelectedMateId('');
                 }} 
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg m-0 p-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center transition-all"
+                className="text-slate-500 hover:text-slate-500 font-bold text-lg m-0 p-1 cursor-pointer bg-slate-800/40 hover:bg-slate-800/60 rounded-full w-8 h-8 flex items-center justify-center transition-all"
               >
                 ✕
               </button>
             </div>
 
             {/* Modal Tabs */}
-            <div className="flex border-b border-slate-100 pb-1 overflow-x-auto gap-4">
+            <div className="flex border-b border-white/10 pb-1 overflow-x-auto gap-4">
               <button
                 type="button"
                 onClick={() => setPedigreeSubTab('tree')}
                 className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
                   pedigreeSubTab === 'tree'
-                    ? 'border-emerald-700 text-slate-900'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                    ? 'border-emerald-700 text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-200'
                 }`}
               >
                 🌳 Ancestry Family Tree
@@ -5264,8 +5264,8 @@ export function DairyBreeding({
                 onClick={() => setPedigreeSubTab('offspring')}
                 className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
                   pedigreeSubTab === 'offspring'
-                    ? 'border-emerald-700 text-slate-900'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                    ? 'border-emerald-700 text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-200'
                 }`}
               >
                 🧬 Offspring & Descendants
@@ -5275,8 +5275,8 @@ export function DairyBreeding({
                 onClick={() => setPedigreeSubTab('genetics')}
                 className={`pb-2.5 px-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
                   pedigreeSubTab === 'genetics'
-                    ? 'border-emerald-700 text-slate-900'
-                    : 'border-transparent text-slate-400 hover:text-slate-700'
+                    ? 'border-emerald-700 text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-200'
                 }`}
               >
                 🔬 Genetic Mating Simulator
@@ -5287,20 +5287,20 @@ export function DairyBreeding({
             {pedigreeSubTab === 'tree' && (
               <div className="space-y-6">
                 <div className="py-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase block mb-4 text-center tracking-widest">
+                  <span className="text-[10px] font-black text-slate-500 uppercase block mb-4 text-center tracking-widest">
                     Three Generation Ancestor Pedigree Mapping (Live Active Ledger)
                   </span>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
                     {/* FIRST GENERATION: PROBAND (SELF) */}
                     <div className="flex flex-col justify-center">
-                      <div className="p-4 bg-emerald-50/50 border-2 border-emerald-950/20 rounded-2xl shadow-sm text-center relative hover:border-emerald-600 transition-colors">
+                      <div className="p-4 bg-emerald-900/20 border-2 border-emerald-950/20 rounded-2xl shadow-sm text-center relative hover:border-emerald-600 transition-colors">
                         <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-emerald-950 text-white rounded px-2 py-0.5 text-[8px] uppercase font-black tracking-wider">
                           Proband/Subject
                         </div>
                         <div className="pt-4 pb-2">
-                          <span className="text-base font-black text-slate-900 block mt-1">{pedigreeCow.name}</span>
-                          <span className="text-[11px] font-bold text-slate-400 block mt-1">Tag: {pedigreeCow.id}</span>
+                          <span className="text-base font-black text-white block mt-1">{pedigreeCow.name}</span>
+                          <span className="text-[11px] font-bold text-slate-500 block mt-1">Tag: {pedigreeCow.id}</span>
                           <span className="text-[10px] bg-emerald-950/10 text-emerald-900 font-black px-2 py-1 rounded mt-2 inline-block">
                             Breed: {pedigreeCow.breed}
                           </span>
@@ -5311,10 +5311,10 @@ export function DairyBreeding({
                     {/* SECOND GENERATION: PARENTS */}
                     <div className="flex flex-col justify-center space-y-6">
                       {/* SIRE (FATHER ♂) */}
-                      <div className="p-4 bg-blue-50/20 border-2 border-blue-900/10 rounded-2xl shadow-sm relative hover:border-blue-400 transition-colors">
+                      <div className="p-4 bg-blue-900/20 border-2 border-blue-900/10 rounded-2xl shadow-sm relative hover:border-blue-400 transition-colors">
                         <span className="text-[8px] font-black uppercase text-blue-700 block tracking-wider mb-1">Sire / Father ♂</span>
-                        <span className="text-sm font-black text-slate-800 block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
-                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Certified Pureblood Lineage</span>
+                        <span className="text-sm font-black text-white block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
+                        <span className="text-[10px] text-slate-500 font-bold block mt-1">Certified Pureblood Lineage</span>
                         
                         {pedigreeCow.sire && cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) && (
                           <button 
@@ -5331,10 +5331,10 @@ export function DairyBreeding({
                       </div>
 
                       {/* DAM (MOTHER ♀) */}
-                      <div className="p-4 bg-rose-50/20 border-2 border-rose-900/10 rounded-2xl shadow-sm relative hover:border-rose-400 transition-colors">
+                      <div className="p-4 bg-rose-900/20 border-2 border-rose-900/10 rounded-2xl shadow-sm relative hover:border-rose-400 transition-colors">
                         <span className="text-[8px] font-black uppercase text-rose-700 block tracking-wider mb-1">Dam / Mother ♀</span>
-                        <span className="text-sm font-black text-slate-800 block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
-                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Excellent Butterfat Producer</span>
+                        <span className="text-sm font-black text-white block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
+                        <span className="text-[10px] text-slate-500 font-bold block mt-1">Excellent Butterfat Producer</span>
 
                         {pedigreeCow.dam && cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) && (
                           <button 
@@ -5355,25 +5355,25 @@ export function DairyBreeding({
                     <div className="flex flex-col justify-between space-y-4">
                       {/* PATERNAL GRANDPARENTS */}
                       <div className="space-y-2">
-                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                        <div className="p-3 bg-slate-800/40 border border-slate-150 rounded-xl">
                           <span className="text-[7.5px] font-black uppercase text-blue-600 block">Paternal Grand Sire</span>
-                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
+                          <span className="text-xs font-bold text-white block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
                         </div>
-                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                        <div className="p-3 bg-slate-800/40 border border-slate-150 rounded-xl">
                           <span className="text-[7.5px] font-black uppercase text-rose-600 block">Paternal Grand Dam</span>
-                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
+                          <span className="text-xs font-bold text-white block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
                         </div>
                       </div>
 
                       {/* MATERNAL GRANDPARENTS */}
-                      <div className="space-y-2 border-t border-slate-100 pt-3">
-                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                      <div className="space-y-2 border-t border-white/10 pt-3">
+                        <div className="p-3 bg-slate-800/40 border border-slate-150 rounded-xl">
                           <span className="text-[7.5px] font-black uppercase text-blue-600 block">Maternal Grand Sire</span>
-                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
+                          <span className="text-xs font-bold text-white block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
                         </div>
-                        <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
+                        <div className="p-3 bg-slate-800/40 border border-slate-150 rounded-xl">
                           <span className="text-[7.5px] font-black uppercase text-rose-600 block">Maternal Grand Dam</span>
-                          <span className="text-xs font-bold text-slate-800 block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
+                          <span className="text-xs font-bold text-white block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
                         </div>
                       </div>
                     </div>
@@ -5395,7 +5395,7 @@ export function DairyBreeding({
                   if (pGdp && (pGdp === mGsm || pGdp === mGdm)) sharedAncestors.push(`Paternal Grand Dam (${pedigreeCow.grandDamPaternal}) matches Maternal Grandparents`);
 
                   return sharedAncestors.length > 0 ? (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-xs text-red-950">
+                    <div className="p-4 bg-red-900/20 border border-red-200 rounded-2xl flex items-start gap-3 text-xs text-red-950">
                       <span className="text-lg">⚠️</span>
                       <div className="space-y-1">
                         <span className="font-black uppercase tracking-wider block text-red-900 text-[10px]">Ancestry Inbreeding Conflict Alert!</span>
@@ -5411,7 +5411,7 @@ export function DairyBreeding({
                       </div>
                     </div>
                   ) : (
-                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 text-xs text-emerald-900">
+                    <div className="p-4 bg-emerald-900/20 border border-emerald-100 rounded-2xl flex items-center gap-3 text-xs text-emerald-900">
                       <span className="text-lg">✅</span>
                       <div>
                         <span className="font-bold uppercase text-emerald-950 block text-[10px]">Inbreeding Coefficient (F) = 0.00% (Clean / Outcrossed)</span>
@@ -5424,7 +5424,7 @@ export function DairyBreeding({
                 })()}
 
                 {/* Pedigree Certificate Actions (Download & Print) */}
-                <div className="bg-slate-50 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div className="bg-slate-800/40 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 text-center sm:text-left">
                     <Sparkles className="text-emerald-700 shrink-0" size={15} />
                     <span>Verified by JR Cooperative Registry board. Ready for local Studbook print download.</span>
@@ -5441,7 +5441,7 @@ export function DairyBreeding({
                     <button
                       type="button"
                       onClick={() => handleDownloadPedigree(pedigreeCow)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs uppercase rounded-xl transition-all cursor-pointer m-0"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-800/80 hover:bg-slate-300 text-white font-black text-xs uppercase rounded-xl transition-all cursor-pointer m-0"
                       title="Generate certified documentation of the breeding pedigree chart"
                     >
                       <Printer size={13} />
@@ -5455,7 +5455,7 @@ export function DairyBreeding({
             {/* Tab 2: Offspring & Descendants (Lineage Tracking) */}
             {pedigreeSubTab === 'offspring' && (
               <div className="space-y-6">
-                <span className="text-[10px] font-black text-slate-400 uppercase block mb-1 tracking-widest text-center">
+                <span className="text-[10px] font-black text-slate-500 uppercase block mb-1 tracking-widest text-center">
                   Live Downward Lineage Tracking & Descendant Registers
                 </span>
 
@@ -5476,10 +5476,10 @@ export function DairyBreeding({
                       </div>
 
                       {directOffspring.length === 0 ? (
-                        <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="text-center py-8 bg-slate-800/40 rounded-2xl border border-white/10">
                           <span className="text-xl">🍼</span>
                           <p className="text-xs text-slate-500 font-bold mt-2">No direct F1 descendants registered yet in this herd database.</p>
-                          <p className="text-[10px] text-slate-400 mt-1">Add calves or cows with parent Tag ID "{pedigreeCow.id}" to display them here.</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Add calves or cows with parent Tag ID "{pedigreeCow.id}" to display them here.</p>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -5491,11 +5491,11 @@ export function DairyBreeding({
                             );
 
                             return (
-                              <div key={child.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
+                              <div key={child.id} className="bg-slate-800/40 border border-white/15 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
                                 <div className="flex justify-between items-start">
                                   <div>
-                                    <h5 className="font-black text-sm text-slate-900">{child.name}</h5>
-                                    <span className="text-[10px] text-slate-400 font-bold font-mono">ID: {child.id} | Breed: {child.breed}</span>
+                                    <h5 className="font-black text-sm text-white">{child.name}</h5>
+                                    <span className="text-[10px] text-slate-500 font-bold font-mono">ID: {child.id} | Breed: {child.breed}</span>
                                   </div>
                                   <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
                                     child.status === 'Lactating' ? 'bg-emerald-100 text-emerald-950' : 'bg-amber-100 text-amber-950'
@@ -5504,20 +5504,20 @@ export function DairyBreeding({
                                   </span>
                                 </div>
 
-                                <div className="text-[11px] font-medium text-slate-500 space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
+                                <div className="text-[11px] font-medium text-slate-500 space-y-1 bg-slate-900/40 backdrop-blur-md p-2.5 rounded-xl border border-white/10">
                                   <div>📅 Born: <strong>{child.dob}</strong> ({getCowAge(child.dob)})</div>
                                   <div>🥛 Average Daily Yield: <strong>{getAverageYield(child.id).toFixed(1)} L/day</strong></div>
                                 </div>
 
                                 {/* Grand offspring indicator */}
                                 {grandKids.length > 0 && (
-                                  <div className="pt-2 border-t border-dashed border-slate-200">
+                                  <div className="pt-2 border-t border-dashed border-white/15">
                                     <span className="text-[8px] font-black uppercase text-indigo-700 tracking-wider block mb-1">
                                       Grand-descendants (F2 Lineage) ({grandKids.length}):
                                     </span>
                                     <div className="flex flex-wrap gap-1.5">
                                       {grandKids.map(gk => (
-                                        <span key={gk.id} className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-950 text-[9.5px] font-bold px-2 py-0.5 rounded-lg">
+                                        <span key={gk.id} className="inline-flex items-center gap-1 bg-indigo-900/20 border border-indigo-100 text-indigo-950 text-[9.5px] font-bold px-2 py-0.5 rounded-lg">
                                           👶 {gk.name} ({gk.id})
                                         </span>
                                       ))}
@@ -5531,7 +5531,7 @@ export function DairyBreeding({
                                     setPedigreeCow(child);
                                     setPedigreeSubTab('tree');
                                   }}
-                                  className="w-full text-center text-[9.5px] font-black uppercase text-emerald-800 bg-emerald-50 hover:bg-emerald-100 py-1.5 rounded-lg border-0 cursor-pointer transition-all"
+                                  className="w-full text-center text-[9.5px] font-black uppercase text-emerald-800 bg-emerald-900/20 hover:bg-emerald-100 py-1.5 rounded-lg border-0 cursor-pointer transition-all"
                                 >
                                   Trace This Child's Lineage Tree &rarr;
                                 </button>
@@ -5549,7 +5549,7 @@ export function DairyBreeding({
             {/* Tab 3: Genetics & Potential Mate Predictor */}
             {pedigreeSubTab === 'genetics' && (
               <div className="space-y-6">
-                <div className="bg-slate-50 p-4 rounded-2xl space-y-4">
+                <div className="bg-slate-800/40 p-4 rounded-2xl space-y-4">
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-black uppercase text-emerald-950 tracking-wider">🔬 Bovine Mating & Genetic Trait Predictor</h4>
                     <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
@@ -5559,18 +5559,18 @@ export function DairyBreeding({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Subject Cow (Female Dam)</label>
-                      <div className="p-3 bg-white border border-slate-200 rounded-xl font-bold text-xs text-slate-800">
+                      <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Subject Cow (Female Dam)</label>
+                      <div className="p-3 bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-xl font-bold text-xs text-white">
                         {pedigreeCow.name} ({pedigreeCow.breed}) - Tag: {pedigreeCow.id}
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 block mb-1">Select Breeding Sire (Semen Straw / Bull)</label>
+                      <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Select Breeding Sire (Semen Straw / Bull)</label>
                       <select
                         value={selectedMateId}
                         onChange={(e) => setSelectedMateId(e.target.value)}
-                        className="w-full bg-white border border-slate-200 focus:border-emerald-700 rounded-xl px-3 py-3 font-bold text-xs cursor-pointer"
+                        className="w-full bg-slate-900/40 backdrop-blur-md border border-white/15 focus:border-emerald-700 rounded-xl px-3 py-3 font-bold text-xs cursor-pointer"
                       >
                         <option value="">-- Choose Mate --</option>
                         {/* Premium custom straws */}
@@ -5691,7 +5691,7 @@ export function DairyBreeding({
                         </div>
 
                         {/* Sire Recommendations Matchmaker Matrix */}
-                        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl space-y-2">
+                        <div className="bg-emerald-900/20 border border-emerald-100 p-4 rounded-xl space-y-2">
                           <span className="text-[9.5px] font-black uppercase text-emerald-950 block">💡 Stud Matchmaker Insights</span>
                           <p className="text-[11px] text-emerald-800 leading-relaxed font-semibold">
                             Recommended Straw choice for this mating: <strong className="text-emerald-950 font-black">Holstein Ultimate-F</strong>. It yields the highest genetic lactation transfer of <span className="underline">+{predictedProgenyPeak.toFixed(1)} L/day</span> with absolutely 0% risk of inbreeding depression.
@@ -5701,7 +5701,7 @@ export function DairyBreeding({
                     );
                   })()
                 ) : (
-                  <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="text-center py-10 bg-slate-800/40 rounded-2xl border border-white/10">
                     <span className="text-2xl">🧬</span>
                     <p className="text-xs text-slate-500 font-bold mt-2">Select a prospective Sire/Straw above to execute mating simulation.</p>
                   </div>
@@ -5709,8 +5709,8 @@ export function DairyBreeding({
               </div>
             )}
 
-            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-              <span className="text-[10px] text-slate-400 font-mono font-bold">
+            <div className="flex justify-between items-center pt-4 border-t border-white/10">
+              <span className="text-[10px] text-slate-500 font-mono font-bold">
                 JR Farm Bovine Registry &bull; Verified Sovereignty System
               </span>
 
@@ -5720,7 +5720,7 @@ export function DairyBreeding({
                   setPedigreeCow(null);
                   setSelectedMateId('');
                 }}
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black uppercase text-xs rounded-xl transition-colors cursor-pointer m-0 border-0"
+                className="px-5 py-2.5 bg-slate-800/60 hover:bg-slate-800/80 text-slate-500 font-black uppercase text-xs rounded-xl transition-colors cursor-pointer m-0 border-0"
               >
                 Close Family Tree
               </button>
@@ -5733,15 +5733,15 @@ export function DairyBreeding({
       {/* Download Options Modal */}
       {showDownloadModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-slate-200 animate-slide-up">
-            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="font-black text-sm text-slate-800 uppercase tracking-widest flex items-center gap-2">
+          <div className="bg-slate-900/40 backdrop-blur-md w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-white/15 animate-slide-up">
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-800/40">
+              <h3 className="font-black text-sm text-white uppercase tracking-widest flex items-center gap-2">
                 <Download size={16} className={downloadType === 'pdf' ? 'text-rose-500' : 'text-emerald-500'} />
                 Export {downloadType.toUpperCase()} Report
               </h3>
               <button 
                 onClick={() => setShowDownloadModal(false)}
-                className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 rounded-full transition-colors border border-slate-200"
+                className="text-slate-500 hover:text-slate-500 bg-slate-900/40 backdrop-blur-md hover:bg-slate-800/60 p-1.5 rounded-full transition-colors border border-white/15"
               >
                 <X size={16} />
               </button>
@@ -5751,29 +5751,29 @@ export function DairyBreeding({
               <p className="text-xs text-slate-500 font-medium">Select the time period to generate your consolidated production & dispatch report.</p>
               
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Report Period</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Report Period</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button 
                     onClick={() => setDownloadPeriod('today')}
-                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'today' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'today' ? 'bg-emerald-900/20 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-900/40 backdrop-blur-md border-white/15 text-slate-500 hover:border-white/20'}`}
                   >
                     Today
                   </button>
                   <button 
                     onClick={() => setDownloadPeriod('week')}
-                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'week' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'week' ? 'bg-emerald-900/20 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-900/40 backdrop-blur-md border-white/15 text-slate-500 hover:border-white/20'}`}
                   >
                     This Week
                   </button>
                   <button 
                     onClick={() => setDownloadPeriod('month')}
-                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'month' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'month' ? 'bg-emerald-900/20 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-900/40 backdrop-blur-md border-white/15 text-slate-500 hover:border-white/20'}`}
                   >
                     This Month
                   </button>
                   <button 
                     onClick={() => setDownloadPeriod('all')}
-                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'all' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                    className={`py-3 px-2 text-xs font-bold rounded-xl border transition-all ${downloadPeriod === 'all' ? 'bg-emerald-900/20 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-slate-900/40 backdrop-blur-md border-white/15 text-slate-500 hover:border-white/20'}`}
                   >
                     All Time
                   </button>

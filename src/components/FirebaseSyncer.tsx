@@ -232,7 +232,7 @@ export function FirebaseSyncer() {
           <span className="font-bold text-sm">New data synced from cloud!</span>
           <button
             onClick={() => window.location.reload()}
-            className="bg-white text-blue-600 px-3 py-1 rounded-full text-xs font-black hover:bg-blue-50"
+            className="bg-slate-900/40 backdrop-blur-md text-blue-600 px-3 py-1 rounded-full text-xs font-black hover:bg-blue-900/20"
           >
             Refresh Now
           </button>

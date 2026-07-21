@@ -67,22 +67,22 @@ const getDaysDiffText = (targetDateStr: string) => {
   if (diffDays < 0) {
     return {
       text: `⚠️ Overdue by ${Math.abs(diffDays)} Day${Math.abs(diffDays) === 1 ? '' : 's'}`,
-      badgeStyle: 'bg-rose-50 text-rose-700 border-rose-100'
+      badgeStyle: 'bg-rose-900/20 text-rose-700 border-rose-100'
     };
   } else if (diffDays === 0) {
     return {
       text: '🚨 Today',
-      badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+      badgeStyle: 'bg-amber-900/20 text-amber-700 border-amber-200 animate-pulse'
     };
   } else if (diffDays === 1) {
     return {
       text: '📅 Tomorrow',
-      badgeStyle: 'bg-blue-50 text-blue-700 border-blue-150'
+      badgeStyle: 'bg-blue-900/20 text-blue-700 border-blue-150'
     };
   } else {
     return {
       text: `📅 In ${diffDays} Days`,
-      badgeStyle: 'bg-slate-100 text-slate-700 border-slate-200'
+      badgeStyle: 'bg-slate-800/60 text-slate-200 border-white/15'
     };
   }
 };
@@ -531,7 +531,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
   });
 
   return (
-    <div className="space-y-6 font-sans antialiased text-slate-800 animate-fadeIn" id="timetable-root">
+    <div className="space-y-6 font-sans antialiased text-white animate-fadeIn" id="timetable-root">
       
       {/* Toast alert box */}
       {toastMessage && (
@@ -542,17 +542,17 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       )}
 
       {/* Header Banner */}
-      <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="p-1 px-2.5 bg-yellow-105 bg-yellow-100 text-yellow-800 rounded-lg text-[9px] font-black uppercase tracking-wider">
               Chronological Ledger
             </span>
-            <span className="text-[10px] text-slate-400 font-black tracking-widest uppercase">
+            <span className="text-[10px] text-slate-500 font-black tracking-widest uppercase">
               Operations Timetable System
             </span>
           </div>
-          <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+          <h2 className="text-xl font-black text-white flex items-center gap-2">
             <Calendar className="text-emerald-700" size={22} />
             On-Farm Standard Operating Procedures
           </h2>
@@ -639,7 +639,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
               {permission !== 'denied' && (
                 <button
                   onClick={handleTestNotificationImmediate}
-                  className="bg-white/10 hover:bg-white/15 text-white border border-white/20 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
+                  className="bg-slate-900/40 backdrop-blur-md/10 hover:bg-slate-900/40 backdrop-blur-md/15 text-white border border-white/20 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
                 >
                   ⚡ Immediate Test Push
                 </button>
@@ -695,14 +695,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       </div>
  
       {/* Kanban Board vs List View Toggle */}
-      <div className="flex justify-start gap-2 border-b border-slate-100 pb-2">
+      <div className="flex justify-start gap-2 border-b border-white/10 pb-2">
         <button
           onClick={() => setViewMode('kanban')}
           type="button"
           className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
             viewMode === 'kanban'
               ? 'bg-emerald-950 text-white border-emerald-950 shadow-sm font-bold'
-              : 'bg-white text-slate-500 hover:text-slate-800 border-slate-205'
+              : 'bg-slate-900/40 backdrop-blur-md text-slate-500 hover:text-white border-slate-205'
           }`}
         >
           🗂️ Operations Kanban Board
@@ -713,7 +713,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
           className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
             viewMode === 'list'
               ? 'bg-emerald-950 text-white border-emerald-950 shadow-sm font-bold'
-              : 'bg-white text-slate-500 hover:text-slate-800 border-slate-205'
+              : 'bg-slate-900/40 backdrop-blur-md text-slate-500 hover:text-white border-slate-205'
           }`}
         >
           📋 Standard Timetable List
@@ -721,7 +721,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       </div>
  
       {/* Filter and Stats Segment */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-800/40 border border-white/10 p-4 rounded-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto flex-wrap">
           <div className="flex items-center gap-1">
             <span className="text-[10px] font-black uppercase text-slate-405 flex items-center gap-1">
@@ -735,7 +735,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                   className={`text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer m-0 ${
                     filterCategory === cat
                       ? 'bg-slate-905 bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-500 hover:text-slate-800 border-slate-200'
+                      : 'bg-slate-900/40 backdrop-blur-md text-slate-500 hover:text-white border-white/15'
                   }`}
                 >
                   {cat === 'all' ? 'Show All' : cat}
@@ -749,7 +749,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'dateAsc' | 'dateDesc' | 'status' | 'category')}
-              className="bg-white border border-slate-200 rounded-lg text-[10px] font-black uppercase px-2.5 py-1.5 text-slate-700 w-full sm:w-auto"
+              className="bg-slate-900/40 backdrop-blur-md border border-white/15 rounded-lg text-[10px] font-black uppercase px-2.5 py-1.5 text-slate-200 w-full sm:w-auto"
             >
               <option value="dateAsc">Planned Date (Soonest first)</option>
               <option value="dateDesc">Planned Date (Latest first)</option>
@@ -775,7 +775,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       {viewMode === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           {/* COLUMN 1: PENDING / SCHEDULED */}
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+          <div className="bg-slate-800/40 p-4 rounded-3xl border border-white/10 space-y-4">
             <div className="flex justify-between items-center px-1">
               <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">📋 Scheduled / Pending</span>
               <span className="bg-amber-100 text-amber-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
@@ -784,31 +784,31 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             </div>
             <div className="space-y-3">
               {filteredItems.filter(i => i.status === 'Pending').length === 0 ? (
-                <p className="text-[11px] text-slate-400 italic text-center py-6">No pending chores in this filter.</p>
+                <p className="text-[11px] text-slate-500 italic text-center py-6">No pending chores in this filter.</p>
               ) : (
                 filteredItems.filter(i => i.status === 'Pending').map(item => {
                   const diffText = getDaysDiffText(item.targetDate);
                   return (
-                    <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative group">
+                    <div key={item.id} className="bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative group">
                       <div>
-                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
-                        <h4 className="text-xs font-black text-slate-800 mt-2 leading-snug">{item.operation}</h4>
+                        <span className="text-[9px] bg-slate-800/60 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <h4 className="text-xs font-black text-white mt-2 leading-snug">{item.operation}</h4>
                       </div>
                       <div className="text-[10px] text-slate-500 font-bold space-y-0.5">
                         <p>🕒 {item.when}</p>
                         <p>👤 {item.assignedTo || 'General Team'}</p>
                         {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
                       </div>
-                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                      <div className="flex gap-1.5 pt-2 border-t border-white/10">
                         <button
                           onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
-                          className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                          className="w-full py-1.5 bg-indigo-900/20 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-black uppercase rounded-lg cursor-pointer"
                         >
                           Start Task →
                         </button>
                         <button
                           onClick={() => handleUpdateStatusDirect(item.id, 'Completed')}
-                          className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-200 text-[10px] font-black uppercase rounded-lg cursor-pointer font-bold"
+                          className="py-1.5 px-2 bg-emerald-900/20 hover:bg-emerald-100 text-emerald-850 border border-emerald-200 text-[10px] font-black uppercase rounded-lg cursor-pointer font-bold"
                           title="Mark Completed"
                         >
                           ✓
@@ -822,7 +822,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
           </div>
  
           {/* COLUMN 2: IN PROGRESS */}
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+          <div className="bg-slate-800/40 p-4 rounded-3xl border border-white/10 space-y-4">
             <div className="flex justify-between items-center px-1">
               <span className="text-[11px] font-black uppercase text-indigo-800 tracking-wider">⚡ In Progress</span>
               <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
@@ -831,25 +831,25 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             </div>
             <div className="space-y-3">
               {filteredItems.filter(i => i.status === 'In Progress').length === 0 ? (
-                <p className="text-[11px] text-slate-400 italic text-center py-6">No tasks in progress.</p>
+                <p className="text-[11px] text-slate-500 italic text-center py-6">No tasks in progress.</p>
               ) : (
                 filteredItems.filter(i => i.status === 'In Progress').map(item => {
                   const diffText = getDaysDiffText(item.targetDate);
                   return (
-                    <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative">
+                    <div key={item.id} className="bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative">
                       <div>
-                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
-                        <h4 className="text-xs font-black text-slate-800 mt-2 leading-snug">{item.operation}</h4>
+                        <span className="text-[9px] bg-slate-800/60 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <h4 className="text-xs font-black text-white mt-2 leading-snug">{item.operation}</h4>
                       </div>
                       <div className="text-[10px] text-slate-500 font-bold space-y-0.5">
                         <p>🕒 {item.when}</p>
                         <p>👤 {item.assignedTo || 'General Team'}</p>
                         {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
                       </div>
-                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                      <div className="flex gap-1.5 pt-2 border-t border-white/10">
                         <button
                           onClick={() => handleUpdateStatusDirect(item.id, 'Pending')}
-                          className="w-1/2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                          className="w-1/2 py-1.5 bg-slate-800/60 hover:bg-slate-800/80 text-slate-200 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
                         >
                           ← Revert
                         </button>
@@ -868,7 +868,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
           </div>
  
           {/* COLUMN 3: COMPLETED */}
-          <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100 space-y-4">
+          <div className="bg-slate-800/40 p-4 rounded-3xl border border-white/10 space-y-4">
             <div className="flex justify-between items-center px-1">
               <span className="text-[11px] font-black uppercase text-emerald-900 tracking-wider">✅ Verified / Completed</span>
               <span className="bg-emerald-100 text-emerald-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
@@ -877,23 +877,23 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             </div>
             <div className="space-y-3">
               {filteredItems.filter(i => i.status === 'Completed').length === 0 ? (
-                <p className="text-[11px] text-slate-400 italic text-center py-6">No completed tasks yet.</p>
+                <p className="text-[11px] text-slate-500 italic text-center py-6">No completed tasks yet.</p>
               ) : (
                 filteredItems.filter(i => i.status === 'Completed').map(item => {
                   return (
-                    <div key={item.id} className="bg-white/80 p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 opacity-90 relative">
+                    <div key={item.id} className="bg-slate-900/40 backdrop-blur-md/80 p-4 rounded-2xl border border-white/15 shadow-xs space-y-3 opacity-90 relative">
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600"></div>
                       <div>
-                        <span className="text-[9px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
+                        <span className="text-[9px] bg-slate-800/60 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
                         <h4 className="text-xs font-black text-slate-550 line-through mt-2 leading-snug">{item.operation}</h4>
                       </div>
-                      <div className="text-[10px] text-slate-455 text-slate-400 font-bold space-y-0.5">
+                      <div className="text-[10px] text-slate-455 text-slate-500 font-bold space-y-0.5">
                         <p>👤 {item.assignedTo || 'General Team'}</p>
                       </div>
-                      <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                      <div className="flex gap-1.5 pt-2 border-t border-white/10">
                         <button
                           onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
-                          className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+                          className="w-full py-1.5 bg-slate-800/60 hover:bg-slate-800/80 text-slate-200 border text-[10px] font-black uppercase rounded-lg cursor-pointer"
                         >
                           ← Move to In Progress
                         </button>
@@ -911,10 +911,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       {viewMode === 'list' && (
         <div className="space-y-4" id="timetable-timeline">
         {filteredItems.length === 0 ? (
-          <div className="bg-white border border-slate-100 rounded-3xl p-12 text-center text-slate-400 font-bold text-xs space-y-2">
+          <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-3xl p-12 text-center text-slate-500 font-bold text-xs space-y-2">
             <AlertCircle className="mx-auto text-slate-300" size={32} />
             <p>No operations scheduled in this category.</p>
-            <p className="text-[11px] font-normal text-slate-400">Add a custom SOP using the button above.</p>
+            <p className="text-[11px] font-normal text-slate-500">Add a custom SOP using the button above.</p>
           </div>
         ) : (
           filteredItems.map((item) => {
@@ -922,10 +922,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             return (
               <div 
                 key={item.id} 
-                className={`bg-white border rounded-3xl p-5 md:p-6 transition-all shadow-xs relative overflow-hidden ${
+                className={`bg-slate-900/40 backdrop-blur-md border rounded-3xl p-5 md:p-6 transition-all shadow-xs relative overflow-hidden ${
                   item.status === 'Completed' 
-                    ? 'border-slate-150 bg-slate-50/50 opacity-90' 
-                    : 'border-slate-100 hover:border-emerald-700/20'
+                    ? 'border-slate-150 bg-slate-800/40/50 opacity-90' 
+                    : 'border-white/10 hover:border-emerald-700/20'
                 }`}
               >
                 {/* Completed decorative line */}
@@ -938,7 +938,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                     
                     {/* Category, Status & Edit/Delete button header */}
                     <div className="flex items-center justify-between md:justify-start gap-2 flex-wrap">
-                      <span className="bg-slate-150 text-slate-800 text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+                      <span className="bg-slate-150 text-white text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
                         {item.category}
                       </span>
                       <button
@@ -954,7 +954,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                       
                       {/* RELATIVE TIME BADGE OR DONE STATUS */}
                       {item.status === 'Completed' ? (
-                        <span className="bg-emerald-55 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+                        <span className="bg-emerald-55 bg-emerald-900/20 text-emerald-700 border border-emerald-200 text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
                           ✓ Done
                         </span>
                       ) : (
@@ -975,7 +975,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                         {/* EDIT OP BUTTON */}
                         <button
                           onClick={() => handleStartEdit(item)}
-                          className="text-slate-400 hover:text-indigo-805 p-1 hover:bg-slate-55 rounded cursor-pointer border-0 bg-transparent"
+                          className="text-slate-500 hover:text-indigo-805 p-1 hover:bg-slate-55 rounded cursor-pointer border-0 bg-transparent"
                           title="Edit SOP operation values"
                         >
                           <PenSquare size={13} className="text-slate-500 hover:text-indigo-650" />
@@ -984,7 +984,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                         {/* DELETE OP BUTTON */}
                         <button
                           onClick={() => handleDeleteItem(item.id)}
-                          className="text-slate-400 hover:text-rose-800 font-bold p-1 cursor-pointer bg-transparent border-0"
+                          className="text-slate-500 hover:text-rose-800 font-bold p-1 cursor-pointer bg-transparent border-0"
                           title="Delete Operations record"
                         >
                           <Trash2 size={13} className="text-slate-550 hover:text-red-600" />
@@ -993,7 +993,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                     </div>
 
                     {/* Operation Name */}
-                    <h3 className={`text-base font-black text-slate-900 ${item.status === 'Completed' ? 'line-through text-slate-450 text-slate-400' : ''}`}>
+                    <h3 className={`text-base font-black text-white ${item.status === 'Completed' ? 'line-through text-slate-450 text-slate-500' : ''}`}>
                       {item.operation}
                     </h3>
 
@@ -1002,14 +1002,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                       
                       {/* PLANNED DATE & ASSIGNED */}
                       <div className="space-y-1">
-                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
                           <Calendar size={11} className="text-emerald-600" /> Target Date & Team
                         </span>
-                        <div className="text-xs space-y-1 bg-slate-100/30 p-2.5 rounded-xl border border-slate-150/50">
-                          <p className="font-extrabold text-slate-900 flex items-center gap-1">
+                        <div className="text-xs space-y-1 bg-slate-800/60/30 p-2.5 rounded-xl border border-slate-150/50">
+                          <p className="font-extrabold text-white flex items-center gap-1">
                             <Clock size={10} className="text-slate-450" /> {item.targetDate ? new Date(item.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
                           </p>
-                          <p className="font-black text-[9px] text-indigo-700 bg-indigo-50/50 px-2 py-0.5 rounded-md inline-block">
+                          <p className="font-black text-[9px] text-indigo-700 bg-indigo-900/20 px-2 py-0.5 rounded-md inline-block">
                             👤 {item.assignedTo || 'General Team'}
                           </p>
                         </div>
@@ -1017,30 +1017,30 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
 
                       {/* WHEN */}
                       <div className="space-y-1">
-                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
                           <Clock size={11} className="text-amber-500" /> Frequency/Cadence
                         </span>
-                        <p className="text-xs font-black text-slate-850 bg-slate-100/30 p-2.5 rounded-xl border border-slate-150/50">
+                        <p className="text-xs font-black text-slate-850 bg-slate-800/60/30 p-2.5 rounded-xl border border-slate-150/50">
                           {item.when}
                         </p>
                       </div>
 
                       {/* HOW */}
                       <div className="space-y-1">
-                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
                           <Activity size={11} className="text-blue-500" /> Action SOP
                         </span>
-                        <p className="text-xs text-slate-650 bg-slate-100/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed font-semibold">
+                        <p className="text-xs text-slate-650 bg-slate-800/60/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed font-semibold">
                           {item.how}
                         </p>
                       </div>
 
                       {/* WHY */}
                       <div className="space-y-1">
-                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
                           <HelpCircle size={11} className="text-purple-500" /> Technical Impact
                         </span>
-                        <p className="text-xs text-slate-650 bg-slate-100/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed italic font-medium">
+                        <p className="text-xs text-slate-650 bg-slate-800/60/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed italic font-medium">
                           "{item.why}"
                         </p>
                       </div>
@@ -1055,7 +1055,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                       className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer m-0 ${
                         item.status === 'Completed'
                           ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/10'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600'
+                          : 'bg-slate-800/60 hover:bg-slate-800/80 text-slate-500 hover:text-slate-500'
                       }`}
                       title={item.status === 'Completed' ? 'Mark Task as Pending' : 'Mark Task as Done'}
                     >
@@ -1073,9 +1073,9 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       {/* CREATE / EDIT SOP TIMETABLE MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5 animate-scaleUp border border-slate-100 max-h-[90vh] overflow-y-auto">
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5 animate-scaleUp border border-white/10 max-h-[90vh] overflow-y-auto">
             
-            <div className="flex justify-between items-start pb-3 border-b border-slate-100">
+            <div className="flex justify-between items-start pb-3 border-b border-white/10">
               <div className="space-y-0.5">
                 <span className="bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase">
                   Standard Operating Procedures
@@ -1086,7 +1086,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-base bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer border-0 m-0"
+                className="text-slate-500 hover:text-slate-500 font-bold text-base bg-slate-800/60 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer border-0 m-0"
               >
                 ✕
               </button>
@@ -1095,13 +1095,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
             <form onSubmit={handleAddCustom} className="space-y-4">
               
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                   Farm Section Category
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as TimetableItem['category'])}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs"
+                  className="w-full bg-slate-800/40 border border-white/15 rounded-xl px-3 py-2.5 font-bold text-xs"
                 >
                   <option value="Cows & Calves">Cows & Calves</option>
                   <option value="Goats & Pigs">Goats & Pigs</option>
@@ -1111,7 +1111,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                   Operation Name
                 </label>
                 <input
@@ -1120,12 +1120,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                   placeholder="e.g., Alfalfa hay sorting & visual feed mold quarantine"
                   value={operation}
                   onChange={(e) => setOperation(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+                  className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                   When is it done? (Temporal cadence/Cadence triggers)
                 </label>
                 <input
@@ -1134,13 +1134,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                   placeholder="e.g., Every Monday at 8:00 AM, or Week 5 post-calving"
                   value={when}
                   onChange={(e) => setWhen(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+                  className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                     Scheduled Executing Date
                   </label>
                   <input
@@ -1148,11 +1148,11 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                     required
                     value={targetDate}
                     onChange={(e) => setTargetDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+                    className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                     Assigned Owner / Team
                   </label>
                   <input
@@ -1160,13 +1160,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                     placeholder="e.g., Milking Crew, Dr. Peter"
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+                    className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                   How is it executed? (Action SOP)
                 </label>
                 <textarea
@@ -1175,12 +1175,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                   placeholder="e.g., Pull visual samples from center of silage stack. Sift manually for white, pinkish spores. Dump or lock moldy silage slices in safe quarantine dump."
                   value={how}
                   onChange={(e) => setHow(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
+                  className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
                   Why is it vital? (Technical agricultural justification)
                 </label>
                 <textarea
@@ -1189,15 +1189,15 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
                   placeholder="e.g., Silage mold contains deadly mycotoxins like aflatoxins that trigger immediate dairy liver damage and induce spontaneous calving abortions."
                   value={why}
                   onChange={(e) => setWhy(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
+                  className="w-full bg-slate-800/40 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
                 />
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-slate-100">
+              <div className="flex gap-2 pt-2 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black uppercase text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
+                  className="flex-1 bg-slate-800/60 hover:bg-slate-800/80 text-slate-500 font-black uppercase text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
                 >
                   Cancel
                 </button>
@@ -1217,12 +1217,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
       {/* FAIL-SAFE IN-APP SIMULATED NOTIFICATION DIALOG */}
       {activeNotificationAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm font-sans animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-6 border border-amber-200 animate-scaleUp relative overflow-hidden">
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-6 border border-amber-200 animate-scaleUp relative overflow-hidden">
             {/* Top caution stripe */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 animate-pulse"></div>
             
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl shrink-0 animate-bounce">
+              <div className="p-3 bg-amber-900/20 text-amber-600 rounded-2xl shrink-0 animate-bounce">
                 <BellRing size={28} />
               </div>
               <div className="space-y-1">
@@ -1235,15 +1235,15 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Standard Operating Procedure:</span>
-              <p className="text-xs text-slate-700 font-semibold leading-relaxed">
+            <div className="bg-slate-800/40 border border-slate-150 p-4 rounded-2xl space-y-2">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Standard Operating Procedure:</span>
+              <p className="text-xs text-slate-200 font-semibold leading-relaxed">
                 {activeNotificationAlert.bodyText}
               </p>
             </div>
 
             {/* Sandbox explaining notice */}
-            <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl flex gap-3 text-[11px] text-indigo-950 leading-normal font-medium">
+            <div className="p-3 bg-indigo-900/20 border border-indigo-100 rounded-xl flex gap-3 text-[11px] text-indigo-950 leading-normal font-medium">
               <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
               <div>
                 <p className="font-extrabold text-indigo-900">Why did this pop up here?</p>

@@ -79,7 +79,7 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
         {onTriggerSectionReport && (
           <button
             onClick={() => onTriggerSectionReport('azolla')}
-            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all shadow-sm"
+            className="flex items-center gap-2 bg-slate-900/40 backdrop-blur-md/20 hover:bg-slate-900/40 backdrop-blur-md/30 px-4 py-2 rounded-lg transition-all shadow-sm"
           >
             <Download className="w-5 h-5" />
             Download Report
@@ -88,41 +88,41 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-md p-6 border border-slate-100">
+        <div className="bg-slate-900/40 backdrop-blur-md rounded-xl shadow-md p-6 border border-white/10">
           <div className="flex items-center gap-3 mb-6 border-b pb-4">
             <div className="p-2 bg-emerald-100 rounded-lg">
               <Plus className="w-6 h-6 text-emerald-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">Log Harvest</h3>
+            <h3 className="text-lg font-semibold text-white">Log Harvest</h3>
           </div>
           
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-slate-200 mb-1">Date</label>
                 <input
                   type="date"
                   required
                   value={date}
                   onChange={e => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Pond ID</label>
+                <label className="block text-sm font-medium text-slate-200 mb-1">Pond ID</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g., Pond A"
                   value={pondId}
                   onChange={e => setPondId(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Yield (KG)</label>
+                <label className="block text-sm font-medium text-slate-200 mb-1">Yield (KG)</label>
                 <input
                   type="number"
                   required
@@ -131,28 +131,28 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
                   placeholder="0.0"
                   value={harvestYieldKg}
                   onChange={e => setHarvestYieldKg(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Expenses (Ksh) *Optional</label>
+                <label className="block text-sm font-medium text-slate-200 mb-1">Expenses (Ksh) *Optional</label>
                 <input
                   type="number"
                   min="0"
                   placeholder="0"
                   value={expensesKsh}
                   onChange={e => setExpensesKsh(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Distributed To</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">Distributed To</label>
               <select
                 required
                 value={distributedTo}
                 onChange={e => setDistributedTo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
                 <option value="">Select Destination...</option>
                 <option value="Dairy Cows">Dairy Cows</option>
@@ -163,13 +163,13 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1">Notes</label>
               <input
                 type="text"
                 placeholder="Quality, weather impacts, etc."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
             <button
@@ -181,16 +181,16 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
           </form>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6 border border-slate-100 flex flex-col">
+        <div className="bg-slate-900/40 backdrop-blur-md rounded-xl shadow-md p-6 border border-white/10 flex flex-col">
           <div className="flex items-center justify-between mb-6 border-b pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <TrendingUp className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-800">Production Metrics</h3>
+              <h3 className="text-lg font-semibold text-white">Production Metrics</h3>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-slate-800">{totalYield.toLocaleString()} <span className="text-sm font-normal text-slate-500">KG Total</span></div>
+              <div className="text-2xl font-bold text-white">{totalYield.toLocaleString()} <span className="text-sm font-normal text-slate-500">KG Total</span></div>
             </div>
           </div>
           
@@ -209,7 +209,7 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 flex-col gap-2">
+              <div className="flex items-center justify-center h-full text-slate-500 flex-col gap-2">
                 <Leaf className="w-12 h-12 opacity-20" />
                 <p>No harvest data to display</p>
               </div>
@@ -218,15 +218,15 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-          <h3 className="font-semibold text-slate-800">Harvest History</h3>
+      <div className="bg-slate-900/40 backdrop-blur-md rounded-xl shadow-md overflow-hidden border border-white/10">
+        <div className="px-6 py-4 border-b border-white/15 bg-slate-800/40 flex justify-between items-center">
+          <h3 className="font-semibold text-white">Harvest History</h3>
           <span className="text-sm text-slate-500">{records.length} records</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-600 text-sm border-b">
+              <tr className="bg-slate-800/40 text-slate-500 text-sm border-b">
                 <th className="px-6 py-3 font-medium">Date</th>
                 <th className="px-6 py-3 font-medium">Pond</th>
                 <th className="px-6 py-3 font-medium text-right">Yield (KG)</th>
@@ -245,21 +245,21 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
                 </tr>
               ) : (
                 records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(rec => (
-                  <tr key={rec.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-700">{rec.date}</td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-900">{rec.pondId}</td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-700 text-right font-semibold text-emerald-600">
+                  <tr key={rec.id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-200">{rec.date}</td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-white">{rec.pondId}</td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-200 text-right font-semibold text-emerald-600">
                       {rec.harvestYieldKg.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-700">{rec.distributedTo}</td>
-                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-700 text-right">
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-200">{rec.distributedTo}</td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-200 text-right">
                       {rec.expensesKsh ? rec.expensesKsh.toLocaleString() : '-'}
                     </td>
                     <td className="px-6 py-3 text-sm text-slate-500 max-w-[200px] truncate">{rec.notes || '-'}</td>
                     <td className="px-6 py-3 whitespace-nowrap text-center">
                       <button
                         onClick={() => onDeleteRecord(rec.id)}
-                        className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50"
+                        className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-900/20"
                         title="Delete Record"
                       >
                         <Trash2 className="w-4 h-4" />

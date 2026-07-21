@@ -316,7 +316,7 @@ export function Dashboard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="space-y-8 farm-shell-card p-6 md:p-8 rounded-[2rem] text-slate-900 relative overflow-hidden"
+      className="space-y-8 farm-shell-card p-6 md:p-8 rounded-[2rem] text-white relative overflow-hidden"
     >
       {/* Background glow effects for premium feel */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -z-0"></div>
@@ -335,7 +335,7 @@ export function Dashboard({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsSwahili(!isSwahili)}
-            className="px-4 py-2 rounded-xl bg-white/75 backdrop-blur-md hover:bg-white border border-slate-200 text-slate-700 font-extrabold tracking-wider uppercase text-[10px] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-slate-900/40 backdrop-blur-md/75 backdrop-blur-md hover:bg-slate-900/40 backdrop-blur-md border border-white/15 text-slate-200 font-extrabold tracking-wider uppercase text-[10px] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Languages size={14} className="animate-pulse" />
             <span>{isSwahili ? "Swahili 🇰🇪" : "English 🇬🇧"}</span>
@@ -375,7 +375,7 @@ export function Dashboard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-slate-600 font-medium text-xs md:text-sm leading-relaxed max-w-2xl"
+              className="text-slate-500 font-medium text-xs md:text-sm leading-relaxed max-w-2xl"
             >
               {t("Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.")}
             </motion.p>
@@ -386,10 +386,10 @@ export function Dashboard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-200/80 max-w-4xl text-left"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/15 max-w-4xl text-left"
           >
             {[
-              { label: "Management Core", value: "Sovereign Active", color: "text-slate-900" },
+              { label: "Management Core", value: "Sovereign Active", color: "text-white" },
               { label: "Audit Compliance", value: "100% Certified", color: "text-emerald-700" },
               { label: "Traceback Records", value: "Blockchain Latch", color: "text-amber-700" },
               { label: "System Node", value: "Online & Synced", color: "text-blue-700" }
@@ -483,7 +483,7 @@ export function Dashboard({
           </div>
           <h4 className="text-sm font-black text-slate-950 uppercase tracking-wide">Heavy Rain Forecast • 18°C</h4>
           <p className="text-[10px] text-sky-600 font-bold uppercase mt-1">High Humidity (92%) • Spore Risk Alert</p>
-          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10.5px] leading-relaxed text-amber-900 font-medium">
+          <div className="mt-3 p-3 bg-amber-900/20 border border-amber-200 rounded-xl text-[10.5px] leading-relaxed text-amber-900 font-medium">
             ⚠️ **Late Blight Spore Threat (Solanaceae)**: Cool mist and rainfall accelerate pathogen germination. Secure tomato blocks with protective copper fungicide immediately.
           </div>
         </motion.div>
@@ -510,7 +510,7 @@ export function Dashboard({
               <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
               <span>Warehouse: {inventory.filter((i: any) => i.quantity <= i.minStock).length} feeds/chemicals below minimum.</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
               <span>{todos.filter((t: any) => !t.completed).length} checklist task items pending.</span>
             </div>
@@ -531,7 +531,7 @@ export function Dashboard({
               </div>
             </div>
             <h4 className="text-sm font-black text-slate-950 uppercase tracking-wide">PWA Mobile Shortcut</h4>
-            <p className="text-[11px] text-slate-600 mt-2 leading-relaxed font-semibold">
+            <p className="text-[11px] text-slate-500 mt-2 leading-relaxed font-semibold">
               Pin JR Farm Omni-Estate directly to your mobile phone home screen. Works offline with lightning speed.
             </p>
           </div>
@@ -617,7 +617,7 @@ export function Dashboard({
                                 {r.type}
                               </span>
                             </div>
-                            <span className="text-[10px] uppercase font-black bg-white/15 text-slate-100 px-2 py-1 rounded">
+                            <span className="text-[10px] uppercase font-black bg-slate-900/40 backdrop-blur-md/15 text-slate-100 px-2 py-1 rounded">
                               {sMatch?.unit || 'Unit'}
                             </span>
                           </div>
@@ -649,7 +649,7 @@ export function Dashboard({
                                 {r.type}
                               </span>
                             </div>
-                            <span className="text-[10px] uppercase font-black bg-white/15 text-slate-100 px-2 py-1 rounded">
+                            <span className="text-[10px] uppercase font-black bg-slate-900/40 backdrop-blur-md/15 text-slate-100 px-2 py-1 rounded">
                               {sMatch?.unit || 'Unit'}
                             </span>
                           </div>
@@ -792,7 +792,7 @@ export function Dashboard({
                     {bioScore}%
                   </span>
                 </div>
-                <div className="w-24 h-3 bg-white/10 rounded-full overflow-hidden shrink-0">
+                <div className="w-24 h-3 bg-slate-900/40 backdrop-blur-md/10 rounded-full overflow-hidden shrink-0">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${bioScore}%` }}
@@ -1084,7 +1084,7 @@ export function Dashboard({
             <h4 className="text-white font-black text-lg uppercase tracking-widest block">
               {t("Nyaronde Weather & Agro-Advisory")}
             </h4>
-            <p className="text-sm text-slate-400 font-medium mt-1 max-w-2xl">
+            <p className="text-sm text-slate-500 font-medium mt-1 max-w-2xl">
               Live orbital indices combined with soil moisture tension mapping for optimal agricultural compliance.
             </p>
           </div>
@@ -1093,7 +1093,7 @@ export function Dashboard({
             <button
               onClick={() => setIsLiveWeather(true)}
               className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                isLiveWeather ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                isLiveWeather ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-slate-500 hover:text-white hover:bg-white/5'
               }`}
             >
               <Sparkles size={14} className={weatherLoading ? "animate-spin" : ""} />
@@ -1102,7 +1102,7 @@ export function Dashboard({
             <button
               onClick={() => { setIsLiveWeather(false); setWeatherCondition('sunny'); setSoilMoisture(42); }}
               className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-2 cursor-pointer ${
-                !isLiveWeather ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                !isLiveWeather ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'text-slate-500 hover:text-white hover:bg-white/5'
               }`}
             >
               <span>Simulator</span>
@@ -1128,7 +1128,7 @@ export function Dashboard({
               <h5 className="text-lg font-black font-mono text-white">
                 {isLiveWeather ? (weatherLoading ? "Linking..." : liveWeather ? `${liveWeather.current.temperature_2m}°C` : "Orbiting...") : (weatherCondition === 'sunny' ? '23°C' : weatherCondition === 'rainy' ? '16°C' : '14°C')}
               </h5>
-              <p className="text-xs text-slate-400 font-bold mt-1">
+              <p className="text-xs text-slate-500 font-bold mt-1">
                 Humidity: {isLiveWeather ? (liveWeather?.current?.relative_humidity_2m ? `${liveWeather.current.relative_humidity_2m}%` : "76%") : (weatherCondition === 'sunny' ? '30%' : weatherCondition === 'rainy' ? '92%' : '65%')}
               </p>
             </div>
@@ -1232,7 +1232,7 @@ export function Dashboard({
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
               {liveWeather.daily.time.map((time: string, i: number) => (
                 <div key={time} className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5 min-w-[70px]">
-                  <span className="text-xs text-slate-400 font-bold mb-1">
+                  <span className="text-xs text-slate-500 font-bold mb-1">
                     {new Date(time).toLocaleDateString('en-US', { weekday: 'short' })}
                   </span>
                   <span className="text-xl mb-1">
@@ -1262,7 +1262,7 @@ export function Dashboard({
           </div>
           <div>
             <h4 className="text-white font-black text-base uppercase tracking-widest">Global Activity Log</h4>
-            <p className="text-xs text-slate-400 font-medium mt-1">Live feed of farm events and notifications</p>
+            <p className="text-xs text-slate-500 font-medium mt-1">Live feed of farm events and notifications</p>
           </div>
         </div>
 
@@ -1302,7 +1302,7 @@ export function Dashboard({
             <Sparkles className="text-yellow-400 animate-pulse" size={24} />
             Precision Suite
           </h3>
-          <p className="text-sm text-slate-400 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
+          <p className="text-sm text-slate-500 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1326,7 +1326,7 @@ export function Dashboard({
                   <ToolIcon size={20} />
                 </div>
                 <h4 className={`text-sm font-black text-white uppercase tracking-wide group-hover:text-${tool.color}-400 transition-colors mb-2`}>{tool.label}</h4>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed">{tool.desc}</p>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">{tool.desc}</p>
               </motion.div>
             );
           })}

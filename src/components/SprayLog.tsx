@@ -129,13 +129,13 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
   return (
     <div className="space-y-8">
       {/* Introduction banner */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+      <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-sm flex items-center gap-4">
         <div className="p-3 bg-red-100 text-red-950 rounded-xl shrink-0">
           <FlaskConical size={24} className="text-red-800" />
         </div>
         <div>
-          <h4 className="text-slate-800 font-black text-sm uppercase tracking-wider">GlobalGAP Spray Compliance Register</h4>
-          <p className="text-xs text-slate-400 font-medium">
+          <h4 className="text-white font-black text-sm uppercase tracking-wider">GlobalGAP Spray Compliance Register</h4>
+          <p className="text-xs text-slate-500 font-medium">
             Document crop chemical controls. Under strict GlobalGAP export criteria, crops must NEVER be plucked before their Pre-Harvest Intervals (PHI) clear.
           </p>
         </div>
@@ -143,15 +143,15 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Spray Event Logger */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-5 lg:col-span-1 h-fit">
+        <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-5 lg:col-span-1 h-fit">
           <div>
             <h5 className="text-[11px] font-black tracking-widest text-red-900 uppercase">Document Spray Treatment</h5>
-            <p className="text-xs text-slate-400 mt-1 font-medium">Log active block fungicide/pesticide sprays</p>
+            <p className="text-xs text-slate-500 mt-1 font-medium">Log active block fungicide/pesticide sprays</p>
           </div>
 
           {/* Quick IPM & Pest Solution Presets */}
-          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/60 space-y-2">
-            <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider flex items-center gap-1">
+          <div className="bg-slate-800/40 p-3.5 rounded-2xl border border-white/15 space-y-2">
+            <span className="text-[9px] uppercase font-black text-slate-500 tracking-wider flex items-center gap-1">
               <Sparkles size={11} className="text-amber-500 animate-pulse" />
               Quick IPM Presets (Pest Control)
             </span>
@@ -182,10 +182,10 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                       setNextSprayDate(nextObj.toISOString().split('T')[0]);
                     }
                   }}
-                  className="w-full text-left bg-white hover:bg-slate-100 p-2 rounded-xl border border-slate-200/80 hover:border-slate-350 text-[11px] font-bold text-slate-700 transition-all flex justify-between items-center cursor-pointer m-0"
+                  className="w-full text-left bg-slate-900/40 backdrop-blur-md hover:bg-slate-800/60 p-2 rounded-xl border border-white/15 hover:border-slate-350 text-[11px] font-bold text-slate-200 transition-all flex justify-between items-center cursor-pointer m-0"
                 >
                   <span className="truncate">{p.label}</span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">PHI {p.phi}d</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800/60 text-slate-500 shrink-0">PHI {p.phi}d</span>
                 </button>
               ))}
             </div>
@@ -200,7 +200,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 value={block}
                 onChange={(e) => setBlock(e.target.value)}
                 placeholder="E.g. Avocado Block C"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
               />
             </div>
 
@@ -212,7 +212,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 value={chemical}
                 onChange={(e) => setChemical(e.target.value)}
                 placeholder="E.g. Copper Oxychloride"
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold"
               />
             </div>
 
@@ -223,7 +223,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                 required
                 value={sprayDate}
                 onChange={(e) => handleSprayDateChange(e.target.value)}
-                className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
+                className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
               />
             </div>
 
@@ -238,7 +238,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   value={phi}
                   onChange={(e) => setPhi(e.target.value === '' ? '' : parseInt(e.target.value))}
                   placeholder="E.g. 7"
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                  className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono"
                 />
               </div>
               <div>
@@ -249,13 +249,13 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
                   placeholder="E.g. Rust / Thrips"
-                  className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
+                  className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
                 />
               </div>
             </div>
 
-            <div className="border-t border-dashed border-slate-200 pt-4 space-y-3">
-              <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest block">📅 Next Treatment Schedule</span>
+            <div className="border-t border-dashed border-white/15 pt-4 space-y-3">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">📅 Next Treatment Schedule</span>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-550 uppercase tracking-wider block mb-1">Interval Days</label>
@@ -266,7 +266,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                     value={intervalDays}
                     onChange={(e) => handleIntervalDaysChange(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="E.g. 14"
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -275,7 +275,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                     type="date"
                     value={nextSprayDate}
                     onChange={(e) => handleNextSprayDateChange(e.target.value)}
-                    className="text-xs border border-slate-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
+                    className="text-xs border border-white/15 rounded-lg p-3 w-full font-bold font-mono cursor-pointer"
                   />
                 </div>
               </div>
@@ -292,17 +292,17 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
 
         {/* Quarantine Active Monitors & Archive Logs */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div className="bg-slate-900/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h5 className="text-[11px] font-black tracking-widest text-slate-805 uppercase">Active Quarantine Controls & Safe Dates</h5>
-                <p className="text-xs text-slate-400 font-medium">Real-time Safety Checkpoints for Plucking Managers</p>
+                <p className="text-xs text-slate-500 font-medium">Real-time Safety Checkpoints for Plucking Managers</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={downloadSprayCSV}
                   type="button"
-                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-900/20 hover:bg-rose-100 border border-rose-200 text-rose-950 rounded-xl font-black text-[10px] uppercase transition-all shadow-xs cursor-pointer m-0"
                   title="Download Spray Records CSV"
                 >
                   <FileSpreadsheet size={12} />
@@ -324,7 +324,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
 
             <div className="space-y-3">
               {sprayRecords.length === 0 ? (
-                <p className="text-xs text-slate-400 italic py-6 text-center">No spray intervals registered in the system index.</p>
+                <p className="text-xs text-slate-500 italic py-6 text-center">No spray intervals registered in the system index.</p>
               ) : (
                 [...sprayRecords].reverse().map((rec) => {
                   const qStatus = getQuarantineStatus(rec.safeDate);
@@ -334,8 +334,8 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                       key={rec.id}
                       className={`p-4 rounded-2xl border transition-all ${
                         qStatus.isQuarantined
-                          ? 'bg-rose-50 border-rose-200 text-rose-950 shadow-sm'
-                          : 'bg-emerald-50/50 border-emerald-100 text-emerald-950'
+                          ? 'bg-rose-900/20 border-rose-200 text-rose-950 shadow-sm'
+                          : 'bg-emerald-900/20 border-emerald-100 text-emerald-950'
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -353,7 +353,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                             </span>
                           </div>
                           <p className="text-[10px] text-slate-500 font-bold uppercase">
-                            Chemical: <span className="font-extrabold text-slate-700">{rec.chemical}</span> • Target: {rec.target}
+                            Chemical: <span className="font-extrabold text-slate-200">{rec.chemical}</span> • Target: {rec.target}
                           </p>
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
@@ -379,11 +379,11 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  
                           {(() => {
                             const name = rec.chemical.toLowerCase();
-                            let tox = { label: 'WHO Class II: Moderately Hazardous', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+                            let tox = { label: 'WHO Class II: Moderately Hazardous', color: 'text-amber-700 bg-amber-900/20 border-amber-200' };
                             if (name.includes('dimethoate') || name.includes('carbofuran') || name.includes('methomyl') || name.includes('ddvp')) {
-                              tox = { label: 'WHO Class Ib: Highly Hazardous', color: 'text-red-705 bg-red-50 border-red-200' };
+                              tox = { label: 'WHO Class Ib: Highly Hazardous', color: 'text-red-705 bg-red-900/20 border-red-200' };
                             } else if (name.includes('copper') || name.includes('sulphur') || name.includes('mancozeb') || name.includes('neem')) {
-                              tox = { label: 'WHO Class III: Slightly Hazardous', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+                              tox = { label: 'WHO Class III: Slightly Hazardous', color: 'text-emerald-700 bg-emerald-900/20 border-emerald-200' };
                             }
                             return (
                               <div className={`mt-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase tracking-wide inline-block ${tox.color}`}>
@@ -392,20 +392,20 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                             );
                           })()}
 
-                          <div className="flex items-center gap-4 mt-2 bg-[#ffffff]/60 p-2 rounded-xl border border-slate-100/80 max-w-sm">
+                          <div className="flex items-center gap-4 mt-2 bg-[#ffffff]/60 p-2 rounded-xl border border-white/10/80 max-w-sm">
                             <div>
-                              <span className="text-[8px] uppercase font-black text-slate-400 block tracking-wider leading-none">
+                              <span className="text-[8px] uppercase font-black text-slate-500 block tracking-wider leading-none">
                                 Interval
                               </span>
-                              <span className="text-[11px] font-black text-slate-700 block mt-0.5">
+                              <span className="text-[11px] font-black text-slate-200 block mt-0.5">
                                 {rec.intervalDays ?? 14} Days
                               </span>
                             </div>
-                            <div className="border-l border-slate-200 pl-3">
-                              <span className="text-[8px] uppercase font-black text-slate-400 block tracking-wider leading-none">
+                            <div className="border-l border-white/15 pl-3">
+                              <span className="text-[8px] uppercase font-black text-slate-500 block tracking-wider leading-none">
                                 Next Spraying Date
                               </span>
-                              <span className="text-[11px] font-black text-slate-800 block mt-0.5 font-mono">
+                              <span className="text-[11px] font-black text-white block mt-0.5 font-mono">
                                 {rec.nextSprayDate ? new Date(rec.nextSprayDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not scheduled'}
                               </span>
                             </div>
@@ -414,7 +414,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
 
                         <div className="flex items-center gap-4 text-left sm:text-right shrink-0">
                           <div>
-                            <span className="text-[9px] uppercase font-black text-slate-400 block tracking-wider leading-none">
+                            <span className="text-[9px] uppercase font-black text-slate-500 block tracking-wider leading-none">
                               Authorized Plucking Date
                             </span>
                             <span className={`text-sm font-black font-mono block mt-1.5 ${
@@ -434,7 +434,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                               <button
                                 type="button"
                                 onClick={() => setEditingSpray(rec)}
-                                className="text-slate-300 hover:text-indigo-805 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-indigo-100 bg-white shadow-xs shrink-0"
+                                className="text-slate-300 hover:text-indigo-805 p-2 rounded transition-colors cursor-pointer m-0 border border-white/10 hover:border-indigo-100 bg-slate-900/40 backdrop-blur-md shadow-xs shrink-0"
                                 title="Edit spray record"
                               >
                                 <Edit2 size={13} />
@@ -443,7 +443,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                             <button
                               type="button"
                               onClick={() => onDeleteSpray(rec.id)}
-                              className="text-slate-300 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border border-slate-100 hover:border-red-100 bg-white shadow-xs shrink-0"
+                              className="text-slate-300 hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border border-white/10 hover:border-red-100 bg-slate-900/40 backdrop-blur-md shadow-xs shrink-0"
                               title="Delete spray history"
                             >
                               <Trash2 size={13} />
@@ -463,10 +463,10 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
       {/* Edit Spray Record Modal */}
       {editingSpray && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-slate-100 space-y-4 animate-fadeIn">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-black uppercase text-slate-800">Edit Spray Log</h3>
-              <button onClick={() => setEditingSpray(null)} className="text-slate-400 hover:text-slate-600 font-bold m-0 cursor-pointer">✕</button>
+          <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn">
+            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+              <h3 className="text-sm font-black uppercase text-white">Edit Spray Log</h3>
+              <button onClick={() => setEditingSpray(null)} className="text-slate-500 hover:text-slate-500 font-bold m-0 cursor-pointer">✕</button>
             </div>
             <div className="space-y-3">
               <div>
@@ -475,7 +475,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   type="text"
                   value={editingSpray.block}
                   onChange={(e) => setEditingSpray({ ...editingSpray, block: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                 />
               </div>
               <div>
@@ -484,7 +484,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   type="text"
                   value={editingSpray.chemical}
                   onChange={(e) => setEditingSpray({ ...editingSpray, chemical: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                 />
               </div>
               <div>
@@ -493,7 +493,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                   type="text"
                   value={editingSpray.target}
                   onChange={(e) => setEditingSpray({ ...editingSpray, target: e.target.value })}
-                  className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
+                  className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -512,7 +512,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                         safeDate: dateObj.toISOString().split('T')[0]
                       });
                     }}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -536,12 +536,12 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                         nextSprayDate: nextObj.toISOString().split('T')[0]
                       });
                     }}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 border-t border-dashed border-slate-200 pt-3">
+              <div className="grid grid-cols-2 gap-2 border-t border-dashed border-white/15 pt-3">
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase block mb-1">Interval Days</label>
                   <input
@@ -557,7 +557,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                         nextSprayDate: baseDate.toISOString().split('T')[0]
                       });
                     }}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
                 <div>
@@ -576,15 +576,15 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
                         intervalDays: diffDays >= 0 ? diffDays : 0
                       });
                     }}
-                    className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+                    className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
                   />
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
               <button
                 onClick={() => setEditingSpray(null)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 m-0 cursor-pointer"
+                className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-800/40 m-0 cursor-pointer"
               >
                 Cancel
               </button>
