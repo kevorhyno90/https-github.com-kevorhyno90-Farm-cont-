@@ -150,7 +150,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  </div>
 
  {/* Quick IPM & Pest Solution Presets */}
- <div className="bg-slate-50 border border-gray-200 p-3.5 rounded-2xl border border-gray-200 space-y-2">
+ <div className="bg-white border border-gray-200 p-3.5 rounded-2xl border border-gray-200 space-y-2">
  <span className="text-[9px]  font-semibold text-gray-900 font-medium tracking-normal flex items-center gap-1">
  <Sparkles size={11} className="text-amber-500 animate-pulse" />
  Quick IPM Presets (Pest Control)
@@ -182,10 +182,10 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  setNextSprayDate(nextObj.toISOString().split('T')[0]);
  }
  }}
- className="w-full text-left bg-white shadow-sm hover:bg-slate-50 border border-gray-200 p-2 rounded-xl border border-gray-200 hover:border-gray-200 text-[11px] font-bold text-gray-900 font-semibold transition-all flex justify-between items-center cursor-pointer m-0"
+ className="w-full text-left bg-white shadow-sm hover:bg-white border border-gray-200 p-2 rounded-xl border border-gray-200 hover:border-gray-200 text-[11px] font-bold text-gray-900 font-semibold transition-all flex justify-between items-center cursor-pointer m-0"
  >
  <span className="truncate">{p.label}</span>
- <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-50 border border-gray-200 text-gray-900 font-medium shrink-0">PHI {p.phi}d</span>
+ <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-900 font-medium shrink-0">PHI {p.phi}d</span>
  </button>
  ))}
  </div>
@@ -584,7 +584,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingSpray(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>

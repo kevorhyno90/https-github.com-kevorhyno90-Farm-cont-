@@ -367,7 +367,7 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.4 }}
- className="text-2xl md:text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-emerald-400 to-amber-400 tracking-tight"
+ className="text-2xl md:text-5xl font-semibold text-gray-900"
  >
  {t("JR Farm Omni-Estate")}
  </motion.h1>
@@ -511,7 +511,7 @@ export function Dashboard({
  <span>Warehouse: {inventory.filter((i: any) => i.quantity <= i.minStock).length} feeds/chemicals below minimum.</span>
  </div>
  <div className="flex items-center gap-2 text-[11px] font-semibold text-gray-900">
- <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+ <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
  <span>{todos.filter((t: any) => !t.completed).length} checklist task items pending.</span>
  </div>
  </div>
@@ -537,7 +537,7 @@ export function Dashboard({
  </div>
  <button
  onClick={() => alert("To install, open this application in a new browser tab and click the Install option in the URL address bar.")}
- className="mt-3 w-full py-2 bg-slate-50 hover:bg-slate-50 border border-gray-200 text-gray-900 text-[10px] tracking-tight font-semibold rounded-xl transition-all cursor-pointer text-center"
+ className="mt-3 w-full py-2 bg-white hover:bg-white border border-gray-200 text-gray-900 text-[10px] tracking-tight font-semibold rounded-xl transition-all cursor-pointer text-center"
  >
  Install PWA
  </button>
@@ -597,7 +597,7 @@ export function Dashboard({
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {/* Off Today */}
- <div className="bg-black/20 p-5 rounded-2xl border border-gray-100">
+ <div className="bg-white/20 p-5 rounded-2xl border border-gray-100">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
  <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
@@ -629,7 +629,7 @@ export function Dashboard({
  </div>
 
  {/* Upcoming Offs */}
- <div className="bg-black/20 p-5 rounded-2xl border border-gray-100">
+ <div className="bg-white/20 p-5 rounded-2xl border border-gray-100">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
  <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
@@ -664,7 +664,7 @@ export function Dashboard({
  </div>
 
  {/* Conflicts */}
- <div className="bg-black/20 p-5 rounded-2xl border border-gray-100">
+ <div className="bg-white/20 p-5 rounded-2xl border border-gray-100">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]"></span>
  <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Labor Overlap Security ({conflicts.length})</span>
@@ -785,7 +785,7 @@ export function Dashboard({
  </div>
  </div>
  
- <div className="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-gray-100">
+ <div className="flex items-center gap-4 bg-white/30 p-3 rounded-2xl border border-gray-100">
  <div className="text-right">
  <span className="text-[9px] font-semibold text-gray-900 tracking-tight block mb-1">Quality Index</span>
  <span className={`text-xl font-mono font-semibold ${bioScore >= 90 ? 'text-green-600' : bioScore >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
@@ -825,7 +825,7 @@ export function Dashboard({
  Detected Warnings & PHI Audits ({allAlarms.length})
  </h4>
  {allAlarms.length === 0 ? (
- <div className="p-8 bg-black/20 border border-gray-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
+ <div className="p-8 bg-white/20 border border-gray-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
  <ShieldCheck size={36} className="text-green-600" />
  <p className="text-sm text-gray-900 font-semibold tracking-wide">✓ No active biological warnings</p>
  <p className="text-xs text-gray-900 font-semibold">Your farm complies 100% with GlobalGAP food export standards.</p>
@@ -842,7 +842,7 @@ export function Dashboard({
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
  exit={{ opacity: 0, scale: 0.95 }}
- className="p-5 bg-black/20 border border-gray-200 rounded-2xl hover:bg-black/30 transition-colors"
+ className="p-5 bg-white/20 border border-gray-200 rounded-2xl hover:bg-white/30 transition-colors"
  >
  <div className="flex justify-between items-start gap-4">
  <div className="flex gap-4 items-start">
@@ -880,7 +880,7 @@ export function Dashboard({
  initial={{ opacity: 0, height: 0 }}
  animate={{ opacity: 1, height: 'auto' }}
  exit={{ opacity: 0, height: 0 }}
- className="mt-4 pt-4 border-t border-gray-200 bg-black/40 text-green-600 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
+ className="mt-4 pt-4 border-t border-gray-200 bg-white/40 text-green-600 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
  >
  <div className="flex items-center gap-2 text-green-600 font-semibold tracking-tight mb-3 border-b border-emerald-500/30 pb-2 text-[10px]">
  <ShieldCheck size={14} />
@@ -918,7 +918,7 @@ export function Dashboard({
  <p className="text-xs text-gray-900 font-semibold mt-1">Morning (AM) vs Afternoon (PM) yield</p>
  </div>
  </div>
- <div className="h-80 w-full bg-black/20 rounded-2xl p-4 border border-white/5 min-w-0">
+ <div className="h-80 w-full bg-white/20 rounded-2xl p-4 border border-white/5 min-w-0">
  {chartData.length === 0 ? (
  <div className="h-full flex items-center justify-center text-gray-900 font-semibold text-sm font-mono">
  No milking records compiled yet.
@@ -973,13 +973,13 @@ export function Dashboard({
  value={newTodo}
  onChange={(e) => setNewTodo(e.target.value)}
  placeholder="E.g. Clear pasture sector D..."
- className="w-full text-sm border border-gray-100 rounded-xl px-4 py-3 bg-black/40 text-gray-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all"
+ className="w-full text-sm border border-gray-100 rounded-xl px-4 py-3 bg-white/40 text-gray-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all"
  />
  <div className="flex gap-3">
  <select
  value={todoAssignee}
  onChange={(e) => setTodoAssignee(e.target.value)}
- className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-black/40 text-gray-900 font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
+ className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 bg-white/40 text-gray-900 font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
  >
  <option value="" className="bg-white shadow-sm">-- Assign (Optional) --</option>
  {staffList.map((s) => (
@@ -1038,7 +1038,7 @@ export function Dashboard({
  className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
  draggedTodoId === todo.id ? 'opacity-50 scale-95 border-emerald-500/50' : ''
  } ${
- todo.completed ? 'bg-black/20 border-white/5 opacity-50' : 'bg-black/40 border-gray-100 hover:border-emerald-500/30 hover:bg-black/60'
+ todo.completed ? 'bg-white/20 border-white/5 opacity-50' : 'bg-white/40 border-gray-100 hover:border-emerald-500/30 hover:bg-white/60'
  }`}
  >
  <button onClick={() => onToggleTodo(todo.id)} className="flex items-start gap-4 flex-1 text-left cursor-pointer">
@@ -1074,7 +1074,7 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.9 }}
- className="bg-black/30 p-6 md:p-8 rounded-3xl border border-gray-100 shadow-2xl space-y-8 relative z-10"
+ className="bg-white/30 p-6 md:p-8 rounded-3xl border border-gray-100 shadow-2xl space-y-8 relative z-10"
  >
  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 border-b border-gray-100 pb-6">
  <div>
@@ -1089,7 +1089,7 @@ export function Dashboard({
  </p>
  </div>
 
- <div className="flex items-center gap-3 bg-black/40 p-1.5 rounded-xl border border-white/5">
+ <div className="flex items-center gap-3 bg-white/40 p-1.5 rounded-xl border border-white/5">
  <button
  onClick={() => setIsLiveWeather(true)}
  className={`px-4 py-2.5 rounded-lg text-xs font-semibold  transition-all flex items-center gap-2 cursor-pointer ${
@@ -1115,7 +1115,7 @@ export function Dashboard({
  <div className={`p-4 rounded-2xl shrink-0 ${
  isLiveWeather ? 'bg-emerald-500/20 text-green-600 border border-emerald-500/30' :
  weatherCondition === 'sunny' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
- weatherCondition === 'rainy' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+ weatherCondition === 'rainy' ? 'bg-blue-500/20 text-blue-700 border border-blue-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
  }`}>
  <span className="text-3xl font-bold font-mono">
  {isLiveWeather ? (liveWeather?.current?.weather_code <= 3 ? '⛅' : liveWeather?.current?.weather_code >= 51 ? '🌧️' : '☀️') : (weatherCondition === 'sunny' ? '☀' : weatherCondition === 'rainy' ? '☂' : '❄')}
@@ -1140,7 +1140,7 @@ export function Dashboard({
  <span className="text-[10px] font-semibold text-gray-900 font-medium block tracking-normal leading-none">
  Atmosphere & Wind
  </span>
- <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+ <div className="flex justify-between items-center bg-white/40 p-3 rounded-xl border border-white/5">
  <span className="text-xs font-bold text-gray-900 font-medium flex items-center gap-2">
  <Wind size={14} className="text-green-600" /> Wind Velocity
  </span>
@@ -1154,8 +1154,8 @@ export function Dashboard({
  <div className="flex justify-between items-center">
  <span className="text-[10px] font-semibold text-gray-900 font-medium block tracking-normal">{t("Soil Moisture")}</span>
  <span className={`font-semibold font-mono text-xs px-2.5 py-1 rounded-md border ${
- soilMoisture < 25 ? 'bg-red-500/20 text-red-400 border-red-500/30' :
- soilMoisture > 75 ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-emerald-500/20 text-green-600 border-emerald-500/30'
+ soilMoisture < 25 ? 'bg-red-500/20 text-red-700 border-red-500/30' :
+ soilMoisture > 75 ? 'bg-blue-500/20 text-blue-700 border-blue-500/30' : 'bg-emerald-500/20 text-green-600 border-emerald-500/30'
  }`}>
  {soilMoisture}%
  </span>
@@ -1164,7 +1164,7 @@ export function Dashboard({
  type="range"
  min="10" max="95" value={soilMoisture}
  onChange={(e) => setSoilMoisture(Number(e.target.value))}
- className="w-full h-2 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+ className="w-full h-2 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
  />
  </div>
  )}
@@ -1197,7 +1197,7 @@ export function Dashboard({
  </div>
  </div>
 
- <div className="bg-black/40 p-6 rounded-3xl border border-gray-100 shadow-inner flex flex-col justify-between">
+ <div className="bg-white/40 p-6 rounded-3xl border border-gray-100 shadow-inner flex flex-col justify-between">
  <div className="flex items-center gap-2 mb-4">
  <Calculator size={16} className="text-yellow-500" />
  <span className="text-xs font-semibold tracking-tight text-green-600">Soil Dosage Optimizer</span>
@@ -1205,7 +1205,7 @@ export function Dashboard({
  <div className="grid grid-cols-2 gap-3 mb-4">
  <div>
  <label className="text-[9px] tracking-tight font-semibold text-gray-900 font-medium block mb-1">Crop</label>
- <select value={calcCrop} onChange={(e: any) => setCalcCrop(e.target.value)} className="w-full bg-black/60 text-gray-900 font-bold text-xs border border-gray-100 rounded-lg px-2 py-2 outline-none">
+ <select value={calcCrop} onChange={(e: any) => setCalcCrop(e.target.value)} className="w-full bg-white/60 text-gray-900 font-bold text-xs border border-gray-100 rounded-lg px-2 py-2 outline-none">
  <option value="tea">Tea</option>
  <option value="avocado">Avocado</option>
  <option value="napier">Napier</option>
@@ -1213,11 +1213,11 @@ export function Dashboard({
  </div>
  <div>
  <label className="text-[9px] tracking-tight font-semibold text-gray-900 font-medium block mb-1">pH</label>
- <input type="number" step="0.1" min="3" max="9" value={calcPh} onChange={(e: any) => setCalcPh(e.target.value)} className="w-full bg-black/60 text-gray-900 font-mono font-bold text-xs border border-gray-100 rounded-lg px-2 py-2 outline-none" />
+ <input type="number" step="0.1" min="3" max="9" value={calcPh} onChange={(e: any) => setCalcPh(e.target.value)} className="w-full bg-white/60 text-gray-900 font-mono font-bold text-xs border border-gray-100 rounded-lg px-2 py-2 outline-none" />
  </div>
  </div>
  <div className="bg-white/40 border border-emerald-500/30 p-3 rounded-xl">
- <span className="text-[9px] font-mono tracking-normal font-semibold text-yellow-400 block mb-1">Recommendation:</span>
+ <span className="text-[9px] font-mono tracking-normal font-semibold text-yellow-700 block mb-1">Recommendation:</span>
  <p className="font-semibold text-gray-900 text-xs leading-tight mb-2">{calcResult.dosage}</p>
  <p className="text-[9px] text-green-600/80 italic leading-snug">{calcResult.description}</p>
  </div>
@@ -1240,7 +1240,7 @@ export function Dashboard({
  </span>
  <div className="flex gap-1 text-[10px] font-mono font-bold">
  <span className="text-rose-400">{Math.round(liveWeather.daily.temperature_2m_max[i])}°</span>
- <span className="text-blue-400">{Math.round(liveWeather.daily.temperature_2m_min[i])}°</span>
+ <span className="text-blue-700">{Math.round(liveWeather.daily.temperature_2m_min[i])}°</span>
  </div>
  </div>
  ))}
@@ -1254,11 +1254,11 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 1.0 }}
- className="bg-black/30 p-6 md:p-8 rounded-3xl border border-gray-100 shadow-2xl relative z-10"
+ className="bg-white/30 p-6 md:p-8 rounded-3xl border border-gray-100 shadow-2xl relative z-10"
  >
  <div className="flex items-center gap-3 mb-6">
  <div className="bg-blue-500/20 p-2.5 rounded-xl border border-blue-500/30">
- <Bell size={20} className="text-blue-400" />
+ <Bell size={20} className="text-blue-700" />
  </div>
  <div>
  <h4 className="text-gray-900 font-semibold text-base tracking-tight">Global Activity Log</h4>
@@ -1266,7 +1266,7 @@ export function Dashboard({
  </div>
  </div>
 
- <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto space-y-3 custom-scrollbar">
+ <div className="bg-white/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto space-y-3 custom-scrollbar">
  {activityLogs.length === 0 ? (
  <div className="text-center text-gray-900 font-medium font-mono text-sm py-4">No recent activity</div>
  ) : (
@@ -1276,7 +1276,7 @@ export function Dashboard({
  log.type === 'alert' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
  log.type === 'success' ? 'bg-emerald-500/20 text-green-600 border-emerald-500/30' :
  log.type === 'warning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
- 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+ 'bg-blue-500/20 text-blue-700 border-blue-500/30'
  }`}>
  {log.type.toUpperCase()}
  </span>
@@ -1299,7 +1299,7 @@ export function Dashboard({
  >
  <div className="mb-6">
  <h3 className="text-xl font-semibold text-gray-900 text-gray-900 tracking-tight flex items-center gap-3">
- <Sparkles className="text-yellow-400 animate-pulse" size={24} />
+ <Sparkles className="text-yellow-700 animate-pulse" size={24} />
  Precision Suite
  </h3>
  <p className="text-sm text-gray-900 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
@@ -1319,7 +1319,7 @@ export function Dashboard({
  whileHover={{ scale: 1.03, y: -5 }}
  whileTap={{ scale: 0.98 }}
  onClick={() => onNavigateToTab && onNavigateToTab(tool.id)}
- className="group cursor-pointer bg-black/40 border border-gray-100 p-6 rounded-2xl transition-all relative overflow-hidden"
+ className="group cursor-pointer bg-white/40 border border-gray-100 p-6 rounded-2xl transition-all relative overflow-hidden"
  >
  <div className={`absolute -right-4 -bottom-4 w-24 h-24 bg-${tool.color}-500/20 rounded-full blur-[40px] group-hover:bg-${tool.color}-500/40 transition-colors`}></div>
  <div className={`p-3 bg-${tool.color}-500/20 text-${tool.color}-400 rounded-xl w-fit mb-4 border border-${tool.color}-500/30`}>

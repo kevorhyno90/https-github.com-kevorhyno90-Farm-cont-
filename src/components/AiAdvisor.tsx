@@ -118,12 +118,12 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  <button
  onClick={() => setIsOpen(true)}
  type="button"
- className="flex items-center gap-2.5 bg-gradient-to-r from-emerald-950 to-emerald-900 border border-emerald-800 text-gray-900 font-bold hover:text-gray-900 px-4.5 py-3.5 rounded-full shadow-2xl hover:scale-105 transition-all text-xs font-semibold tracking-tight relative group outline-hidden cursor-pointer"
+ className="flex items-center gap-2.5 bg-green-700 border border-green-800 text-white hover:bg-green-800 px-4.5 py-3.5 rounded-full shadow-lg hover:scale-105 transition-all text-xs font-semibold tracking-tight relative group outline-none cursor-pointer"
  >
  {/* Subtle heartbeat badge */}
  <span className="absolute -top-1.5 -right-1 flex h-3 w-3">
- <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
- <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+ <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+ <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
  </span>
  <Bot size={16} className="animate-pulse" />
  <span>Sovereign AI Advisor</span>
@@ -132,7 +132,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
 
  {/* Expanded Chat Pane */}
  {isOpen && (
- <div className="bg-slate-50 border border-gray-200 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn">
+ <div className="bg-white border border-gray-200 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn">
  {/* Panel Header */}
  <div className="bg-gradient-to-r from-emerald-950 to-emerald-900 p-4 border-b border-gray-200 flex justify-between items-center text-left">
  <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  key={idx}
  onClick={() => handleSendMessage(s)}
  type="button"
- className="bg-slate-50 border border-gray-200 hover:bg-slate-100/80 text-gray-900 font-medium hover:text-gray-900 border border-gray-200 px-2.5 py-1 rounded-full text-[9px] font-bold  transition-all duration-150 cursor-pointer text-left shrink-0"
+ className="bg-white border border-gray-200 hover:bg-white/80 text-gray-900 font-medium hover:text-gray-900 border border-gray-200 px-2.5 py-1 rounded-full text-[9px] font-bold  transition-all duration-150 cursor-pointer text-left shrink-0"
  >
  {s}
  </button>
@@ -241,7 +241,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  {/* Form input controls footer */}
  <form 
  onSubmit={(e) => { e.preventDefault(); handleSendMessage(userInput); }}
- className="p-3 bg-slate-50 border-t border-gray-200 flex items-center gap-2.5"
+ className="p-3 bg-white border-t border-gray-200 flex items-center gap-2.5"
  >
  <input
  type="text"
@@ -256,7 +256,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  className={`p-2.5 rounded-xl transition-all ${
  userInput.trim() && !isLoading 
  ? 'bg-emerald-500 text-gray-500 hover:bg-emerald-400 cursor-pointer' 
- : 'bg-slate-50 border border-gray-200 text-white font-medium cursor-not-allowed'
+ : 'bg-white border border-gray-200 text-white font-medium cursor-not-allowed'
  }`}
  >
  <Send size={14} />

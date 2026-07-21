@@ -932,7 +932,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  <button
  type="submit"
- className="w-full bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-gray-900 font-semibold text-xs  p-3.5 rounded-xl transition-all m-0"
+ className="w-full bg-white shadow-sm hover:bg-white border border-gray-200 text-gray-900 font-semibold text-xs  p-3.5 rounded-xl transition-all m-0"
  >
  Add to Lab Inventory
  </button>
@@ -968,7 +968,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  className={`text-[9px] font-semibold px-2 py-1 rounded-md tracking-tight shrink-0 border transition-all ${
  activeCategoryFilter === cat 
  ? 'bg-emerald-800 text-gray-900 border-emerald-900' 
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
  {cat}
@@ -983,7 +983,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  ) : (
  <>
  {filteredIngredients.slice(0, visibleCount).map((ing) => (
- <div key={ing.name} className="flex justify-between items-center p-2.5 border border-gray-100 rounded-xl text-[11px] bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 transition-all">
+ <div key={ing.name} className="flex justify-between items-center p-2.5 border border-gray-100 rounded-xl text-[11px] bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all">
  <div className="flex-1 min-w-0 pr-2">
  <div className="flex items-center gap-1.5">
  <span className="font-semibold text-gray-900 truncate" title={ing.name}>{ing.name}</span>
@@ -1024,7 +1024,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setVisibleCount((prev) => prev + 50)}
- className="w-full text-center py-2 text-[10px] font-semibold  text-green-600 hover:text-green-600 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 rounded-xl transition-all border border-gray-200 mt-2 cursor-pointer"
+ className="w-full text-center py-2 text-[10px] font-semibold  text-green-600 hover:text-green-600 bg-white border border-gray-200 hover:bg-white border border-gray-200 rounded-xl transition-all border border-gray-200 mt-2 cursor-pointer"
  >
  Show More (+{filteredIngredients.length - visibleCount} more items)
  </button>
@@ -1200,7 +1200,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  {/* New Optimized Material Select & Search Section */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4 rounded-2xl space-y-3 relative">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4 rounded-2xl space-y-3 relative">
  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
  <span className="text-[10px] font-semibold  text-green-600 tracking-normal flex items-center gap-1.5">
  <span>➕</span> Search & Choose ingredients to add
@@ -1270,7 +1270,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => {
  handleAddIngredientToBatch(ing);
  }}
- className="w-full text-left p-2.5 hover:bg-slate-50 border border-gray-200 transition-colors flex justify-between items-center text-xs"
+ className="w-full text-left p-2.5 hover:bg-white border border-gray-200 transition-colors flex justify-between items-center text-xs"
  >
  <div className="min-w-0 pr-2">
  <span className="font-semibold text-gray-900 block truncate">{ing.name}</span>
@@ -1304,7 +1304,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Dynamic Compounding Board Recipe List */}
  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
  {batchItems.length === 0 ? (
- <div className="text-center p-8 border-2 border-dashed border-gray-200 rounded-2xl bg-slate-50 border border-gray-200">
+ <div className="text-center p-8 border-2 border-dashed border-gray-200 rounded-2xl bg-white border border-gray-200">
  <p className="text-gray-900 font-medium font-semibold text-sm ">Get Started by Choosing Materials</p>
  <p className="text-gray-900 font-medium text-xs mt-1">Use the quick dropdown or type to search ingredients above to begin compounding.</p>
  </div>
@@ -1312,14 +1312,14 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  batchItems.map((item) => {
  const rawIng = allIngredients.find((i) => i.name === item.name);
  return (
- <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-slate-50 border border-gray-200 border border-gray-100 p-4 rounded-2xl transition-all hover:bg-slate-50 border border-gray-200 hover:border-gray-200">
+ <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-white border border-gray-200 border border-gray-100 p-4 rounded-2xl transition-all hover:bg-white border border-gray-200 hover:border-gray-200">
  <div className="flex-1 min-w-0 text-left">
  <div className="flex items-center gap-2">
  <span className="font-semibold text-gray-900 text-xs sm:text-sm block truncate" title={item.name}>
  {item.name}
  </span>
  {rawIng?.category && (
- <span className="text-[8px] bg-slate-50 border border-gray-200 text-gray-900 font-medium px-1.5 py-0.5 rounded  font-semibold tracking-normal shrink-0">
+ <span className="text-[8px] bg-white border border-gray-200 text-gray-900 font-medium px-1.5 py-0.5 rounded  font-semibold tracking-normal shrink-0">
  {rawIng.category}
  </span>
  )}
@@ -1450,7 +1450,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  )}
  </div>
  ) : (
- <div className="bg-slate-50 border border-gray-200 border border-gray-100 p-8 rounded-2xl text-center">
+ <div className="bg-white border border-gray-200 border border-gray-100 p-8 rounded-2xl text-center">
  <span className="text-xs text-gray-900 font-medium font-semibold">Batch parameters currently zero. Add ingredients and weights to compute diagnostics.</span>
  </div>
  )}
@@ -1498,7 +1498,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {lcfSubMode === 'pearsons' ? (
  /* Pearson's Square Interface */
  <div className="space-y-6 animate-fadeIn">
- <div className="bg-slate-50 border border-gray-200 p-5 border rounded-2xl border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+ <div className="bg-white border border-gray-200 p-5 border rounded-2xl border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Controls */}
  <div className="space-y-4">
  <div className="border-b border-gray-200 pb-2">
@@ -1669,7 +1669,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
  </div>
 
- <div className="bg-slate-50 p-4 rounded-xl border border-white/5 text-[11px] space-y-1">
+ <div className="bg-white p-4 rounded-xl border border-white/5 text-[11px] space-y-1">
  <span className="font-semibold text-gray-900 font-medium tracking-tight block text-left">🎓 Mathematical Steps of Pearson Square formulation:</span>
  <p className="text-gray-500 leading-relaxed font-semibold text-left">
  1. Subtract diagonally: Ingredient A parts = |{pearsonsResult.bObj.cp}% - {pearsonsTargetCp}%| = {pearsonsResult.partsA.toFixed(1)} parts.<br />
@@ -1690,7 +1690,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
  ) : (
  <div className="bg-red-950/40 text-red-200 border border-red-900/50 p-6 rounded-2xl space-y-2 text-left">
- <h5 className="text-xs font-semibold tracking-tight text-red-400 flex items-center gap-2">
+ <h5 className="text-xs font-semibold tracking-tight text-red-700 flex items-center gap-2">
  ⚠️ Mathematical Constraint Violated
  </h5>
  <p className="text-xs leading-relaxed font-medium">
@@ -1706,7 +1706,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  /* Original Multi-Ingredient Solver Interface */
  <div className="space-y-6 animate-fadeIn">
  {/* Targets Setup */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-gray-200 p-5 border rounded-2xl border-gray-100">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-gray-200 p-5 border rounded-2xl border-gray-100">
  <div className="space-y-2">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">
  🎯 Target Crude Protein Score: <span className="font-mono text-green-600 font-semibold text-xs">{lcfTargetCp}% CP</span>
@@ -1718,7 +1718,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  step="0.5"
  value={lcfTargetCp}
  onChange={(e) => setLcfTargetCp(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-semibold">
  <span>10% CP (MAINTENANCE)</span>
@@ -1737,7 +1737,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  step="0.1"
  value={lcfTargetMe}
  onChange={(e) => setLcfTargetMe(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-semibold">
  <span>7 MJ (ROUGHAGE)</span>
@@ -1754,7 +1754,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  {/* Search & Add candidates section */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4 rounded-2xl space-y-3 relative">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4 rounded-2xl space-y-3 relative">
  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
  <span className="text-[10px] font-semibold  text-green-600 tracking-normal flex items-center gap-1.5">
  <span>➕</span> Add candidate raw materials to matrix
@@ -1824,7 +1824,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => {
  handleAddLcfCandidate(ing);
  }}
- className="w-full text-left p-2.5 hover:bg-slate-50 border border-gray-200 transition-colors flex justify-between items-center text-xs"
+ className="w-full text-left p-2.5 hover:bg-white border border-gray-200 transition-colors flex justify-between items-center text-xs"
  >
  <div className="min-w-0 pr-2">
  <span className="font-semibold text-gray-900 block truncate">{ing.name}</span>
@@ -1858,7 +1858,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
  {lcfCandidates.map((cand, idx) => (
  <div key={cand.name} className={`p-4 border rounded-2xl flex flex-col justify-between transition-all ${
- cand.enabled ? 'bg-white shadow-sm border-gray-200 ring-1 ring-emerald-500/5' : 'bg-slate-50 border border-gray-200 border-gray-100 opacity-60'
+ cand.enabled ? 'bg-white shadow-sm border-gray-200 ring-1 ring-emerald-500/5' : 'bg-white border border-gray-200 border-gray-100 opacity-60'
  }`}>
  <div className="flex justify-between items-start gap-2">
  <div className="flex items-start gap-2.5">
@@ -1904,7 +1904,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].cost = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-xs w-11 bg-slate-50 border border-gray-200 border p-1 rounded font-mono font-semibold text-right outline-none focus:border-emerald-500"
+ className="text-xs w-11 bg-white border border-gray-200 border p-1 rounded font-mono font-semibold text-right outline-none focus:border-emerald-500"
  />
  </div>
  </div>
@@ -1924,7 +1924,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].minLimit = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-[11px] font-mono font-bold w-full border bg-slate-50 border border-gray-200 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
+ className="text-[11px] font-mono font-bold w-full border bg-white border border-gray-200 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
  />
  </div>
  <div>
@@ -1939,7 +1939,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].maxLimit = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-[11px] font-mono font-bold w-full border bg-slate-50 border border-gray-200 p-1.5 rounded-lg text-center mt-1 outline-none"
+ className="text-[11px] font-mono font-bold w-full border bg-white border border-gray-200 p-1.5 rounded-lg text-center mt-1 outline-none"
  />
  </div>
  </div>
@@ -2000,7 +2000,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  const weight = lcfResult.weights[idx] || 0;
  if (weight <= 0) return null;
  return (
- <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-50 p-2 rounded-lg border border-white/5">
+ <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-white p-2 rounded-lg border border-white/5">
  <span className="text-gray-900 font-medium font-sans">{cand.name}</span>
  <div className="flex gap-3">
  <span className="text-green-600 font-bold">{weight.toFixed(1)}%</span>
@@ -2052,7 +2052,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  className={`text-[10px] font-semibold tracking-tight px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
  requirementsTab === catName
  ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
- : 'bg-slate-50 text-gray-900 font-medium border-gray-200 hover:text-gray-900 font-semibold'
+ : 'bg-white text-gray-900 font-medium border-gray-200 hover:text-gray-900 font-semibold'
  }`}
  >
  {catName === 'All' ? '📑 See All Stages' : catName}
@@ -2064,7 +2064,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => scrollRequirements('left')}
- className="p-2 rounded-lg bg-slate-50 hover:bg-slate-50 border border-gray-200 border border-gray-200 text-gray-900 font-medium hover:text-gray-900 transition-colors cursor-pointer"
+ className="p-2 rounded-lg bg-white hover:bg-white border border-gray-200 border border-gray-200 text-gray-900 font-medium hover:text-gray-900 transition-colors cursor-pointer"
  title="Scroll Left"
  >
  <ChevronLeft size={16} />
@@ -2072,7 +2072,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => scrollRequirements('right')}
- className="p-2 rounded-lg bg-slate-50 hover:bg-slate-50 border border-gray-200 border border-gray-200 text-gray-900 font-medium hover:text-gray-900 transition-colors cursor-pointer"
+ className="p-2 rounded-lg bg-white hover:bg-white border border-gray-200 border border-gray-200 text-gray-900 font-medium hover:text-gray-900 transition-colors cursor-pointer"
  title="Scroll Right"
  >
  <ChevronRight size={16} />
@@ -2094,7 +2094,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {filteredAnimalRequirements.map((req) => (
  <div
  key={req.stage}
- className="w-[280px] sm:w-[330px] shrink-0 snap-start bg-slate-50 border border-gray-200 p-5 rounded-2xl flex flex-col justify-between hover:border-emerald-500/30 hover:bg-slate-50 transition-all duration-300 shadow-xl"
+ className="w-[280px] sm:w-[330px] shrink-0 snap-start bg-white border border-gray-200 p-5 rounded-2xl flex flex-col justify-between hover:border-emerald-500/30 hover:bg-white transition-all duration-300 shadow-xl"
  >
  <div className="space-y-3">
  <div className="flex justify-between items-center gap-1.5">

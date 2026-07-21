@@ -219,14 +219,14 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
  </div>
 
  <div className="bg-white shadow-sm rounded-xl shadow-md overflow-hidden border border-gray-100">
- <div className="px-6 py-4 border-b border-gray-200 bg-slate-50 border border-gray-200 flex justify-between items-center">
+ <div className="px-6 py-4 border-b border-gray-200 bg-white border border-gray-200 flex justify-between items-center">
  <h3 className="font-semibold text-gray-900">Harvest History</h3>
  <span className="text-sm text-gray-900 font-medium">{records.length} records</span>
  </div>
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
- <tr className="bg-slate-50 border border-gray-200 text-gray-900 font-medium text-sm border-b">
+ <tr className="bg-white border border-gray-200 text-gray-900 font-medium text-sm border-b">
  <th className="px-6 py-3 font-medium">Date</th>
  <th className="px-6 py-3 font-medium">Pond</th>
  <th className="px-6 py-3 font-medium text-right">Yield (KG)</th>
@@ -245,7 +245,7 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
  </tr>
  ) : (
  records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(rec => (
- <tr key={rec.id} className="hover:bg-slate-50 border border-gray-200 transition-colors">
+ <tr key={rec.id} className="hover:bg-white border border-gray-200 transition-colors">
  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold">{rec.date}</td>
  <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{rec.pondId}</td>
  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-900 font-semibold text-right font-semibold text-green-600">
@@ -259,7 +259,7 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
  <td className="px-6 py-3 whitespace-nowrap text-center">
  <button
  onClick={() => onDeleteRecord(rec.id)}
- className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-900/20"
+ className="text-red-700 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-900/20"
  title="Delete Record"
  >
  <Trash2 className="w-4 h-4" />

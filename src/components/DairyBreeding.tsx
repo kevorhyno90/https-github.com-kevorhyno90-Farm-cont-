@@ -1500,7 +1500,7 @@ export function DairyBreeding({
 
  {/* Dynamic sub navigation tabs */}
  {(!activeSubModule || activeSubModule === 'breeding' || activeSubModule === 'cows') && (
- <div className="flex bg-slate-50 border border-gray-200 p-1.5 rounded-xl border border-gray-200 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
+ <div className="flex bg-white border border-gray-200 p-1.5 rounded-xl border border-gray-200 w-full md:w-auto shrink-0 justify-between self-stretch md:self-auto overflow-x-auto gap-1">
  {(!activeSubModule) && (
  <button
  onClick={() => setSubTab('lactation')}
@@ -1718,7 +1718,7 @@ export function DairyBreeding({
  </div>
  <button
  type="submit"
- className="w-full bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-gray-900 font-semibold text-xs  p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
+ className="w-full bg-white shadow-sm hover:bg-white border border-gray-200 text-gray-900 font-semibold text-xs  p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
  >
  Register Genetic Straw
  </button>
@@ -1731,7 +1731,7 @@ export function DairyBreeding({
  <h4 className="text-xs font-semibold  text-gray-900 flex items-center gap-1.5">
  📋 Straws Registry Ledger
  </h4>
- <span className="text-[10px] font-mono font-bold text-gray-900 font-medium bg-slate-50 border border-gray-200 px-2 py-0.5 rounded">
+ <span className="text-[10px] font-mono font-bold text-gray-900 font-medium bg-white border border-gray-200 px-2 py-0.5 rounded">
  {semenInventory.length} types registered
  </span>
  </div>
@@ -1749,7 +1749,7 @@ export function DairyBreeding({
  </thead>
  <tbody>
  {semenInventory.map((item) => (
- <tr key={item.id} className="border-b border-gray-200 hover:bg-slate-50 border border-gray-200">
+ <tr key={item.id} className="border-b border-gray-200 hover:bg-white border border-gray-200">
  <td className="p-2.5 font-bold">
  <span className="font-mono text-gray-900 block">{item.id}</span>
  <span className="text-[10px] text-gray-900 font-medium font-medium block">{item.bullName}</span>
@@ -1893,7 +1893,7 @@ export function DairyBreeding({
  });
  target.reset();
  }}
- className="space-y-4 bg-slate-50 border border-gray-200 border border-gray-100 p-4 rounded-2xl"
+ className="space-y-4 bg-white border border-gray-200 border border-gray-100 p-4 rounded-2xl"
  >
  <div className="grid grid-cols-2 gap-3">
  <div>
@@ -1953,7 +1953,7 @@ export function DairyBreeding({
  <span className="font-semibold text-xs text-gray-900 ">
  {sale.animalId}
  </span>
- <span className="bg-slate-150 text-gray-900 font-semibold text-[8px] font-semibold px-1.5 py-0.5 rounded ">
+ <span className="bg-white text-gray-900 font-semibold text-[8px] font-semibold px-1.5 py-0.5 rounded ">
  {sale.type}
  </span>
  <span className="text-[10px] text-gray-900 font-medium font-bold font-mono">
@@ -2242,7 +2242,7 @@ export function DairyBreeding({
  required
  value={outflowDate}
  onChange={(e) => setOutflowDate(e.target.value)}
- className="text-xs bg-slate-50 border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none text-gray-900"
+ className="text-xs bg-white border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none text-gray-900"
  />
  </div>
  <div>
@@ -2254,12 +2254,12 @@ export function DairyBreeding({
  value={outflowPrice}
  onChange={(e) => setOutflowPrice(e.target.value === '' ? '' : Number(e.target.value))}
  placeholder="e.g. 52"
- className="text-xs bg-slate-50 border border-gray-200 focus:border-amber-500 rounded-xl p-3 w-full font-mono font-bold outline-none text-amber-400"
+ className="text-xs bg-white border border-gray-200 focus:border-amber-500 rounded-xl p-3 w-full font-mono font-bold outline-none text-amber-400"
  />
  </div>
  </div>
 
- <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-gray-200 p-3 rounded-xl bg-slate-50">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-gray-200 p-3 rounded-xl bg-white">
  <div>
  <label className="text-[9px] font-semibold text-gray-900 font-medium tracking-tight block mb-1" title="Used at Home">Home (L)</label>
  <input
@@ -2310,7 +2310,7 @@ export function DairyBreeding({
  </div>
  </div>
 
- <div className="grid grid-cols-1 gap-2 border border-gray-200 p-3 rounded-xl bg-slate-50">
+ <div className="grid grid-cols-1 gap-2 border border-gray-200 p-3 rounded-xl bg-white">
  <div className="flex justify-between items-center mb-1">
  <label className="text-[9px] font-semibold text-rose-400 tracking-tight block">🚨 Log Debtors (Optional)</label>
  {outflowDebtsList.length > 0 && (
@@ -2348,7 +2348,7 @@ export function DairyBreeding({
  <span className="text-[10px] font-bold text-gray-900 font-medium">👤 {d.debtor}</span>
  <div className="flex items-center gap-3">
  <span className="text-[10px] font-mono font-semibold text-rose-400">Ksh {d.amount.toLocaleString()}</span>
- <button type="button" onClick={() => handleRemoveDebtorFromList(idx)} className="text-gray-900 font-medium hover:text-red-400"><X size={12}/></button>
+ <button type="button" onClick={() => handleRemoveDebtorFromList(idx)} className="text-gray-900 font-medium hover:text-red-700"><X size={12}/></button>
  </div>
  </div>
  ))}
@@ -2428,9 +2428,9 @@ export function DairyBreeding({
  const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
 
  return (
- <div key={dateStr} className="bg-slate-50 border border-gray-200 border border-gray-100 rounded-2xl overflow-hidden shadow-xs hover:border-gray-200 transition-all">
+ <div key={dateStr} className="bg-white border border-gray-200 border border-gray-100 rounded-2xl overflow-hidden shadow-xs hover:border-gray-200 transition-all">
  {/* Day Header */}
- <div className="bg-slate-50 border border-gray-200 p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+ <div className="bg-white border border-gray-200 p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
  <div className="flex items-center gap-3">
  <div className="bg-white shadow-sm px-3 py-1.5 rounded-lg border border-gray-200 shadow-xs">
  <span className="font-semibold text-gray-900 text-xs tracking-tight block font-mono">
@@ -2692,7 +2692,7 @@ export function DairyBreeding({
  onChange={(e) => setAiBull(e.target.value)}
  disabled={semenInventory.length > 0}
  placeholder={semenInventory.length > 0 ? 'Auto-filled from selected tracked straw' : 'E.g. SEMEN-HO-991 (Holstein Elite)'}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono disabled:bg-slate-50 border border-gray-200 disabled:text-gray-900 font-medium"
+ className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono disabled:bg-white border border-gray-200 disabled:text-gray-900 font-medium"
  />
  {semenInventory.length > 0 && (
  <p className="mt-1 text-[10px] font-semibold text-gray-900 font-medium">
@@ -2839,7 +2839,7 @@ export function DairyBreeding({
  const isClose = daysLeft > 0 && daysLeft <= 30;
 
  return (
- <div key={idx} className="p-3.5 border border-gray-100 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <div key={idx} className="p-3.5 border border-gray-100 rounded-2xl bg-white border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
  <span className="font-semibold text-xs text-gray-900">{cycle.cowId}</span>
@@ -2890,7 +2890,7 @@ export function DairyBreeding({
  )}
  </div>
  {cycle.notes && (
- <div className="text-[10px] text-gray-900 font-medium bg-slate-50 border border-gray-200 border border-gray-100 rounded-lg p-2 max-w-[450px] italic">
+ <div className="text-[10px] text-gray-900 font-medium bg-white border border-gray-200 border border-gray-100 rounded-lg p-2 max-w-[450px] italic">
  Notes: {cycle.notes}
  </div>
  )}
@@ -2898,7 +2898,7 @@ export function DairyBreeding({
  <Calendar size={12} className="text-rose-700 font-bold shrink-0" />
  <span>Expected Calving: {new Date(cycle.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
  {daysLeft > 0 && (
- <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded ${isClose ? 'text-rose-600 bg-rose-900/20' : 'text-gray-900 font-medium bg-slate-50 border border-gray-200'}`}>
+ <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded ${isClose ? 'text-rose-600 bg-rose-900/20' : 'text-gray-900 font-medium bg-white border border-gray-200'}`}>
  ({daysLeft} days)
  </span>
  )}
@@ -2921,7 +2921,7 @@ export function DairyBreeding({
  {onEditAIRecord && (
  <button
  onClick={() => setEditingAI(cycle)}
- className="text-gray-900 font-medium hover:text-indigo-800 p-1.5 border border-gray-100 hover:bg-slate-55 rounded transition-colors cursor-pointer m-0"
+ className="text-gray-900 font-medium hover:text-indigo-800 p-1.5 border border-gray-100 hover:bg-white rounded transition-colors cursor-pointer m-0"
  title="Edit Service Record"
  >
  <PenSquare size={13} />
@@ -2929,7 +2929,7 @@ export function DairyBreeding({
  )}
  <button
  onClick={() => onDeleteAIRecord(cycle.cowId, cycle.date)}
- className="text-gray-900 font-medium hover:text-red-655 p-1.5 border border-gray-100 hover:bg-slate-50 border border-gray-200 rounded transition-colors cursor-pointer m-0"
+ className="text-gray-900 font-medium hover:text-red-655 p-1.5 border border-gray-100 hover:bg-white border border-gray-200 rounded transition-colors cursor-pointer m-0"
  title="Delete Service record"
  >
  <Trash2 size={13} />
@@ -2965,39 +2965,39 @@ export function DairyBreeding({
  <div className="space-y-6">
  {/* Active Deworming Alerts section */}
  {activeRemindersCount > 0 ? (
- <div className="bg-red-900/20 border border-red-150 p-6 rounded-3xl space-y-3 shadow-xs">
- <div className="flex items-center gap-2.5 text-red-950">
- <BadgeAlert size={20} className="text-red-700 animate-pulse shrink-0" />
- <h5 className="font-semibold text-[#7b1f1f] tracking-tight text-xs">VET WARNING: ACTIVE DEWORMING PROTOCOLS REQUIRED</h5>
+ <div className="bg-red-50 border border-red-200 p-6 rounded-2xl space-y-3 shadow-sm">
+ <div className="flex items-center gap-2.5 text-red-800">
+ <BadgeAlert size={20} className="text-red-600 animate-pulse shrink-0" />
+ <h5 className="font-semibold tracking-tight text-sm">Action Required: Deworming Due</h5>
  </div>
- <p className="text-xs text-red-700 font-medium leading-relaxed">
+ <p className="text-sm text-red-700 font-medium leading-relaxed">
  Under organic health standards, deworming calendars must be kept strictly precise (90-day dosage intervals) to prevent fluke/nematode weight loss.
  </p>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
  {dewormingReminders
  .filter(r => r.status !== 'safe')
  .map(rem => (
- <div key={rem.cow.id} className="p-3 bg-white shadow-sm border border-red-100 rounded-2xl flex justify-between items-center shadow-xs">
+ <div key={rem.cow.id} className="p-4 bg-white border border-red-100 rounded-xl flex justify-between items-center shadow-sm">
  <div>
- <span className="text-xs font-semibold text-gray-900 block ">{rem.cow.id} ({rem.cow.name})</span>
- <span className="text-[10px] text-gray-900 font-medium font-semibold block  mt-0.5 mt-1">{rem.cow.breed} • Status: {rem.cow.status}</span>
+ <span className="text-sm font-semibold text-gray-900 block">{rem.cow.id} ({rem.cow.name})</span>
+ <span className="text-xs text-gray-500 font-medium block mt-1">{rem.cow.breed} • Status: {rem.cow.status}</span>
  </div>
  <div className="text-right">
- <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full  text-red-700 bg-red-100 border border-red-200">
+ <span className="text-xs font-semibold px-2.5 py-1 rounded-md text-red-700 bg-red-100 border border-red-200">
  {rem.status === 'overdue' ? 'Overdue Dose' : 'Due Soon'}
  </span>
- <span className="text-[10px] text-gray-900 font-medium font-bold font-mono block mt-1">{rem.text}</span>
+ <span className="text-xs text-gray-900 font-medium font-mono block mt-2">{rem.text}</span>
  </div>
  </div>
  ))}
  </div>
  </div>
  ) : (
- <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl flex items-center gap-3">
+ <div className="bg-green-50 border border-green-200 p-5 rounded-2xl flex items-center gap-3">
  <CheckCircle2 size={20} className="text-green-600 shrink-0" />
  <div>
- <h5 className="text-[#0e4d29] text-xs font-semibold ">ALL HERD DEWORMING COMPLIANT</h5>
- <p className="text-[11px] text-green-600 font-semibold mt-0.5">Every cow has received a broad spectrum anthelmintic dose within the required timeline safety metrics.</p>
+ <h5 className="text-green-800 text-sm font-semibold">Herd Deworming Compliant</h5>
+ <p className="text-xs text-green-700 mt-1">Every cow has received a broad spectrum anthelmintic dose within the required timeline safety metrics.</p>
  </div>
  </div>
  )}
@@ -3037,7 +3037,7 @@ export function DairyBreeding({
  )}
  <button
  onClick={() => setShowAddVetForm(!showAddVetForm)}
- className="bg-white shadow-sm text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-slate-50 border border-gray-200 flex items-center justify-center gap-1.5 m-0 shadow-sm"
+ className="bg-white shadow-sm text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white border border-gray-200 flex items-center justify-center gap-1.5 m-0 shadow-sm"
  >
  <Plus size={14} /> Log Vet Intervention / Deworming
  </button>
@@ -3046,7 +3046,7 @@ export function DairyBreeding({
 
  {showAddVetForm && (
  <form onSubmit={handleVetSubmit} className="bg-white shadow-sm p-6 rounded-2xl border border-gray-200 shadow-md space-y-6">
- <div className="border-b border-gray-100 pb-3 flex justify-between items-center bg-slate-50 border border-gray-200 -m-6 mb-4 p-6 rounded-t-2xl">
+ <div className="border-b border-gray-100 pb-3 flex justify-between items-center bg-white border border-gray-200 -m-6 mb-4 p-6 rounded-t-2xl">
  <div>
  <h5 className="text-sm  font-semibold tracking-normal text-[#1a237e]">Log Comprehensive Veterinary Clinical Intervention</h5>
  <p className="text-[10px] text-gray-900 font-medium font-bold mt-0.5 tracking-tight">Professional clinical-grade chart for veterinarians & caregivers</p>
@@ -3391,7 +3391,7 @@ export function DairyBreeding({
  .filter(r => r.treatment.toLowerCase().includes(vetSearch.toLowerCase()) || r.cowId.toLowerCase().includes(vetSearch.toLowerCase()) || r.notes.toLowerCase().includes(vetSearch.toLowerCase()))
  .sort((a,b) => b.date.localeCompare(a.date))
  .map((record) => (
- <div key={record.id} className="p-4 border border-gray-100 rounded-2xl bg-white shadow-sm hover:bg-slate-50 border border-gray-200 shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
+ <div key={record.id} className="p-4 border border-gray-100 rounded-2xl bg-white shadow-sm hover:bg-white border border-gray-200 shadow-sm transition-all flex flex-col md:flex-row justify-between gap-4">
  <div className="space-y-2 flex-1">
  <div className="flex flex-wrap items-center gap-2">
  <span className={`text-[9px] font-semibold  px-2 py-0.5 rounded border ${
@@ -3403,7 +3403,7 @@ export function DairyBreeding({
  {record.type}
  </span>
  
- <span className="bg-slate-50 border border-gray-200 text-gray-900 text-[9px] font-semibold  px-2 py-0.5 rounded border border-gray-200">
+ <span className="bg-white border border-gray-200 text-gray-900 text-[9px] font-semibold  px-2 py-0.5 rounded border border-gray-200">
  {record.animalCategory || 'Cow'}
  </span>
  
@@ -3424,7 +3424,7 @@ export function DairyBreeding({
  </div>
 
  {/* Diagnosis & Treatment */}
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl border border-gray-100 space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl border border-gray-100 space-y-1">
  {record.diagnosis && (
  <p className="text-xs font-bold text-indigo-950">
  Clinical Diagnosis: <span className="font-semibold text-gray-900">{record.diagnosis}</span>
@@ -3444,7 +3444,7 @@ export function DairyBreeding({
 
  {/* Clinical Vitals */}
  {(record.temperature || record.heartRate || record.respiratoryRate) && (
- <div className="flex flex-wrap gap-4 text-[11px] font-bold text-gray-900 font-medium bg-slate-50 border border-gray-200 p-2 rounded-lg border border-gray-100">
+ <div className="flex flex-wrap gap-4 text-[11px] font-bold text-gray-900 font-medium bg-white border border-gray-200 p-2 rounded-lg border border-gray-100">
  {record.temperature && <span>🌡️ Temp: <b className="text-gray-500">{record.temperature}°C</b></span>}
  {record.heartRate && <span>❤️ Heart Rate: <b className="text-gray-500">{record.heartRate} bpm</b></span>}
  {record.respiratoryRate && <span>🫁 Resp Rate: <b className="text-gray-500">{record.respiratoryRate} bpm</b></span>}
@@ -3500,7 +3500,7 @@ export function DairyBreeding({
  {onEditVetRecord && (
  <button
  onClick={() => setEditingVet(record)}
- className="text-gray-900 font-medium hover:text-indigo-805 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-gray-100 hover:bg-slate-50 border border-gray-200 m-0"
+ className="text-gray-900 font-medium hover:text-indigo-805 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200 m-0"
  title="Edit health record"
  >
  <PenSquare size={13} />
@@ -3508,7 +3508,7 @@ export function DairyBreeding({
  )}
  <button
  onClick={() => onDeleteVetRecord(record.id)}
- className="text-gray-900 font-medium hover:text-red-650 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-gray-100 hover:bg-slate-50 border border-gray-200 m-0"
+ className="text-gray-900 font-medium hover:text-red-650 p-1 rounded transition-colors cursor-pointer border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200 m-0"
  title="Delete health record"
  >
  <Trash2 size={13} />
@@ -3952,7 +3952,7 @@ export function DairyBreeding({
 
  {/* Timeline Scoreboard metrics list */}
  <div className="grid grid-cols-2 gap-3.5 text-xs">
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-2xl border">
+ <div className="bg-white border border-gray-200 p-3 rounded-2xl border">
  <span className="text-[8.5px]  font-bold text-gray-900 font-medium block mb-0.5">Lineage AI Straw</span>
  <span className="font-semibold text-gray-900 block">
  {focusedCowData.latestAI ? focusedCowData.latestAI.bull : 'None Logged'}
@@ -3962,7 +3962,7 @@ export function DairyBreeding({
  </span>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-2xl border">
+ <div className="bg-white border border-gray-200 p-3 rounded-2xl border">
  <span className="text-[8.5px]  font-bold text-gray-900 font-medium block mb-0.5">Calculated Calving due</span>
  <span className="font-semibold text-rose-800 block">
  {focusedCowData.latestAI ? focusedCowData.latestAI.due : 'None Logged'}
@@ -3974,7 +3974,7 @@ export function DairyBreeding({
  </div>
 
  {/* Dynamic Gestation / Breeding Milestone Timeline visually tracking key physiological phases */}
- <div className="bg-slate-50 text-gray-900 p-5 rounded-2xl border border-gray-200 space-y-4">
+ <div className="bg-white text-gray-900 p-5 rounded-2xl border border-gray-200 space-y-4">
  {(() => {
  const latestAIServiceDate = focusedCowData.latestAI ? focusedCowData.latestAI.date : null;
  const isPregnant = focusedCowData.forecastStatus === 'In-Calf' || focusedCowData.forecastStatus === 'Dry';
@@ -4008,7 +4008,7 @@ export function DairyBreeding({
  return (
  <div className="space-y-3.5">
  <div className="flex justify-between items-center border-b border-gray-200 pb-2">
- <span className="text-[10px]  font-semibold text-yellow-400 tracking-normal">🤰 ACTIVE PREGNANCY TIMELINE METRIC</span>
+ <span className="text-[10px]  font-semibold text-yellow-700 tracking-normal">🤰 ACTIVE PREGNANCY TIMELINE METRIC</span>
  <span className="bg-blue-500/10 text-blue-300 text-[10px] font-mono font-semibold px-2 py-0.5 rounded border border-blue-500/20">
  Day {daysGestation} / 283
  </span>
@@ -4139,7 +4139,7 @@ export function DairyBreeding({
  setAiCowId(focusedCowData.id);
  setSubTab('lactation');
  }}
- className="py-2 px-1 bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-gray-900 font-semibold  text-[9px] tracking-normal rounded-lg transition-colors border-0 cursor-pointer text-center"
+ className="py-2 px-1 bg-white shadow-sm hover:bg-white border border-gray-200 text-gray-900 font-semibold  text-[9px] tracking-normal rounded-lg transition-colors border-0 cursor-pointer text-center"
  >
  Inseminate 💉
  </button>
@@ -4167,7 +4167,7 @@ export function DairyBreeding({
 
  </div>
  ) : (
- <div className="bg-slate-50 border border-gray-200 border p-6 rounded-3xl text-center text-gray-500 py-12">
+ <div className="bg-white border border-gray-200 border p-6 rounded-3xl text-center text-gray-500 py-12">
  Select a cow node or name from the list to display interactive cycle statistics.
  </div>
  )}
@@ -4179,7 +4179,7 @@ export function DairyBreeding({
  <h4 className="text-xs font-semibold text-gray-900  tracking-wide">30-Day Gestation Forecast Planner</h4>
  <p className="text-[10px] text-gray-900 font-medium font-semibold  mt-0.5">Calculated countdowns from simulated clock date</p>
  </div>
- <span className="bg-slate-50 border border-gray-200 text-gray-900 font-semibold text-[9px] font-semibold px-2.5 py-1 rounded font-mono">
+ <span className="bg-white border border-gray-200 text-gray-900 font-semibold text-[9px] font-semibold px-2.5 py-1 rounded font-mono">
  {forecastEvents.length} Events Pending
  </span>
  </div>
@@ -4232,7 +4232,7 @@ export function DairyBreeding({
  className={`p-2.5 text-left rounded-xl border text-[11px] font-bold  transition-all duration-150 cursor-pointer m-0 flex flex-col justify-between ${
  isSelected 
  ? 'bg-white border-emerald-950 text-gray-900 shadow-sm ring-2 ring-emerald-500/20' 
- : 'bg-slate-50 border border-gray-200 border-gray-100 hover:border-gray-200 text-gray-900 font-semibold'
+ : 'bg-white border border-gray-200 border-gray-100 hover:border-gray-200 text-gray-900 font-semibold'
  }`}
  >
  <span className="text-[10px] font-semibold">{cow.id}</span>
@@ -4263,7 +4263,7 @@ export function DairyBreeding({
  <div className="space-y-3 font-sans text-xs">
  
  {/* Primary details */}
- <div className="bg-slate-50 border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
+ <div className="bg-white border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
  <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">1. Production Yield</h4>
  <div className="grid grid-cols-2 gap-2">
  <div>
@@ -4272,7 +4272,7 @@ export function DairyBreeding({
  type="text"
  value={editingMilk.id}
  disabled
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium font-mono"
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
  />
  </div>
  <div>
@@ -4288,7 +4288,7 @@ export function DairyBreeding({
  type="text"
  value={editingMilk.date}
  onChange={(e) => setEditingMilk({ ...editingMilk, date: e.target.value })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-semibold font-mono"
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-semibold font-mono"
  />
  </div>
  </div>
@@ -4317,7 +4317,7 @@ export function DairyBreeding({
  </div>
 
  {/* Commercial and Staff details */}
- <div className="bg-slate-50 border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
+ <div className="bg-white border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
  <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">2. Commercial & Buyer</h4>
  <div className="grid grid-cols-2 gap-2">
  <div>
@@ -4359,7 +4359,7 @@ export function DairyBreeding({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
  <button
  onClick={() => setEditingMilk(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
  >
  Cancel
  </button>
@@ -4404,7 +4404,7 @@ export function DairyBreeding({
  type="date"
  value={editingOutflow.date}
  onChange={(e) => setEditingOutflow({ ...editingOutflow, date: e.target.value })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-semibold font-mono"
+ className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-semibold font-mono"
  />
  </div>
  <div>
@@ -4419,7 +4419,7 @@ export function DairyBreeding({
  </div>
 
  {/* Volumes Section */}
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
+ <div className="bg-white border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
  <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">1. Milk Allocation Volumes (Liters)</h4>
  <div className="grid grid-cols-2 gap-3">
  <div>
@@ -4466,7 +4466,7 @@ export function DairyBreeding({
  </div>
 
  {/* Debtors list and entry */}
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
+ <div className="bg-white border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
  <div className="flex justify-between items-center">
  <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">2. Unpaid Credit / Debts (Ksh)</h4>
  <span className="text-[9px] font-semibold text-rose-800 bg-rose-900/20 px-2 py-0.5 rounded border border-rose-100">
@@ -4569,7 +4569,7 @@ export function DairyBreeding({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
  <button
  onClick={() => setEditingOutflow(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
  >
  Cancel
  </button>
@@ -4606,7 +4606,7 @@ export function DairyBreeding({
  type="text"
  value={editingAI.cowId}
  disabled
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium font-mono"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
  />
  </div>
  <div>
@@ -4615,7 +4615,7 @@ export function DairyBreeding({
  type="date"
  value={editingAI.date}
  disabled
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium font-mono"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
  />
  </div>
  </div>
@@ -4725,7 +4725,7 @@ export function DairyBreeding({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingAI(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-55 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -4775,7 +4775,7 @@ export function DairyBreeding({
  type="text"
  value={editingCow.id}
  disabled
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium font-mono"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
  />
  </div>
  <div>
@@ -4922,7 +4922,7 @@ export function DairyBreeding({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingCow(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -5190,7 +5190,7 @@ export function DairyBreeding({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingVet(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -5240,7 +5240,7 @@ export function DairyBreeding({
  setPedigreeCow(null);
  setSelectedMateId('');
  }} 
- className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold text-lg m-0 p-1 cursor-pointer bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition-all"
+ className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold text-lg m-0 p-1 cursor-pointer bg-white border border-gray-200 hover:bg-white border border-gray-200 rounded-full w-8 h-8 flex items-center justify-center transition-all"
  >
  ✕
  </button>
@@ -5355,11 +5355,11 @@ export function DairyBreeding({
  <div className="flex flex-col justify-between space-y-4">
  {/* PATERNAL GRANDPARENTS */}
  <div className="space-y-2">
- <div className="p-3 bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl">
+ <div className="p-3 bg-white border border-gray-200 border border-gray-200 rounded-xl">
  <span className="text-[7.5px] font-semibold  text-blue-600 block">Paternal Grand Sire</span>
  <span className="text-xs font-bold text-gray-900 block">{pedigreeCow.grandSirePaternal || 'Sire Sire G2 ♂'}</span>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl">
+ <div className="p-3 bg-white border border-gray-200 border border-gray-200 rounded-xl">
  <span className="text-[7.5px] font-semibold  text-rose-600 block">Paternal Grand Dam</span>
  <span className="text-xs font-bold text-gray-900 block">{pedigreeCow.grandDamPaternal || 'Sire Dam G2 ♀'}</span>
  </div>
@@ -5367,11 +5367,11 @@ export function DairyBreeding({
 
  {/* MATERNAL GRANDPARENTS */}
  <div className="space-y-2 border-t border-gray-100 pt-3">
- <div className="p-3 bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl">
+ <div className="p-3 bg-white border border-gray-200 border border-gray-200 rounded-xl">
  <span className="text-[7.5px] font-semibold  text-blue-600 block">Maternal Grand Sire</span>
  <span className="text-xs font-bold text-gray-900 block">{pedigreeCow.grandSireMaternal || 'Dam Sire G2 ♂'}</span>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl">
+ <div className="p-3 bg-white border border-gray-200 border border-gray-200 rounded-xl">
  <span className="text-[7.5px] font-semibold  text-rose-600 block">Maternal Grand Dam</span>
  <span className="text-xs font-bold text-gray-900 block">{pedigreeCow.grandDamMaternal || 'Dam Dam G2 ♀'}</span>
  </div>
@@ -5424,7 +5424,7 @@ export function DairyBreeding({
  })()}
 
  {/* Pedigree Certificate Actions (Download & Print) */}
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
  <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-medium text-center sm:text-left">
  <Sparkles className="text-green-600 shrink-0" size={15} />
  <span>Verified by JR Cooperative Registry board. Ready for local Studbook print download.</span>
@@ -5441,7 +5441,7 @@ export function DairyBreeding({
  <button
  type="button"
  onClick={() => handleDownloadPedigree(pedigreeCow)}
- className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-50 border border-gray-200 hover:bg-slate-300 text-gray-900 font-semibold text-xs  rounded-xl transition-all cursor-pointer m-0"
+ className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 hover:bg-white text-gray-900 font-semibold text-xs  rounded-xl transition-all cursor-pointer m-0"
  title="Generate certified documentation of the breeding pedigree chart"
  >
  <Printer size={13} />
@@ -5476,7 +5476,7 @@ export function DairyBreeding({
  </div>
 
  {directOffspring.length === 0 ? (
- <div className="text-center py-8 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-100">
+ <div className="text-center py-8 bg-white border border-gray-200 rounded-2xl border border-gray-100">
  <span className="text-xl">🍼</span>
  <p className="text-xs text-gray-900 font-medium font-bold mt-2">No direct F1 descendants registered yet in this herd database.</p>
  <p className="text-[10px] text-gray-900 font-medium mt-1">Add calves or cows with parent Tag ID "{pedigreeCow.id}" to display them here.</p>
@@ -5491,7 +5491,7 @@ export function DairyBreeding({
  );
 
  return (
- <div key={child.id} className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
+ <div key={child.id} className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
  <div className="flex justify-between items-start">
  <div>
  <h5 className="font-semibold text-sm text-gray-900">{child.name}</h5>
@@ -5549,7 +5549,7 @@ export function DairyBreeding({
  {/* Tab 3: Genetics & Potential Mate Predictor */}
  {pedigreeSubTab === 'genetics' && (
  <div className="space-y-6">
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl space-y-4">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-4">
  <div className="space-y-0.5">
  <h4 className="text-xs font-semibold  text-green-600 tracking-normal">🔬 Bovine Mating & Genetic Trait Predictor</h4>
  <p className="text-[11px] text-gray-900 font-medium leading-relaxed font-semibold">
@@ -5641,13 +5641,13 @@ export function DairyBreeding({
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-center">
  <span className="text-[9px] text-indigo-300 block font-semibold tracking-tight mb-1">Expected Lactation Peak</span>
- <span className="text-base font-semibold font-mono text-yellow-400">{predictedProgenyPeak.toFixed(1)} Liters/day</span>
+ <span className="text-base font-semibold font-mono text-yellow-700">{predictedProgenyPeak.toFixed(1)} Liters/day</span>
  <span className="text-[9px] text-gray-900/50 block font-medium mt-0.5">Estimated Breeding Value (EBV)</span>
  </div>
 
  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-center">
  <span className="text-[9px] text-indigo-300 block font-semibold tracking-tight mb-1">Inbreeding Coeff (F)</span>
- <span className={`text-base font-semibold font-mono ${isSharedPedigree ? 'text-red-400' : 'text-green-600'}`}>
+ <span className={`text-base font-semibold font-mono ${isSharedPedigree ? 'text-red-700' : 'text-green-600'}`}>
  {isSharedPedigree ? '50.0% (Inbred)' : '0.0% (Safe)'}
  </span>
  <span className="text-[9px] text-gray-900/50 block font-medium mt-0.5">Pedigree Coincidence Check</span>
@@ -5684,7 +5684,7 @@ export function DairyBreeding({
  </div>
  <div className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg border border-white/5">
  <span>Offspring Sex Probability:</span>
- <strong className="text-yellow-400">95% Female heifer (Sexed straw selected)</strong>
+ <strong className="text-yellow-700">95% Female heifer (Sexed straw selected)</strong>
  </div>
  </div>
  </div>
@@ -5701,7 +5701,7 @@ export function DairyBreeding({
  );
  })()
  ) : (
- <div className="text-center py-10 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-100">
+ <div className="text-center py-10 bg-white border border-gray-200 rounded-2xl border border-gray-100">
  <span className="text-2xl">🧬</span>
  <p className="text-xs text-gray-900 font-medium font-bold mt-2">Select a prospective Sire/Straw above to execute mating simulation.</p>
  </div>
@@ -5720,7 +5720,7 @@ export function DairyBreeding({
  setPedigreeCow(null);
  setSelectedMateId('');
  }}
- className="px-5 py-2.5 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 font-medium font-semibold  text-xs rounded-xl transition-colors cursor-pointer m-0 border-0"
+ className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-white border border-gray-200 text-gray-900 font-medium font-semibold  text-xs rounded-xl transition-colors cursor-pointer m-0 border-0"
  >
  Close Family Tree
  </button>
@@ -5732,16 +5732,16 @@ export function DairyBreeding({
 
  {/* Download Options Modal */}
  {showDownloadModal && (
- <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-50 animate-fade-in">
+ <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white animate-fade-in">
  <div className="bg-white shadow-sm w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-gray-200 animate-slide-up">
- <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-slate-50 border border-gray-200">
+ <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white border border-gray-200">
  <h3 className="font-semibold text-sm text-gray-900 tracking-tight flex items-center gap-2">
  <Download size={16} className={downloadType === 'pdf' ? 'text-rose-500' : 'text-green-600'} />
  Export {downloadType.toUpperCase()} Report
  </h3>
  <button 
  onClick={() => setShowDownloadModal(false)}
- className="text-gray-900 font-medium hover:text-gray-900 font-medium bg-white shadow-sm hover:bg-slate-50 border border-gray-200 p-1.5 rounded-full transition-colors border border-gray-200"
+ className="text-gray-900 font-medium hover:text-gray-900 font-medium bg-white shadow-sm hover:bg-white border border-gray-200 p-1.5 rounded-full transition-colors border border-gray-200"
  >
  <X size={16} />
  </button>

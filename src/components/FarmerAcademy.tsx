@@ -1753,11 +1753,11 @@ export default function FarmerAcademy({
  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-semibold text-[11px]  tracking-wide transition-all cursor-pointer m-0 ${
  activeTab === 'science'
  ? 'bg-white text-gray-900 border-emerald-950 shadow-sm'
- : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-white border border-gray-200 border-gray-200'
  }`}
  id="tab-science"
  >
- <Sprout size={13} className={activeTab === 'science' ? 'text-yellow-400' : 'text-green-600'} />
+ <Sprout size={13} className={activeTab === 'science' ? 'text-yellow-700' : 'text-green-600'} />
  Scientific Practices
  </button>
 
@@ -1766,11 +1766,11 @@ export default function FarmerAcademy({
  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-semibold text-[11px]  tracking-wide transition-all cursor-pointer m-0 ${
  activeTab === 'crops'
  ? 'bg-white text-gray-900 border-emerald-950 shadow-sm'
- : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-white border border-gray-200 border-gray-200'
  }`}
  id="tab-crops"
  >
- <Leaf size={13} className={activeTab === 'crops' ? 'text-yellow-400' : 'text-green-600'} />
+ <Leaf size={13} className={activeTab === 'crops' ? 'text-yellow-700' : 'text-green-600'} />
  Crop Guides
  </button>
 
@@ -1779,11 +1779,11 @@ export default function FarmerAcademy({
  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-semibold text-[11px]  tracking-wide transition-all cursor-pointer m-0 ${
  activeTab === 'livestock'
  ? 'bg-white text-gray-900 border-emerald-950 shadow-sm'
- : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-500 hover:bg-white border border-gray-200 border-gray-200'
  }`}
  id="tab-livestock"
  >
- <Heart size={13} className={activeTab === 'livestock' ? 'text-red-400' : 'text-rose-700'} />
+ <Heart size={13} className={activeTab === 'livestock' ? 'text-red-700' : 'text-rose-700'} />
  Livestock Protocols
  </button>
 
@@ -1861,7 +1861,7 @@ export default function FarmerAcademy({
  }`}
  id="tab-quizzes"
  >
- <Award size={13} className={activeTab === ('quizzes' as any) ? 'text-yellow-400' : 'text-rose-700'} />
+ <Award size={13} className={activeTab === ('quizzes' as any) ? 'text-yellow-700' : 'text-rose-700'} />
  Interactive Quizzes
  </button>
  </div>
@@ -1902,7 +1902,7 @@ export default function FarmerAcademy({
  <p>
  <strong>2. Boosting Humus & Microbial Life:</strong> Organic matter acts as a biological sponge. Maintain soil carbon levels at &gt;3% by continuous zero-till mulching, applying dark compost, and scheduling rotational plantings.
  </p>
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-xl border border-gray-100 flex items-start gap-2.5">
+ <div className="bg-white border border-gray-200 p-3 rounded-xl border border-gray-100 flex items-start gap-2.5">
  <span className="text-lg">🧪</span>
  <div>
  <h4 className="font-semibold text-gray-900 text-[10px]  tracking-wide">Dynamic Nitrogen Fixation Note:</h4>
@@ -2017,7 +2017,7 @@ export default function FarmerAcademy({
  <div className="space-y-6 text-gray-500" id="crops-section">
  
  {/* Crop Selector Filter pills */}
- <div className="flex flex-wrap gap-2.5 items-center bg-slate-50 border border-gray-200 p-2.5 rounded-2xl border">
+ <div className="flex flex-wrap gap-2.5 items-center bg-white border border-gray-200 p-2.5 rounded-2xl border">
  <span className="text-[10px] font-semibold  text-gray-500 block tracking-wide pl-2">Filter Crop:</span>
  {[
  { id: 'all', label: 'All Crops' },
@@ -2091,7 +2091,7 @@ export default function FarmerAcademy({
  <h3 className="text-base font-semibold text-gray-900">Avocado Planting & Disease Prevention</h3>
  <div className="text-xs leading-relaxed text-gray-900 font-medium space-y-3">
  <p>
- <strong>• Planting Hole Protocol:</strong> Excavate holes exactly <code className="bg-slate-50 border border-gray-200 px-1 py-0.5 rounded text-green-600">2ft x 2ft x 2ft</code>. Backfill mix: Topsoil + 1 wheelbarrow of composted dry cow manure + 250g of Single Super Phosphate (SSP) fertilizer per hole.
+ <strong>• Planting Hole Protocol:</strong> Excavate holes exactly <code className="bg-white border border-gray-200 px-1 py-0.5 rounded text-green-600">2ft x 2ft x 2ft</code>. Backfill mix: Topsoil + 1 wheelbarrow of composted dry cow manure + 250g of Single Super Phosphate (SSP) fertilizer per hole.
  </p>
  <p>
  <strong>• Phytophthora Root Rot:</strong> Yellowing dead leaves and sparse twig diebacks indicate drowned rotten roots. Apply Copper Oxychloride (Ridomil Gold) soil drench and plant in high-draining sandy areas.
@@ -2302,7 +2302,7 @@ export default function FarmerAcademy({
  <div className="space-y-6 text-gray-500" id="livestock-section">
 
  {/* Animal Selector pills */}
- <div className="flex flex-wrap gap-2.5 items-center bg-slate-50 border border-gray-200 p-2.5 rounded-2xl border">
+ <div className="flex flex-wrap gap-2.5 items-center bg-white border border-gray-200 p-2.5 rounded-2xl border">
  <span className="text-[10px] font-semibold  text-gray-500 block tracking-wide pl-2">Filter Animal:</span>
  {[
  { id: 'all', label: 'All Beasts' },
@@ -2534,7 +2534,7 @@ export default function FarmerAcademy({
  Maximize heifers conception ratios. Select the target heifer/cow, input the heat observation details, and directly log the recommended veterinarian artificial insemination task.
  </p>
 
- <div className="space-y-4 bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-100">
+ <div className="space-y-4 bg-white border border-gray-200 p-4 rounded-2xl border border-gray-100">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <div>
  <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
@@ -2588,10 +2588,10 @@ export default function FarmerAcademy({
  <span className="text-purple-750 font-semibold text-purple-700">Optimal Window (9-18 Hours Peak)</span>
  <span>Window Closes</span>
  </div>
- <div className="h-2.5 w-full bg-slate-50 border border-gray-200 rounded-full overflow-hidden flex">
- <div className="h-full bg-slate-300" style={{ width: '30%' }} title="Early Stage (0-9h) - Low fertility" />
+ <div className="h-2.5 w-full bg-white border border-gray-200 rounded-full overflow-hidden flex">
+ <div className="h-full bg-white" style={{ width: '30%' }} title="Early Stage (0-9h) - Low fertility" />
  <div className="h-full bg-gradient-to-r from-purple-500 to-purple-700 animate-pulse" style={{ width: '45%' }} title="Optimal Window (9-18h) - HIGH fertility" />
- <div className="h-full bg-slate-300" style={{ width: '25%' }} title="Late Stage (18-24h) - Declining fertility" />
+ <div className="h-full bg-white" style={{ width: '25%' }} title="Late Stage (18-24h) - Declining fertility" />
  </div>
  </div>
 
@@ -2651,7 +2651,7 @@ export default function FarmerAcademy({
  Estimate how many kilograms of fresh bovine dung and water are needed daily to generate high methane gas pressures without souring risks.
  </p>
 
- <div className="space-y-4 bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-100">
+ <div className="space-y-4 bg-white border border-gray-200 p-4 rounded-2xl border border-gray-100">
  <div className="flex justify-between items-center bg-white shadow-sm p-2.5 rounded-xl border border-gray-200">
  <span className="text-[10px] font-bold text-gray-900 font-medium">Live Active Herd Size:</span>
  <div className="flex items-center gap-2">
@@ -2681,7 +2681,7 @@ export default function FarmerAcademy({
  step="0.5"
  value={biogasVolume}
  onChange={(e) => setBiogasVolume(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-850" 
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-850" 
  />
  <div className="flex justify-between text-[9px] font-bold text-gray-500 mt-1 font-mono">
  <span>1 m³ (Single Burner)</span>
@@ -2696,8 +2696,8 @@ export default function FarmerAcademy({
  <span className="text-amber-600">Optimal Digestion Zone</span>
  <span>High Danger</span>
  </div>
- <div className="h-2.5 w-full bg-slate-50 border border-gray-200 rounded-full overflow-hidden flex">
- <div className="h-full bg-slate-300" style={{ width: `${Math.max(0, Math.min(100, (biogasVolume / 10) * 100))}%` }} />
+ <div className="h-2.5 w-full bg-white border border-gray-200 rounded-full overflow-hidden flex">
+ <div className="h-full bg-white" style={{ width: `${Math.max(0, Math.min(100, (biogasVolume / 10) * 100))}%` }} />
  </div>
  <span className="text-[8px] text-gray-900 font-medium font-bold block text-center leading-normal">
  {biogasVolume < 3 ? '● Sub-optimal loading (low pressure)' : biogasVolume <= 7.5 ? '✓ Perfect biological loading & high pressures' : '⚠️ Extreme Loading - Monitor digestor acid content'}
@@ -2754,7 +2754,7 @@ export default function FarmerAcademy({
  Determine if your feeding mixture satisfies the Crude Protein (CP) threshold required for high-yield dairy cows. Check premium organic supplements to boost feed density.
  </p>
 
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div>
  <label className="text-[10px] font-semibold tracking-tight text-gray-500 block mb-1">
@@ -2779,7 +2779,7 @@ export default function FarmerAcademy({
  max="22" 
  value={currentProtein}
  onChange={(e) => setCurrentProtein(parseInt(e.target.value))}
- className="flex-1 h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-700" 
+ className="flex-1 h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-700" 
  />
  <span className="text-xs font-semibold font-mono bg-white shadow-sm px-2.5 py-1 rounded border border-emerald-200/50 text-green-600">{currentProtein}%</span>
  </div>
@@ -2799,7 +2799,7 @@ export default function FarmerAcademy({
  ].map(booster => {
  const isChecked = tool3ActiveIngredients.includes(booster.name);
  return (
- <label key={booster.name} className="flex items-center gap-3 bg-white shadow-sm p-2.5 rounded-xl border border-gray-200 hover:bg-slate-50 border border-gray-200 cursor-pointer transition-all">
+ <label key={booster.name} className="flex items-center gap-3 bg-white shadow-sm p-2.5 rounded-xl border border-gray-200 hover:bg-white border border-gray-200 cursor-pointer transition-all">
  <input
  type="checkbox"
  checked={isChecked}
@@ -2897,7 +2897,7 @@ export default function FarmerAcademy({
  });
  alert(`✓ Formulated TMR Ration saved successfully to Action Logs history!`);
  }}
- className="w-full bg-white shadow-sm hover:bg-slate-805 text-gray-900 font-semibold text-xs  py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+ className="w-full bg-white shadow-sm hover:bg-white text-gray-900 font-semibold text-xs  py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
  >
  Save TMR Ration Formula to Logs
  </button>
@@ -2923,7 +2923,7 @@ export default function FarmerAcademy({
  Determine exactly how many 50kg bags of planting and top-dressing fertilizers are required based on your target crop type and acreage. Deduct directly from your store inventory!
  </p>
 
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
@@ -2978,7 +2978,7 @@ export default function FarmerAcademy({
  step="0.5"
  value={calcAcreage}
  onChange={(e) => setCalcAcreage(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500" 
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500" 
  />
  <div className="flex justify-between text-[9px] font-bold text-gray-500 mt-1 font-mono">
  <span>0.5 Acre</span>
@@ -3060,7 +3060,7 @@ export default function FarmerAcademy({
  Tune your dairy cow feeding rations and instantly recalculate feed cost margins relative to daily milk revenue. Optimize feed conversions with bio-slurry values.
  </p>
 
- <div className="bg-slate-50 border border-gray-200 p-5 rounded-2xl border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-6">
+ <div className="bg-white border border-gray-200 p-5 rounded-2xl border border-gray-100 grid grid-cols-1 lg:grid-cols-3 gap-6">
  
  {/* Form Controls */}
  <div className="lg:col-span-2 space-y-4">
@@ -3073,7 +3073,7 @@ export default function FarmerAcademy({
  type="range" min="5" max="60" step="1"
  value={analyzerMilkYield}
  onChange={(e) => setAnalyzerMilkYield(parseInt(e.target.value) || 20)}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" 
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" 
  />
  <div className="flex justify-between text-[8px] font-bold text-gray-900 font-medium mt-1 font-mono">
  <span>5 Liter/day</span>
@@ -3089,7 +3089,7 @@ export default function FarmerAcademy({
  type="range" min="30" max="120" step="5"
  value={analyzerMilkPrice}
  onChange={(e) => setAnalyzerMilkPrice(parseInt(e.target.value) || 65)}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" 
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" 
  />
  <div className="flex justify-between text-[8px] font-bold text-gray-900 font-medium mt-1 font-mono">
  <span>30 KES</span>
@@ -3112,7 +3112,7 @@ export default function FarmerAcademy({
  type="range" min="5" max="45" step="1"
  value={analyzerSilageKg}
  onChange={(e) => setAnalyzerSilageKg(parseInt(e.target.value) || 15)}
- className="w-full h-1 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-indigo-600" 
+ className="w-full h-1 bg-white border border-gray-200 appearance-none cursor-pointer accent-indigo-600" 
  />
  <div className="flex gap-1 items-center mt-2">
  <span className="text-[8px] text-gray-900 font-medium font-semibold  shrink-0">Cost KES/kg:</span>
@@ -3120,7 +3120,7 @@ export default function FarmerAcademy({
  type="number" min="0" max="50"
  value={analyzerSilageCost}
  onChange={(e) => setAnalyzerSilageCost(parseInt(e.target.value) || 0)}
- className="w-12 bg-slate-50 border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
+ className="w-12 bg-white border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
  />
  </div>
  </div>
@@ -3136,7 +3136,7 @@ export default function FarmerAcademy({
  type="range" min="1" max="25" step="1"
  value={analyzerMealKg}
  onChange={(e) => setAnalyzerMealKg(parseInt(e.target.value) || 4)}
- className="w-full h-1 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-amber-600"
+ className="w-full h-1 bg-white border border-gray-200 appearance-none cursor-pointer accent-amber-600"
  />
  <div className="flex gap-1 items-center mt-2">
  <span className="text-[8px] text-gray-900 font-medium font-semibold  shrink-0">Cost KES/kg:</span>
@@ -3144,7 +3144,7 @@ export default function FarmerAcademy({
  type="number" min="0" max="150"
  value={analyzerMealCost}
  onChange={(e) => setAnalyzerMealCost(parseInt(e.target.value) || 0)}
- className="w-12 bg-slate-50 border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
+ className="w-12 bg-white border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
  />
  </div>
  </div>
@@ -3160,7 +3160,7 @@ export default function FarmerAcademy({
  type="range" min="0" max="15" step="1"
  value={analyzerSupplementsKg}
  onChange={(e) => setAnalyzerSupplementsKg(parseInt(e.target.value) || 0)}
- className="w-full h-1 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-rose-600"
+ className="w-full h-1 bg-white border border-gray-200 appearance-none cursor-pointer accent-rose-600"
  />
  <div className="flex gap-1 items-center mt-2">
  <span className="text-[8px] text-gray-900 font-medium font-semibold  shrink-0">Cost KES/kg:</span>
@@ -3168,7 +3168,7 @@ export default function FarmerAcademy({
  type="number" min="0" max="100"
  value={analyzerSupplementsCost}
  onChange={(e) => setAnalyzerSupplementsCost(parseInt(e.target.value) || 0)}
- className="w-12 bg-slate-50 border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
+ className="w-12 bg-white border border-gray-200 border border-gray-200 text-[10px] px-1 py-0.5 rounded font-mono font-bold text-center"
  />
  </div>
  </div>
@@ -3224,7 +3224,7 @@ export default function FarmerAcademy({
  </div>
 
  {/* Feed Margin ratio */}
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-xl border border-gray-100 space-y-1.5">
+ <div className="bg-white border border-gray-200 p-3 rounded-xl border border-gray-100 space-y-1.5">
  <div className="flex justify-between items-center">
  <span className="text-[9px] font-semibold  text-gray-900 font-medium">Feed Cost Ratio:</span>
  <span className={`text-[10px] font-semibold font-mono px-2 py-0.5 rounded-md ${
@@ -3232,7 +3232,7 @@ export default function FarmerAcademy({
  }`}>{feedToRevenueRatio.toFixed(1)}%</span>
  </div>
 
- <div className="w-full bg-slate-50 border border-gray-200 h-2 rounded-full overflow-hidden flex">
+ <div className="w-full bg-white border border-gray-200 h-2 rounded-full overflow-hidden flex">
  <div style={{ width: `${Math.min(feedToRevenueRatio, 100)}%` }} className={`h-full ${
  feedToRevenueRatio < 45 ? 'bg-emerald-500' : feedToRevenueRatio <= 60 ? 'bg-amber-500' : 'bg-rose-600'
  }`} />
@@ -3309,7 +3309,7 @@ export default function FarmerAcademy({
  className={`py-3 px-4 rounded-xl border font-semibold text-xs  cursor-pointer transition-all ${
  diagCategory === 'crops'
  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
- : 'bg-white shadow-sm text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:bg-white border border-gray-200 border-gray-200'
  }`}
  >
  🌱 Crop Agronomy
@@ -3325,7 +3325,7 @@ export default function FarmerAcademy({
  className={`py-3 px-4 rounded-xl border font-semibold text-xs  cursor-pointer transition-all ${
  diagCategory === 'livestock'
  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
- : 'bg-white shadow-sm text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:bg-white border border-gray-200 border-gray-200'
  }`}
  >
  🐄 Livestock Veterinary
@@ -3429,7 +3429,7 @@ export default function FarmerAcademy({
  className={`w-full text-left p-3 rounded-xl border text-[11px] leading-relaxed transition-all cursor-pointer ${
  diagSelectedSymptom === sym
  ? 'bg-blue-600 border-blue-600 text-white font-bold'
- : 'bg-white shadow-sm border-gray-200 text-gray-900 font-semibold hover:bg-slate-50 border border-gray-200'
+ : 'bg-white shadow-sm border-gray-200 text-gray-900 font-semibold hover:bg-white border border-gray-200'
  }`}
  >
  • {sym}
@@ -3453,14 +3453,14 @@ export default function FarmerAcademy({
  value={customSymptom}
  onChange={(e) => setCustomSymptom(e.target.value)}
  placeholder={`Describe symtoms (e.g. My ${diagSelectedTarget} has lost weight, is coughing, running a high fever, discharging eye liquid...)`}
- className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 placeholder-slate-400 focus:outline-hidden focus:border-blue-400 transition-all font-medium resize-none leading-relaxed"
+ className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 placeholder-slate-400 focus:outline-hidden focus:border-blue-400 transition-all font-medium resize-none leading-relaxed"
  />
  <button
  onClick={handleCustomAiDiagnose}
  disabled={isDiagnoseLoading || !customSymptom.trim()}
  className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs tracking-tight flex items-center justify-center gap-2 cursor-pointer border-0 shadow-sm transition-all ${
  isDiagnoseLoading || !customSymptom.trim()
- ? 'bg-slate-50 border border-gray-200 text-gray-900 font-medium cursor-not-allowed'
+ ? 'bg-white border border-gray-200 text-gray-900 font-medium cursor-not-allowed'
  : 'bg-emerald-600 text-white hover:bg-emerald-700 hover:scale-[1.01]'
  }`}
  >
@@ -3518,13 +3518,13 @@ export default function FarmerAcademy({
  </div>
 
  {/* Display the symptoms that triggered this */}
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-lg border border-gray-100 space-y-1">
+ <div className="bg-white border border-gray-200 p-3 rounded-lg border border-gray-100 space-y-1">
  <span className="text-[9px] font-semibold  text-gray-900 font-medium block pb-0.5">Observed Symptoms analyzed</span>
  <p className="text-[11px] text-gray-500 leading-relaxed font-bold italic text-gray-900 font-medium">"{dObj.symptom}"</p>
  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl border border-gray-100 space-y-1">
+ <div className="bg-white border border-gray-200 p-4 rounded-xl border border-gray-100 space-y-1">
  <span className="text-[9px] font-semibold  text-gray-900 font-medium block">Immediate Chemical/Veterinary SOP</span>
  <p className="text-xs text-gray-900 leading-normal font-semibold">{dObj.treatment}</p>
  </div>
@@ -3540,8 +3540,8 @@ export default function FarmerAcademy({
  <p className="text-xs text-gray-900 font-semibold leading-relaxed font-medium">{dObj.description}</p>
  </div>
 
- <div className="bg-slate-550 bg-white shadow-sm text-gray-900 p-4 rounded-xl space-y-2">
- <span className="text-[10px] font-bold text-yellow-400 block tracking-normal ">🛡️ LONG-TERM BIOLOGICAL CONTROL ACTION (GAP)</span>
+ <div className="bg-white bg-white shadow-sm text-gray-900 p-4 rounded-xl space-y-2">
+ <span className="text-[10px] font-bold text-yellow-700 block tracking-normal ">🛡️ LONG-TERM BIOLOGICAL CONTROL ACTION (GAP)</span>
  <p className="text-xs text-gray-900 font-semibold leading-normal font-medium">{dObj.prevention}</p>
  </div>
 
@@ -3736,7 +3736,7 @@ export default function FarmerAcademy({
  const isExpanded = expandedCaseId === historyItem.id;
  return (
  <React.Fragment key={historyItem.id}>
- <tr className="hover:bg-slate-50 border border-gray-200 transition-colors border-b border-gray-100">
+ <tr className="hover:bg-white border border-gray-200 transition-colors border-b border-gray-100">
  <td className="py-3 px-1 text-gray-900 font-medium font-mono text-[10px]">{historyItem.timestamp}</td>
  <td className="py-3">
  <span className="capitalize font-semibold text-gray-900 flex items-center gap-1.5">
@@ -3809,7 +3809,7 @@ export default function FarmerAcademy({
  </td>
  </tr>
  {isExpanded && (
- <tr className="bg-slate-50 border border-gray-200 border-b border-gray-200">
+ <tr className="bg-white border border-gray-200 border-b border-gray-200">
  <td colSpan={5} className="p-4">
  <div className="bg-white shadow-sm border border-gray-200 rounded-2xl p-5 shadow-xs grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
  
@@ -3817,7 +3817,7 @@ export default function FarmerAcademy({
  <div className="space-y-4 text-left">
  <div>
  <span className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal block mb-1">Reported Symptom Footprint</span>
- <p className="text-gray-900 font-semibold italic bg-slate-50 border border-gray-200 px-3 py-2 rounded-xl border border-gray-100 font-normal leading-relaxed">
+ <p className="text-gray-900 font-semibold italic bg-white border border-gray-200 px-3 py-2 rounded-xl border border-gray-100 font-normal leading-relaxed">
  "{historyItem.symptom}"
  </p>
  </div>
@@ -3876,7 +3876,7 @@ export default function FarmerAcademy({
  <div className="bg-white shadow-sm text-gray-900 rounded-3xl p-6 shadow-xl space-y-6 border-4 border-gray-200">
  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-200">
  <div className="flex items-center gap-3.5 text-left">
- <span className="text-3xl bg-slate-50 border border-gray-200 p-2.5 rounded-2xl">🎓</span>
+ <span className="text-3xl bg-white border border-gray-200 p-2.5 rounded-2xl">🎓</span>
  <div>
  <h3 className="text-lg font-semibold text-gray-900 tracking-tight font-mono">Pest, Disease & Metabolic Recognition Simulator</h3>
  <p className="text-[10px] text-gray-900 font-medium font-bold  tracking-wide mt-0.5">
@@ -3885,7 +3885,7 @@ export default function FarmerAcademy({
  </div>
  </div>
 
- <div className="flex items-center gap-4 bg-slate-50 border border-gray-200 px-4 py-2 rounded-2xl border border-gray-200 font-mono text-xs text-left shrink-0">
+ <div className="flex items-center gap-4 bg-white border border-gray-200 px-4 py-2 rounded-2xl border border-gray-200 font-mono text-xs text-left shrink-0">
  <div>
  <span className="text-[8.5px] text-gray-500  block font-semibold">Score (Reputation)</span>
  <span className="text-sm font-semibold text-green-600">{simScore} PTS</span>
@@ -3901,7 +3901,7 @@ export default function FarmerAcademy({
  setSimScore(100);
  setSimStreak(0);
  }}
- className="text-[9px] bg-slate-750 text-gray-900 font-medium hover:text-gray-900 px-2 py-1 rounded-md  font-semibold cursor-pointer border border-gray-200 hover:bg-slate-100 m-0 self-center"
+ className="text-[9px] bg-white text-gray-900 font-medium hover:text-gray-900 px-2 py-1 rounded-md  font-semibold cursor-pointer border border-gray-200 hover:bg-white m-0 self-center"
  >
  Reset
  </button>
@@ -3912,7 +3912,7 @@ export default function FarmerAcademy({
  {simActiveCaseIndex === null ? (
  /* SIMULATOR CASE LIST SCREEN */
  <div className="space-y-4">
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-200 text-gray-500 text-xs text-left leading-relaxed">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl border border-gray-200 text-gray-500 text-xs text-left leading-relaxed">
  <span className="text-[10px] font-semibold text-indigo-400 tracking-tight block mb-1">Training Objective</span>
  Inspect clinical signs, choose diagnostic tests to reveal physical symptoms, formulate accurate disease identifications, and prescribe direct scientifically approved treatments. Success increases your reputation score.
  </div>
@@ -3921,7 +3921,7 @@ export default function FarmerAcademy({
  {simCases.map((cs, index) => (
  <div
  key={cs.id}
- className="bg-slate-850 hover:bg-slate-50 border border-gray-200 rounded-2xl p-5 border border-gray-200 hover:border-gray-200 transition-all flex flex-col justify-between text-left space-y-4"
+ className="bg-white hover:bg-white border border-gray-200 rounded-2xl p-5 border border-gray-200 hover:border-gray-200 transition-all flex flex-col justify-between text-left space-y-4"
  >
  <div className="space-y-2">
  <div className="flex justify-between items-center">
@@ -3967,14 +3967,14 @@ export default function FarmerAcademy({
  </span>
  <button
  onClick={() => setSimActiveCaseIndex(null)}
- className="text-[9px] bg-slate-50 border border-gray-200 text-gray-500 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded-xl  font-semibold cursor-pointer m-0"
+ className="text-[9px] bg-white border border-gray-200 text-gray-500 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded-xl  font-semibold cursor-pointer m-0"
  >
  ← Exit Training Session
  </button>
  </div>
 
  {/* Main case display */}
- <div className="bg-slate-850 border border-gray-200 rounded-3xl p-6 space-y-4">
+ <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
  <div className="space-y-1">
  <span className="text-[9px] text-gray-900 font-medium font-semibold  block tracking-normal">Specimen Target</span>
  <h4 className="text-base font-semibold text-gray-900 font-mono">{activeCase.specimen}</h4>
@@ -4002,7 +4002,7 @@ export default function FarmerAcademy({
  className={`p-3 text-left rounded-xl border transition-all text-[10px] cursor-pointer font-bold ${
  isInspected
  ? 'bg-white shadow-sm text-green-600 border-gray-200'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-750'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-white'
  }`}
  >
  <div className="flex justify-between items-center font-semibold  text-[8px] tracking-normal text-gray-500 mb-0.5">
@@ -4034,7 +4034,7 @@ export default function FarmerAcademy({
  className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-semibold transition-all ${
  isSelected
  ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
- : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
  <span className="mr-2">{isSelected ? '●' : '○'}</span>
@@ -4059,7 +4059,7 @@ export default function FarmerAcademy({
  className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-semibold transition-all ${
  isSelected
  ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
- : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed'
+ : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed'
  }`}
  >
  <span className="mr-2">{isSelected ? '●' : '○'}</span>
@@ -4120,7 +4120,7 @@ export default function FarmerAcademy({
  setSimChosenTreatment(null);
  setSimFeedback(null);
  }}
- className="px-5 py-2.5 bg-slate-50 border border-gray-200 hover:bg-slate-100 text-gray-900 font-semibold text-[10px]  rounded-xl cursor-pointer border border-gray-200"
+ className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-white text-gray-900 font-semibold text-[10px]  rounded-xl cursor-pointer border border-gray-200"
  >
  Try Another Case
  </button>
@@ -4212,13 +4212,13 @@ export default function FarmerAcademy({
  className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all cursor-pointer ${
  selectedAutoSop === sop.id
  ? 'bg-indigo-650 bg-indigo-600 border-indigo-600 text-gray-900 font-semibold'
- : 'bg-slate-50 border border-gray-200 border-gray-100 text-gray-900 font-semibold hover:bg-slate-50 border border-gray-200'
+ : 'bg-white border border-gray-200 border-gray-100 text-gray-900 font-semibold hover:bg-white border border-gray-200'
  }`}
  >
  <div className="flex justify-between items-center">
  <span className="font-semibold">{sop.title}</span>
  <span className={`text-[9px]  font-mono px-1.5 py-0.5 rounded ${
- selectedAutoSop === sop.id ? 'bg-indigo-900 text-gray-900' : 'bg-slate-300 text-gray-900'
+ selectedAutoSop === sop.id ? 'bg-indigo-900 text-gray-900' : 'bg-white text-gray-900'
  }`}>- {sop.count} {sop.unit.split(' ')[0]}</span>
  </div>
  </button>
@@ -4226,7 +4226,7 @@ export default function FarmerAcademy({
  </div>
 
  <div className="border-t border-gray-200 pt-4 space-y-4">
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl border border-gray-100/80 space-y-2">
+ <div className="bg-white border border-gray-200 p-4 rounded-xl border border-gray-100/80 space-y-2">
  <span className="text-[9px] font-semibold  text-indigo-500 block">Stock Connection Health</span>
  {matchedStockItem ? (
  <div className="flex justify-between items-center">
@@ -4256,7 +4256,7 @@ export default function FarmerAcademy({
  className={`w-full py-3.5 px-4 rounded-xl font-semibold text-xs tracking-tight cursor-pointer border-0 shadow-md flex items-center justify-center gap-2 transition-all ${
  hasEnought
  ? 'bg-indigo-600 hover:bg-indigo-700 text-gray-900'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium cursor-not-allowed'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium cursor-not-allowed'
  }`}
  >
  ⚡ Execute SOP & Auto-Deduct
@@ -4294,7 +4294,7 @@ export default function FarmerAcademy({
 
  <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto mt-2 space-y-2 pr-1">
  {actionLogs.map((log) => (
- <div key={log.id} className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1 text-left border border-gray-100">
+ <div key={log.id} className="p-3 bg-white border border-gray-200 rounded-xl space-y-1 text-left border border-gray-100">
  <div className="flex justify-between text-[9px] font-mono font-bold text-gray-900 font-medium">
  <span>{log.timestamp}</span>
  <span className="text-green-600 font-semibold">LOGGED</span>
@@ -4339,7 +4339,7 @@ export default function FarmerAcademy({
  <select
  value={phiChemical}
  onChange={(e) => setPhiChemical(e.target.value)}
- className="w-full bg-slate-50 border border-gray-200 text-[10px] py-1.5 px-2 rounded-lg font-semibold border border-gray-200 cursor-pointer"
+ className="w-full bg-white border border-gray-200 text-[10px] py-1.5 px-2 rounded-lg font-semibold border border-gray-200 cursor-pointer"
  >
  <option value="copper">Copper Fungicide (Crop)</option>
  <option value="whitefly">Acetamiprid Pesticide (Crop)</option>
@@ -4354,7 +4354,7 @@ export default function FarmerAcademy({
  type="range" min="0" max="25" step="1"
  value={phiDaysElapsed}
  onChange={(e) => setPhiDaysElapsed(parseInt(e.target.value) || 0)}
- className="w-full h-1 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-purple-600 mt-2"
+ className="w-full h-1 bg-white border border-gray-200 appearance-none cursor-pointer accent-purple-600 mt-2"
  />
  </div>
  </div>
@@ -4388,7 +4388,7 @@ export default function FarmerAcademy({
 
  {/* Timeline graphic representation */}
  <div className="space-y-1">
- <div className="w-full bg-slate-50 border border-gray-200 h-4 rounded-full overflow-hidden flex border border-gray-200 relative">
+ <div className="w-full bg-white border border-gray-200 h-4 rounded-full overflow-hidden flex border border-gray-200 relative">
  <div style={{ width: `${percent}%` }} className={`h-full ${daysRemaining > 0 ? 'bg-amber-400' : 'bg-emerald-500'}`} />
  <div className="absolute inset-0 flex items-center justify-between px-3 text-[8px] font-mono font-semibold text-gray-900 font-semibold pointer-events-none">
  <span>Sprayed (Day 0)</span>
@@ -4436,7 +4436,7 @@ export default function FarmerAcademy({
  type="range" min="1" max="282" step="1"
  value={gestDaysInseminated}
  onChange={(e) => setGestDaysInseminated(parseInt(e.target.value) || 120)}
- className="w-1/2 h-1.5 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-indigo-600 shrink-0"
+ className="w-1/2 h-1.5 bg-white border border-gray-200 appearance-none cursor-pointer accent-indigo-600 shrink-0"
  />
  </div>
 
@@ -4483,7 +4483,7 @@ export default function FarmerAcademy({
  className={`p-2 rounded-lg text-center border transition-all ${
  m.active 
  ? 'bg-indigo-600 border-indigo-600 text-gray-900 font-semibold' 
- : 'bg-slate-50 border border-gray-200 border-gray-200 text-gray-900 font-medium'
+ : 'bg-white border border-gray-200 border-gray-200 text-gray-900 font-medium'
  }`}
  >
  <span className="block text-[8px] tracking-tight font-semibold">{m.label}</span>
@@ -4492,7 +4492,7 @@ export default function FarmerAcademy({
  ))}
  </div>
 
- <div className="bg-slate-50 border border-gray-200 p-3 rounded-lg border border-gray-100 text-[10px] leading-relaxed font-semibold">
+ <div className="bg-white border border-gray-200 p-3 rounded-lg border border-gray-100 text-[10px] leading-relaxed font-semibold">
  <span className="font-semibold text-gray-900 block text-[10px] mb-0.5">{phase.toUpperCase()}</span>
  {note}
  </div>
@@ -4539,7 +4539,7 @@ export default function FarmerAcademy({
  className={`py-2 px-3 rounded-lg border font-semibold text-[10px]  cursor-pointer transition-all ${
  forecastBreed === b
  ? 'bg-teal-700 text-gray-900 border-teal-700'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium hover:bg-white border border-gray-200 border-gray-200'
  }`}
  >
  {b}
@@ -4558,7 +4558,7 @@ export default function FarmerAcademy({
  type="range" min="350" max="750" step="10"
  value={forecastWeight}
  onChange={(e) => setForecastWeight(parseInt(e.target.value) || 550)}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
+ className="w-full h-1.5 bg-white border border-gray-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
  />
  <span className="text-[8.5px] text-gray-900 font-medium font-medium block">DMI baseline increases with weight maintenance requirements</span>
  </div>
@@ -4573,7 +4573,7 @@ export default function FarmerAcademy({
  type="range" min="2.0" max="4.5" step="0.5"
  value={forecastBcs}
  onChange={(e) => setForecastBcs(parseFloat(e.target.value) || 3.0)}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
+ className="w-full h-1.5 bg-white border border-gray-200 appearance-none cursor-pointer accent-teal-700 rounded-lg"
  />
  <span className="text-[8.5px] text-gray-900 font-medium font-medium block">Optimal range: 3.0-3.5. Under/over-conditioning cuts peak yield.</span>
  </div>
@@ -4593,7 +4593,7 @@ export default function FarmerAcademy({
  className={`py-2 px-1 rounded-lg border font-semibold text-[9px]  cursor-pointer transition-all ${
  forecastFeedQuality === f.id
  ? 'bg-teal-700 text-gray-900 border-teal-700'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 border-gray-200'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium hover:bg-white border border-gray-200 border-gray-200'
  }`}
  >
  {f.label}
@@ -4649,7 +4649,7 @@ export default function FarmerAcademy({
  </ResponsiveContainer>
  </div>
 
- <div className="grid grid-cols-3 gap-2.5 bg-slate-50 border border-gray-200 p-3 rounded-xl border border-gray-100 mt-4 text-[10px] leading-relaxed">
+ <div className="grid grid-cols-3 gap-2.5 bg-white border border-gray-200 p-3 rounded-xl border border-gray-100 mt-4 text-[10px] leading-relaxed">
  <div className="space-y-1">
  <span className="font-bold text-teal-850 block  text-[8px] tracking-wide">Weeks 1-10 (Early)</span>
  <p className="text-gray-900 font-medium">Yield rises steeply. Feed intake is laggy, causing energy deficit. Must feed starch-dense rations to avoid rapid weight loss.</p>
@@ -4689,7 +4689,7 @@ export default function FarmerAcademy({
  <span>Question {currentQuizQ + 1} of 3</span>
  <span>Score: {quizScore} / 3</span>
  </div>
- <div className="w-full bg-slate-50 border border-gray-200 h-2 rounded-full overflow-hidden">
+ <div className="w-full bg-white border border-gray-200 h-2 rounded-full overflow-hidden">
  <div className="bg-emerald-605 bg-emerald-600 h-full transition-all duration-300" style={{ width: `${((currentQuizQ) / 3) * 100}%` }}></div>
  </div>
  </div>
@@ -4747,7 +4747,7 @@ export default function FarmerAcademy({
  } else if (idx === selectedAns) {
  btnStyle = "border-red-405 bg-rose-900/20 text-rose-950";
  } else {
- btnStyle = "border-gray-100 bg-slate-50 border border-gray-200 text-gray-900 font-medium opacity-60";
+ btnStyle = "border-gray-100 bg-white border border-gray-200 text-gray-900 font-medium opacity-60";
  }
  }
  
@@ -4771,7 +4771,7 @@ export default function FarmerAcademy({
  </div>
  
  {showFeedback && (
- <div className="p-4 rounded-2xl bg-slate-50 border border-gray-200 border border-gray-200 space-y-3">
+ <div className="p-4 rounded-2xl bg-white border border-gray-200 border border-gray-200 space-y-3">
  <span className="text-[10px] font-semibold  text-gray-900 font-medium block">Agronomic Explanation:</span>
  <p className="text-xs text-gray-900 font-medium leading-relaxed font-medium">{currentQuestion.explanation}</p>
  
@@ -4821,7 +4821,7 @@ export default function FarmerAcademy({
  setQuizDone(false);
  setShowFeedback(false);
  }}
- className="px-6 py-3 border border-gray-200 text-gray-500 font-semibold text-xs tracking-tight rounded-xl hover:bg-slate-50 border border-gray-200 cursor-pointer bg-white shadow-sm "
+ className="px-6 py-3 border border-gray-200 text-gray-500 font-semibold text-xs tracking-tight rounded-xl hover:bg-white border border-gray-200 cursor-pointer bg-white shadow-sm "
  >
  Retake Quiz
  </button>

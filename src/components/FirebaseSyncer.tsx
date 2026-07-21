@@ -248,11 +248,11 @@ export function FirebaseSyncer() {
  onClick={handleManualSync}
  disabled={!canUseFirestore}
  className={`fixed bottom-6 right-6 p-4 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center
- ${!canUseFirestore ? 'bg-slate-500 cursor-not-allowed opacity-90' :
+ ${!canUseFirestore ? 'bg-white cursor-not-allowed opacity-90' :
  syncStatus === 'syncing' ? 'bg-blue-500 animate-pulse' :
  syncStatus === 'error' ? 'bg-red-500 hover:bg-red-600' :
  syncStatus === 'success' ? 'bg-emerald-500' :
- 'bg-slate-50 border border-gray-200 hover:bg-slate-100'
+ 'bg-white border border-gray-200 hover:bg-white'
  } text-white group`}
  title={canUseFirestore ? 'Cloud Sync (Click to Force Sync)' : `Cloud Sync (${cloudSyncDisabledReason || 'Unavailable'})`}
  >

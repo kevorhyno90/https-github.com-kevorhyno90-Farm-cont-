@@ -1384,7 +1384,7 @@ export function OtherSections({
  </div>
  </div>
  {/* Micro advisory pills */}
- <div className="flex flex-wrap items-center gap-2 text-[10px] bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-200 font-mono text-gray-900 font-medium">
+ <div className="flex flex-wrap items-center gap-2 text-[10px] bg-white px-3 py-1.5 rounded-xl border border-gray-200 font-mono text-gray-900 font-medium">
  <span className="flex items-center gap-1 text-amber-400">
  ☀️ 24°C Sunny
  </span>
@@ -1441,7 +1441,7 @@ export function OtherSections({
  style={{ minHeight: '105px' }}
  >
  <div className="flex justify-between items-start w-full">
- <span className="text-[9px] font-semibold bg-slate-50 text-gray-900 font-bold px-2 py-0.5 rounded font-mono ">
+ <span className="text-[9px] font-semibold bg-white text-gray-900 font-bold px-2 py-0.5 rounded font-mono ">
  {f.acreage} Ac
  </span>
  {/* Pulsing satellite beacon */}
@@ -1470,7 +1470,7 @@ export function OtherSections({
  </div>
 
  {/* Filter stats latch row */}
- <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 border border-gray-200 p-3 rounded-2xl gap-3">
+ <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-gray-200 p-3 rounded-2xl gap-3">
  <div className="space-y-0.5 text-left">
  <span className="text-[9px] font-mono tracking-normal font-semibold block text-gray-900 font-medium ">Interactive Map Filtering Filter Loop</span>
  <p className="text-[10.5px] text-gray-900 font-medium">
@@ -1485,7 +1485,7 @@ export function OtherSections({
  className={`px-4 py-2 border rounded-xl text-[10px] tracking-tight font-back font-mono transition-all m-0 shadow-md ${
  mapFilterActive 
  ? 'bg-emerald-500 hover:bg-emerald-400 text-gray-500 font-semibold border-emerald-400' 
- : 'bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-white font-semibold border-gray-200 font-bold'
+ : 'bg-white shadow-sm hover:bg-white border border-gray-200 text-white font-semibold border-gray-200 font-bold'
  }`}
  >
  {mapFilterActive ? "⚡ Filter Isolate On" : "🔌 Enable Isolation"}
@@ -1494,7 +1494,7 @@ export function OtherSections({
  </div>
 
  {/* Sensor stats telemetry board (Col-Span 5) */}
- <div className="lg:col-span-5 bg-slate-50 border border-gray-200 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+ <div className="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col justify-between space-y-4">
  {(() => {
  const activeField = fields.find(f => f.id === selectedMapFieldId) || fields[0] || null;
  if (!activeField) return null;
@@ -1536,7 +1536,7 @@ export function OtherSections({
  <span className="text-gray-900 font-medium font-semibold ">Multi-spectral (NDVI) index</span>
  <span className={`font-semibold ${mockNdvi > 0.6 ? 'text-green-600' : 'text-amber-400'}`}>{mockNdvi.toFixed(2)}</span>
  </div>
- <div className="h-2 bg-slate-50 border border-gray-200 rounded-full overflow-hidden flex">
+ <div className="h-2 bg-white border border-gray-200 rounded-full overflow-hidden flex">
  <div 
  className={`h-full rounded-full transition-all duration-500 ${mockNdvi > 0.6 ? 'bg-emerald-550 bg-emerald-500' : 'bg-amber-500'}`} 
  style={{ width: `${mockNdvi * 100}%` }}
@@ -1553,9 +1553,9 @@ export function OtherSections({
  <div className="space-y-1">
  <div className="flex justify-between text-[10px] font-mono">
  <span className="text-gray-900 font-medium font-semibold ">Soil moisture content</span>
- <span className="font-semibold text-blue-400">{mockMoisture}% Vol</span>
+ <span className="font-semibold text-blue-700">{mockMoisture}% Vol</span>
  </div>
- <div className="h-2 bg-slate-50 border border-gray-200 rounded-full overflow-hidden flex">
+ <div className="h-2 bg-white border border-gray-200 rounded-full overflow-hidden flex">
  <div 
  className="h-full bg-blue-500 rounded-full transition-all duration-500" 
  style={{ width: `${mockMoisture}%` }}
@@ -1618,7 +1618,7 @@ export function OtherSections({
  <div className="flex justify-between items-start">
  <div>
  <h5 className="font-semibold text-[#0b251a] text-sm ">{fld.blockName}</h5>
- <span className="text-[10px] bg-slate-50 border border-gray-200 text-gray-900 font-medium px-2.5 py-0.5 mt-1 border rounded font-semibold inline-block ">
+ <span className="text-[10px] bg-white border border-gray-200 text-gray-900 font-medium px-2.5 py-0.5 mt-1 border rounded font-semibold inline-block ">
  {fld.cropType}
  </span>
  </div>
@@ -1733,7 +1733,7 @@ export function OtherSections({
  step="0.5"
  value={rhodesAcres}
  onChange={(e) => setRhodesAcres(parseFloat(e.target.value))}
- className="w-full accent-amber-700 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer"
+ className="w-full accent-amber-700 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer"
  />
  <span className="text-[9.5px] text-gray-900 font-medium font-medium">1 Acre yields ~250 bales (4,500kg Dry Matter) per season.</span>
  </div>
@@ -1749,7 +1749,7 @@ export function OtherSections({
  step="1"
  value={rhodesAnimalsCount}
  onChange={(e) => setRhodesAnimalsCount(parseInt(e.target.value))}
- className="w-full accent-amber-700 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer"
+ className="w-full accent-amber-700 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer"
  />
  </div>
 
@@ -1764,7 +1764,7 @@ export function OtherSections({
  step="1"
  value={rhodesCustomDailyIntake}
  onChange={(e) => setRhodesCustomDailyIntake(parseInt(e.target.value))}
- className="w-full accent-amber-700 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer"
+ className="w-full accent-amber-700 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer"
  />
  <span className="text-[9px] text-gray-900 font-medium font-medium italic block mt-1">Cows consume ~2.5% of body weight in dry matter Daily.</span>
  </div>
@@ -1808,7 +1808,7 @@ export function OtherSections({
  </div>
  </div>
 
- <div className="p-3.5 bg-slate-850 rounded-xl border border-gray-200 text-[10.5px] text-gray-900 font-medium leading-tight">
+ <div className="p-3.5 bg-white rounded-xl border border-gray-200 text-[10.5px] text-gray-900 font-medium leading-tight">
  <strong>Rhodes Guideline:</strong> Ensure harvesting at early bloom stage (10% flowering) for peak crude protein levels (~8-10% CP). Delay reduces protein content severely!
  </div>
  </div>
@@ -1877,7 +1877,7 @@ export function OtherSections({
  setSilDateOpened('');
  }
  }}
- className="p-6 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+ className="p-6 bg-white border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
  >
  <div className="md:col-span-3">
  <span className="text-[10px]  font-semibold text-green-600 tracking-normal">🌽 PRE-FILL ESTIMATION ENGINE</span>
@@ -1926,7 +1926,7 @@ export function OtherSections({
  type="number"
  disabled
  value={silAcres * 18000}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono bg-slate-50 border border-gray-200 text-gray-900 font-medium cursor-not-allowed"
+ className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono bg-white border border-gray-200 text-gray-900 font-medium cursor-not-allowed"
  />
  <span className="text-[9px] text-gray-900 font-medium font-mono mt-0.5 block">Estimated @ standard 18,000 KG (18 Tons) per Acre</span>
  </div>
@@ -1989,7 +1989,7 @@ export function OtherSections({
  step="10"
  value={silAverageWeight}
  onChange={(e) => setSilAverageWeight(parseInt(e.target.value))}
- className="w-full accent-emerald-800 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer mt-3"
+ className="w-full accent-emerald-800 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer mt-3"
  />
  </div>
 
@@ -2015,13 +2015,13 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setSilShowAdd(false)}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-300 text-gray-900 rounded-lg text-xs font-bold  transition-all shadow-xs cursor-pointer m-0"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow-xs cursor-pointer m-0"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-5 py-2 bg-white shadow-sm hover:bg-slate-850 text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
+ className="px-5 py-2 bg-white shadow-sm hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
  >
  Save Conservation Log
  </button>
@@ -2032,7 +2032,7 @@ export function OtherSections({
  {/* SILAGE LOGS RENDERED */}
  <div className="grid grid-cols-1 gap-4">
  {silageRecords.length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No conserved silage batches recorded yet.
  </div>
  ) : (
@@ -2041,7 +2041,7 @@ export function OtherSections({
  const isDanger = computedDays < 30;
 
  return (
- <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+ <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
  <span className="font-mono bg-indigo-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
@@ -2050,7 +2050,7 @@ export function OtherSections({
  <span className="text-sm font-semibold text-gray-900">
  {item.rawMaterial} Conserved Silage ({item.acres} Acres)
  </span>
- <span className="text-[9px] bg-slate-50 border border-gray-200 font-mono text-gray-900 font-medium px-2 py-0.5 rounded font-bold ">
+ <span className="text-[9px] bg-white border border-gray-200 font-mono text-gray-900 font-medium px-2 py-0.5 rounded font-bold ">
  Made: {item.dateMade}
  </span>
  {item.dateOpened && (
@@ -2129,41 +2129,41 @@ export function OtherSections({
  {/* Static Crop agronomy guidelines container */}
  <div className="bg-white shadow-sm text-gray-900 font-bold p-6 rounded-3xl space-y-4 border border-gray-200">
  <div className="flex items-center gap-2">
- <Award size={18} className="text-yellow-400 animate-pulse shrink-0" />
- <h5 className="text-xs  font-semibold tracking-normal text-yellow-400">NYARONDE AGRONOMY & EXTENSION PROTOCOLS (KEPHIS APPROVED)</h5>
+ <Award size={18} className="text-yellow-700 animate-pulse shrink-0" />
+ <h5 className="text-xs  font-semibold tracking-normal text-yellow-700">NYARONDE AGRONOMY & EXTENSION PROTOCOLS (KEPHIS APPROVED)</h5>
  </div>
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🍌 Bananas Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Maintain a 3-stem density (1 sucker, 1 maiden, 1 bearer). Mulch 15cm thick away from core corm. Apply 30kg organic manure per year. Prop heavy bunches with bamboo forks.
  </p>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🥬 Vegetables Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Sow sukuma wiki (kale) in nursery beds for 21 days. Transplant at rain onset with NPK 17:17:17. Secure stakes for tomato branches. Prune bottom leaves to deter blight.
  </p>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🌽 Maize Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Till to rough-tilth. Plant at 75cm x 25cm. Weed at 3-leaf stage. Apply CAN topdressing at 45cm (knee height) during morning rains. Dry cobs on solar tarps to &lt;13.5% moisture.
  </p>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🌾 Sorghum Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Sow at 60cm shallow rows. Thin young plants to 15cm base spacing. Bird-scaring setup must operate starting from milky grain formation phase until hand-harvesting.
  </p>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🥑 Avocado Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Graft Hass scions on solid landrace rootstocks. Apply protective Copper Fungicide spray. Harvest only when oil content exceeds 21% using clippers. Never pull fruit.
  </p>
  </div>
- <div className="p-3 bg-slate-50 border border-gray-200 rounded-xl space-y-1">
+ <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-1">
  <span className="font-semibold text-gray-900 block">🌱 Tea Guide</span>
  <p className="text-[11px] text-gray-900 font-medium leading-normal">
  Pluck two leaves and a bud on a 7-day loop. Maintain a flat plucking table at 24 inches. Prune biennially. Apply NPK 26:0:0 fertilizer after first heavy county rains.
@@ -2358,7 +2358,7 @@ export function OtherSections({
 
  {/* Operations Expanded Parameters Metadata badge */}
  {(op.inputsUsed || op.equipmentUsed || op.operationCost !== undefined) && (
- <div className="p-2 bg-slate-50 border border-gray-200 border border-gray-100 rounded-xl space-y-1 text-[11px] font-bold text-gray-900 font-medium">
+ <div className="p-2 bg-white border border-gray-200 border border-gray-100 rounded-xl space-y-1 text-[11px] font-bold text-gray-900 font-medium">
  <div className="flex flex-wrap gap-x-3 gap-y-1">
  {op.inputsUsed && (
  <span>💊 Inputs: <b className="text-gray-900 font-semibold">{op.inputsUsed}</b> {op.inputQuantityUsed ? `(${op.inputQuantityUsed})` : ''}</span>
@@ -2401,7 +2401,7 @@ export function OtherSections({
  {onEditCropOp && (
  <button
  onClick={() => setEditingCropOp(op)}
- className="text-gray-900 font-medium hover:text-indigo-805 p-2 border border-gray-100 rounded-xl hover:border-indigo-50 hover:bg-slate-50 border border-gray-200 cursor-pointer"
+ className="text-gray-900 font-medium hover:text-indigo-805 p-2 border border-gray-100 rounded-xl hover:border-indigo-50 hover:bg-white border border-gray-200 cursor-pointer"
  title="Edit Operations record"
  >
  <PenSquare size={13} />
@@ -2409,7 +2409,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => onDeleteCropOp(op.id)}
- className="text-gray-900 font-medium hover:text-red-600 p-2 border border-gray-100 rounded-xl hover:border-red-50 hover:bg-slate-50 border border-gray-200 cursor-pointer"
+ className="text-gray-900 font-medium hover:text-red-600 p-2 border border-gray-100 rounded-xl hover:border-red-50 hover:bg-white border border-gray-200 cursor-pointer"
  title="Delete Operations record"
  >
  <Trash2 size={13} />
@@ -2596,7 +2596,7 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setShowAddForm(false)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium m-0 cursor-pointer hover:bg-slate-50 border border-gray-200"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium m-0 cursor-pointer hover:bg-white border border-gray-200"
  >
  Cancel
  </button>
@@ -2617,7 +2617,7 @@ export function OtherSections({
  <div className="overflow-x-auto">
  <table className="w-full text-xs">
  <thead>
- <tr className="border-b border-gray-100 bg-slate-50 border border-gray-200 text-[9px]  font-semibold text-gray-900 font-medium">
+ <tr className="border-b border-gray-100 bg-white border border-gray-200 text-[9px]  font-semibold text-gray-900 font-medium">
  <td className="p-3 font-semibold">Receipt Details</td>
  <td className="p-3 font-semibold">Commodity Sold</td>
  <td className="p-3 font-semibold text-right">Yield Quantity</td>
@@ -2633,7 +2633,7 @@ export function OtherSections({
  </tr>
  ) : (
  [...cropSales].sort((a,b)=> b.date.localeCompare(a.date)).map((cs) => (
- <tr key={cs.id} className="border-b border-gray-200 hover:bg-slate-50 border border-gray-200">
+ <tr key={cs.id} className="border-b border-gray-200 hover:bg-white border border-gray-200">
  <td className="p-3">
  <span className="font-semibold text-gray-900 font-semibold block text-xs">{cs.ref}</span>
  <span className="block text-[9px] text-gray-500 font-mono">{cs.date}</span>
@@ -2655,7 +2655,7 @@ export function OtherSections({
  {onEditCropSale && (
  <button
  onClick={() => setEditingCropSale(cs)}
- className="text-gray-900 font-medium hover:text-indigo-850 p-1.5 border border-transparent hover:border-gray-100 hover:bg-slate-50 border border-gray-200 rounded-lg transition-all m-0 inline-block cursor-pointer"
+ className="text-gray-900 font-medium hover:text-indigo-850 p-1.5 border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200 rounded-lg transition-all m-0 inline-block cursor-pointer"
  title="Edit Sales Record"
  >
  <PenSquare size={12} />
@@ -2715,7 +2715,7 @@ export function OtherSections({
 
  {/* Sub segments selector tabs */}
  {!activeSubModule && (
- <div className="flex bg-slate-50 border border-gray-200 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto gap-0.5">
+ <div className="flex bg-white border border-gray-200 p-1 rounded-xl border shrink-0 w-full md:w-auto overflow-x-auto gap-0.5">
  <button
  onClick={() => { setLivestockSubTab('poultry'); setShowAddForm(false); }}
  className={`px-3.5 py-2 text-xs tracking-tight font-semibold rounded-lg transition-all m-0 shrink-0 ${
@@ -2743,7 +2743,7 @@ export function OtherSections({
  <button
  onClick={() => { setLivestockSubTab('poultry_dogs'); setShowAddForm(false); }}
  className={`px-3 py-2 text-xs tracking-tight font-semibold rounded-lg transition-all m-0 shrink-0 ${
- livestockSubTab === 'poultry_dogs' ? 'bg-slate-50 border border-gray-200 text-gray-900 font-semibold' : 'text-gray-900 font-medium hover:text-gray-500'
+ livestockSubTab === 'poultry_dogs' ? 'bg-white border border-gray-200 text-gray-900 font-semibold' : 'text-gray-900 font-medium hover:text-gray-500'
  }`}
  >
  🐶 Security Canines
@@ -2814,7 +2814,7 @@ export function OtherSections({
  </h4>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
- <div className="bg-slate-850 p-4 rounded-xl border border-gray-200 space-y-2">
+ <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
  <span className="text-[10px] bg-emerald-900 text-green-600 px-2 py-0.5 rounded font-semibold ">Cohort 1: Chicks (Day 1 - Week 8)</span>
  <h5 className="text-sm font-bold text-gray-900">Chops & Thermal Rearing</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
@@ -2823,7 +2823,7 @@ export function OtherSections({
  </p>
  </div>
 
- <div className="bg-slate-850 p-4 rounded-xl border border-gray-200 space-y-2">
+ <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
  <span className="text-[10px] bg-amber-900 text-amber-100 px-2 py-0.5 rounded font-semibold ">Cohort 2: Growers (Week 9 - Week 18)</span>
  <h5 className="text-sm font-bold text-gray-900">Weight Management & Deworming</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
@@ -2831,7 +2831,7 @@ export function OtherSections({
  </p>
  </div>
 
- <div className="bg-slate-850 p-4 rounded-xl border border-gray-200 space-y-2">
+ <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
  <span className="text-[10px] bg-indigo-900 text-indigo-100 px-2 py-0.5 rounded font-semibold ">Cohort 3: Layers (Week 19+)</span>
  <h5 className="text-sm font-bold text-gray-900">Calcium Fortification & Grits</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
@@ -2847,7 +2847,7 @@ export function OtherSections({
  <div className="space-y-1">
  <div className="flex items-center gap-2">
  <span className="text-[9.5px] bg-[#eab308] font-semibold text-gray-500 px-2.5 py-0.5 rounded tracking-tight">Avian Feed Metric Evaluator</span>
- <span className="text-[9.5px] bg-slate-50 border border-gray-200 text-gray-500 border border-gray-200 px-2 py-0.5 rounded  font-bold">Interactive Hen-Day Performance Matrix</span>
+ <span className="text-[9.5px] bg-white border border-gray-200 text-gray-500 border border-gray-200 px-2 py-0.5 rounded  font-bold">Interactive Hen-Day Performance Matrix</span>
  </div>
  <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
  <span>🐣 Interactive Layer Flock Performance & Profit Targeter</span>
@@ -2861,12 +2861,12 @@ export function OtherSections({
  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
  {/* Left: Interactive Input Sliders */}
  <div className="md:col-span-2 bg-white shadow-sm p-4 rounded-2xl border border-gray-200 space-y-4">
- <span className="text-[10px]  font-semibold text-yellow-400 tracking-normal">Input Parameter Model</span>
+ <span className="text-[10px]  font-semibold text-yellow-700 tracking-normal">Input Parameter Model</span>
 
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Laying Hens: <span className="font-mono text-yellow-400 font-semibold">{calcPouCount} birds</span>
+ Laying Hens: <span className="font-mono text-yellow-700 font-semibold">{calcPouCount} birds</span>
  </label>
  <input
  type="range"
@@ -2875,13 +2875,13 @@ export function OtherSections({
  step="25"
  value={calcPouCount}
  onChange={(e) => setCalcPouCount(parseInt(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-yellow-500"
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer accent-yellow-500"
  />
  </div>
 
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Egg Crates/Day: <span className="font-mono text-yellow-400 font-semibold">{calcPouEggCrates} Crates</span>
+ Egg Crates/Day: <span className="font-mono text-yellow-700 font-semibold">{calcPouEggCrates} Crates</span>
  </label>
  <input
  type="range"
@@ -2890,7 +2890,7 @@ export function OtherSections({
  step="1"
  value={calcPouEggCrates}
  onChange={(e) => setCalcPouEggCrates(parseInt(e.target.value))}
- className="w-full h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-yellow-500"
+ className="w-full h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer accent-yellow-500"
  />
  </div>
  </div>
@@ -2903,7 +2903,7 @@ export function OtherSections({
  step="0.1"
  value={calcPouFeedBags}
  onChange={(e) => setCalcPouFeedBags(parseFloat(e.target.value) || 0)}
- className="w-full text-xs bg-slate-50 border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
+ className="w-full text-xs bg-white border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
  />
  </div>
 
@@ -2913,7 +2913,7 @@ export function OtherSections({
  type="number"
  value={calcPouFeedCostBag}
  onChange={(e) => setCalcPouFeedCostBag(parseInt(e.target.value) || 0)}
- className="text-xs w-full bg-slate-50 border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
+ className="text-xs w-full bg-white border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
  />
  </div>
 
@@ -2923,7 +2923,7 @@ export function OtherSections({
  type="number"
  value={calcPouCratePrice}
  onChange={(e) => setCalcPouCratePrice(parseInt(e.target.value) || 0)}
- className="text-xs w-full bg-slate-50 border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
+ className="text-xs w-full bg-white border border-gray-200 p-2 rounded-lg font-bold text-gray-900 font-mono"
  />
  </div>
  </div>
@@ -2971,9 +2971,9 @@ export function OtherSections({
  </div>
 
  {/* Right: Cashflow Predictions & Real-time advisory */}
- <div className="bg-slate-850 p-4 rounded-2xl border border-gray-200 flex flex-col justify-between text-xs leading-relaxed font-semibold">
+ <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col justify-between text-xs leading-relaxed font-semibold">
  <div>
- <span className="text-[10px]  font-semibold text-yellow-400 block mb-2">💸 MODEL BUDGETING FORECAST</span>
+ <span className="text-[10px]  font-semibold text-yellow-700 block mb-2">💸 MODEL BUDGETING FORECAST</span>
  
  <div className="space-y-1 text-[11.5px] leading-snug border-b border-gray-200 pb-2 mb-2 font-mono">
  <div className="flex justify-between">
@@ -2982,11 +2982,11 @@ export function OtherSections({
  </div>
  <div className="flex justify-between">
  <span className="text-gray-900 font-medium font-sans font-bold">Daily Feed Cost:</span>
- <span className="text-red-400 font-semibold">- Ksh {(calcPouFeedBags * calcPouFeedCostBag).toLocaleString()}</span>
+ <span className="text-red-700 font-semibold">- Ksh {(calcPouFeedBags * calcPouFeedCostBag).toLocaleString()}</span>
  </div>
  <div className="flex justify-between pt-1 border-t border-gray-200 font-bold">
  <span className="text-gray-500 text-gray-900 font-medium font-sans font-bold">Net Profit/Day:</span>
- <span className={`font-semibold ${(calcPouEggCrates * calcPouCratePrice) - (calcPouFeedBags * calcPouFeedCostBag) >= 0 ? 'text-green-600 text-green-600' : 'text-rose-455 text-rose-400'}`}>
+ <span className={`font-semibold ${(calcPouEggCrates * calcPouCratePrice) - (calcPouFeedBags * calcPouFeedCostBag) >= 0 ? 'text-green-600 text-green-600' : 'text-rose-700 text-rose-400'}`}>
  Ksh {((calcPouEggCrates * calcPouCratePrice) - (calcPouFeedBags * calcPouFeedCostBag)).toLocaleString()}
  </span>
  </div>
@@ -3008,7 +3008,7 @@ export function OtherSections({
  );
  } else {
  return (
- <p className="text-gray-500 text-gray-500 text-[11px] leading-snug text-yellow-400">
+ <p className="text-gray-500 text-gray-500 text-[11px] leading-snug text-yellow-700">
  🚨 <strong>Critical Lay Rate Drop:</strong> Laying is below standard. Immediate check: Are feeds expired or moldy? Have you vaccinated against Infectious Bronchitis (IB)? Add vitamin packs to water immediately.
  </p>
  );
@@ -3086,7 +3086,7 @@ export function OtherSections({
  setPouVaccines('');
  }
  }}
- className="p-6 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+ className="p-6 bg-white border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
  >
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Batch / Cohort Name</label>
@@ -3249,13 +3249,13 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setPouShowAdd(false)}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-300 text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-5 py-2 bg-white shadow-sm hover:bg-slate-850 text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
+ className="px-5 py-2 bg-white shadow-sm hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
  >
  Save Poultry Entry
  </button>
@@ -3266,12 +3266,12 @@ export function OtherSections({
  {/* Poultry records list */}
  <div className="grid grid-cols-1 gap-4">
  {poultryRecords.length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No poultry ledger records registered yet.
  </div>
  ) : (
  poultryRecords.map((item) => (
- <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+ <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
  <span className="font-mono bg-indigo-950 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold">
@@ -3315,7 +3315,7 @@ export function OtherSections({
  </span>
  </div>
  ) : (
- <div className="bg-slate-50 border border-gray-200 p-2 rounded-xl">
+ <div className="bg-white border border-gray-200 p-2 rounded-xl">
  <span className="text-[9px] font-semibold text-gray-900 font-medium block ">Avg Feed/Bird</span>
  <span className="text-xs font-mono font-bold text-gray-500">
  {item.feedGivenKg && item.count ? ((item.feedGivenKg / item.count) * 1000).toFixed(0) : 0} grams
@@ -3404,7 +3404,7 @@ export function OtherSections({
  type="text"
  readOnly
  value="Poultry / Avian"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium"
+ className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-white border border-gray-200 text-gray-900 font-medium"
  />
  </div>
  <div>
@@ -3478,7 +3478,7 @@ export function OtherSections({
 
  <div className="space-y-4">
  {livestock.filter(item => item.type === 'Poultry').length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No poultry activity log entries registered yet.
  </div>
  ) : (
@@ -3492,7 +3492,7 @@ export function OtherSections({
  <h5 className="font-semibold text-[13.5px]  text-[#0b251a]">{item.name}</h5>
  <span className="text-xs font-mono font-bold text-gray-900 font-medium">({item.countOrBreed})</span>
  </div>
- <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 leading-relaxed bg-slate-50 border border-gray-200 shrink-0 px-2 py-1 rounded inline-block">
+ <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 leading-relaxed bg-white border border-gray-200 shrink-0 px-2 py-1 rounded inline-block">
  <Activity size={12} className="text-amber-700 shrink-0 inline-block mr-1" />
  <span>Activity: {item.activity}</span>
  </div>
@@ -3542,7 +3542,7 @@ export function OtherSections({
  Heifers are the future replacement cows of the dairy farm. Target steady, lean skeletel growth of <strong>655g to 750g average daily liveweight gain (ADG)</strong>. Monitor chest girth metrics so heifers can safely reach breeding size of <strong>290-310 KG</strong> at 14-16 months of maturity.
  </p>
  <div className="text-xs bg-amber-955 p-3 rounded-xl space-y-1.5 border border-amber-800">
- <span className="text-yellow-400 font-semibold  text-[10.5px] block">👑 Best Feeding Strategy</span>
+ <span className="text-yellow-700 font-semibold  text-[10.5px] block">👑 Best Feeding Strategy</span>
  <p className="text-[10.5px] text-amber-100 leading-tight">
  Provide ad-libitum access to clean Boma Rhodes hay blocks, fortified with 1-2kg of high-energy grower meal raw formulation diariamente. Calcium and trace mineral salts are mandatory to ensure follicular maturation, ovulation capacity, and robust fertility cycles.
  </p>
@@ -3577,7 +3577,7 @@ export function OtherSections({
  setHefWeight(estWt);
  setHefBreedingReady(estWt >= 280);
  }}
- className="w-full accent-indigo-900 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer mt-2"
+ className="w-full accent-indigo-900 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer mt-2"
  />
  <span className="text-[9.5px] text-gray-900 font-medium font-mono mt-0.5 block">Measure around the chest directly behind forelegs.</span>
  </div>
@@ -3668,7 +3668,7 @@ export function OtherSections({
  setHefNotes('');
  }
  }}
- className="p-6 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+ className="p-6 bg-white border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
  >
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Heifer Ear Tag or Name</label>
@@ -3732,7 +3732,7 @@ export function OtherSections({
  step="50"
  value={hefAdg}
  onChange={(e) => setHefAdg(parseInt(e.target.value))}
- className="w-full accent-amber-800 h-2 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer mt-3"
+ className="w-full accent-amber-800 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer mt-3"
  />
  </div>
 
@@ -3757,13 +3757,13 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setHefShowAdd(false)}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-300 text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-5 py-2 bg-white shadow-sm hover:bg-slate-850 text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
+ className="px-5 py-2 bg-white shadow-sm hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
  >
  Save Heifer Log
  </button>
@@ -3773,12 +3773,12 @@ export function OtherSections({
 
  <div className="grid grid-cols-1 gap-4">
  {heiferRecords.length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No heifer development logs recorded yet.
  </div>
  ) : (
  heiferRecords.map((item) => (
- <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+ <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
  <span className="font-mono bg-amber-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
@@ -3861,19 +3861,19 @@ export function OtherSections({
  
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-[11px] pt-1">
  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
- <span className="font-semibold  text-yellow-400 block">1. 21-Days Isolation</span>
+ <span className="font-semibold  text-yellow-700 block">1. 21-Days Isolation</span>
  <span>All newly purchased cattle/goats must undergo a mandatory 21-day quarantine prior to herd merger.</span>
  </div>
  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
- <span className="font-semibold  text-yellow-400 block">2. Dedicated Equipment</span>
+ <span className="font-semibold  text-yellow-700 block">2. Dedicated Equipment</span>
  <span>Use exclusive feeding troughs, water buckets, and manure spades. Never move devices out of isolation zones.</span>
  </div>
  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
- <span className="font-semibold  text-yellow-400 block">3. Footbath Hygiene</span>
+ <span className="font-semibold  text-yellow-700 block">3. Footbath Hygiene</span>
  <span>Re-fill entrance footbaths with copper sulfate or chlorine disinfectant daily. Step in before boarding/leaving.</span>
  </div>
  <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
- <span className="font-semibold  text-yellow-400 block">4. Separate milking</span>
+ <span className="font-semibold  text-yellow-700 block">4. Separate milking</span>
  <span>Always milk quarantined animals last. Pasteurize or safely discard milk; do not load into the main dairy cooler.</span>
  </div>
  </div>
@@ -3904,7 +3904,7 @@ export function OtherSections({
  else if (val === 'Poultry') setDiagSymptom('resp_green_poop');
  else if (val === 'Goat') setDiagSymptom('skin_nodules');
  }}
- className="text-xs bg-slate-50 border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
+ className="text-xs bg-white border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
  >
  <option value="Cattle">🐄 Dairy Cow / Calf</option>
  <option value="Poultry">🐣 Poultry Flock</option>
@@ -3917,7 +3917,7 @@ export function OtherSections({
  <select
  value={diagSymptom}
  onChange={(e) => setDiagSymptom(e.target.value)}
- className="text-xs bg-slate-50 border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
+ className="text-xs bg-white border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
  >
  {diagSpecies === 'Cattle' && (
  <>
@@ -4059,7 +4059,7 @@ export function OtherSections({
  <select
  value={withMedType}
  onChange={(e) => setWithMedType(e.target.value)}
- className="text-xs bg-slate-50 border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
+ className="text-xs bg-white border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold cursor-pointer"
  >
  <option value="antibiotic_pen">🛡️ Penicillin-Dihydrostreptomycin (3d Milk, 14d Meat)</option>
  <option value="antibiotic_tet">🛡️ Oxytetracycline LA (Alamycin) (5d Milk, 21d Meat)</option>
@@ -4075,7 +4075,7 @@ export function OtherSections({
  type="date"
  value={withTreatDate}
  onChange={(e) => setWithTreatDate(e.target.value)}
- className="text-xs bg-slate-50 border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold font-mono"
+ className="text-xs bg-white border border-gray-200 rounded-lg p-2.5 w-full text-gray-900 font-bold font-mono"
  />
  </div>
  </div>
@@ -4227,7 +4227,7 @@ export function OtherSections({
  setQuaVet('');
  }
  }}
- className="p-6 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
+ className="p-6 bg-white border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
  >
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Livestock Species</label>
@@ -4348,13 +4348,13 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setQuaShowAdd(false)}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-300 text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-5 py-2 bg-white shadow-sm hover:bg-slate-850 text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
+ className="px-5 py-2 bg-white shadow-sm hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
  >
  Register Isolated Animal
  </button>
@@ -4364,7 +4364,7 @@ export function OtherSections({
 
  <div className="grid grid-cols-1 gap-4">
  {quarantineRecords.length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No current animals in veterinary quarantine.
  </div>
  ) : (
@@ -4372,7 +4372,7 @@ export function OtherSections({
  const isCleared = item.quarantineStatus === 'Cleared & Released';
 
  return (
- <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+ <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1 w-full">
  <div className="flex flex-wrap items-center gap-2">
  <span className="font-mono bg-rose-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
@@ -4443,7 +4443,7 @@ export function OtherSections({
  {livestockSubTab === 'poultry_dogs' && (
  <div className="space-y-6">
  {/* Canine immunization & checkup guide */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-5 rounded-3xl space-y-3 shadow-xs">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-5 rounded-3xl space-y-3 shadow-xs">
  <div className="flex items-center gap-2 text-gray-900">
  <Shield size={16} className="text-green-600" />
  <h5 className="text-[11px] font-semibold tracking-normal ">MANDATORY SECURITY CANINE PROTOCOLS & REMINDERS</h5>
@@ -4522,7 +4522,7 @@ export function OtherSections({
  type="text"
  readOnly
  value="Security Guard Canines"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-slate-50 border border-gray-200 text-gray-900 font-medium"
+ className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-white border border-gray-200 text-gray-900 font-medium"
  />
  </div>
  <div>
@@ -4596,7 +4596,7 @@ export function OtherSections({
 
  <div className="space-y-4">
  {livestock.filter(item => item.type === 'Dogs').length === 0 ? (
- <div className="p-8 text-center bg-slate-50 border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
+ <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
  No canine patrol log entries registered yet.
  </div>
  ) : (
@@ -4604,13 +4604,13 @@ export function OtherSections({
  <div key={item.id} className="bg-white shadow-sm border border-gray-100 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:border-gray-200">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
- <span className="text-[9px] font-semibold  px-2 py-0.5 rounded border bg-slate-50 border border-gray-200 border-gray-200 text-gray-900">
+ <span className="text-[9px] font-semibold  px-2 py-0.5 rounded border bg-white border border-gray-200 border-gray-200 text-gray-900">
  {item.type} Section
  </span>
  <h5 className="font-semibold text-[13.5px]  text-[#0b251a]">{item.name}</h5>
  <span className="text-xs font-mono font-bold text-gray-900 font-medium">({item.countOrBreed})</span>
  </div>
- <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 leading-relaxed bg-slate-50 border border-gray-200 shrink-0 px-2 py-1 rounded inline-block">
+ <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 leading-relaxed bg-white border border-gray-200 shrink-0 px-2 py-1 rounded inline-block">
  <Activity size={12} className="text-amber-700 shrink-0 inline-block mr-1" />
  <span>Activity: {item.activity}</span>
  </div>
@@ -4650,7 +4650,7 @@ export function OtherSections({
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm transition-opacity duration-300">
  <div className="bg-white shadow-sm rounded-3xl shadow-2xl border border-gray-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
  {/* Header */}
- <div className="bg-slate-50 p-6 text-gray-900 flex justify-between items-center shrink-0">
+ <div className="bg-white p-6 text-gray-900 flex justify-between items-center shrink-0">
  <div className="flex items-center gap-3">
  <div className="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/30">
  <Shield size={20} className="text-green-600 animate-pulse" />
@@ -4681,10 +4681,10 @@ export function OtherSections({
  </div>
 
  {/* Dropdown to auto-fill */}
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-200 space-y-3">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl border border-gray-200 space-y-3">
  <div className="flex justify-between items-center">
  <label className="text-[10px] font-semibold text-gray-900 font-medium ">Pre-populate from Active Canine Registry</label>
- <span className="text-[9px] bg-slate-50 border border-gray-200 text-gray-900 font-semibold px-2 py-0.5 rounded-full font-bold">Optional Helper</span>
+ <span className="text-[9px] bg-white border border-gray-200 text-gray-900 font-semibold px-2 py-0.5 rounded-full font-bold">Optional Helper</span>
  </div>
  <select
  value={selectedCanineId}
@@ -4810,7 +4810,7 @@ export function OtherSections({
  </div>
 
  {/* Footer Actions */}
- <div className="bg-slate-50 border border-gray-200 p-6 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between items-center gap-3 shrink-0">
+ <div className="bg-white border border-gray-200 p-6 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between items-center gap-3 shrink-0">
  <button
  type="button"
  onClick={() => downloadCanineVetCardPdf(true)}
@@ -4824,7 +4824,7 @@ export function OtherSections({
  <button
  type="button"
  onClick={() => setShowVetCardModal(false)}
- className="px-5 py-3 border border-gray-200 rounded-xl text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 font-bold text-xs  m-0 cursor-pointer"
+ className="px-5 py-3 border border-gray-200 rounded-xl text-gray-900 font-medium hover:bg-white border border-gray-200 font-bold text-xs  m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -5009,7 +5009,7 @@ export function OtherSections({
  {onEditGoatRecord && (
  <button
  onClick={() => setEditingGoat(gt)}
- className="text-gray-900 font-medium hover:text-indigo-650 p-1 rounded-lg transition-all m-0 hover:bg-slate-50 border border-gray-200"
+ className="text-gray-900 font-medium hover:text-indigo-650 p-1 rounded-lg transition-all m-0 hover:bg-white border border-gray-200"
  title="Edit Goat record"
  >
  <PenSquare size={13} />
@@ -5017,18 +5017,18 @@ export function OtherSections({
  )}
  <button
  onClick={() => onDeleteGoatRecord(gt.id)}
- className="text-gray-900 font-medium hover:text-red-600 p-1 rounded-lg transition-all m-0 hover:bg-slate-50 border border-gray-200"
+ className="text-gray-900 font-medium hover:text-red-600 p-1 rounded-lg transition-all m-0 hover:bg-white border border-gray-200"
  >
  <Trash2 size={13} />
  </button>
  </div>
 
  <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] leading-snug">
- <div className="bg-slate-50 border border-gray-200 p-2 rounded-xl border border-gray-100/50">
+ <div className="bg-white border border-gray-200 p-2 rounded-xl border border-gray-100/50">
  <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Purpose</span>
  <span className="font-bold text-gray-900 font-semibold block mt-0.5">{gt.purpose}</span>
  </div>
- <div className="bg-slate-50 border border-gray-200 p-2 rounded-xl border border-gray-100/50">
+ <div className="bg-white border border-gray-200 p-2 rounded-xl border border-gray-100/50">
  <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Yield</span>
  <span className="font-bold text-gray-900 font-semibold block mt-0.5 font-mono">
  {gt.milkYieldLiters ? `${gt.milkYieldLiters} Liters/d` : 'N/A'}
@@ -5036,7 +5036,7 @@ export function OtherSections({
  </div>
  </div>
 
- <div className="mt-3.5 space-y-1 bg-slate-50 border border-gray-200 p-2.5 border rounded-xl">
+ <div className="mt-3.5 space-y-1 bg-white border border-gray-200 p-2.5 border rounded-xl">
  <span className="text-[9px]  font-semibold text-gray-500 block">Current Activity log</span>
  <span className="text-xs text-gray-500 font-semibold block">{gt.activity}</span>
  </div>
@@ -5062,7 +5062,7 @@ export function OtherSections({
  <div className="space-y-1">
  <div className="flex items-center gap-2">
  <span className="text-[9.5px] bg-emerald-500 font-semibold text-gray-500 px-2.5 py-0.5 rounded tracking-tight">Veterinary Rearing & Growth Science</span>
- <span className="text-[9.5px] bg-slate-50 border border-gray-200 text-gray-500 border border-gray-200 px-2 py-0.5 rounded  font-bold">Interactive Weaning Targetizer</span>
+ <span className="text-[9.5px] bg-white border border-gray-200 text-gray-500 border border-gray-200 px-2 py-0.5 rounded  font-bold">Interactive Weaning Targetizer</span>
  </div>
  <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
  <span>🍼 Calving & Optimal Weaning weight Advisor</span>
@@ -5089,7 +5089,7 @@ export function OtherSections({
  step="1"
  value={calfBirthWeight}
  onChange={(e) => setCalfBirthWeight(parseInt(e.target.value))}
- className="w-full accent-emerald-550 h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer"
+ className="w-full accent-emerald-550 h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer"
  />
  </div>
 
@@ -5104,7 +5104,7 @@ export function OtherSections({
  step="1"
  value={calfTargetAgeWeeks}
  onChange={(e) => setCalfTargetAgeWeeks(parseInt(e.target.value))}
- className="w-full accent-emerald-550 h-1.5 bg-slate-50 border border-gray-200 rounded-lg cursor-pointer"
+ className="w-full accent-emerald-550 h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer"
  />
  </div>
  </div>
@@ -5138,9 +5138,9 @@ export function OtherSections({
  </div>
 
  {/* dynamic feeding advisor based on ADG */}
- <div className="bg-slate-850 p-4 rounded-2xl border border-gray-200 flex flex-col justify-between text-xs font-semibold leading-relaxed">
+ <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col justify-between text-xs font-semibold leading-relaxed">
  <div>
- <span className="text-[10px]  font-semibold text-yellow-405 text-yellow-400 block mb-2">🌿 ADG FEED RECOMMENDATION</span>
+ <span className="text-[10px]  font-semibold text-yellow-405 text-yellow-700 block mb-2">🌿 ADG FEED RECOMMENDATION</span>
  {(() => {
  const adg = (calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000;
  if (adg > 650) {
@@ -5398,7 +5398,7 @@ export function OtherSections({
  {onEditCalfRecord && (
  <button
  onClick={() => setEditingCalf(cf)}
- className="text-gray-900 font-medium hover:text-indigo-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-slate-50 border border-gray-200"
+ className="text-gray-900 font-medium hover:text-indigo-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200"
  title="Edit Calf record"
  >
  <PenSquare size={13} />
@@ -5406,18 +5406,18 @@ export function OtherSections({
  )}
  <button
  onClick={() => onDeleteCalfRecord(cf.id)}
- className="text-gray-900 font-medium hover:text-red-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-slate-50 border border-gray-200"
+ className="text-gray-900 font-medium hover:text-red-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200"
  >
  <Trash2 size={13} />
  </button>
  </div>
 
  <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] leading-snug">
- <div className="bg-slate-50 border border-gray-200 p-2 border border-gray-200 rounded-xl">
+ <div className="bg-white border border-gray-200 p-2 border border-gray-200 rounded-xl">
  <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Lifespan Age</span>
  <span className="font-bold text-gray-900 font-semibold block mt-0.5 font-mono">{ageDays} days on farm</span>
  </div>
- <div className="bg-slate-50 border border-gray-200 p-2 border border-gray-200 rounded-xl">
+ <div className="bg-white border border-gray-200 p-2 border border-gray-200 rounded-xl">
  <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Daily Feeding</span>
  <span className={`font-bold block mt-0.5 ${cf.weaned ? 'text-gray-900 font-medium line-through' : 'text-green-600'}`}>
  {cf.weaned ? 'Weaned' : `${cf.milkIntakeLiters} L Milk`}
@@ -5451,26 +5451,26 @@ export function OtherSections({
  {/* Informative BSF protein guidelines container */}
  <div className="bg-zinc-850 bg-white shadow-sm border border-gray-200 p-5 rounded-3xl space-y-3 text-gray-900 font-bold">
  <div className="flex items-center gap-2">
- <Compass size={16} className="text-yellow-400 shrink-0" />
- <h5 className="text-[11px] font-semibold tracking-tight text-yellow-400">BLACK SOLDIER FLY (BSF) REVENUE FLUID STAGES</h5>
+ <Compass size={16} className="text-yellow-700 shrink-0" />
+ <h5 className="text-[11px] font-semibold tracking-tight text-yellow-700">BLACK SOLDIER FLY (BSF) REVENUE FLUID STAGES</h5>
  </div>
  <p className="text-xs text-gray-500 font-medium leading-relaxed">
  BSF larvae act as organic recycling engines. They compost fruit pulp (e.g., avocado waste) and dairy manure into dried high-protein crude animal feed grids to bypass expensive soya/fish meal imports.
  </p>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
- <div className="p-2.5 bg-slate-50 border border-gray-200 rounded-xl">
+ <div className="p-2.5 bg-white border border-gray-200 rounded-xl">
  <span className="font-bold text-gray-900 block">1. Inoculation</span>
  <span className="text-gray-900 font-medium">Egg 5-day hatch onto waste feed substrate.</span>
  </div>
- <div className="p-2.5 bg-slate-50 border border-gray-200 rounded-xl">
+ <div className="p-2.5 bg-white border border-gray-200 rounded-xl">
  <span className="font-bold text-gray-900 block">2. Larvae Feeding</span>
  <span className="text-gray-900 font-medium">Voracious consumption, high dry matter.</span>
  </div>
- <div className="p-2.5 bg-slate-50 border border-gray-200 rounded-xl">
+ <div className="p-2.5 bg-white border border-gray-200 rounded-xl">
  <span className="font-bold text-gray-900 block">3. Harvest</span>
  <span className="text-gray-900 font-medium">Washed, solar-dried larvae feed.</span>
  </div>
- <div className="p-2.5 bg-slate-50 border border-gray-200 rounded-xl">
+ <div className="p-2.5 bg-white border border-gray-200 rounded-xl">
  <span className="font-bold text-gray-900 block">4. Love Cage</span>
  <span className="text-gray-900 font-medium">Adult fly re-breeding egg collection cycles.</span>
  </div>
@@ -5658,7 +5658,7 @@ export function OtherSections({
  </span>
  <h5 className="font-semibold text-[#2c3e50] text-sm  block">{batch.batchId}</h5>
  </div>
- <p className="text-xs leading-normal font-semibold text-gray-500 bg-slate-50 border border-gray-200 px-2 py-1 rounded inline-block">
+ <p className="text-xs leading-normal font-semibold text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded inline-block">
  Recycle Substrate Waste: <span className="font-semibold text-gray-900">{batch.substrateType}</span>
  </p>
  <div className="flex items-center gap-3 text-[11px] font-mono text-gray-900 font-medium font-bold block">
@@ -5829,7 +5829,7 @@ export function OtherSections({
  }
 
  return combinedOps.map(op => (
- <div key={op.id} className="p-4 border border-gray-100 rounded-2xl bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all">
+ <div key={op.id} className="p-4 border border-gray-100 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 transition-all">
  <div className="space-y-1">
  <div className="flex flex-wrap items-center gap-2">
  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded border  ${op.badgeColor}`}>
@@ -5889,7 +5889,7 @@ export function OtherSections({
  </div>
 
  {/* Action Buttons to trigger Adding forms */}
- <div className="flex flex-col md:flex-row bg-slate-50 border border-gray-200 p-1.5 rounded-2xl border justify-between items-center w-full gap-2 md:gap-0">
+ <div className="flex flex-col md:flex-row bg-white border border-gray-200 p-1.5 rounded-2xl border justify-between items-center w-full gap-2 md:gap-0">
  <span className="text-[10px] font-semibold text-gray-500 tracking-tight block ml-2">Add Sales Event / Mortality drop</span>
  <div className="flex flex-wrap gap-2 justify-end">
  {onTriggerSectionReport && (
@@ -5920,7 +5920,7 @@ export function OtherSections({
 
  {/* TWO SEPARATE ADD FORMS */}
  {showAddForm && (
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50 border border-gray-200 p-6 rounded-3xl border border-gray-200 shadow-inner">
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white border border-gray-200 p-6 rounded-3xl border border-gray-200 shadow-inner">
  {/* Form 1: Add Livestock Sale */}
  <form onSubmit={handleAnimalSaleSubmit} className="bg-white shadow-sm p-5 rounded-2xl border border-gray-200 shadow-md space-y-4">
  <h5 className="text-xs  font-semibold tracking-normal text-green-600 border-b pb-2 flex items-center gap-1">💰 Add Animal Sale record</h5>
@@ -6134,14 +6134,14 @@ export function OtherSections({
  <div className="bg-white shadow-sm p-5 rounded-3xl border border-gray-100 shadow-xs space-y-4">
  <div className="flex justify-between items-center pb-2 border-b">
  <h5 className="text-xs font-semibold  text-gray-900 tracking-normal">Active Livestock Sales Ledger</h5>
- <span className="text-[10px] font-mono font-bold bg-slate-50 border border-gray-200 px-2 py-0.5 rounded text-gray-900 font-medium">{(animalSales || []).length} Transaction lines</span>
+ <span className="text-[10px] font-mono font-bold bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-900 font-medium">{(animalSales || []).length} Transaction lines</span>
  </div>
  <div className="space-y-3 max-h-120 overflow-y-auto pr-1">
  {(animalSales || []).length === 0 ? (
  <div className="p-8 text-center text-gray-900 font-medium font-bold">No animal sales transaction records logged.</div>
  ) : (
  (animalSales || []).map((sale) => (
- <div key={sale.id} className="p-3 border border-gray-200 bg-slate-50 border border-gray-200 rounded-xl flex justify-between items-center gap-3">
+ <div key={sale.id} className="p-3 border border-gray-200 bg-white border border-gray-200 rounded-xl flex justify-between items-center gap-3">
  <div className="space-y-1">
  <div className="flex items-center gap-1.5 flex-wrap">
  <span className="text-[8.5px] font-semibold  bg-emerald-50 text-green-600 border border-emerald-150 px-1.5 py-0.2 rounded">{sale.category}</span>
@@ -6174,7 +6174,7 @@ export function OtherSections({
  <div className="bg-white shadow-sm p-5 rounded-3xl border border-gray-100 shadow-xs space-y-4">
  <div className="flex justify-between items-center pb-2 border-b">
  <h5 className="text-xs font-semibold  text-gray-500 tracking-normal">Historical Mortalities & Losses Registry</h5>
- <span className="text-[10px] font-mono font-bold bg-slate-50 border border-gray-200 px-2 py-0.5 rounded text-gray-900 font-medium">{(mortalities || []).length} Recorded losses</span>
+ <span className="text-[10px] font-mono font-bold bg-white border border-gray-200 px-2 py-0.5 rounded text-gray-900 font-medium">{(mortalities || []).length} Recorded losses</span>
  </div>
  <div className="space-y-3 max-h-120 overflow-y-auto pr-1">
  {(mortalities || []).length === 0 ? (
@@ -6264,7 +6264,7 @@ export function OtherSections({
  step="5"
  value={wasteInputKg}
  onChange={(e) => setWasteInputKg(parseInt(e.target.value))}
- className="w-full accent-amber-500 h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer"
+ className="w-full accent-amber-500 h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-bold  mt-1">
  <span>Min (5 Kg)</span>
@@ -6286,7 +6286,7 @@ export function OtherSections({
  step="1"
  value={waterRatio}
  onChange={(e) => setWaterRatio(parseInt(e.target.value))}
- className="w-full accent-amber-550 h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer"
+ className="w-full accent-amber-550 h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-bold  mt-1">
  <span>1:1 Solid Slurry</span>
@@ -6309,7 +6309,7 @@ export function OtherSections({
  step="5"
  value={hrtDays}
  onChange={(e) => setHrtDays(parseInt(e.target.value))}
- className="w-full accent-amber-550 h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer"
+ className="w-full accent-amber-550 h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-bold  mt-1">
  <span>15 Days (Fast)</span>
@@ -6331,7 +6331,7 @@ export function OtherSections({
  step="1"
  value={digesterTemp}
  onChange={(e) => setDigesterTemp(parseInt(e.target.value))}
- className="w-full accent-amber-550 h-1.5 bg-slate-50 border border-gray-200 rounded-lg appearance-none cursor-pointer"
+ className="w-full accent-amber-550 h-1.5 bg-white border border-gray-200 rounded-lg appearance-none cursor-pointer"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-bold  mt-1">
  <span>20°C (Slow action)</span>
@@ -6341,7 +6341,7 @@ export function OtherSections({
  </div>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 border p-3.5 rounded-2xl space-y-1.5 text-xs text-gray-500">
+ <div className="bg-white border border-gray-200 border p-3.5 rounded-2xl space-y-1.5 text-xs text-gray-500">
  <p className="font-semibold text-gray-900  text-[9px] tracking-wide">🔬 Bio-Sludge Safety Warning</p>
  <p className="text-[10.5px] font-semibold leading-relaxed">
  Maintain balanced slurry load. pH should hover around 6.8 - 7.6. Acidification occurs if overloaded too quickly with sweet kitchen biomass. Adjust dilution water ratio if the crust thickens at top.
@@ -6350,7 +6350,7 @@ export function OtherSections({
  </div>
 
  {/* Analytical Yield Display (col 7) */}
- <div className="lg:col-span-7 bg-slate-50 text-gray-500 p-6 rounded-3xl border border-gray-200 shadow-xl flex flex-col justify-between space-y-6">
+ <div className="lg:col-span-7 bg-white text-gray-500 p-6 rounded-3xl border border-gray-200 shadow-xl flex flex-col justify-between space-y-6">
  
  {/* Summary Metric Counters Row */}
  <div className="space-y-4">
@@ -6449,7 +6449,7 @@ export function OtherSections({
  Based on caloric combustion factors, this digestion rate substitutes standard liquefied petroleum cylinders.
  </p>
  </div>
- <div className="text-right shrink-0 bg-slate-50 p-2.5 rounded-xl border border-gray-200">
+ <div className="text-right shrink-0 bg-white p-2.5 rounded-xl border border-gray-200">
  <span className="text-[8px] tracking-tight text-gray-900 font-medium block font-bold">13Kg Cylinder equivalent</span>
  <span className="text-lg font-semibold text-gray-900 font-mono block mt-0.5 font-mono">
  {Math.max(0.1, (
@@ -6489,7 +6489,7 @@ export function OtherSections({
  <button
  onClick={downloadInventoryCSV}
  type="button"
- className="flex items-center justify-center gap-1.5 px-4 py-3 bg-slate-105 bg-slate-50 border border-gray-200 border border-gray-200 text-gray-500 hover:bg-slate-50 border border-gray-200 font-bold text-xs  rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
+ className="flex items-center justify-center gap-1.5 px-4 py-3 bg-white bg-white border border-gray-200 border border-gray-200 text-gray-500 hover:bg-white border border-gray-200 font-bold text-xs  rounded-xl transition-all shadow-xs cursor-pointer m-0 shrink-0"
  title="Export Store Inventory CSV"
  >
  <FileSpreadsheet size={13} />
@@ -6631,7 +6631,7 @@ export function OtherSections({
  <div className="bg-white shadow-sm rounded-3xl border border-gray-100 shadow-sm overflow-x-auto">
  <table className="w-full text-xs">
  <thead>
- <tr className="bg-slate-50 border border-gray-200 border-b border-gray-100 text-gray-500 font-semibold text-[10px] ">
+ <tr className="bg-white border border-gray-200 border-b border-gray-100 text-gray-500 font-semibold text-[10px] ">
  <td className="p-4">Item Warehouse Description</td>
  <td className="p-4">Category</td>
  <td className="p-4 font-mono text-center">Safety Restock Level</td>
@@ -6645,7 +6645,7 @@ export function OtherSections({
  const isLow = item.quantity <= item.minStock;
 
  return (
- <tr key={item.id} className="border-b border-gray-200 hover:bg-slate-50 border border-gray-200">
+ <tr key={item.id} className="border-b border-gray-200 hover:bg-white border border-gray-200">
  <td className="p-4">
  <div className="flex items-center gap-3">
  <Wrench size={14} className="text-gray-900 font-medium" />
@@ -6673,7 +6673,7 @@ export function OtherSections({
  </div>
  </td>
  <td className="p-4">
- <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-50 border border-gray-200 border text-gray-500 ">
+ <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white border border-gray-200 border text-gray-500 ">
  {item.category}
  </span>
  </td>
@@ -6689,14 +6689,14 @@ export function OtherSections({
  <div className="inline-flex items-center gap-1.5">
  <button
  onClick={() => onUpdateInventoryStock(item.id, Math.max(0, item.quantity - 1))}
- className="text-xs bg-slate-50 border border-gray-200 hover:bg-slate-205 text-gray-900 font-semibold p-2 rounded-lg font-semibold leading-none inline-block cursor-pointer m-0 border hover:bg-slate-50 border border-gray-200"
+ className="text-xs bg-white border border-gray-200 hover:bg-white text-gray-900 font-semibold p-2 rounded-lg font-semibold leading-none inline-block cursor-pointer m-0 border hover:bg-white border border-gray-200"
  title="Decrement 1"
  >
  -
  </button>
  <button
  onClick={() => onUpdateInventoryStock(item.id, item.quantity + 1)}
- className="text-xs bg-white shadow-sm hover:bg-slate-850 text-gray-900 p-2 rounded-lg font-semibold leading-none inline-block cursor-pointer m-0 border hover:bg-slate-50 border border-gray-200"
+ className="text-xs bg-white shadow-sm hover:bg-white text-gray-900 p-2 rounded-lg font-semibold leading-none inline-block cursor-pointer m-0 border hover:bg-white border border-gray-200"
  title="Increment 1"
  >
  +
@@ -6707,7 +6707,7 @@ export function OtherSections({
  {onEditInventoryItem && (
  <button
  onClick={() => setEditingInventoryItem(item)}
- className="text-gray-500 hover:text-indigo-850 p-2 border border-gray-100 hover:border-indigo-105 rounded-xl transition-colors cursor-pointer m-0 inline-block align-middle bg-white shadow-sm hover:bg-slate-50 border border-gray-200 mr-1"
+ className="text-gray-500 hover:text-indigo-850 p-2 border border-gray-100 hover:border-indigo-105 rounded-xl transition-colors cursor-pointer m-0 inline-block align-middle bg-white shadow-sm hover:bg-white border border-gray-200 mr-1"
  title="Edit Inventory Item"
  >
  <PenSquare size={13} />
@@ -6715,7 +6715,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => onDeleteInventoryItem(item.id)}
- className="text-gray-500 hover:text-red-110 p-2 border border-gray-100 hover:border-red-105 rounded-xl transition-colors cursor-pointer m-0 inline-block align-middle bg-white shadow-sm hover:bg-slate-50 border border-gray-200"
+ className="text-gray-500 hover:text-red-110 p-2 border border-gray-100 hover:border-red-105 rounded-xl transition-colors cursor-pointer m-0 inline-block align-middle bg-white shadow-sm hover:bg-white border border-gray-200"
  >
  <Trash2 size={13} />
  </button>
@@ -6878,7 +6878,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingField(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -6962,7 +6962,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingLivestock(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7082,7 +7082,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingInventoryItem(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7183,7 +7183,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingGoat(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7311,7 +7311,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingCalf(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7407,7 +7407,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingBsf(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7565,7 +7565,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingCropOp(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>
@@ -7672,7 +7672,7 @@ export function OtherSections({
  type="text"
  disabled
  value={`Ksh ${editingCropSale.totalSales.toLocaleString()}`}
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-semibold font-mono bg-slate-50 border border-gray-200 text-indigo-950"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-semibold font-mono bg-white border border-gray-200 text-indigo-950"
  />
  </div>
  </div>
@@ -7700,7 +7700,7 @@ export function OtherSections({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingCropSale(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0"
  >
  Cancel
  </button>

@@ -5993,9 +5993,9 @@ function FarmCoreApp() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-4 relative text-slate-800">
+          <div className="flex items-center gap-2 md:gap-4 relative text-gray-800">
             <span
-              className={`hidden sm:inline-flex text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
+              className={`hidden sm:inline-flex text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
               title="Cloud sync runtime status"
             >
               {headerCloudSyncStatus.label}

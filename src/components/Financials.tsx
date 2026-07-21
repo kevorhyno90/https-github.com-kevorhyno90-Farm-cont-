@@ -707,7 +707,7 @@ export function Financials({
  </div>
 
  <div className="grid grid-cols-2 gap-4 shrink-0 justify-stretch min-w-[280px]">
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4 rounded-2xl flex flex-col justify-between">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4 rounded-2xl flex flex-col justify-between">
  <span className="text-[9px] text-gray-900 font-medium font-semibold tracking-tight flex items-center gap-1">
  <ArrowUpRight size={12} className="text-green-600" /> Gross Earnings
  </span>
@@ -715,7 +715,7 @@ export function Financials({
  <span className="text-[9px] text-gray-900 font-medium block pt-1 font-medium italic">Accrued credits</span>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4 rounded-2xl flex flex-col justify-between">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4 rounded-2xl flex flex-col justify-between">
  <span className="text-[9px] text-gray-900 font-medium font-semibold tracking-tight flex items-center gap-1">
  <ArrowDownRight size={12} className="text-rose-400" /> Aggregate Debits
  </span>
@@ -896,7 +896,7 @@ export function Financials({
  placeholder="Search ledger..."
  value={term}
  onChange={(e) => setTerm(e.target.value)}
- className="text-xs border border-gray-200 bg-slate-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white shadow-sm font-bold"
+ className="text-xs border border-gray-200 bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 w-full focus:outline-none focus:bg-white shadow-sm font-bold"
  />
  </div>
 
@@ -904,7 +904,7 @@ export function Financials({
  <select
  value={datePreset}
  onChange={(e) => setDatePreset(e.target.value as any)}
- className="text-xs border border-gray-200 rounded-xl p-2.5 bg-white shadow-sm cursor-pointer hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out focus:outline-none font-bold"
+ className="text-xs border border-gray-200 rounded-xl p-2.5 bg-white shadow-sm cursor-pointer hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out focus:outline-none font-bold"
  >
  <option value="all">All Dates Range</option>
  <option value="this-week">This Week (7d)</option>
@@ -918,7 +918,7 @@ export function Financials({
  <select
  value={typeFilter}
  onChange={(e) => setTypeFilter(e.target.value as any)}
- className="text-xs border border-gray-200 rounded-xl p-2.5 bg-white shadow-sm cursor-pointer hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out focus:outline-none font-bold"
+ className="text-xs border border-gray-200 rounded-xl p-2.5 bg-white shadow-sm cursor-pointer hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out focus:outline-none font-bold"
  >
  <option value="all">All Ledger Flows</option>
  <option value="income">Credits only (+)</option>
@@ -976,7 +976,7 @@ export function Financials({
  <div className="max-h-[400px] overflow-auto pr-1">
  <table className="w-full text-xs">
  <thead>
- <tr className="border-b border-gray-200 bg-slate-50 border border-gray-200 text-gray-900 font-medium text-[10px]  font-semibold">
+ <tr className="border-b border-gray-200 bg-white border border-gray-200 text-gray-900 font-medium text-[10px]  font-semibold">
  <td className="p-3">Reference Date</td>
  <td className="p-3">Category</td>
  <td className="p-3">Auditing Details</td>
@@ -988,7 +988,7 @@ export function Financials({
  {filteredRecords.length === 0 ? (
  <tr>
  <td colSpan={5} className="text-center py-10">
- <div className="max-w-md mx-auto bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-5 space-y-2">
+ <div className="max-w-md mx-auto bg-white border border-gray-200 border border-gray-200 rounded-2xl p-5 space-y-2">
  <p className="text-gray-900 font-semibold font-bold text-sm">No ledger rows match the current filters.</p>
  <p className="text-gray-900 font-medium text-xs">
  Add income/expense entries or reset filters to restore the operational audit stream.
@@ -1003,7 +1003,7 @@ export function Financials({
  setCustomStartDate('');
  setCustomEndDate('');
  }}
- className="mt-2 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-900 font-semibold text-xs font-bold hover:bg-slate-50 border border-gray-200 cursor-pointer"
+ className="mt-2 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white shadow-sm border border-gray-200 text-gray-900 font-semibold text-xs font-bold hover:bg-white border border-gray-200 cursor-pointer"
  >
  <RefreshCw size={12} />
  Clear Filters
@@ -1014,7 +1014,7 @@ export function Financials({
  </tr>
  ) : (
  filteredRecords.map((r) => (
- <tr key={r.id} className="border-b border-gray-200 hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
+ <tr key={r.id} className="border-b border-gray-200 hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
  <td className="p-3 font-mono text-gray-900 font-medium font-bold">{r.date}</td>
  <td className="p-3">
  <span className={`px-2 py-1 rounded text-[10px] font-semibold  ${
@@ -1082,7 +1082,7 @@ export function Financials({
  </div>
 
  {monthlyChartData.length === 0 ? (
- <div className="h-[280px] flex items-center justify-center bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl italic text-gray-900 font-medium text-xs">
+ <div className="h-[280px] flex items-center justify-center bg-white border border-gray-200 border border-gray-200 rounded-2xl italic text-gray-900 font-medium text-xs">
  Generate some ledger transactions first to populate the cashflow dashboard coordinates.
  </div>
  ) : (
@@ -1212,11 +1212,11 @@ export function Financials({
  Excellent farm financial health mandates that operational costs do not exceed **40% of total farm revenues**. Currently, your farm operating ratio is:
  </p>
 
- <div className="bg-slate-50 border border-gray-200 p-5 rounded-2xl flex items-center justify-between border border-gray-200">
+ <div className="bg-white border border-gray-200 p-5 rounded-2xl flex items-center justify-between border border-gray-200">
  <div>
  <span className="text-[9px] text-gray-900 font-medium block  font-bold">Calculated Operating Quotient</span>
  <h2 className={`text-3xl font-semibold font-mono mt-1 ${
- totalIncome === 0 ? 'text-amber-400' : ((totalExpense / totalIncome) > 0.4 ? 'text-rose-450 text-red-400' : 'text-green-600')
+ totalIncome === 0 ? 'text-amber-400' : ((totalExpense / totalIncome) > 0.4 ? 'text-rose-450 text-red-700' : 'text-green-600')
  }`}>
  {totalIncome === 0 ? 'Infinite (0 revs)' : `${Math.round((totalExpense / totalIncome) * 100)}%`}
  </h2>
@@ -1311,7 +1311,7 @@ export function Financials({
  </span>
  </div>
 
- <div className="h-3 w-full bg-slate-50 border border-gray-200 rounded-full overflow-hidden relative border border-gray-200">
+ <div className="h-3 w-full bg-white border border-gray-200 rounded-full overflow-hidden relative border border-gray-200">
  <div className={`h-full ${barColor} transition-all duration-500 rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }}></div>
  </div>
 
@@ -1326,7 +1326,7 @@ export function Financials({
  </div>
 
  {/* Adjuster form settings */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-3xl p-6 space-y-4">
+ <div className="bg-white border border-gray-200 border border-gray-200 rounded-3xl p-6 space-y-4">
  <span className="text-[10px] text-gray-900 font-medium font-semibold tracking-tight block">
  ⚙️ Adjust Operational Budget Threshold Limits
  </span>
@@ -1388,19 +1388,19 @@ export function Financials({
 
  {/* Model stats grids */}
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
  <span className="text-[9px] text-gray-900 font-medium font-semibold  block tracking-normal">Pregnant Milking Cows</span>
  <h3 className="text-2xl font-semibold text-gray-900 font-mono text-green-600 mt-1">{breedingPredictionData.activePregnancies} Head</h3>
  <span className="text-[10px] text-gray-900 font-medium font-medium block pt-1">Calving over next 90 days</span>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
  <span className="text-[9px] text-gray-900 font-medium font-semibold  block tracking-normal">Unchecked Cycles</span>
  <h3 className="text-2xl font-semibold text-gray-900 font-mono text-indigo-950 mt-1">{breedingPredictionData.pendingServices} In-waiting</h3>
  <span className="text-[10px] text-gray-900 font-medium font-medium block pt-1">Awaiting veterinary check</span>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-4.5 rounded-2xl">
  <span className="text-[9px] text-gray-900 font-medium font-semibold  block tracking-normal">Est. Peak Lactation Yield</span>
  <h3 className="text-2xl font-semibold text-gray-900 font-mono text-teal-900 mt-1">+{breedingPredictionData.projectedLiters.toLocaleString()} L</h3>
  <span className="text-[10px] text-gray-900 font-medium font-medium block pt-1">Based on breed targets (90d)</span>
@@ -1414,7 +1414,7 @@ export function Financials({
  </div>
 
  {/* Price model slider */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-5 space-y-2">
+ <div className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-5 space-y-2">
  <div className="flex justify-between items-center text-xs">
  <span className="text-[10px] font-semibold  text-gray-900 font-medium">Recalibrate Predicted Sales price</span>
  <span className="font-semibold text-green-600 font-mono text-[11px]">Ksh {activeMarketMilkPrice} / Liter</span>
@@ -1425,7 +1425,7 @@ export function Financials({
  max="90"
  value={activeMarketMilkPrice}
  onChange={(e) => setActiveMarketMilkPrice(Number(e.target.value))}
- className="w-full h-1 appearance-none bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
+ className="w-full h-1 appearance-none bg-white border border-gray-200 rounded-lg cursor-pointer accent-emerald-800"
  />
  <div className="flex justify-between text-[9px] text-gray-900 font-medium font-bold  tracking-wide">
  <span>Brookside Standard (45)</span>
@@ -1457,7 +1457,7 @@ export function Financials({
  const expectedSum = peakDaily * 90 * activeMarketMilkPrice;
 
  return (
- <tr key={i} className="hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
+ <tr key={i} className="hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
  <td className="py-3 flex flex-col">
  <span className="font-bold text-gray-900">{c.cowName}</span>
  <span className="text-[10px] text-gray-500 font-mono font-medium">{c.cowId} | {c.breed}</span>
@@ -1546,7 +1546,7 @@ export function Financials({
  </div>
 
  {/* Mode Switcher Buttons */}
- <div className="bg-slate-50 border border-gray-200 p-1.5 rounded-2xl border border-gray-200 flex w-full max-w-md">
+ <div className="bg-white border border-gray-200 p-1.5 rounded-2xl border border-gray-200 flex w-full max-w-md">
  <button
  onClick={() => setGranularViewMode('cow')}
  className={`flex-1 py-3 text-xs tracking-tight font-semibold rounded-xl transition-all m-0 cursor-pointer border-none ${
@@ -1599,11 +1599,11 @@ export function Financials({
  const copColor = c.copPerLiter < 38 ? 'text-green-600 font-semibold' : (c.copPerLiter <= 52 ? 'text-gray-500 font-bold' : 'text-rose-700 font-semibold');
 
  return (
- <tr key={i} className="hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
+ <tr key={i} className="hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
  <td className="py-3.5 flex flex-col">
  <span className="font-bold text-gray-900">{c.name}</span>
  <span className="text-[9.5px] text-gray-500 font-mono ">{c.id} | {c.breed}</span>
- <span className="text-[8px] bg-slate-50 border border-gray-200 text-gray-900 font-medium font-semibold  px-1.5 py-0.5 rounded-sm mt-1 self-start">
+ <span className="text-[8px] bg-white border border-gray-200 text-gray-900 font-medium font-semibold  px-1.5 py-0.5 rounded-sm mt-1 self-start">
  {c.status}
  </span>
  </td>
@@ -1645,7 +1645,7 @@ export function Financials({
  const copColor = b.copPerAcre < 15000 ? 'text-green-600 font-semibold' : (b.copPerAcre <= 30000 ? 'text-gray-500 font-bold' : 'text-rose-700 font-semibold');
 
  return (
- <tr key={i} className="hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
+ <tr key={i} className="hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out">
  <td className="py-3.5 flex flex-col">
  <span className="font-bold text-gray-900">{b.blockName}</span>
  <span className="text-[9.5px] text-gray-500 font-mono ">{b.cropType}</span>
@@ -1807,7 +1807,7 @@ export function Financials({
  <div className="flex justify-end gap-2 border-t border-gray-200 pt-4">
  <button
  onClick={() => setEditingFinancial(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out m-0 cursor-pointer bg-transparent"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out m-0 cursor-pointer bg-transparent"
  >
  Cancel
  </button>
@@ -1833,7 +1833,7 @@ export function Financials({
  <div className="bg-white shadow-sm max-w-md w-full rounded-3xl border border-gray-200 shadow-2xl p-8 text-left space-y-6 relative">
  <button
  onClick={() => setSelectedInvoiceTx(null)}
- className="absolute top-4 right-4 p-2 text-gray-900 font-medium hover:text-gray-900 font-medium rounded-full hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out cursor-pointer border-none bg-transparent"
+ className="absolute top-4 right-4 p-2 text-gray-900 font-medium hover:text-gray-900 font-medium rounded-full hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out cursor-pointer border-none bg-transparent"
  >
  <X size={18} />
  </button>
@@ -1861,7 +1861,7 @@ export function Financials({
  </div>
  <div className="space-y-1">
  <span className="text-gray-900 font-medium font-bold  block text-[10px]">Description & Auditing Details</span>
- <p className="p-3 bg-slate-50 border border-gray-200 rounded-xl font-medium text-gray-900 font-semibold leading-normal">{selectedInvoiceTx.description}</p>
+ <p className="p-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-900 font-semibold leading-normal">{selectedInvoiceTx.description}</p>
  </div>
  <div className="flex justify-between items-baseline pt-4 border-t border-gray-200">
  <span className="text-gray-900 font-semibold  text-sm">Amount Paid</span>
@@ -1878,7 +1878,7 @@ export function Financials({
  <div className="flex gap-2">
  <button
  onClick={() => setSelectedInvoiceTx(null)}
- className="w-1/2 py-2.5 border border-gray-200 text-gray-900 font-medium rounded-xl text-xs font-semibold tracking-tight hover:bg-slate-50 border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out cursor-pointer"
+ className="w-1/2 py-2.5 border border-gray-200 text-gray-900 font-medium rounded-xl text-xs font-semibold tracking-tight hover:bg-white border border-gray-200 active:scale-95 transition-all duration-300 ease-in-out cursor-pointer"
  >
  Close
  </button>
@@ -1889,7 +1889,7 @@ export function Financials({
  const printWindow = window.open('', '', 'height=600,width=400');
  if (printWindow) {
  printWindow.document.write('<html><head><title>Print Receipt</title>');
- printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;color:#333;}.text-center{text-align:center;}.font-mono{font-family:monospace;}.flex{display:flex;justify-content:space-between;}.border-b{border-bottom:1px solid #eee;}.pb-2{padding-bottom:8px;}.pb-5{padding-bottom:20px;}.pt-4{padding-top:16px;}.space-y-4>*{margin-bottom:12px;}.bg-slate-50 border border-gray-200{background:#f8fafc;padding:12px;border-radius:8px;}</style></head><body>');
+ printWindow.document.write('<style>body{font-family:sans-serif;padding:20px;color:#333;}.text-center{text-align:center;}.font-mono{font-family:monospace;}.flex{display:flex;justify-content:space-between;}.border-b{border-bottom:1px solid #eee;}.pb-2{padding-bottom:8px;}.pb-5{padding-bottom:20px;}.pt-4{padding-top:16px;}.space-y-4>*{margin-bottom:12px;}.bg-white border border-gray-200{background:#f8fafc;padding:12px;border-radius:8px;}</style></head><body>');
  printWindow.document.write(printContents);
  printWindow.document.write('</body></html>');
  printWindow.document.close();

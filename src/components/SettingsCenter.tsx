@@ -217,7 +217,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  {/* Settings Header Block */}
  <div className="farm-shell-panel p-6 rounded-[1.6rem] border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left">
  <div className="flex items-center gap-4">
- <div className="p-3.5 bg-slate-50 text-gray-900 rounded-2xl shrink-0 shadow-sm">
+ <div className="p-3.5 bg-white text-gray-900 rounded-2xl shrink-0 shadow-sm">
  <Sliders size={24} />
  </div>
  <div>
@@ -271,7 +271,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className={`w-full py-3 px-3.5 rounded-xl text-xs font-semibold tracking-tight flex items-center gap-3 transition-all duration-150 cursor-pointer m-0 border-0 ${
  isActive 
  ? 'bg-white shadow-sm text-gray-900 shadow-sm' 
- : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 hover:text-gray-500'
+ : 'text-gray-900 font-medium hover:bg-white border border-gray-200 hover:text-gray-500'
  }`}
  >
  <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-white shadow-sm /10 text-gray-900' : item.color}`}>
@@ -303,7 +303,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="text"
  value={settings.estateName}
  onChange={(e) => handleUpdate('estateName', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -312,7 +312,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="text"
  value={settings.administrator}
  onChange={(e) => handleUpdate('administrator', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -321,7 +321,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="text"
  value={settings.locationCode}
  onChange={(e) => handleUpdate('locationCode', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -330,7 +330,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="text"
  value={settings.currency}
  onChange={(e) => handleUpdate('currency', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200 font-mono"
  />
  </div>
  <div>
@@ -340,7 +340,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  step="0.0001"
  value={settings.latitude}
  onChange={(e) => handleUpdate('latitude', parseFloat(e.target.value) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200 font-mono"
  />
  </div>
  <div>
@@ -350,7 +350,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  step="0.0001"
  value={settings.longitude}
  onChange={(e) => handleUpdate('longitude', parseFloat(e.target.value) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200 font-mono"
  />
  </div>
  </div>
@@ -381,7 +381,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="number"
  value={settings.avocadoTargetVolume}
  onChange={(e) => handleUpdate('avocadoTargetVolume', parseFloat(e.target.value) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -390,7 +390,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="number"
  value={settings.teaContractPrice}
  onChange={(e) => handleUpdate('teaContractPrice', parseFloat(e.target.value) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  </div>
@@ -422,7 +422,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  step="0.1"
  value={settings.targetDailyMilk}
  onChange={(e) => handleUpdate('targetDailyMilk', parseFloat(e.target.value) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -431,7 +431,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="number"
  value={settings.dryOffGestationDay}
  onChange={(e) => handleUpdate('dryOffGestationDay', parseInt(e.target.value, 10) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  <div>
@@ -440,7 +440,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="number"
  value={settings.gestationDuration}
  onChange={(e) => handleUpdate('gestationDuration', parseInt(e.target.value, 10) || 0)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  />
  </div>
  </div>
@@ -470,7 +470,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <select
  value={settings.simulationSpeed}
  onChange={(e) => handleUpdate('simulationSpeed', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  >
  <option value="Real-time">Real-time Clock Integration</option>
  <option value="Normal">Normal Dialing Rotation</option>
@@ -482,7 +482,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <select
  value={settings.autoSeedingEnabled ? 'true' : 'false'}
  onChange={(e) => handleUpdate('autoSeedingEnabled', e.target.value === 'true')}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  >
  <option value="true">Active (Pre-populate default templates)</option>
  <option value="false">Inactive (Start entirely with empty state)</option>
@@ -493,7 +493,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <select
  value={settings.orientationPreference || 'any'}
  onChange={(e) => handleUpdate('orientationPreference', e.target.value)}
- className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200"
  >
  <option value="any">🔄 Allow Auto-Rotate (Free Turn)</option>
  <option value="portrait">📱 Lock Portrait (No Auto-Turn)</option>
@@ -506,7 +506,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Cloud Server & PWA Cache Diagnostics Module */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-4">
+ <div className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-4">
  <div>
  <h6 className="text-[11px] font-semibold  text-gray-900 flex items-center gap-1.5">
  <Wifi size={13} className="text-green-600 font-bold" />
@@ -524,7 +524,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <span className="text-[9px]  font-bold text-gray-900 font-medium block">Cloud API Signal</span>
  
  {/* Visual Indicator of Current Origin */}
- <span className="text-[9px] font-mono text-gray-900 font-medium block break-all font-semibold mt-0.5 bg-slate-50 border border-gray-200 p-1 rounded">
+ <span className="text-[9px] font-mono text-gray-900 font-medium block break-all font-semibold mt-0.5 bg-white border border-gray-200 p-1 rounded">
  App Host: {typeof window !== 'undefined' ? window.location.origin : 'Loading origin...'}
  </span>
 
@@ -576,7 +576,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="button"
  onClick={handleTestConnection}
  disabled={connState === 'checking'}
- className="mt-3 w-full py-1.5 px-3 bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-gray-900 text-[10px]  font-semibold tracking-normal rounded-lg transition-all border-0 cursor-pointer disabled:opacity-50"
+ className="mt-3 w-full py-1.5 px-3 bg-white shadow-sm hover:bg-white border border-gray-200 text-gray-900 text-[10px]  font-semibold tracking-normal rounded-lg transition-all border-0 cursor-pointer disabled:opacity-50"
  >
  {connState === 'checking' ? 'Testing...' : 'Test Connection Status'}
  </button>
@@ -625,7 +625,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  onClick={() => handleCloudSyncPreference(!cloudSyncEnabled)}
  className={`px-3 py-1.5 rounded-lg text-[10px]  font-semibold tracking-wide border transition-colors cursor-pointer ${
  !isFirestoreSyncEnabled
- ? 'bg-slate-50 border border-gray-200 border-gray-200 text-gray-900 font-medium cursor-not-allowed'
+ ? 'bg-white border border-gray-200 border-gray-200 text-gray-900 font-medium cursor-not-allowed'
  : cloudSyncEnabled
  ? 'bg-emerald-50 border-emerald-200 text-green-600 hover:bg-emerald-100'
  : 'bg-amber-900/20 border-amber-200 text-amber-800 hover:bg-amber-100'
@@ -645,7 +645,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  Account & System
  </h3>
  <div className="space-y-4">
- <div className="p-4 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-100 flex items-center justify-between">
+ <div className="p-4 bg-white border border-gray-200 rounded-2xl border border-gray-100 flex items-center justify-between">
  <div>
  <div className="font-bold text-gray-900">Switch Account / Sign Out</div>
  <div className="text-xs text-gray-900 font-medium mt-1">Leave the current database room and return to the login screen.</div>
@@ -681,7 +681,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  downloadAnchor.click();
  downloadAnchor.remove();
  }}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
  >
  <Download size={13} />
  Export Conf Config JSON
@@ -690,7 +690,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  onClick={() => {
  alert("Import workflow: Click to upload your backup configuration script in .json extension.");
  }}
- className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
+ className="px-4 py-2 bg-white border border-gray-200 hover:bg-white border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
  >
  <Upload size={13} />
  Import Backup Configuration
@@ -768,7 +768,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  )}
 
  {/* App PWA Requirements Verification Panel */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 text-left">
+ <div className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 text-left">
  <span className="text-[10px] font-semibold  text-gray-900 font-medium tracking-normal block">App Eligibility & Diagnostics</span>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -907,7 +907,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Step 1: Calibration Fields */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
  <h6 className="text-[11px] font-semibold  text-gray-900 flex items-center gap-1.5">
  <Sliders size={12} className="text-gray-900 font-medium" />
  1. App Store Deployment Variables
@@ -1013,7 +1013,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <CheckCircle2 size={13} className="text-green-600" />
  2. Google Play Store Launch Action Sequence
  </h6>
- <span className="text-[9px] bg-slate-50 border border-gray-200 px-2.5 py-1 rounded font-mono font-bold text-gray-900 font-medium">
+ <span className="text-[9px] bg-white border border-gray-200 px-2.5 py-1 rounded font-mono font-bold text-gray-900 font-medium">
  {Object.values(checklistCompleted).filter(Boolean).length} / 6 Verified
  </span>
  </div>
@@ -1057,7 +1057,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-colors duration-200 select-none ${
  checklistCompleted[task.id] 
  ? 'bg-emerald-50 border-emerald-200' 
- : 'bg-white shadow-sm hover:bg-slate-50 border border-gray-200'
+ : 'bg-white shadow-sm hover:bg-white border border-gray-200'
  }`}
  >
  <input 

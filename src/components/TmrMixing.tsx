@@ -181,7 +181,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  <div className="flex flex-wrap gap-2 shrink-0 self-start md:self-center">
  <button
  onClick={handleReloadFormula}
- className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-105 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 border border-gray-200 hover:border-gray-200 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer m-0"
+ className="flex items-center gap-1.5 px-3.5 py-2 bg-white bg-white border border-gray-200 hover:bg-white border border-gray-200 text-gray-900 border border-gray-200 hover:border-gray-200 rounded-xl font-bold text-xs tracking-tight transition-all cursor-pointer m-0"
  >
  <RefreshCw size={13} className="text-green-600" />
  <span>Sync Lab Formula</span>
@@ -243,7 +243,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  max="85"
  value={silageMoisture}
  onChange={(e) => setSilageMoisture(Number(e.target.value))}
- className="w-full h-1 appearance-none bg-slate-50 border border-gray-200 rounded-lg cursor-pointer accent-amber-700"
+ className="w-full h-1 appearance-none bg-white border border-gray-200 rounded-lg cursor-pointer accent-amber-700"
  />
  <div className="flex justify-between text-[9px] text-amber-700 font-bold  tracking-wide">
  <span>Standard (65%)</span>
@@ -378,7 +378,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  </div>
 
  {/* Total mixer load scale display */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-100 rounded-2xl p-5 w-full max-w-sm flex items-center justify-between">
+ <div className="bg-white border border-gray-200 border border-gray-100 rounded-2xl p-5 w-full max-w-sm flex items-center justify-between">
  <div className="text-left">
  <span className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block">Mixer Target ({cowsCount} Cows)</span>
  <h3 className="text-2xl font-semibold text-gray-900 font-mono text-green-600 mt-1">
@@ -415,7 +415,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  >
  <div className="flex justify-between items-start mb-1">
  <span className="text-[10px] text-green-600 font-bold block">1. Silage Block</span>
- {loadedStep1 && <Check size={12} className="text-yellow-400 animate-bounce" />}
+ {loadedStep1 && <Check size={12} className="text-yellow-700 animate-bounce" />}
  </div>
  <span className="text-lg font-semibold font-mono block">{(adjustedSorghum * cowsCount).toFixed(0)} KG</span>
  <span className={`text-[9px] block mt-1 ${loadedStep1 ? 'text-green-300' : 'text-gray-900 font-medium'}`}>
@@ -432,7 +432,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  >
  <div className="flex justify-between items-start mb-1">
  <span className="text-[10px] text-green-600 font-bold block">2. Fresh Napier</span>
- {loadedStep2 && <Check size={12} className="text-yellow-400 animate-bounce" />}
+ {loadedStep2 && <Check size={12} className="text-yellow-700 animate-bounce" />}
  </div>
  <span className="text-lg font-semibold font-mono block">{(napier * cowsCount).toFixed(0)} KG</span>
  <span className={`text-[9px] block mt-1 ${loadedStep2 ? 'text-green-300' : 'text-gray-900 font-bold'}`}>
@@ -449,7 +449,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  >
  <div className="flex justify-between items-start mb-1">
  <span className="text-[10px] text-green-600 font-bold block">3. Rhodes Hay</span>
- {loadedStep3 && <Check size={12} className="text-yellow-400" />}
+ {loadedStep3 && <Check size={12} className="text-yellow-700" />}
  </div>
  <span className="text-lg font-semibold font-mono block">{(rhodes * cowsCount).toFixed(0)} KG</span>
  <span className={`text-[9px] block mt-1 ${loadedStep3 ? 'text-green-300' : 'text-gray-900 font-bold'}`}>
@@ -468,7 +468,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  >
  <div className="flex justify-between items-start mb-1">
  <span className="text-[10px] text-green-600 font-bold block">4. commercial Meal</span>
- {loadedStep4 && <Check size={12} className="text-yellow-400" />}
+ {loadedStep4 && <Check size={12} className="text-yellow-700" />}
  </div>
  <span className="text-lg font-semibold font-mono block">{(dairyMeal * cowsCount).toFixed(0)} KG</span>
  <span className={`text-[9px] block mt-1 ${loadedStep4 ? 'text-green-300' : 'text-gray-900 font-bold'}`}>
@@ -477,7 +477,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  </button>
  ) : (
  <div className="p-3 bg-emerald-900/60 border border-emerald-800 text-gray-500 rounded-xl flex flex-col justify-center items-center text-center">
- <FlaskConical className="text-yellow-450 text-yellow-400 animate-pulse mb-1" size={16} />
+ <FlaskConical className="text-yellow-450 text-yellow-700 animate-pulse mb-1" size={16} />
  <span className="text-[9px] font-semibold tracking-tight text-green-600 block">Dynamic Recipe Mode</span>
  <p className="text-[8px] text-gray-500 leading-tight block mt-0.5">Split across {activeRecipeItems.length} custom subchecks below!</p>
  </div>
@@ -513,7 +513,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  <span className="text-xs font-semibold font-mono block text-gray-900">{scaledWeight.toFixed(1)} KG</span>
  </div>
  {isLoaded ? (
- <Check size={14} className="text-yellow-400 shrink-0" />
+ <Check size={14} className="text-yellow-700 shrink-0" />
  ) : (
  <span className="text-[8px] border border-white/20 text-gray-900 font-medium px-1 py-0.2 rounded font-mono shrink-0 ">Load</span>
  )}
@@ -560,7 +560,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  </thead>
  <tbody className="divide-y divide-slate-50 font-medium">
  {mixLogs.map((log) => (
- <tr key={log.id} className="hover:bg-slate-50 border border-gray-200">
+ <tr key={log.id} className="hover:bg-white border border-gray-200">
  <td className="py-3 flex items-center gap-2">
  <Calendar size={12} className="text-gray-500 font-mono text-gray-900 font-medium" />
  <span className="font-mono font-bold text-gray-500">{log.date}</span>
@@ -573,7 +573,7 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  </td>
  <td className="py-3">
  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded  ${
- log.mode ? (log.mode.includes('Lab') ? 'bg-indigo-100 text-indigo-950 border border-indigo-200' : 'bg-slate-50 border border-gray-200 text-gray-500') : 'bg-slate-50 border border-gray-200 text-gray-500'
+ log.mode ? (log.mode.includes('Lab') ? 'bg-indigo-100 text-indigo-950 border border-indigo-200' : 'bg-white border border-gray-200 text-gray-500') : 'bg-white border border-gray-200 text-gray-500'
  }`}>
  {log.mode || 'Standard Template'}
  </span>

@@ -277,7 +277,7 @@ export function Horticulture({
  <span className="text-xs font-semibold text-gray-900 block mt-1 leading-snug">{block.name}</span>
  <span className="text-[10px] text-gray-900 font-medium block mt-0.5 font-semibold">{block.desc}</span>
  <div className="mt-3 flex items-center gap-2">
- <span className={`w-2 h-2 rounded-full ${block.color === 'emerald' ? 'bg-emerald-500 animate-pulse' : block.color === 'amber' ? 'bg-amber-500' : block.color === 'sky' ? 'bg-sky-500 animate-pulse' : 'bg-slate-500'}`}></span>
+ <span className={`w-2 h-2 rounded-full ${block.color === 'emerald' ? 'bg-emerald-500 animate-pulse' : block.color === 'amber' ? 'bg-amber-500' : block.color === 'sky' ? 'bg-sky-500 animate-pulse' : 'bg-white'}`}></span>
  <span className="text-[10px] text-gray-900 font-medium font-semibold ">{block.status}</span>
  </div>
  </button>
@@ -421,7 +421,7 @@ export function Horticulture({
  <div className="max-h-52 overflow-auto pr-1">
  <table className="w-full text-xs">
  <thead>
- <tr className="border-b border-gray-100 bg-slate-50 border border-gray-200 text-[9px]  font-semibold text-gray-900 font-medium">
+ <tr className="border-b border-gray-100 bg-white border border-gray-200 text-[9px]  font-semibold text-gray-900 font-medium">
  <td className="p-2 font-bold text-gray-900 font-medium ">Collection Details</td>
  <td className="p-2 font-bold text-gray-900 font-medium  text-right">Yield & Rate</td>
  <td className="p-2 font-bold text-gray-900 font-medium  text-right">Sales Valuation</td>
@@ -434,7 +434,7 @@ export function Horticulture({
  const totVal = t.totalSales ?? (t.qty * price);
  const buyer = t.buyer ?? 'Chinga KTDA Factory';
  return (
- <tr key={idx} className="border-b border-gray-200 hover:bg-slate-50 border border-gray-200">
+ <tr key={idx} className="border-b border-gray-200 hover:bg-white border border-gray-200">
  <td className="p-2">
  <span className="font-semibold text-gray-900 font-semibold block text-xs">{t.ref}</span>
  <span className="block text-[9px] text-gray-500  font-mono">
@@ -687,11 +687,11 @@ export function Horticulture({
  {avoRecords.map((item, idx) => {
  const totVal = item.totalSales;
  return (
- <div key={idx} className="p-4 border border-gray-200 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs hover:bg-slate-50 border border-gray-200 transition-all">
+ <div key={idx} className="p-4 border border-gray-200 rounded-2xl bg-white border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs hover:bg-white border border-gray-200 transition-all">
  <div className="space-y-2 w-full">
  <div className="flex items-center gap-2">
  <span className="font-semibold text-sm text-gray-900">{item.ref}</span>
- <span className="text-[9px] bg-slate-50 border border-gray-200 font-bold text-gray-900 font-medium px-2 py-0.5 rounded  font-mono">
+ <span className="text-[9px] bg-white border border-gray-200 font-bold text-gray-900 font-medium px-2 py-0.5 rounded  font-mono">
  {item.date}
  </span>
  {item.debts > 0 && (
@@ -763,7 +763,7 @@ export function Horticulture({
  <div>
  <div className="flex items-center gap-2">
  <h4 className="text-xs font-semibold tracking-tight text-green-600">GlobalGAP Traceback & KEPHIS Passport Hub</h4>
- <span className="text-[8px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded font-mono font-semibold tracking-tight">OFFICIAL EXPORT INTEGRATION</span>
+ <span className="text-[8px] bg-red-500/10 text-red-700 border border-red-500/20 px-2 py-0.5 rounded font-mono font-semibold tracking-tight">OFFICIAL EXPORT INTEGRATION</span>
  </div>
  <p className="text-[10px] text-gray-900 font-medium  font-semibold tracking-normal mt-0.5">Generate sovereign QR cargo stickers for tea and avocado air/sea dispatches</p>
  </div>
@@ -779,7 +779,7 @@ export function Horticulture({
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-stretch">
  
  {/* Controls Input Col-span 5 */}
- <div className="lg:col-span-5 bg-slate-50 p-5 rounded-2xl border border-gray-200 flex flex-col justify-between space-y-4">
+ <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-200 flex flex-col justify-between space-y-4">
  <div className="space-y-3">
  <span className="text-[9px] font-semibold tracking-tight text-green-600 block pb-1 border-b border-gray-200">
  1. Label Traceability parameters
@@ -924,7 +924,7 @@ export function Horticulture({
  <span className="text-[14px] font-semibold tracking-tighter  block leading-none">GlobalGAP Compliant</span>
  <span className="text-[8px] font-bold text-gray-900 font-medium  font-mono block tracking-normal leading-none mt-1">Export Consignment Label</span>
  </div>
- <div className="bg-slate-50 text-gray-900 font-mono text-[9px] font-semibold px-2 py-0.5 rounded  leading-none">
+ <div className="bg-white text-gray-900 font-mono text-[9px] font-semibold px-2 py-0.5 rounded  leading-none">
  Sovereign Trace
  </div>
  </div>
@@ -971,7 +971,7 @@ export function Horticulture({
  </div>
 
  {/* Micro Barcode rendering */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-3 rounded-xl flex items-center gap-4 justify-between">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-3 rounded-xl flex items-center gap-4 justify-between">
  
  {/* Left Barcode & Content */}
  <div className="space-y-1.5 flex-1 min-w-0 text-left">
@@ -985,7 +985,7 @@ export function Horticulture({
  {[6,1,4,1,8,2,6,1,7,1,4,2,9,1,4,1,8,2,6,1,7,1,4,2,9,1,4,1,8,2,6,1,7,1,4,2,9,1,4,1,8,2,6].map((bar, bidx) => (
  <div
  key={bidx} 
- className="bg-slate-50" 
+ className="bg-white" 
  style={{ width: `${bar}px`, opacity: (bidx % 3 === 0 || bidx % 4 === 0) ? 1 : 0.3 }}
  />
  ))}
@@ -1003,8 +1003,8 @@ export function Horticulture({
  <span className="text-[8px]  tracking-wide text-gray-900 font-medium block">Declared Special Covenants:</span>
  <span className="font-mono text-[9px] text-gray-900 font-semibold italic block">{customNote}</span>
  </div>
- <div className="shrink-0 flex items-center gap-1 bg-slate-50 text-gray-900 rounded-md px-2.5 py-1.5">
- <Award size={12} className="text-yellow-400 animate-bounce" />
+ <div className="shrink-0 flex items-center gap-1 bg-white text-gray-900 rounded-md px-2.5 py-1.5">
+ <Award size={12} className="text-yellow-700 animate-bounce" />
  <span className="text-[8px] tracking-tight font-semibold font-mono">100% Certified Sovereign</span>
  </div>
  </div>
@@ -1064,7 +1064,7 @@ export function Horticulture({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingTea(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -1202,7 +1202,7 @@ export function Horticulture({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingAvo(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>

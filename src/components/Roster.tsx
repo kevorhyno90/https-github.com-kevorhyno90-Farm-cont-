@@ -121,7 +121,7 @@ export function Roster({
  const recordStatusColors = {
  Approved: 'bg-emerald-100 text-green-600 border-emerald-300',
  Pending: 'bg-amber-100 text-amber-800 border-amber-300',
- Completed: 'bg-slate-50 border border-gray-200 text-gray-900 border-white/20'
+ Completed: 'bg-white border border-gray-200 text-gray-900 border-white/20'
  };
 
  // Group counts
@@ -157,7 +157,7 @@ export function Roster({
  <h4 className="text-gray-900 font-semibold text-sm tracking-tight mb-1.5">Workforce & Duty Scheduler</h4>
  
  {/* Visual Progress Bar */}
- <div className="w-full max-w-[280px] h-2 bg-slate-50 border border-gray-200 rounded-full mb-2 overflow-hidden flex">
+ <div className="w-full max-w-[280px] h-2 bg-white border border-gray-200 rounded-full mb-2 overflow-hidden flex">
  <div 
  className="h-full bg-emerald-500 transition-all duration-1000 ease-out rounded-full" 
  style={{ width: `${attendancePercentage}%` }}
@@ -170,9 +170,9 @@ export function Roster({
 
  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-900 font-medium font-bold items-center tracking-tight">
  <span>Total: <strong className="text-gray-900 text-xs">{totalStaffCount}</strong></span>
- <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+ <span className="w-1 h-1 rounded-full bg-white"></span>
  <span className="text-green-600">Present: <strong className="text-green-600 text-xs">{activeStaffCount}</strong></span>
- <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+ <span className="w-1 h-1 rounded-full bg-white"></span>
  <span className="text-rose-600">Off/Leave: <strong className="text-rose-800 text-xs">{offTodayCount + leaveTodayCount}</strong></span>
  </div>
  </div>
@@ -357,7 +357,7 @@ export function Roster({
  )}
 
  {/* Modern Search & Filters Panel */}
- <div className="bg-slate-50 border border-gray-200 p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+ <div className="bg-white border border-gray-200 p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
  <div className="relative w-full md:w-72">
  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-900 font-medium" />
  <input
@@ -384,7 +384,7 @@ export function Roster({
  className={`px-3.5 py-2 rounded-lg text-[10px] font-semibold tracking-tight transition-all m-0 border cursor-pointer whitespace-nowrap ${
  unitFilter === btn.id
  ? 'bg-white text-gray-900 border-transparent'
- : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
  {btn.label}
@@ -425,7 +425,7 @@ export function Roster({
  {getInitials(st.name)}
  </div>
  <div>
- <span className="text-[9px] tracking-tight bg-slate-50 border border-gray-200 text-gray-900 font-medium px-2 py-0.5 rounded font-semibold max-w-[120px] truncate block text-center mb-1 w-max">
+ <span className="text-[9px] tracking-tight bg-white border border-gray-200 text-gray-900 font-medium px-2 py-0.5 rounded font-semibold max-w-[120px] truncate block text-center mb-1 w-max">
  {st.unit} Unit
  </span>
  <h5 className="text-sm font-semibold text-gray-900 leading-tight group-hover:text-green-600 transition-colors">{st.name}</h5>
@@ -434,11 +434,11 @@ export function Roster({
  </div>
  <div className="flex flex-col items-end gap-2 shrink-0">
  {/* Quick Status Toggles */}
- <div className="flex bg-slate-50 border border-gray-200 rounded-lg p-0.5 shadow-inner">
+ <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 shadow-inner">
  <button
  onClick={() => onUpdateStatus(st.id, 'Present')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'Present' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ st.status === 'Present' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Pres
@@ -446,7 +446,7 @@ export function Roster({
  <button
  onClick={() => onUpdateStatus(st.id, 'Off')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'Off' ? 'bg-rose-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ st.status === 'Off' ? 'bg-rose-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Off
@@ -454,7 +454,7 @@ export function Roster({
  <button
  onClick={() => onUpdateStatus(st.id, 'On Leave')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'On Leave' ? 'bg-amber-500 text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ st.status === 'On Leave' ? 'bg-amber-500 text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Lv
@@ -484,7 +484,7 @@ export function Roster({
 
  <div className="mt-5 space-y-2">
  <div className="flex items-center gap-2 text-xs text-gray-900 font-medium">
- <div className="w-6 h-6 rounded-full bg-slate-50 border border-gray-200 flex items-center justify-center">
+ <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center">
  <Phone size={11} className="text-gray-900 font-medium" />
  </div>
  <span className="font-semibold text-gray-900 font-medium font-mono">{st.phone}</span>
@@ -492,7 +492,7 @@ export function Roster({
  </div>
  </div>
 
- <div className="bg-slate-50 border border-gray-200 p-5 space-y-3.5 relative overflow-hidden group-hover:bg-slate-50 border border-gray-200 transition-colors">
+ <div className="bg-white border border-gray-200 p-5 space-y-3.5 relative overflow-hidden group-hover:bg-white border border-gray-200 transition-colors">
  <div className="flex items-start gap-2.5">
  <Clock size={12} className="text-gray-900 font-medium shrink-0 mt-0.5" />
  <div>
@@ -663,7 +663,7 @@ export function Roster({
 
  {/* Leave/Off Schedules List Render */}
  <div className="bg-white shadow-sm border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
- <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-slate-50 border border-gray-200">
+ <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-white border border-gray-200">
  <div className="flex items-center gap-2">
  <ClipboardList size={16} className="text-indigo-650 text-indigo-700" />
  <h5 className="text-xs font-semibold text-gray-900 tracking-tight mb-0">Active Duty Schedule Registry</h5>
@@ -679,7 +679,7 @@ export function Roster({
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
- <tr className="border-b border-gray-100 text-[10px] font-semibold tracking-tight text-gray-900 font-medium bg-slate-50 border border-gray-200">
+ <tr className="border-b border-gray-100 text-[10px] font-semibold tracking-tight text-gray-900 font-medium bg-white border border-gray-200">
  <th className="p-5">Operator Name</th>
  <th className="p-5">Type of Leave/Off</th>
  <th className="p-5">Duration Period (Start - End)</th>
@@ -692,12 +692,12 @@ export function Roster({
  {staffOffRecords.map((r) => {
  const daysCount = Math.round((new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / (1000 * 3600 * 24)) + 1;
  return (
- <tr key={r.id} className="hover:bg-slate-50 border border-gray-200 transition-colors">
+ <tr key={r.id} className="hover:bg-white border border-gray-200 transition-colors">
  <td className="p-5 font-bold text-gray-900">
  <div className="flex items-center gap-3">
  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 ${
  r.status === 'Approved' ? 'bg-emerald-100 text-green-600' :
- r.status === 'Completed' ? 'bg-slate-50 border border-gray-200 text-gray-900 font-medium' :
+ r.status === 'Completed' ? 'bg-white border border-gray-200 text-gray-900 font-medium' :
  'bg-amber-100 text-amber-800'
  }`}>
  {getInitials(r.staffName)}
@@ -712,9 +712,9 @@ export function Roster({
  </td>
  <td className="p-5 font-mono">
  <div className="flex items-center gap-2">
- <span className="font-semibold text-gray-900 font-semibold bg-slate-50 border border-gray-200 px-2 py-1 rounded">{r.startDate}</span>
+ <span className="font-semibold text-gray-900 font-semibold bg-white border border-gray-200 px-2 py-1 rounded">{r.startDate}</span>
  <span className="text-gray-900 font-medium text-[10px]">→</span>
- <span className="font-semibold text-gray-900 font-semibold bg-slate-50 border border-gray-200 px-2 py-1 rounded">{r.endDate}</span>
+ <span className="font-semibold text-gray-900 font-semibold bg-white border border-gray-200 px-2 py-1 rounded">{r.endDate}</span>
  <span className="ml-2 text-[10px] font-semibold text-indigo-900 bg-indigo-900/20 border border-indigo-100 rounded-full px-2 py-0.5">
  {daysCount} {daysCount === 1 ? 'day' : 'days'}
  </span>
@@ -724,11 +724,11 @@ export function Roster({
  {r.notes || '—'}
  </td>
  <td className="p-5">
- <div className="flex bg-slate-50 border border-gray-200 rounded-lg p-0.5 shadow-inner w-max">
+ <div className="flex bg-white border border-gray-200 rounded-lg p-0.5 shadow-inner w-max">
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Approved')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Approved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ r.status === 'Approved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Apprv
@@ -736,7 +736,7 @@ export function Roster({
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Pending')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Pending' ? 'bg-amber-500 text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ r.status === 'Pending' ? 'bg-amber-500 text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Pend
@@ -744,7 +744,7 @@ export function Roster({
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Completed')}
  className={`text-[9px] font-semibold  px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Completed' ? 'bg-slate-500 text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200'
+ r.status === 'Completed' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-900 font-medium hover:bg-white border border-gray-200'
  }`}
  >
  Comp
@@ -756,7 +756,7 @@ export function Roster({
  {onEditStaffOffRecord && (
  <button
  onClick={() => setEditingStaffOffRecord(r)}
- className="text-gray-900 font-medium hover:text-indigo-850 p-1.5 rounded-lg hover:bg-slate-50 border border-gray-200 transition-colors inline-block m-0 cursor-pointer"
+ className="text-gray-900 font-medium hover:text-indigo-850 p-1.5 rounded-lg hover:bg-white border border-gray-200 transition-colors inline-block m-0 cursor-pointer"
  title="Edit record"
  >
  <CalendarDays size={13} />
@@ -764,7 +764,7 @@ export function Roster({
  )}
  <button
  onClick={() => onDeleteOffRecord(r.id)}
- className="text-gray-900 font-medium hover:text-red-700 p-1.5 rounded-lg hover:bg-slate-50 border border-gray-200 transition-colors inline-block m-0 cursor-pointer"
+ className="text-gray-900 font-medium hover:text-red-700 p-1.5 rounded-lg hover:bg-white border border-gray-200 transition-colors inline-block m-0 cursor-pointer"
  title="Delete record"
  >
  <Trash2 size={13} />
@@ -858,7 +858,7 @@ export function Roster({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingStaff(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -964,7 +964,7 @@ export function Roster({
  <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
  <button
  onClick={() => setEditingStaffOffRecord(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 m-0 cursor-pointer"
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -994,7 +994,7 @@ export function Roster({
  <div className="border border-gray-100 rounded-2xl overflow-x-auto">
  <table className="w-full text-left border-collapse text-xs font-semibold">
  <thead>
- <tr className="bg-slate-50 border border-gray-200 border-b border-gray-100">
+ <tr className="bg-white border border-gray-200 border-b border-gray-100">
  <th className="p-3">Staff Name</th>
  <th className="p-3">Role / Unit</th>
  <th className="p-3">Shift Plan</th>
@@ -1003,7 +1003,7 @@ export function Roster({
  </thead>
  <tbody>
  {staffList.map((worker) => (
- <tr key={worker.id} className="border-b border-gray-100 hover:bg-slate-50 border border-gray-200">
+ <tr key={worker.id} className="border-b border-gray-100 hover:bg-white border border-gray-200">
  <td className="p-3 font-bold text-gray-900 font-semibold">{worker.name}</td>
  <td className="p-3 text-gray-900 font-medium">
  <span className="text-gray-900 font-semibold font-bold">{worker.role}</span> • {worker.unit}
@@ -1023,7 +1023,7 @@ export function Roster({
  className={`px-3 py-1.5 border rounded-lg text-2xs tracking-tight font-semibold transition-all m-0 cursor-pointer ${
  worker.status === btn.label
  ? `${btn.bg} shadow-xs ring-1 ring-${btn.color}-500/10`
- : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200 hover:text-gray-900 font-medium'
+ : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200 hover:text-gray-900 font-medium'
  }`}
  >
  {btn.label}
@@ -1086,7 +1086,7 @@ export function Roster({
  >
  <div className="space-y-1">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">Select Employee</label>
- <select name="workerId" className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
+ <select name="workerId" className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
  {staffList.map(w => (
  <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
  ))}
@@ -1096,7 +1096,7 @@ export function Roster({
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-1">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">Payment Type</label>
- <select name="payType" className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
+ <select name="payType" className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
  <option value="Wage Advance">Wage Advance</option>
  <option value="Salary Settlement">Salary Settlement</option>
  <option value="Performance Bonus">Performance Bonus</option>
@@ -1104,18 +1104,18 @@ export function Roster({
  </div>
  <div className="space-y-1">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">Amount (Ksh)</label>
- <input type="number" name="amount" placeholder="e.g. 5000" className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <input type="number" name="amount" placeholder="e.g. 5000" className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  </div>
  
  <div className="space-y-1">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">Payment Description</label>
- <input type="text" name="desc" placeholder="e.g. Week 2 pluckers advance" className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <input type="text" name="desc" placeholder="e.g. Week 2 pluckers advance" className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  
  <div className="space-y-1">
  <label className="text-[10px] font-semibold  text-gray-900 font-medium block">Date of Payment</label>
- <input type="date" name="payDate" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <input type="date" name="payDate" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-white border border-gray-200 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  
  <button
@@ -1137,7 +1137,7 @@ export function Roster({
  <div className="border border-gray-100 rounded-2xl overflow-x-auto">
  <table className="w-full text-left border-collapse text-xs font-semibold">
  <thead>
- <tr className="bg-slate-50 border border-gray-200 border-b border-gray-100">
+ <tr className="bg-white border border-gray-200 border-b border-gray-100">
  <th className="p-3">Date</th>
  <th className="p-3">Reference</th>
  <th className="p-3">Details</th>
@@ -1163,7 +1163,7 @@ export function Roster({
  );
  }
  return wageTx.map((tx) => (
- <tr key={tx.id} className="border-b border-gray-100 hover:bg-slate-50 border border-gray-200">
+ <tr key={tx.id} className="border-b border-gray-100 hover:bg-white border border-gray-200">
  <td className="p-3 font-mono">{tx.date}</td>
  <td className="p-3 font-bold text-green-600">{tx.id}</td>
  <td className="p-3 text-gray-900 font-medium font-medium">{tx.description}</td>

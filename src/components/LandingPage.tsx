@@ -37,7 +37,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.20),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.16),_transparent_30%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
  <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-300/30 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '5s' }} />
  <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-amber-300/20 rounded-full blur-[130px] animate-pulse" style={{ animationDuration: '7s', animationDelay: '1s' }} />
- <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] bg-slate-300/50 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+ <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] bg-white/50 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
  </div>
 
  <div className="relative z-10 flex flex-col items-center max-w-lg w-full px-6 animate-slideIn">
@@ -52,7 +52,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
 
  {/* Text Section */}
  <div className="text-center mb-12 space-y-4">
- <h1 className="text-4xl sm:text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-900 to-amber-700 tracking-tight drop-shadow-sm">
+ <h1 className="text-4xl sm:text-5xl font-semibold text-gray-900">
  JR Farm Estate
  </h1>
  <p className="text-gray-900 font-medium text-lg sm:text-xl font-medium tracking-wide">
@@ -89,7 +89,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <button
  onClick={() => handleGoogleLogin(false)}
  disabled={loading}
- className="relative overflow-hidden group w-full bg-slate-50 hover:bg-gray-50 text-gray-900 font-semibold text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="relative overflow-hidden group w-full bg-white hover:bg-gray-50 text-gray-900 font-semibold text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  <div className="relative flex items-center justify-center gap-3">
  <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

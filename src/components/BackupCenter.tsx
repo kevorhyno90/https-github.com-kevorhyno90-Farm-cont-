@@ -760,7 +760,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  
  <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div className="space-y-2">
- <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800 border border-green-750 text-yellow-400 rounded-full text-[10px] font-semibold tracking-tight">
+ <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800 border border-green-750 text-yellow-700 rounded-full text-[10px] font-semibold tracking-tight">
  <ShieldCheck size={12} />
  Sovereign Storage Shield
  </div>
@@ -805,7 +805,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  {Object.entries(stats.keyRecords).map(([name, count]) => (
  <div key={name} className="flex justify-between items-center py-2 text-xs">
  <span className="font-semibold text-gray-900 font-medium">{name}</span>
- <span className="font-mono px-2 py-0.5 bg-slate-50 border border-gray-200 text-gray-900 rounded-lg font-bold">
+ <span className="font-mono px-2 py-0.5 bg-white border border-gray-200 text-gray-900 rounded-lg font-bold">
  {count} records
  </span>
  </div>
@@ -892,7 +892,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
  {/* Generate Block */}
  <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
- <span className="text-[10px] font-semibold  text-yellow-400 block tracking-normal font-mono">
+ <span className="text-[10px] font-semibold  text-yellow-700 block tracking-normal font-mono">
  1. Generate From This Device
  </span>
  <p className="text-[11px] text-green-600 font-semibold leading-relaxed">
@@ -930,7 +930,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  {/* Import Block */}
  <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
- <span className="text-[10px] font-semibold  text-yellow-400 block tracking-normal font-mono">
+ <span className="text-[10px] font-semibold  text-yellow-700 block tracking-normal font-mono">
  2. Import Onto This Device
  </span>
  <p className="text-[11px] text-green-600 font-semibold leading-relaxed">
@@ -989,7 +989,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  type="button"
  onClick={handleCloudSyncSave}
  disabled={isSyncSaving || isSyncLoading}
- className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 text-white font-semibold hover:text-yellow-400 py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+ className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 text-white font-semibold hover:text-yellow-700 py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
  >
  {isSyncSaving ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
  📡 Push State to Cloud
@@ -1008,7 +1008,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  {lastSyncedAt && (
  <p className="text-[10px] text-green-600 font-semibold italic flex items-center gap-1.5 pt-1">
- <span>● Registered Room Key: <strong className="font-mono text-yellow-400 ">{syncKey}</strong></span>
+ <span>● Registered Room Key: <strong className="font-mono text-yellow-700 ">{syncKey}</strong></span>
  <span>|</span>
  <span>Last Synced: <strong>{lastSyncedAt}</strong></span>
  </p>
@@ -1070,7 +1070,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  className={`px-3 py-1.5 rounded-lg text-[9px] font-semibold  tracking-wide cursor-pointer border transition-all ${
  ic.selectedSource === 'cloud'
  ? 'bg-teal-700 text-gray-900 border-teal-700 shadow-xs'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
  Use Cloud
@@ -1087,7 +1087,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  className={`px-3 py-1.5 rounded-lg text-[9px] font-semibold  tracking-wide cursor-pointer border transition-all ${
  ic.selectedSource === 'local'
  ? 'bg-amber-600 text-gray-900 border-amber-600 shadow-xs'
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
+ : 'bg-white border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
  Keep Local
@@ -1119,7 +1119,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  type="button"
  onClick={() => handleExecuteMerge('cloud')}
- className="p-3 bg-slate-50 border border-gray-200 hover:bg-slate-100 text-gray-900 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer border border-gray-200 shadow-sm transition-all"
+ className="p-3 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer border border-gray-200 shadow-sm transition-all"
  >
  📥 Cloud Overwrite
  <span className="block text-[8px] font-normal text-gray-900 font-medium lowercase mt-0.5">Completely replace this local device state with cloud</span>
@@ -1133,7 +1133,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  setCloudPayload(null);
  setStatusMsg({ type: null, text: '' });
  }}
- className="p-3 bg-white shadow-sm hover:bg-slate-55 border border-amber-250 text-amber-950 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer transition-all"
+ className="p-3 bg-white shadow-sm hover:bg-white border border-amber-250 text-amber-950 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer transition-all"
  >
  🚫 Abandon Pull
  <span className="block text-[8px] font-normal text-amber-800 lowercase mt-0.5">Keep current local data as is and close merge dashboard</span>
@@ -1145,7 +1145,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {/* Export */}
- <div className="border border-gray-200 p-5 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col justify-between">
+ <div className="border border-gray-200 p-5 rounded-2xl bg-white border border-gray-200 flex flex-col justify-between">
  <div className="space-y-1.5 mb-4">
  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-sky-100 text-sky-850 rounded-lg text-[10px] font-semibold tracking-tight">
  <FileJson size={12} strokeWidth={2.5} />
@@ -1168,7 +1168,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
 
  {/* Import */}
- <div className="border border-gray-200 p-5 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col justify-between">
+ <div className="border border-gray-200 p-5 rounded-2xl bg-white border border-gray-200 flex flex-col justify-between">
  <div className="space-y-1.5 mb-4">
  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 text-amber-850 rounded-lg text-[10px] font-semibold tracking-tight">
  <HardDriveUpload size={12} strokeWidth={2.5} />
@@ -1191,7 +1191,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  onClick={() => fileInputRef.current?.click()}
  disabled={isImporting}
- className="w-full bg-slate-50 border border-gray-200 hover:bg-slate-100 text-gray-900 font-semibold py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
+ className="w-full bg-white border border-gray-200 hover:bg-white text-gray-900 font-semibold py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
  >
  {isImporting ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
  Restore Snapshot
@@ -1201,7 +1201,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
 
  {/* Online/Offline Network Simulator Control Dashboard (Improvement 4) */}
- <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
+ <div className="bg-white border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
  <div className="flex items-center justify-between border-b border-gray-200 pb-2">
  <div className="flex items-center gap-2">
  <RefreshCw className="text-green-600 animate-spin-slow" size={16} />
@@ -1238,7 +1238,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold tracking-tight transition-all border-0 cursor-pointer ${
  isForcedOffline 
  ? 'bg-amber-500 text-gray-500 font-semibold shadow-xs' 
- : 'bg-slate-50 border border-gray-200 text-gray-900 font-semibold hover:bg-slate-300'
+ : 'bg-white border border-gray-200 text-gray-900 font-semibold hover:bg-white'
  }`}
  >
  {isForcedOffline ? 'Go Online' : 'Go Offline'}
