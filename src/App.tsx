@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useRef, Component, type ReactNode } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Component, type ReactNode, startTransition } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -330,7 +330,12 @@ function FarmCoreApp() {
   }, []);
 
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<string>('dash');
+  const [activeTab, _setActiveTab] = useState<string>('dash');
+  const setActiveTab = (tab: string) => {
+    startTransition(() => {
+      _setActiveTab(tab);
+    });
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
 
