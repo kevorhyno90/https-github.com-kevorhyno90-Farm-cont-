@@ -5675,17 +5675,17 @@ function FarmCoreApp() {
       )}
       {/* 1. DESKTOP SIDEBAR */}
       {activeTab === 'dash' && (
-        <aside className={`fixed inset-y-0 left-0 bg-slate-950/92 backdrop-blur-xl text-slate-100 h-screen border-r border-white/10 shadow-2xl overflow-y-auto flex flex-col z-40 transition-all duration-300 ${
+        <aside className={`fixed inset-y-0 left-0 bg-white text-gray-700 h-screen border-r border-gray-200 shadow-sm overflow-y-auto flex flex-col z-40 transition-all duration-300 ${
           slimSidebar ? 'w-20' : 'w-72'
         } hidden lg:flex`}>
-          <div className="p-8 text-center border-b border-white/8 mb-6 shrink-0 relative flex flex-col items-center">
-            <div className="absolute top-2 right-2 px-2 py-0.5 bg-emerald-500/15 border border-emerald-400/20 text-emerald-200 rounded text-[9px] font-black uppercase tracking-wider">
+          <div className="p-8 text-center border-b border-gray-100 mb-6 shrink-0 relative flex flex-col items-center">
+            <div className="absolute top-2 right-2 px-2 py-0.5 bg-green-100 border border-green-200 text-green-700 rounded text-[9px] font-bold uppercase tracking-wider">
               Live
             </div>
             {/* Collapse sidebar trigger button */}
             <button
               onClick={() => setSlimSidebar(!slimSidebar)}
-              className="absolute top-2 left-2 p-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-400/40 text-slate-300 hover:text-white transition-all cursor-pointer m-0 active:scale-95 border-none"
+              className="absolute top-2 left-2 p-1.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-green-400/40 text-gray-500 hover:text-gray-700 transition-all cursor-pointer m-0 active:scale-95 border-none"
               title={slimSidebar ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               {slimSidebar ? <PanelLeftOpen size={12} /> : <PanelLeftClose size={12} />}
@@ -5700,8 +5700,8 @@ function FarmCoreApp() {
             </div>
             {!slimSidebar && (
               <>
-                <h1 className="text-xl font-black text-white italic tracking-tighter uppercase">{getStoredSettings()?.estateName || "JR FARM OMNI-ESTATE"}</h1>
-                <p className="text-[10px] text-emerald-300 font-bold uppercase tracking-widest mt-1 font-mono">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{getStoredSettings()?.estateName || "JR Farm Omni-Estate"}</h1>
+                <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1 font-sans">
                   Manager: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}
                 </p>
               </>
@@ -5711,7 +5711,7 @@ function FarmCoreApp() {
           {/* Sidebar Search query input */}
           {!slimSidebar && (
             <div className="px-4 mb-4 relative">
-              <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none text-emerald-400">
+              <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none text-gray-400">
                 <Search size={13} />
               </div>
               <input
@@ -5719,12 +5719,12 @@ function FarmCoreApp() {
                 placeholder="Search sections..."
                 value={sidebarSearch}
                 onChange={(e) => setSidebarSearch(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-slate-400 rounded-xl py-2 pl-9 pr-8 text-xs outline-none focus:border-emerald-400/50 transition-colors font-semibold"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl py-2 pl-9 pr-8 text-xs outline-none focus:border-green-500 transition-colors font-medium"
               />
               {sidebarSearch && (
                 <button
                   onClick={() => setSidebarSearch('')}
-                  className="absolute right-7 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-white text-xs bg-transparent border-0 cursor-pointer p-0 font-bold"
+                  className="absolute right-7 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs bg-transparent border-0 cursor-pointer p-0 font-bold"
                 >
                   ✕
                 </button>
@@ -5768,12 +5768,12 @@ function FarmCoreApp() {
                         }}
                         className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all relative border-none ${
                           isActive
-                            ? 'bg-emerald-800 text-white shadow-md border-b-4 border-yellow-500 font-extrabold'
-                            : 'text-emerald-100 hover:bg-emerald-900/60 hover:text-white'
+                            ? 'bg-green-50 text-green-700 shadow-sm font-semibold'
+                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                         title={link.label}
                       >
-                        <Icon size={18} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
+                        <Icon size={18} className={isActive ? 'text-green-600' : 'text-gray-400'} />
                         {hasDot && (
                           <span className={`absolute top-2 right-2 w-2 h-2 rounded-full ${dotColor}`}></span>
                         )}
@@ -5797,10 +5797,10 @@ function FarmCoreApp() {
                   <div key={cat} className="space-y-1">
                     <button
                       onClick={() => setCollapsedCats(prev => ({ ...prev, [cat]: !prev[cat] }))}
-                      className="w-full flex items-center justify-between px-4 py-1.5 text-[9px] font-black text-emerald-555 text-emerald-500 hover:text-emerald-300 uppercase tracking-widest text-left cursor-pointer bg-transparent border-0 m-0"
+                      className="w-full flex items-center justify-between px-4 py-1.5 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wide text-left cursor-pointer bg-transparent border-0 m-0"
                     >
                       <span>{cat}</span>
-                      {isCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+                      {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                     </button>
  
                     {!isCollapsed && (
@@ -5839,14 +5839,14 @@ function FarmCoreApp() {
                                 setActiveTab(link.id);
                                 setMobileMenuOpen(false);
                               }}
-                              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-xs tracking-wide leading-none border-none ${
+                              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all font-medium text-[13px] border-none ${
                                 isActive
-                                  ? 'bg-emerald-800 text-white shadow-md border-l-4 border-yellow-500 pl-3 font-extrabold'
-                                  : 'text-emerald-100 hover:bg-emerald-900/60 hover:text-white'
+                                  ? 'bg-green-50 text-green-700 shadow-sm'
+                                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                               }`}
                             >
                               <div className="flex items-center gap-3">
-                                <Icon size={16} className={isActive ? 'text-yellow-500' : 'text-emerald-400'} />
+                                <Icon size={16} className={isActive ? 'text-green-600' : 'text-gray-400'} />
                                 <span>{link.label}</span>
                               </div>
                               <div className="flex items-center gap-1.5 shrink-0">
@@ -5966,7 +5966,7 @@ function FarmCoreApp() {
           </div>
         )}
 
-        <header className="farm-shell-panel border-b border-white/50 px-6 py-4 flex justify-between items-center z-30 sticky top-0">
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-30 sticky top-0 shadow-sm">
           <div className="flex items-center gap-3">
             {activeTab === 'dash' && (
               <button
@@ -5980,7 +5980,7 @@ function FarmCoreApp() {
             {activeTab !== 'dash' && (
               <button
                 onClick={() => setActiveTab('dash')}
-                className="flex items-center gap-2 bg-white/70 hover:bg-white text-slate-700 px-3 py-1.5 rounded-xl text-xs font-black transition-all border border-slate-200/80 cursor-pointer m-0 active:scale-95 shadow-sm"
+                className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border border-gray-200 cursor-pointer m-0 active:scale-95 shadow-sm"
                 title="Go back to Dashboard"
               >
                 <ArrowLeft size={13} className="text-emerald-800" />
@@ -5988,7 +5988,7 @@ function FarmCoreApp() {
                 <span className="sm:hidden">Back</span>
               </button>
             )}
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest font-mono">
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight">
               {sidebarLinks.find((l) => l.id === activeTab)?.label || 'System Core'}
             </h2>
           </div>

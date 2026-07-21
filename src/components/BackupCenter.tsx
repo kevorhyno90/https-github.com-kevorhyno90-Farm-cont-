@@ -756,46 +756,46 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  return (
  <div className="space-y-6">
  {/* Visual Header */}
- <div className="bg-emerald-950 p-6 sm:p-8 rounded-3xl text-slate-900 relative overflow-hidden shadow-lg border border-emerald-900">
- <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-900/40 rounded-full blur-2xl -mr-20 -mt-20"></div>
+ <div className="bg-white p-6 sm:p-8 rounded-3xl text-gray-900 relative overflow-hidden shadow-lg border border-emerald-900">
+ 
  <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div className="space-y-2">
- <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800 border border-green-750 text-yellow-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+ <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800 border border-green-750 text-yellow-400 rounded-full text-[10px] font-semibold tracking-tight">
  <ShieldCheck size={12} />
  Sovereign Storage Shield
  </div>
- <h1 className="text-2xl sm:text-3xl font-black italic tracking-tight uppercase font-mono">
+ <h1 className="text-2xl sm:text-3xl font-semibold italic tracking-tight  font-mono">
  Database & Backup Core
  </h1>
- <p className="text-emerald-300 text-xs sm:text-sm max-w-xl">
+ <p className="text-green-600 text-xs sm:text-sm max-w-xl">
  All ledger entries, formulations, spray journals, and herdsman logs are securely stored on-device inside your browser's Sandboxed Database. Keep copy backup snapshots to guarantee zero data loss.
  </p>
  </div>
  <div className="shrink-0">
- <Database size={80} className="text-emerald-800/60 opacity-80" />
+ <Database size={80} className="text-green-600/60 opacity-80" />
  </div>
  </div>
  </div>
 
  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
  {/* State Statistics Dashboard Panel */}
- <div className="farm-shell-panel border border-white/70 rounded-[1.6rem] p-6 shadow-xs flex flex-col justify-between">
+ <div className="farm-shell-panel border border-gray-200 rounded-[1.6rem] p-6 shadow-xs flex flex-col justify-between">
  <div>
- <h2 className="text-base font-black uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
- <Layers size={18} className="text-emerald-700" />
+ <h2 className="text-base font-semibold tracking-tight text-gray-900 flex items-center gap-2 mb-4">
+ <Layers size={18} className="text-green-600" />
  Database Statistics
  </h2>
  
  <div className="grid grid-cols-2 gap-4 mb-6">
  <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100/50">
- <span className="text-xs text-slate-900 font-medium font-bold block mb-1">Active Modules</span>
- <span className="text-2xl font-mono font-black text-emerald-950">
- {stats.totalKeysFound} <span className="text-xs text-slate-900 font-medium font-normal">/ 20</span>
+ <span className="text-xs text-gray-900 font-medium font-bold block mb-1">Active Modules</span>
+ <span className="text-2xl font-mono font-semibold text-green-600">
+ {stats.totalKeysFound} <span className="text-xs text-gray-900 font-medium font-normal">/ 20</span>
  </span>
  </div>
  <div className="bg-orange-900/20 p-4 rounded-2xl border border-orange-100/50">
- <span className="text-xs text-slate-900 font-medium font-bold block mb-1">Total Entries</span>
- <span className="text-2xl font-mono font-black text-amber-950">
+ <span className="text-xs text-gray-900 font-medium font-bold block mb-1">Total Entries</span>
+ <span className="text-2xl font-mono font-semibold text-amber-950">
  {stats.totalEstimatedRecords}
  </span>
  </div>
@@ -804,31 +804,31 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-2 divide-y divide-slate-100">
  {Object.entries(stats.keyRecords).map(([name, count]) => (
  <div key={name} className="flex justify-between items-center py-2 text-xs">
- <span className="font-semibold text-slate-900 font-medium">{name}</span>
- <span className="font-mono px-2 py-0.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg font-bold">
+ <span className="font-semibold text-gray-900 font-medium">{name}</span>
+ <span className="font-mono px-2 py-0.5 bg-slate-50 border border-gray-200 text-gray-900 rounded-lg font-bold">
  {count} records
  </span>
  </div>
  ))}
  {Object.keys(stats.keyRecords).length === 0 && (
- <p className="text-slate-900 font-medium text-xs italic py-4">No records written to database yet.</p>
+ <p className="text-gray-900 font-medium text-xs italic py-4">No records written to database yet.</p>
  )}
  </div>
  </div>
 
- <div className="pt-6 border-t border-white/10 text-[11px] text-slate-900 font-medium leading-relaxed font-semibold">
- Estimated storage footprint: <span className="font-mono text-slate-900">{(stats.totalSizeInBytes / 1024).toFixed(2)} KB</span> in secure Web SQL space.
+ <div className="pt-6 border-t border-gray-100 text-[11px] text-gray-900 font-medium leading-relaxed font-semibold">
+ Estimated storage footprint: <span className="font-mono text-gray-900">{(stats.totalSizeInBytes / 1024).toFixed(2)} KB</span> in secure Web SQL space.
  </div>
  </div>
 
  {/* Action Panel */}
- <div className="farm-shell-panel border border-white/70 rounded-[1.6rem] p-6 shadow-xs xl:col-span-2 space-y-6">
+ <div className="farm-shell-panel border border-gray-200 rounded-[1.6rem] p-6 shadow-xs xl:col-span-2 space-y-6">
  <div className="space-y-1">
- <h2 className="text-base font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
- <Sparkles size={18} className="text-emerald-700" />
+ <h2 className="text-base font-semibold tracking-tight text-gray-900 flex items-center gap-2">
+ <Sparkles size={18} className="text-green-600" />
  Backup and Recovery Actions
  </h2>
- <p className="text-slate-900 font-medium text-xs font-semibold">
+ <p className="text-gray-900 font-medium text-xs font-semibold">
  Manage physical database exports and load full digital snapshots of your agricultural registry.
  </p>
  </div>
@@ -837,11 +837,11 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  {statusMsg.text && (
  <div className={`p-4 rounded-2xl flex items-start gap-3 border text-xs leading-relaxed ${
  statusMsg.type === 'success' 
- ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+ ? 'bg-emerald-50 border-emerald-100 text-green-600' 
  : 'bg-rose-900/20 border-rose-100 text-rose-800'
  }`}>
  {statusMsg.type === 'success' ? (
- <CheckCircle2 size={16} className="text-emerald-650 shrink-0 mt-0.5" />
+ <CheckCircle2 size={16} className="text-green-600 shrink-0 mt-0.5" />
  ) : (
  <AlertCircle size={16} className="text-rose-650 shrink-0 mt-0.5" />
  )}
@@ -850,14 +850,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  )}
 
  {/* Synchronisation Tab Switcher */}
- <div className="flex border-b border-slate-200">
+ <div className="flex border-b border-gray-200">
  <button
  type="button"
  onClick={() => setActiveSyncTab('serverless')}
- className={`flex-1 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+ className={`flex-1 py-3 text-xs font-semibold tracking-tight border-b-2 transition-all cursor-pointer ${
  activeSyncTab === 'serverless'
- ? 'border-emerald-600 text-emerald-700'
- : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
+ ? 'border-emerald-600 text-green-600'
+ : 'border-transparent text-gray-900 font-medium hover:text-gray-900 font-medium'
  }`}
  >
  🔌 Direct P2P Code Sync (100% Serverless)
@@ -865,10 +865,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  type="button"
  onClick={() => setActiveSyncTab('cloud')}
- className={`flex-1 py-3 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+ className={`flex-1 py-3 text-xs font-semibold tracking-tight border-b-2 transition-all cursor-pointer ${
  activeSyncTab === 'cloud'
- ? 'border-emerald-600 text-emerald-700'
- : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
+ ? 'border-emerald-600 text-green-600'
+ : 'border-transparent text-gray-900 font-medium hover:text-gray-900 font-medium'
  }`}
  >
  📡 Cloud Key Room Sync (Legacy Server Support)
@@ -877,14 +877,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  {activeSyncTab === 'serverless' ? (
  /* Serverless Direct Sync Block */
- <div className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-6 rounded-2xl border border-emerald-800 text-slate-900 space-y-5 shadow-sm relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
+ <div className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-6 rounded-2xl border border-emerald-800 text-gray-900 space-y-5 shadow-sm relative overflow-hidden">
+ 
  <div className="space-y-1 relative">
- <div className="inline-flex items-center gap-1.5 bg-yellow-400 text-emerald-950 text-[9px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+ <div className="inline-flex items-center gap-1.5 bg-yellow-400 text-green-600 text-[9px] font-semibold px-2.5 py-0.5 rounded-md tracking-tight">
  <FileCode size={11} /> 100% Offline & Serverless Sync
  </div>
- <h3 className="text-base font-extrabold font-mono uppercase italic">🔌 Serverless Direct Device Bridge</h3>
- <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium font-sans">
+ <h3 className="text-base font-semibold font-mono  italic">🔌 Serverless Direct Device Bridge</h3>
+ <p className="text-green-600 text-xs leading-relaxed max-w-2xl font-medium font-sans">
  This direct sync converts your entire farm database into a secure, portable, compressed text code. You can send this code via email, message, or WhatsApp and paste it on any device to merge or restore your data immediately. No cloud servers required!
  </p>
  </div>
@@ -892,10 +892,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
  {/* Generate Block */}
  <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
- <span className="text-[10px] font-black uppercase text-yellow-400 block tracking-widest font-mono">
+ <span className="text-[10px] font-semibold  text-yellow-400 block tracking-normal font-mono">
  1. Generate From This Device
  </span>
- <p className="text-[11px] text-emerald-200 font-semibold leading-relaxed">
+ <p className="text-[11px] text-green-600 font-semibold leading-relaxed">
  Compile all your current farm registry logs, staff configs, and spraying cards into a single transfer code.
  </p>
  
@@ -904,13 +904,13 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <textarea
  readOnly
  value={generatedP2PCode}
- className="w-full bg-emerald-950/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-emerald-300 h-20 break-all resize-none focus:outline-none"
+ className="w-full bg-white/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-green-600 h-20 break-all resize-none focus:outline-none"
  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
  />
  <button
  type="button"
  onClick={handleCopyP2PCode}
- className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-black py-2 rounded-lg text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+ className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-semibold py-2 rounded-lg text-[10px] tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
  >
  <Copy size={12} />
  {isCopySuccess ? '✓ Copied to Clipboard!' : 'Copy Transfer Code'}
@@ -920,7 +920,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  type="button"
  onClick={handleGenerateP2PCode}
- className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-black py-2.5 rounded-lg text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+ className="w-full bg-emerald-700 hover:bg-emerald-650 text-white font-semibold py-2.5 rounded-lg text-[11px] tracking-tight flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
  >
  <RefreshCw size={12} />
  Generate Transfer Code
@@ -930,10 +930,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  {/* Import Block */}
  <div className="bg-emerald-900/40 p-4 rounded-xl border border-emerald-800/60 space-y-3">
- <span className="text-[10px] font-black uppercase text-yellow-400 block tracking-widest font-mono">
+ <span className="text-[10px] font-semibold  text-yellow-400 block tracking-normal font-mono">
  2. Import Onto This Device
  </span>
- <p className="text-[11px] text-emerald-200 font-semibold leading-relaxed">
+ <p className="text-[11px] text-green-600 font-semibold leading-relaxed">
  Paste the single transfer code from your other device here to instantly load or merge database entries.
  </p>
  
@@ -942,12 +942,12 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  placeholder="Paste secure sync transfer code here..."
  value={p2pCodeInput}
  onChange={(e) => setP2PCodeInput(e.target.value)}
- className="w-full bg-emerald-950/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-slate-900 h-20 break-all resize-none placeholder-emerald-700 focus:border-yellow-400 focus:outline-none"
+ className="w-full bg-white/80 border border-emerald-800 rounded-lg p-2 font-mono text-[9px] text-gray-900 h-20 break-all resize-none placeholder-emerald-700 focus:border-yellow-400 focus:outline-none"
  />
  <button
  type="button"
  onClick={handleLoadP2PCode}
- className="w-full bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black py-2 rounded-lg text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
+ className="w-full bg-amber-500 hover:bg-amber-400 text-green-600 font-semibold py-2 rounded-lg text-[10px] tracking-tight flex items-center justify-center gap-1.5 border-0 cursor-pointer shadow-xs active:scale-95 transition-all"
  >
  <UploadCloud size={12} />
  Load & Sync Code
@@ -958,21 +958,21 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
  ) : (
  /* New Cloud Sync Room Feature */
- <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 rounded-2xl border border-emerald-800 text-slate-900 space-y-4 shadow-sm relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-800/10 rounded-full blur-xl -mr-10 -mt-10"></div>
+ <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 p-6 rounded-2xl border border-emerald-800 text-gray-900 space-y-4 shadow-sm relative overflow-hidden">
+ 
  <div className="space-y-1 relative">
- <div className="inline-flex items-center gap-1 bg-amber-500 text-emerald-950 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+ <div className="inline-flex items-center gap-1 bg-amber-500 text-green-600 text-[9px] font-semibold px-2 py-0.5 rounded-md tracking-tight">
  <RefreshCw size={10} className="animate-spin" /> Cross-Device Cloud Sync
  </div>
- <h3 className="text-base font-extrabold font-mono uppercase italic">📡 Instant PC & Mobile Transfer</h3>
- <p className="text-emerald-200 text-xs leading-relaxed max-w-2xl font-medium">
+ <h3 className="text-base font-semibold font-mono  italic">📡 Instant PC & Mobile Transfer</h3>
+ <p className="text-green-600 text-xs leading-relaxed max-w-2xl font-medium">
  Want to access your farm registry on your PC or another phone? Enter a custom Sync Key below to upload your data from this device, then use the same key to pull it on your other browser!
  </p>
  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:items-end relative">
  <div className="md:col-span-1 space-y-1">
- <label className="text-[10px] font-black uppercase text-emerald-300 block tracking-wider">
+ <label className="text-[10px] font-semibold  text-green-600 block tracking-normal">
  Create / Load Key Room
  </label>
  <input
@@ -980,7 +980,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  placeholder="e.g. MyKevFarm"
  value={syncKey}
  onChange={(e) => setSyncKey(e.target.value)}
- className="w-full bg-emerald-900 border border-emerald-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 font-bold text-xs text-slate-900 placeholder-emerald-600"
+ className="w-full bg-emerald-900 border border-emerald-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 font-bold text-xs text-gray-900 placeholder-emerald-600"
  />
  </div>
 
@@ -989,7 +989,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  type="button"
  onClick={handleCloudSyncSave}
  disabled={isSyncSaving || isSyncLoading}
- className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 text-white font-black hover:text-yellow-400 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+ className="flex-1 bg-emerald-700 hover:bg-emerald-650 disabled:bg-emerald-800/50 text-white font-semibold hover:text-yellow-400 py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
  >
  {isSyncSaving ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
  📡 Push State to Cloud
@@ -998,7 +998,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  type="button"
  onClick={handleCloudSyncLoad}
  disabled={isSyncSaving || isSyncLoading}
- className="flex-1 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+ className="flex-1 bg-amber-500 hover:bg-amber-400 text-green-600 font-semibold py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
  >
  {isSyncLoading ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
  📥 Pull State from Cloud
@@ -1007,8 +1007,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
 
  {lastSyncedAt && (
- <p className="text-[10px] text-emerald-300 font-semibold italic flex items-center gap-1.5 pt-1">
- <span>● Registered Room Key: <strong className="font-mono text-yellow-400 uppercase">{syncKey}</strong></span>
+ <p className="text-[10px] text-green-600 font-semibold italic flex items-center gap-1.5 pt-1">
+ <span>● Registered Room Key: <strong className="font-mono text-yellow-400 ">{syncKey}</strong></span>
  <span>|</span>
  <span>Last Synced: <strong>{lastSyncedAt}</strong></span>
  </p>
@@ -1022,7 +1022,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <div className="flex items-center gap-3 pb-3 border-b border-amber-100">
  <span className="text-2xl">⚠️</span>
  <div>
- <h3 className="text-sm font-black uppercase text-amber-950 font-mono tracking-wide">Multi-Device Database Sync Conflicts Detected</h3>
+ <h3 className="text-sm font-semibold  text-amber-950 font-mono tracking-wide">Multi-Device Database Sync Conflicts Detected</h3>
  <p className="text-[11px] text-amber-800 font-medium">
  The cloud room database has different records compared to this device. Please select a merge or resolution strategy below.
  </p>
@@ -1034,25 +1034,25 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  {conflicts.map((c, cIndex) => (
  <div key={c.key} className="bg-white shadow-sm p-4 rounded-xl border border-amber-200/60 space-y-3">
  <div className="flex justify-between items-center">
- <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
+ <span className="text-[10px] font-semibold tracking-tight text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
  {c.label} Module
  </span>
- <span className="text-[10px] text-slate-900 font-medium font-mono">
+ <span className="text-[10px] text-gray-900 font-medium font-mono">
  Local: {c.localOnlyCount} uniquely | Cloud: {c.cloudOnlyCount} uniquely
  </span>
  </div>
 
  {c.idConflicts.length > 0 && (
  <div className="space-y-2">
- <span className="text-[9px] text-slate-900 font-medium block font-bold uppercase tracking-wider">
+ <span className="text-[9px] text-gray-900 font-medium block font-bold tracking-tight">
  Conflicting records (Shared IDs with different details):
  </span>
  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 divide-y divide-slate-100">
  {c.idConflicts.map((ic, icIndex) => (
  <div key={ic.id} className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[10.5px]">
  <div>
- <span className="font-bold text-slate-900 font-mono">Record ID: {ic.id}</span>
- <span className="text-[9px] text-slate-900 font-medium block font-medium">
+ <span className="font-bold text-gray-900 font-mono">Record ID: {ic.id}</span>
+ <span className="text-[9px] text-gray-900 font-medium block font-medium">
  Detects differing attributes. Choose which version to preserve.
  </span>
  </div>
@@ -1067,10 +1067,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  return updated;
  });
  }}
- className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide cursor-pointer border transition-all ${
+ className={`px-3 py-1.5 rounded-lg text-[9px] font-semibold  tracking-wide cursor-pointer border transition-all ${
  ic.selectedSource === 'cloud'
- ? 'bg-teal-700 text-slate-900 border-teal-700 shadow-xs'
- : 'bg-slate-50 border border-slate-200 text-slate-900 font-medium border-slate-200 hover:bg-slate-50 border border-slate-200'
+ ? 'bg-teal-700 text-gray-900 border-teal-700 shadow-xs'
+ : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
  }`}
  >
  Use Cloud
@@ -1084,10 +1084,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  return updated;
  });
  }}
- className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wide cursor-pointer border transition-all ${
+ className={`px-3 py-1.5 rounded-lg text-[9px] font-semibold  tracking-wide cursor-pointer border transition-all ${
  ic.selectedSource === 'local'
- ? 'bg-amber-600 text-slate-900 border-amber-600 shadow-xs'
- : 'bg-slate-50 border border-slate-200 text-slate-900 font-medium border-slate-200 hover:bg-slate-50 border border-slate-200'
+ ? 'bg-amber-600 text-gray-900 border-amber-600 shadow-xs'
+ : 'bg-slate-50 border border-gray-200 text-gray-900 font-medium border-gray-200 hover:bg-slate-50 border border-gray-200'
  }`}
  >
  Keep Local
@@ -1104,13 +1104,13 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  {/* Action Strategies */}
  <div className="bg-amber-100/30 p-4 rounded-xl border border-amber-200 text-left space-y-4 pt-4">
- <h4 className="text-[10px] font-black uppercase text-amber-900 tracking-wider">Select Resolution Strategy</h4>
+ <h4 className="text-[10px] font-semibold  text-amber-900 tracking-normal">Select Resolution Strategy</h4>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
  <button
  type="button"
  onClick={() => handleExecuteMerge('merge')}
- className="p-3 bg-teal-850 hover:bg-teal-800 text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer border-none shadow-sm transition-all"
+ className="p-3 bg-teal-850 hover:bg-teal-800 text-gray-900 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer border-none shadow-sm transition-all"
  >
  🤝 Smart Merge Record-By-ID
  <span className="block text-[8px] font-normal text-teal-200 lowercase mt-0.5">Keeps all unique items; resolves conflicting IDs above</span>
@@ -1119,10 +1119,10 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  type="button"
  onClick={() => handleExecuteMerge('cloud')}
- className="p-3 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer border border-slate-200 shadow-sm transition-all"
+ className="p-3 bg-slate-50 border border-gray-200 hover:bg-slate-100 text-gray-900 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer border border-gray-200 shadow-sm transition-all"
  >
  📥 Cloud Overwrite
- <span className="block text-[8px] font-normal text-slate-900 font-medium lowercase mt-0.5">Completely replace this local device state with cloud</span>
+ <span className="block text-[8px] font-normal text-gray-900 font-medium lowercase mt-0.5">Completely replace this local device state with cloud</span>
  </button>
 
  <button
@@ -1133,7 +1133,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  setCloudPayload(null);
  setStatusMsg({ type: null, text: '' });
  }}
- className="p-3 bg-white shadow-sm hover:bg-slate-55 border border-amber-250 text-amber-950 rounded-xl text-xs font-black uppercase tracking-wider text-center cursor-pointer transition-all"
+ className="p-3 bg-white shadow-sm hover:bg-slate-55 border border-amber-250 text-amber-950 rounded-xl text-xs font-semibold tracking-tight text-center cursor-pointer transition-all"
  >
  🚫 Abandon Pull
  <span className="block text-[8px] font-normal text-amber-800 lowercase mt-0.5">Keep current local data as is and close merge dashboard</span>
@@ -1145,14 +1145,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {/* Export */}
- <div className="border border-slate-150 p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+ <div className="border border-gray-200 p-5 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col justify-between">
  <div className="space-y-1.5 mb-4">
- <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-sky-100 text-sky-850 rounded-lg text-[10px] font-black uppercase tracking-wider">
+ <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-sky-100 text-sky-850 rounded-lg text-[10px] font-semibold tracking-tight">
  <FileJson size={12} strokeWidth={2.5} />
  Safe Encapsulation
  </div>
- <h3 className="text-sm font-extrabold text-slate-900">Export Backup Snapshot</h3>
- <p className="text-xs text-slate-900 font-medium leading-relaxed">
+ <h3 className="text-sm font-semibold text-gray-900">Export Backup Snapshot</h3>
+ <p className="text-xs text-gray-900 font-medium leading-relaxed">
  Downloads a complete offline backup file (`.json`) containing all farm operations, staff configurations, and harvest financials on your machine.
  </p>
  </div>
@@ -1160,7 +1160,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  onClick={handleExportBackup}
  disabled={isExporting}
- className="w-full bg-emerald-950 hover:bg-emerald-900 text-slate-900 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
+ className="w-full bg-white hover:bg-emerald-900 text-gray-900 font-semibold py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
  >
  {isExporting ? <RefreshCw className="animate-spin" size={14} /> : <DownloadCloud size={14} />}
  Export Snapshot
@@ -1168,14 +1168,14 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
 
  {/* Import */}
- <div className="border border-slate-150 p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+ <div className="border border-gray-200 p-5 rounded-2xl bg-slate-50 border border-gray-200 flex flex-col justify-between">
  <div className="space-y-1.5 mb-4">
- <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 text-amber-850 rounded-lg text-[10px] font-black uppercase tracking-wider">
+ <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 text-amber-850 rounded-lg text-[10px] font-semibold tracking-tight">
  <HardDriveUpload size={12} strokeWidth={2.5} />
  Database Rewrite
  </div>
- <h3 className="text-sm font-extrabold text-slate-900">Upload & Restore Database</h3>
- <p className="text-xs text-slate-900 font-medium leading-relaxed">
+ <h3 className="text-sm font-semibold text-gray-900">Upload & Restore Database</h3>
+ <p className="text-xs text-gray-900 font-medium leading-relaxed">
  Upload an existing `.json` backup file. WARNING: This replaces all current farm data with the exact records of your uploaded file.
  </p>
  </div>
@@ -1191,7 +1191,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  <button
  onClick={() => fileInputRef.current?.click()}
  disabled={isImporting}
- className="w-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-900 font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
+ className="w-full bg-slate-50 border border-gray-200 hover:bg-slate-100 text-gray-900 font-semibold py-3 rounded-xl text-xs tracking-tight flex items-center justify-center gap-2 border-0 cursor-pointer shadow-xs active:scale-[0.99] transition-all disabled:opacity-50"
  >
  {isImporting ? <RefreshCw className="animate-spin" size={14} /> : <UploadCloud size={14} />}
  Restore Snapshot
@@ -1201,51 +1201,51 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  </div>
 
  {/* Online/Offline Network Simulator Control Dashboard (Improvement 4) */}
- <div className="bg-slate-50 border border-slate-200 border border-slate-200 p-5 rounded-2xl space-y-4">
- <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+ <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
+ <div className="flex items-center justify-between border-b border-gray-200 pb-2">
  <div className="flex items-center gap-2">
- <RefreshCw className="text-emerald-700 animate-spin-slow" size={16} />
- <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none">
+ <RefreshCw className="text-green-600 animate-spin-slow" size={16} />
+ <h3 className="text-xs font-semibold text-gray-900 tracking-tight leading-none">
  Live Synchronization & Connectivity Control
  </h3>
  </div>
- <span className="text-[10px] font-mono text-slate-900 font-medium font-bold">Heuristic Sync Enforcer</span>
+ <span className="text-[10px] font-mono text-gray-900 font-medium font-bold">Heuristic Sync Enforcer</span>
  </div>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div className="p-3 bg-white shadow-sm rounded-xl border border-slate-150 space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium block pb-0.5">Network Simulation Status</span>
+ <div className="p-3 bg-white shadow-sm rounded-xl border border-gray-200 space-y-1">
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium block pb-0.5">Network Simulation Status</span>
  <div className="flex items-center gap-2">
  <span className={`w-2.5 h-2.5 rounded-full ${isForcedOffline ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
- <span className="text-xs font-black uppercase tracking-tight text-slate-900">
+ <span className="text-xs font-semibold  tracking-tight text-gray-900">
  {isForcedOffline ? 'Forced Offline Simulation' : 'Active Online Cloud Tunnel'}
  </span>
  </div>
  </div>
- <div className="p-3 bg-white shadow-sm rounded-xl border border-slate-150 space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium block pb-0.5">Database Sync Latency</span>
- <span className="font-mono text-xs font-black text-slate-900 block">
+ <div className="p-3 bg-white shadow-sm rounded-xl border border-gray-200 space-y-1">
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium block pb-0.5">Database Sync Latency</span>
+ <span className="font-mono text-xs font-semibold text-gray-900 block">
  {isForcedOffline ? '∞ infinite (Simulation)' : '42ms (Secure Socket Tunnel)'}
  </span>
  </div>
- <div className="p-3 bg-white shadow-sm rounded-xl border border-slate-150 flex items-center justify-between">
+ <div className="p-3 bg-white shadow-sm rounded-xl border border-gray-200 flex items-center justify-between">
  <div className="space-y-0.5">
- <span className="text-[9px] font-black uppercase text-amber-800 block">Simulate Offline Mode</span>
- <p className="text-[10px] text-slate-900 font-medium leading-none">Simulates telemetry disconnected</p>
+ <span className="text-[9px] font-semibold  text-amber-800 block">Simulate Offline Mode</span>
+ <p className="text-[10px] text-gray-900 font-medium leading-none">Simulates telemetry disconnected</p>
  </div>
  <button
  onClick={toggleOfflineSimulation}
- className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-0 cursor-pointer ${
+ className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold tracking-tight transition-all border-0 cursor-pointer ${
  isForcedOffline 
- ? 'bg-amber-500 text-slate-950 font-extrabold shadow-xs' 
- : 'bg-slate-50 border border-slate-200 text-slate-900 font-semibold hover:bg-slate-300'
+ ? 'bg-amber-500 text-gray-500 font-semibold shadow-xs' 
+ : 'bg-slate-50 border border-gray-200 text-gray-900 font-semibold hover:bg-slate-300'
  }`}
  >
  {isForcedOffline ? 'Go Online' : 'Go Offline'}
  </button>
  </div>
  </div>
- <p className="text-[10px] text-slate-900 font-medium italic leading-normal font-medium max-w-xl">
+ <p className="text-[10px] text-gray-900 font-medium italic leading-normal font-medium max-w-xl">
  💡 <strong>HINTS:</strong> Going Offline automatically instructs the dynamic diagnostics scanner, feed formulations, and GlobalGAP spraying recorders to run on our custom local browser core-heuristics, bypassing API routes.
  </p>
  </div>
@@ -1253,15 +1253,15 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  {/* Preset default rebuild */}
  <div className="p-4 rounded-2xl border border-rose-100 bg-rose-900/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
  <div className="space-y-1">
- <h4 className="text-xs font-black uppercase text-rose-900 tracking-wider">Reconstruct Seed State</h4>
- <p className="text-[11px] text-slate-900 font-medium font-semibold leading-relaxed max-w-xl">
+ <h4 className="text-xs font-semibold  text-rose-900 tracking-normal">Reconstruct Seed State</h4>
+ <p className="text-[11px] text-gray-900 font-medium font-semibold leading-relaxed max-w-xl">
  Need a clean slate? This deletes any records inputted and resets the enterprise ledger to the factory preset values.
  </p>
  </div>
  <button
  onClick={triggerReset}
  disabled={isResetting}
- className="shrink-0 bg-rose-500 hover:bg-rose-600 font-black text-white text-xs px-5 py-2.5 rounded-xl uppercase tracking-wider border-0 cursor-pointer shadow-xs transition-colors active:scale-95 disabled:opacity-50"
+ className="shrink-0 bg-rose-500 hover:bg-rose-600 font-semibold text-white text-xs px-5 py-2.5 rounded-xl tracking-tight border-0 cursor-pointer shadow-xs transition-colors active:scale-95 disabled:opacity-50"
  >
  Reset Database
  </button>

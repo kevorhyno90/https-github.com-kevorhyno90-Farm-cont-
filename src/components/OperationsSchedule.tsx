@@ -82,7 +82,7 @@ const getDaysDiffText = (targetDateStr: string) => {
  } else {
  return {
  text: `📅 In ${diffDays} Days`,
- badgeStyle: 'bg-slate-50 border border-slate-200 text-slate-900 font-semibold border-slate-200'
+ badgeStyle: 'bg-slate-50 border border-gray-200 text-gray-900 font-semibold border-gray-200'
  };
  }
 };
@@ -531,42 +531,42 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  });
 
  return (
- <div className="space-y-6 font-sans antialiased text-slate-900 animate-fadeIn" id="timetable-root">
+ <div className="space-y-6 font-sans antialiased text-gray-900 animate-fadeIn" id="timetable-root">
  
  {/* Toast alert box */}
  {toastMessage && (
- <div className="fixed bottom-6 right-6 z-50 bg-white shadow-sm border border-slate-200 text-slate-900 font-extrabold text-xs px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 animate-fadeIn">
+ <div className="fixed bottom-6 right-6 z-50 bg-white shadow-sm border border-gray-200 text-gray-900 font-semibold text-xs px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 animate-fadeIn">
  <BellRing size={16} className="text-yellow-400 animate-bounce" />
  <span>{toastMessage}</span>
  </div>
  )}
 
  {/* Header Banner */}
- <div className="bg-white shadow-sm border border-white/10 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+ <div className="bg-white shadow-sm border border-gray-100 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
- <span className="p-1 px-2.5 bg-yellow-105 bg-yellow-100 text-yellow-800 rounded-lg text-[9px] font-black uppercase tracking-wider">
+ <span className="p-1 px-2.5 bg-yellow-105 bg-yellow-100 text-yellow-800 rounded-lg text-[9px] font-semibold tracking-tight">
  Chronological Ledger
  </span>
- <span className="text-[10px] text-slate-900 font-medium font-black tracking-widest uppercase">
+ <span className="text-[10px] text-gray-900 font-medium font-semibold tracking-normal ">
  Operations Timetable System
  </span>
  </div>
- <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
- <Calendar className="text-emerald-700" size={22} />
+ <h2 className="text-xl font-semibold text-gray-900 text-gray-900 flex items-center gap-2">
+ <Calendar className="text-green-600" size={22} />
  On-Farm Standard Operating Procedures
  </h2>
- <p className="text-xs text-slate-450 font-medium pb-1">
+ <p className="text-xs text-gray-500 font-medium pb-1">
  Monitor which operations are performed when, how they are executed, and why they are vital to secure maximum dairy, crop, and canine yields.
  </p>
  </div>
 
- <div className="flex items-center gap-2 w-full sm:w-auto self-center md:self-auto uppercase">
+ <div className="flex items-center gap-2 w-full sm:w-auto self-center md:self-auto ">
  {onTriggerSectionReport && (
  <button
  onClick={() => onTriggerSectionReport('schedule')}
  type="button"
- className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 hover:text-slate-950 border border-amber-600/10 font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 h-10 font-bold"
+ className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-gray-500 hover:text-gray-500 border border-amber-600/10 font-bold text-xs  rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 h-10 font-bold"
  title="Download Operations & Schedules PDF Report"
  >
  <Download size={13} />
@@ -582,7 +582,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  setWhy('');
  setShowAddModal(true);
  }}
- className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-950 hover:bg-emerald-900 active:scale-[0.98] text-slate-900 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer border-0 m-0 shrink-0"
+ className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-emerald-900 active:scale-[0.98] text-gray-900 font-semibold text-xs tracking-tight rounded-xl transition-all shadow-sm cursor-pointer border-0 m-0 shrink-0"
  >
  <Plus size={15} />
  Create Custom SOP Task
@@ -591,14 +591,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
 
  {/* Browser to Phone-Taskbar push control center */}
- <div className="bg-gradient-to-r from-indigo-950 to-slate-900 text-slate-900 rounded-3xl p-6 border border-indigo-900 shadow-md space-y-4">
+ <div className="bg-gradient-to-r from-indigo-950 to-slate-900 text-gray-900 rounded-3xl p-6 border border-indigo-900 shadow-md space-y-4">
  <div className="flex items-center justify-between flex-wrap gap-4">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
- <span className="bg-indigo-700 text-indigo-100 font-bold text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+ <span className="bg-indigo-700 text-indigo-100 font-bold text-[8.5px] tracking-tight px-2 py-0.5 rounded-full">
  Phone & Desktop Link
  </span>
- <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5 uppercase tracking-wide">
+ <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5  tracking-wide">
  <Bell size={14} className="text-yellow-400 shrink-0" /> Phone Taskbar Notification Driver
  </h4>
  </div>
@@ -610,19 +610,19 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <div className="flex flex-col gap-3 min-w-xs">
  <div className="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
  {permission === 'granted' ? (
- <span className="bg-emerald-800 text-emerald-200 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl block shrink-0 border border-emerald-700/50">
+ <span className="bg-emerald-800 text-green-600 text-[10px] font-semibold  px-4 py-2.5 rounded-xl block shrink-0 border border-emerald-700/50">
  ✓ System Authorized
  </span>
  ) : permission === 'denied' ? (
  <div className="flex flex-col gap-2 w-full">
- <span className="bg-red-900/60 text-red-200 text-[9px] font-black uppercase px-3 py-2 rounded-xl text-center border border-red-800/50">
+ <span className="bg-red-900/60 text-red-200 text-[9px] font-semibold  px-3 py-2 rounded-xl text-center border border-red-800/50">
  ⚠️ Blocked by Sandbox Iframe
  </span>
  <a
  href={window.location.href}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl transition-all text-center inline-block cursor-pointer decoration-none"
+ className="bg-yellow-500 hover:bg-yellow-400 text-gray-500 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-all text-center inline-block cursor-pointer decoration-none"
  >
  🚀 Open App in New Tab to Approve
  </a>
@@ -630,7 +630,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  ) : (
  <button
  onClick={requestNotificationPermission}
- className="bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer border-0"
+ className="bg-yellow-500 hover:bg-yellow-400 text-gray-500 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer border-0"
  >
  🔔 Auth Notifications
  </button>
@@ -639,7 +639,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {permission !== 'denied' && (
  <button
  onClick={handleTestNotificationImmediate}
- className="bg-white shadow-sm /10 hover:bg-white shadow-sm /15 text-slate-900 border border-white/20 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
+ className="bg-white shadow-sm /10 hover:bg-gray-50 /15 text-gray-900 border border-white/20 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
  >
  ⚡ Immediate Test Push
  </button>
@@ -657,23 +657,23 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {/* Trigger specific scheduling test alerts */}
  <div className="pt-4 border-t border-indigo-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
  <div className="space-y-1">
- <span className="text-[10px] font-black uppercase text-indigo-305 text-indigo-400 tracking-widest block">Choose major crop/animal reminder to test:</span>
+ <span className="text-[10px] font-semibold  text-indigo-305 text-indigo-400 tracking-normal block">Choose major crop/animal reminder to test:</span>
  <div className="flex gap-1.5 flex-wrap">
  <button
  onClick={() => handleScheduleTestReminder("Deworming & Rabies Vaccine Run 🦠", 10)}
- className="bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 border border-slate-200/60 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
+ className="bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 border border-gray-200 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
  >
  🐕 Canine Vaccines (10s)
  </button>
  <button
  onClick={() => handleScheduleTestReminder("Avocado Anthracnose Copper Spray 🥑", 15)}
- className="bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 border border-slate-200/60 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
+ className="bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 border border-gray-200 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
  >
  🥑 Orchard Spraying (15s)
  </button>
  <button
  onClick={() => handleScheduleTestReminder("Calf Starter Decorn Lidocaine blocks 🐄", 20)}
- className="bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 border border-slate-200/60 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
+ className="bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 border border-gray-200 text-indigo-200 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg"
  >
  🍼 Calf Bud Decorn (20s)
  </button>
@@ -682,7 +682,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
 
  {activeReminders.length > 0 && (
  <div className="p-3 bg-indigo-900/60 rounded-xl border border-indigo-805 text-xs font-bold text-yellow-300 animate-pulse space-y-1 w-full md:w-auto shrink-0">
- <span className="block text-[9px] uppercase tracking-wider text-indigo-200 mb-1">Pending Timer triggers:</span>
+ <span className="block text-[9px] tracking-tight text-indigo-200 mb-1">Pending Timer triggers:</span>
  {activeReminders.map(r => (
  <div key={r.id} className="flex justify-between items-center gap-4 text-[10px]">
  <span className="truncate">{r.operation}</span>
@@ -695,14 +695,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
  
  {/* Kanban Board vs List View Toggle */}
- <div className="flex justify-start gap-2 border-b border-white/10 pb-2">
+ <div className="flex justify-start gap-2 border-b border-gray-100 pb-2">
  <button
  onClick={() => setViewMode('kanban')}
  type="button"
- className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
+ className={`px-4 py-2 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border ${
  viewMode === 'kanban'
- ? 'bg-emerald-950 text-slate-900 border-emerald-950 shadow-sm font-bold'
- : 'bg-white shadow-sm text-slate-900 font-medium hover:text-slate-900 border-slate-205'
+ ? 'bg-white text-gray-900 border-emerald-950 shadow-sm font-bold'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-900 border-gray-200'
  }`}
  >
  🗂️ Operations Kanban Board
@@ -710,10 +710,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <button
  onClick={() => setViewMode('list')}
  type="button"
- className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
+ className={`px-4 py-2 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border ${
  viewMode === 'list'
- ? 'bg-emerald-950 text-slate-900 border-emerald-950 shadow-sm font-bold'
- : 'bg-white shadow-sm text-slate-900 font-medium hover:text-slate-900 border-slate-205'
+ ? 'bg-white text-gray-900 border-emerald-950 shadow-sm font-bold'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-900 border-gray-200'
  }`}
  >
  📋 Standard Timetable List
@@ -721,10 +721,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
  
  {/* Filter and Stats Segment */}
- <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 border border-slate-200 border border-white/10 p-4 rounded-2xl">
+ <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50 border border-gray-200 border border-gray-100 p-4 rounded-2xl">
  <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto flex-wrap">
  <div className="flex items-center gap-1">
- <span className="text-[10px] font-black uppercase text-slate-405 flex items-center gap-1">
+ <span className="text-[10px] font-semibold  text-gray-500 flex items-center gap-1">
  <Filter size={12} /> Filter:
  </span>
  <div className="flex gap-1 flex-wrap">
@@ -732,10 +732,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <button
  key={cat}
  onClick={() => setFilterCategory(cat)}
- className={`text-[10px] font-black uppercase px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer m-0 ${
+ className={`text-[10px] font-semibold  px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer m-0 ${
  filterCategory === cat
- ? 'bg-slate-905 bg-white shadow-sm text-slate-900 border-slate-200'
- : 'bg-white shadow-sm text-slate-900 font-medium hover:text-slate-900 border-slate-200'
+ ? 'bg-slate-905 bg-white shadow-sm text-gray-900 border-gray-200'
+ : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-900 border-gray-200'
  }`}
  >
  {cat === 'all' ? 'Show All' : cat}
@@ -745,11 +745,11 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
 
  <div className="flex items-center gap-1.5 min-w-[200px]">
- <span className="text-[10px] font-black uppercase text-slate-405 shrink-0">Sort By:</span>
+ <span className="text-[10px] font-semibold  text-gray-500 shrink-0">Sort By:</span>
  <select
  value={sortBy}
  onChange={(e) => setSortBy(e.target.value as 'dateAsc' | 'dateDesc' | 'status' | 'category')}
- className="bg-white shadow-sm border border-slate-200 rounded-lg text-[10px] font-black uppercase px-2.5 py-1.5 text-slate-900 font-semibold w-full sm:w-auto"
+ className="bg-white shadow-sm border border-gray-200 rounded-lg text-[10px] font-semibold  px-2.5 py-1.5 text-gray-900 font-semibold w-full sm:w-auto"
  >
  <option value="dateAsc">Planned Date (Soonest first)</option>
  <option value="dateDesc">Planned Date (Latest first)</option>
@@ -760,11 +760,11 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
 
  <div className="flex items-center gap-3 shrink-0 text-xs">
- <div className="flex items-center gap-1.5 text-slate-900 font-medium font-bold">
+ <div className="flex items-center gap-1.5 text-gray-900 font-medium font-bold">
  <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block"></span>
  <span>Completed: {items.filter(i => i.status === 'Completed').length}</span>
  </div>
- <div className="flex items-center gap-1.5 text-slate-900 font-medium font-bold">
+ <div className="flex items-center gap-1.5 text-gray-900 font-medium font-bold">
  <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full inline-block"></span>
  <span>Pending: {items.filter(i => i.status === 'Pending').length}</span>
  </div>
@@ -775,40 +775,40 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {viewMode === 'kanban' && (
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
  {/* COLUMN 1: PENDING / SCHEDULED */}
- <div className="bg-slate-50 border border-slate-200 p-4 rounded-3xl border border-white/10 space-y-4">
+ <div className="bg-slate-50 border border-gray-200 p-4 rounded-3xl border border-gray-100 space-y-4">
  <div className="flex justify-between items-center px-1">
- <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">📋 Scheduled / Pending</span>
- <span className="bg-amber-100 text-amber-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+ <span className="text-[11px] font-semibold  text-amber-800 tracking-normal">📋 Scheduled / Pending</span>
+ <span className="bg-amber-100 text-amber-850 px-2 py-0.5 rounded-full text-[10px] font-semibold font-mono">
  {filteredItems.filter(i => i.status === 'Pending').length}
  </span>
  </div>
  <div className="space-y-3">
  {filteredItems.filter(i => i.status === 'Pending').length === 0 ? (
- <p className="text-[11px] text-slate-900 font-medium italic text-center py-6">No pending chores in this filter.</p>
+ <p className="text-[11px] text-gray-900 font-medium italic text-center py-6">No pending chores in this filter.</p>
  ) : (
  filteredItems.filter(i => i.status === 'Pending').map(item => {
  const diffText = getDaysDiffText(item.targetDate);
  return (
- <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative group">
+ <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 relative group">
  <div>
- <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
- <h4 className="text-xs font-black text-slate-900 mt-2 leading-snug">{item.operation}</h4>
+ <span className="text-[9px] bg-slate-50 border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <h4 className="text-xs font-semibold text-gray-900 mt-2 leading-snug">{item.operation}</h4>
  </div>
- <div className="text-[10px] text-slate-900 font-medium font-bold space-y-0.5">
+ <div className="text-[10px] text-gray-900 font-medium font-bold space-y-0.5">
  <p>🕒 {item.when}</p>
  <p>👤 {item.assignedTo || 'General Team'}</p>
- {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
+ {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-semibold  rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
  </div>
- <div className="flex gap-1.5 pt-2 border-t border-white/10">
+ <div className="flex gap-1.5 pt-2 border-t border-gray-100">
  <button
  onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
- className="w-full py-1.5 bg-indigo-900/20 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-black uppercase rounded-lg cursor-pointer"
+ className="w-full py-1.5 bg-indigo-900/20 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-[10px] font-semibold  rounded-lg cursor-pointer"
  >
  Start Task →
  </button>
  <button
  onClick={() => handleUpdateStatusDirect(item.id, 'Completed')}
- className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-850 border border-emerald-200 text-[10px] font-black uppercase rounded-lg cursor-pointer font-bold"
+ className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-green-600 border border-emerald-200 text-[10px] font-semibold  rounded-lg cursor-pointer font-bold"
  title="Mark Completed"
  >
  ✓
@@ -822,40 +822,40 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
  
  {/* COLUMN 2: IN PROGRESS */}
- <div className="bg-slate-50 border border-slate-200 p-4 rounded-3xl border border-white/10 space-y-4">
+ <div className="bg-slate-50 border border-gray-200 p-4 rounded-3xl border border-gray-100 space-y-4">
  <div className="flex justify-between items-center px-1">
- <span className="text-[11px] font-black uppercase text-indigo-800 tracking-wider">⚡ In Progress</span>
- <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+ <span className="text-[11px] font-semibold  text-indigo-800 tracking-normal">⚡ In Progress</span>
+ <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-full text-[10px] font-semibold font-mono">
  {filteredItems.filter(i => i.status === 'In Progress').length}
  </span>
  </div>
  <div className="space-y-3">
  {filteredItems.filter(i => i.status === 'In Progress').length === 0 ? (
- <p className="text-[11px] text-slate-900 font-medium italic text-center py-6">No tasks in progress.</p>
+ <p className="text-[11px] text-gray-900 font-medium italic text-center py-6">No tasks in progress.</p>
  ) : (
  filteredItems.filter(i => i.status === 'In Progress').map(item => {
  const diffText = getDaysDiffText(item.targetDate);
  return (
- <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-slate-150 shadow-xs space-y-3 relative">
+ <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 relative">
  <div>
- <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
- <h4 className="text-xs font-black text-slate-900 mt-2 leading-snug">{item.operation}</h4>
+ <span className="text-[9px] bg-slate-50 border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <h4 className="text-xs font-semibold text-gray-900 mt-2 leading-snug">{item.operation}</h4>
  </div>
- <div className="text-[10px] text-slate-900 font-medium font-bold space-y-0.5">
+ <div className="text-[10px] text-gray-900 font-medium font-bold space-y-0.5">
  <p>🕒 {item.when}</p>
  <p>👤 {item.assignedTo || 'General Team'}</p>
- {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-black uppercase rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
+ {diffText && <span className={`inline-block mt-2 px-2 py-0.5 text-[9px] font-semibold  rounded border ${diffText.badgeStyle}`}>{diffText.text}</span>}
  </div>
- <div className="flex gap-1.5 pt-2 border-t border-white/10">
+ <div className="flex gap-1.5 pt-2 border-t border-gray-100">
  <button
  onClick={() => handleUpdateStatusDirect(item.id, 'Pending')}
- className="w-1/2 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 font-semibold border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+ className="w-1/2 py-1.5 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 font-semibold border text-[10px] font-semibold  rounded-lg cursor-pointer"
  >
  ← Revert
  </button>
  <button
  onClick={() => handleUpdateStatusDirect(item.id, 'Completed')}
- className="w-1/2 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-slate-900 text-[10px] font-black uppercase rounded-lg cursor-pointer border-none shadow"
+ className="w-1/2 py-1.5 bg-white hover:bg-emerald-900 text-gray-900 text-[10px] font-semibold  rounded-lg cursor-pointer border-none shadow"
  >
  Complete ✓
  </button>
@@ -868,32 +868,32 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
  
  {/* COLUMN 3: COMPLETED */}
- <div className="bg-slate-50 border border-slate-200 p-4 rounded-3xl border border-white/10 space-y-4">
+ <div className="bg-slate-50 border border-gray-200 p-4 rounded-3xl border border-gray-100 space-y-4">
  <div className="flex justify-between items-center px-1">
- <span className="text-[11px] font-black uppercase text-emerald-900 tracking-wider">✅ Verified / Completed</span>
- <span className="bg-emerald-100 text-emerald-850 px-2 py-0.5 rounded-full text-[10px] font-black font-mono">
+ <span className="text-[11px] font-semibold  text-green-600 tracking-normal">✅ Verified / Completed</span>
+ <span className="bg-emerald-100 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-semibold font-mono">
  {filteredItems.filter(i => i.status === 'Completed').length}
  </span>
  </div>
  <div className="space-y-3">
  {filteredItems.filter(i => i.status === 'Completed').length === 0 ? (
- <p className="text-[11px] text-slate-900 font-medium italic text-center py-6">No completed tasks yet.</p>
+ <p className="text-[11px] text-gray-900 font-medium italic text-center py-6">No completed tasks yet.</p>
  ) : (
  filteredItems.filter(i => i.status === 'Completed').map(item => {
  return (
- <div key={item.id} className="bg-white shadow-sm /80 p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3 opacity-90 relative">
+ <div key={item.id} className="bg-white shadow-sm /80 p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 opacity-90 relative">
  <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600"></div>
  <div>
- <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-650 px-1.5 py-0.5 rounded font-black uppercase">{item.category}</span>
- <h4 className="text-xs font-black text-slate-550 line-through mt-2 leading-snug">{item.operation}</h4>
+ <span className="text-[9px] bg-slate-50 border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <h4 className="text-xs font-semibold text-gray-500 line-through mt-2 leading-snug">{item.operation}</h4>
  </div>
- <div className="text-[10px] text-slate-455 text-slate-900 font-medium font-bold space-y-0.5">
+ <div className="text-[10px] text-gray-500 text-gray-900 font-medium font-bold space-y-0.5">
  <p>👤 {item.assignedTo || 'General Team'}</p>
  </div>
- <div className="flex gap-1.5 pt-2 border-t border-white/10">
+ <div className="flex gap-1.5 pt-2 border-t border-gray-100">
  <button
  onClick={() => handleUpdateStatusDirect(item.id, 'In Progress')}
- className="w-full py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 font-semibold border text-[10px] font-black uppercase rounded-lg cursor-pointer"
+ className="w-full py-1.5 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 font-semibold border text-[10px] font-semibold  rounded-lg cursor-pointer"
  >
  ← Move to In Progress
  </button>
@@ -911,10 +911,10 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {viewMode === 'list' && (
  <div className="space-y-4" id="timetable-timeline">
  {filteredItems.length === 0 ? (
- <div className="bg-white shadow-sm border border-white/10 rounded-3xl p-12 text-center text-slate-900 font-medium font-bold text-xs space-y-2">
- <AlertCircle className="mx-auto text-slate-900 font-medium" size={32} />
+ <div className="bg-white shadow-sm border border-gray-100 rounded-3xl p-12 text-center text-gray-900 font-medium font-bold text-xs space-y-2">
+ <AlertCircle className="mx-auto text-gray-900 font-medium" size={32} />
  <p>No operations scheduled in this category.</p>
- <p className="text-[11px] font-normal text-slate-900 font-medium">Add a custom SOP using the button above.</p>
+ <p className="text-[11px] font-normal text-gray-900 font-medium">Add a custom SOP using the button above.</p>
  </div>
  ) : (
  filteredItems.map((item) => {
@@ -924,8 +924,8 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  key={item.id} 
  className={`bg-white shadow-sm border rounded-3xl p-5 md:p-6 transition-all shadow-xs relative overflow-hidden ${
  item.status === 'Completed' 
- ? 'border-slate-150 bg-slate-50 border border-slate-200/50 opacity-90' 
- : 'border-white/10 hover:border-emerald-700/20'
+ ? 'border-gray-200 bg-slate-50 border border-gray-200 opacity-90' 
+ : 'border-gray-100 hover:border-emerald-700/20'
  }`}
  >
  {/* Completed decorative line */}
@@ -938,14 +938,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  
  {/* Category, Status & Edit/Delete button header */}
  <div className="flex items-center justify-between md:justify-start gap-2 flex-wrap">
- <span className="bg-slate-150 text-slate-900 text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+ <span className="bg-slate-150 text-gray-900 text-[8.5px] font-semibold px-2 py-0.5 rounded-md  tracking-wide">
  {item.category}
  </span>
  <button
  onClick={() => handleToggleStatus(item.id)}
- className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider cursor-pointer m-0 ${
+ className={`text-[8px] font-semibold px-2 py-0.5 rounded-md tracking-tight cursor-pointer m-0 ${
  item.status === 'Completed'
- ? 'bg-emerald-100 text-emerald-800'
+ ? 'bg-emerald-100 text-green-600'
  : 'bg-yellow-100 text-yellow-800'
  }`}
  >
@@ -954,19 +954,19 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  
  {/* RELATIVE TIME BADGE OR DONE STATUS */}
  {item.status === 'Completed' ? (
- <span className="bg-emerald-55 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+ <span className="bg-emerald-55 bg-emerald-50 text-green-600 border border-emerald-200 text-[8.5px] font-semibold px-2 py-0.5 rounded-md  tracking-wide">
  ✓ Done
  </span>
  ) : (
  timeDiffBadge && (
- <span className={`text-[8.5px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide border ${timeDiffBadge.badgeStyle}`}>
+ <span className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-md  tracking-wide border ${timeDiffBadge.badgeStyle}`}>
  {timeDiffBadge.text}
  </span>
  )
  )}
 
  {item.custom && (
- <span className="bg-purple-100 text-purple-800 text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wide">
+ <span className="bg-purple-100 text-purple-800 text-[8px] font-semibold px-2 py-0.5 rounded-md  tracking-wide">
  Custom Added
  </span>
  )}
@@ -975,25 +975,25 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {/* EDIT OP BUTTON */}
  <button
  onClick={() => handleStartEdit(item)}
- className="text-slate-900 font-medium hover:text-indigo-805 p-1 hover:bg-slate-55 rounded cursor-pointer border-0 bg-transparent"
+ className="text-gray-900 font-medium hover:text-indigo-805 p-1 hover:bg-slate-55 rounded cursor-pointer border-0 bg-transparent"
  title="Edit SOP operation values"
  >
- <PenSquare size={13} className="text-slate-900 font-medium hover:text-indigo-650" />
+ <PenSquare size={13} className="text-gray-900 font-medium hover:text-indigo-650" />
  </button>
 
  {/* DELETE OP BUTTON */}
  <button
  onClick={() => handleDeleteItem(item.id)}
- className="text-slate-900 font-medium hover:text-rose-800 font-bold p-1 cursor-pointer bg-transparent border-0"
+ className="text-gray-900 font-medium hover:text-rose-800 font-bold p-1 cursor-pointer bg-transparent border-0"
  title="Delete Operations record"
  >
- <Trash2 size={13} className="text-slate-550 hover:text-red-600" />
+ <Trash2 size={13} className="text-gray-500 hover:text-red-600" />
  </button>
  </div>
  </div>
 
  {/* Operation Name */}
- <h3 className={`text-base font-black text-slate-900 ${item.status === 'Completed' ? 'line-through text-slate-450 text-slate-900 font-medium' : ''}`}>
+ <h3 className={`text-base font-semibold text-gray-900 ${item.status === 'Completed' ? 'line-through text-gray-500 text-gray-900 font-medium' : ''}`}>
  {item.operation}
  </h3>
 
@@ -1002,14 +1002,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  
  {/* PLANNED DATE & ASSIGNED */}
  <div className="space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium tracking-wider flex items-center gap-1">
- <Calendar size={11} className="text-emerald-600" /> Target Date & Team
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal flex items-center gap-1">
+ <Calendar size={11} className="text-green-600" /> Target Date & Team
  </span>
- <div className="text-xs space-y-1 bg-slate-50 border border-slate-200/30 p-2.5 rounded-xl border border-slate-150/50">
- <p className="font-extrabold text-slate-900 flex items-center gap-1">
- <Clock size={10} className="text-slate-450" /> {item.targetDate ? new Date(item.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
+ <div className="text-xs space-y-1 bg-slate-50 border border-gray-200 p-2.5 rounded-xl border border-gray-200">
+ <p className="font-semibold text-gray-900 flex items-center gap-1">
+ <Clock size={10} className="text-gray-500" /> {item.targetDate ? new Date(item.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date set'}
  </p>
- <p className="font-black text-[9px] text-indigo-700 bg-indigo-900/20 px-2 py-0.5 rounded-md inline-block">
+ <p className="font-semibold text-[9px] text-indigo-700 bg-indigo-900/20 px-2 py-0.5 rounded-md inline-block">
  👤 {item.assignedTo || 'General Team'}
  </p>
  </div>
@@ -1017,30 +1017,30 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
 
  {/* WHEN */}
  <div className="space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium tracking-wider flex items-center gap-1">
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal flex items-center gap-1">
  <Clock size={11} className="text-amber-500" /> Frequency/Cadence
  </span>
- <p className="text-xs font-black text-slate-850 bg-slate-50 border border-slate-200/30 p-2.5 rounded-xl border border-slate-150/50">
+ <p className="text-xs font-semibold text-gray-500 bg-slate-50 border border-gray-200 p-2.5 rounded-xl border border-gray-200">
  {item.when}
  </p>
  </div>
 
  {/* HOW */}
  <div className="space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium tracking-wider flex items-center gap-1">
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal flex items-center gap-1">
  <Activity size={11} className="text-blue-500" /> Action SOP
  </span>
- <p className="text-xs text-slate-650 bg-slate-50 border border-slate-200/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed font-semibold">
+ <p className="text-xs text-gray-500 bg-slate-50 border border-gray-200 p-2.5 rounded-xl border border-gray-200 leading-relaxed font-semibold">
  {item.how}
  </p>
  </div>
 
  {/* WHY */}
  <div className="space-y-1">
- <span className="text-[9px] font-black uppercase text-slate-900 font-medium tracking-wider flex items-center gap-1">
+ <span className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal flex items-center gap-1">
  <HelpCircle size={11} className="text-purple-500" /> Technical Impact
  </span>
- <p className="text-xs text-slate-650 bg-slate-50 border border-slate-200/30 p-2.5 rounded-xl border border-slate-150/50 leading-relaxed italic font-medium">
+ <p className="text-xs text-gray-500 bg-slate-50 border border-gray-200 p-2.5 rounded-xl border border-gray-200 leading-relaxed italic font-medium">
  "{item.why}"
  </p>
  </div>
@@ -1055,7 +1055,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer m-0 ${
  item.status === 'Completed'
  ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/10'
- : 'bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 font-medium hover:text-slate-900 font-medium'
+ : 'bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 font-medium hover:text-gray-900 font-medium'
  }`}
  title={item.status === 'Completed' ? 'Mark Task as Pending' : 'Mark Task as Done'}
  >
@@ -1073,20 +1073,20 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {/* CREATE / EDIT SOP TIMETABLE MODAL */}
  {showAddModal && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm font-sans">
- <div className="bg-white shadow-sm rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5 animate-scaleUp border border-white/10 max-h-[90vh] overflow-y-auto">
+ <div className="bg-white shadow-sm rounded-3xl w-full max-w-lg shadow-2xl p-6 md:p-8 space-y-5 animate-scaleUp border border-gray-100 max-h-[90vh] overflow-y-auto">
  
- <div className="flex justify-between items-start pb-3 border-b border-white/10">
+ <div className="flex justify-between items-start pb-3 border-b border-gray-100">
  <div className="space-y-0.5">
- <span className="bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md text-[8px] font-black uppercase">
+ <span className="bg-purple-100 text-purple-900 px-2 py-0.5 rounded-md text-[8px] font-semibold ">
  Standard Operating Procedures
  </span>
- <h3 className="text-base font-black text-slate-950">
+ <h3 className="text-base font-semibold text-gray-500">
  {editingItem ? 'Edit SOP Operation values' : 'Add Custom SOP Operation'}
  </h3>
  </div>
  <button
  onClick={() => setShowAddModal(false)}
- className="text-slate-900 font-medium hover:text-slate-900 font-medium font-bold text-base bg-slate-50 border border-slate-200 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer border-0 m-0"
+ className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold text-base bg-slate-50 border border-gray-200 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer border-0 m-0"
  >
  ✕
  </button>
@@ -1095,13 +1095,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <form onSubmit={handleAddCustom} className="space-y-4">
  
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  Farm Section Category
  </label>
  <select
  value={category}
  onChange={(e) => setCategory(e.target.value as TimetableItem['category'])}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-xs"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 rounded-xl px-3 py-2.5 font-bold text-xs"
  >
  <option value="Cows & Calves">Cows & Calves</option>
  <option value="Goats & Pigs">Goats & Pigs</option>
@@ -1111,7 +1111,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
 
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  Operation Name
  </label>
  <input
@@ -1120,12 +1120,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  placeholder="e.g., Alfalfa hay sorting & visual feed mold quarantine"
  value={operation}
  onChange={(e) => setOperation(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
  />
  </div>
 
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  When is it done? (Temporal cadence/Cadence triggers)
  </label>
  <input
@@ -1134,13 +1134,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  placeholder="e.g., Every Monday at 8:00 AM, or Week 5 post-calving"
  value={when}
  onChange={(e) => setWhen(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
  />
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  Scheduled Executing Date
  </label>
  <input
@@ -1148,11 +1148,11 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  required
  value={targetDate}
  onChange={(e) => setTargetDate(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
  />
  </div>
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  Assigned Owner / Team
  </label>
  <input
@@ -1160,13 +1160,13 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  placeholder="e.g., Milking Crew, Dr. Peter"
  value={assignedTo}
  onChange={(e) => setAssignedTo(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2.5 font-bold text-xs"
  />
  </div>
  </div>
 
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  How is it executed? (Action SOP)
  </label>
  <textarea
@@ -1175,12 +1175,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  placeholder="e.g., Pull visual samples from center of silage stack. Sift manually for white, pinkish spores. Dump or lock moldy silage slices in safe quarantine dump."
  value={how}
  onChange={(e) => setHow(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
  />
  </div>
 
  <div>
- <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 font-medium block mb-1">
+ <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">
  Why is it vital? (Technical agricultural justification)
  </label>
  <textarea
@@ -1189,21 +1189,21 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  placeholder="e.g., Silage mold contains deadly mycotoxins like aflatoxins that trigger immediate dairy liver damage and induce spontaneous calving abortions."
  value={why}
  onChange={(e) => setWhy(e.target.value)}
- className="w-full bg-slate-50 border border-slate-200 border border-slate-250 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
+ className="w-full bg-slate-50 border border-gray-200 border border-gray-200 focus:border-emerald-700 rounded-xl px-3 py-2 font-semibold text-xs leading-relaxed"
  />
  </div>
 
- <div className="flex gap-2 pt-2 border-t border-white/10">
+ <div className="flex gap-2 pt-2 border-t border-gray-100">
  <button
  type="button"
  onClick={() => setShowAddModal(false)}
- className="flex-1 bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 font-medium font-black uppercase text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
+ className="flex-1 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 font-medium font-semibold  text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="flex-1 bg-emerald-950 hover:bg-emerald-900 text-slate-900 font-black uppercase text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
+ className="flex-1 bg-white hover:bg-emerald-900 text-gray-900 font-semibold  text-xs rounded-xl py-3 transition-colors cursor-pointer border-0 m-0"
  >
  Save SOP Task
  </button>
@@ -1226,18 +1226,18 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <BellRing size={28} />
  </div>
  <div className="space-y-1">
- <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-md font-black uppercase tracking-wider">
+ <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-md font-semibold tracking-tight">
  ⚠️ Fail-Safe Active Alarm
  </span>
- <h3 className="text-lg font-black text-slate-950 leading-tight">
+ <h3 className="text-lg font-semibold text-gray-500 leading-tight">
  {activeNotificationAlert.title}
  </h3>
  </div>
  </div>
 
- <div className="bg-slate-50 border border-slate-200 border border-slate-150 p-4 rounded-2xl space-y-2">
- <span className="text-[10px] font-bold text-slate-900 font-medium uppercase tracking-widest block">Standard Operating Procedure:</span>
- <p className="text-xs text-slate-900 font-semibold font-semibold leading-relaxed">
+ <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-4 rounded-2xl space-y-2">
+ <span className="text-[10px] font-bold text-gray-900 font-medium tracking-tight block">Standard Operating Procedure:</span>
+ <p className="text-xs text-gray-900 font-semibold leading-relaxed">
  {activeNotificationAlert.bodyText}
  </p>
  </div>
@@ -1246,7 +1246,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <div className="p-3 bg-indigo-900/20 border border-indigo-100 rounded-xl flex gap-3 text-[11px] text-indigo-950 leading-normal font-medium">
  <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
  <div>
- <p className="font-extrabold text-indigo-900">Why did this pop up here?</p>
+ <p className="font-semibold text-indigo-900">Why did this pop up here?</p>
  <p className="text-indigo-805 mt-0.5">
  Because this app is running in a **sandboxed preview frame**, browsers block taskbar/lockscreen notifications. Open the application in a **New Tab** (top right) to authorize native system push alerts.
  </p>
@@ -1257,7 +1257,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <button
  type="button"
  onClick={() => setActiveNotificationAlert(null)}
- className="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-950 font-black uppercase text-xs rounded-xl py-3.5 transition-all cursor-pointer border-0 m-0 shadow-md shadow-amber-500/15"
+ className="flex-1 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-gray-500 font-semibold  text-xs rounded-xl py-3.5 transition-all cursor-pointer border-0 m-0 shadow-md shadow-amber-500/15"
  >
  Acknowledge Alert & Mute SOP
  </button>

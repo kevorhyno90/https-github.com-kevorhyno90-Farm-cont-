@@ -203,7 +203,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  };
 
  const menuItems = [
- { id: 'estate', label: 'Estate Identity', icon: Building, color: 'text-emerald-700 bg-emerald-50' },
+ { id: 'estate', label: 'Estate Identity', icon: Building, color: 'text-green-600 bg-emerald-50' },
  { id: 'crops', label: 'Crop Contracts', icon: Leaf, color: 'text-indigo-700 bg-indigo-900/20' },
  { id: 'dairy', label: 'Herd Parameters', icon: Activity, color: 'text-amber-700 bg-amber-900/20' },
  { id: 'system', label: 'System Diagnostics', icon: Sliders, color: 'text-rose-700 bg-rose-900/20' },
@@ -212,17 +212,17 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  ] as const;
 
  return (
- <div className="space-y-8 animate-fadeIn text-slate-900" id="system-settings-panel">
+ <div className="space-y-8 animate-fadeIn text-gray-900" id="system-settings-panel">
  
  {/* Settings Header Block */}
- <div className="farm-shell-panel p-6 rounded-[1.6rem] border border-white/70 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left">
+ <div className="farm-shell-panel p-6 rounded-[1.6rem] border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left">
  <div className="flex items-center gap-4">
- <div className="p-3.5 bg-slate-50 text-slate-900 rounded-2xl shrink-0 shadow-sm">
+ <div className="p-3.5 bg-slate-50 text-gray-900 rounded-2xl shrink-0 shadow-sm">
  <Sliders size={24} />
  </div>
  <div>
- <h4 className="text-slate-900 font-black text-sm uppercase tracking-wider">Estate Control Settings Center</h4>
- <p className="text-xs text-slate-900 font-medium font-medium">
+ <h4 className="text-gray-900 font-semibold text-sm tracking-tight">Estate Control Settings Center</h4>
+ <p className="text-xs text-gray-900 font-medium font-medium">
  Calibrate regional pricing, default gestation thresholds, authority levels, and operational margins.
  </p>
  </div>
@@ -232,14 +232,14 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="flex items-center gap-2.5">
  <button
  onClick={handleSave}
- className="px-4 py-2 bg-emerald-950 hover:bg-emerald-900 text-slate-900 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2 m-0 shadow-sm"
+ className="px-4 py-2 bg-white hover:bg-emerald-900 text-gray-900 text-xs tracking-tight font-semibold rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2 m-0 shadow-sm"
  >
  <Save size={13} />
  Save Configuration
  </button>
  <button
  onClick={handleFactoryReset}
- className="px-4 py-2 bg-white shadow-sm hover:bg-rose-900/20 border border-slate-205 text-slate-900 font-semibold hover:text-rose-700 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-2 m-0"
+ className="px-4 py-2 bg-white shadow-sm hover:bg-rose-900/20 border border-gray-200 text-gray-900 font-semibold hover:text-rose-700 text-xs tracking-tight font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-2 m-0"
  >
  <RotateCcw size={13} />
  Hard Reset
@@ -259,8 +259,8 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
  
  {/* Left column sidebar (col 3) */}
- <div className="lg:col-span-3 bg-white shadow-sm border border-slate-150 rounded-3xl overflow-hidden p-3 shadow-xs space-y-1">
- <span className="text-[10px] font-black uppercase text-slate-900 font-medium px-3 py-2 block tracking-widest text-left">Parameter Sectors</span>
+ <div className="lg:col-span-3 bg-white shadow-sm border border-gray-200 rounded-3xl overflow-hidden p-3 shadow-xs space-y-1">
+ <span className="text-[10px] font-semibold  text-gray-900 font-medium px-3 py-2 block tracking-normal text-left">Parameter Sectors</span>
  {menuItems.map(item => {
  const isActive = activeSubSection === item.id;
  const Icon = item.icon;
@@ -268,13 +268,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <button
  key={item.id}
  onClick={() => setActiveSubSection(item.id)}
- className={`w-full py-3 px-3.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-3 transition-all duration-150 cursor-pointer m-0 border-0 ${
+ className={`w-full py-3 px-3.5 rounded-xl text-xs font-semibold tracking-tight flex items-center gap-3 transition-all duration-150 cursor-pointer m-0 border-0 ${
  isActive 
- ? 'bg-white shadow-sm text-slate-900 shadow-sm' 
- : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200 hover:text-slate-905'
+ ? 'bg-white shadow-sm text-gray-900 shadow-sm' 
+ : 'text-gray-900 font-medium hover:bg-slate-50 border border-gray-200 hover:text-gray-500'
  }`}
  >
- <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-white shadow-sm /10 text-slate-900' : item.color}`}>
+ <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-white shadow-sm /10 text-gray-900' : item.color}`}>
  <Icon size={14} />
  </div>
  <span>{item.label}</span>
@@ -284,80 +284,80 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Right column settings fields panel (col 9) */}
- <div className="lg:col-span-9 bg-white shadow-sm border border-slate-150 rounded-3xl p-6 md:p-8 shadow-xs text-left text-slate-900">
+ <div className="lg:col-span-9 bg-white shadow-sm border border-gray-200 rounded-3xl p-6 md:p-8 shadow-xs text-left text-gray-900">
  
  {/* Tab 1: Estate Identity */}
  {activeSubSection === 'estate' && (
  <div className="space-y-6 animate-fadeIn">
  <div className="border-b pb-3.5">
- <h5 className="text-sm font-black uppercase text-slate-900">Estate Identity & Authorization</h5>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <h5 className="text-sm font-semibold  text-gray-900">Estate Identity & Authorization</h5>
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  Configure corporate headers, physical registers, and financial base terms for export reports.
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-sans">
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Estate Corporate Name</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Estate Corporate Name</label>
  <input
  type="text"
  value={settings.estateName}
  onChange={(e) => handleUpdate('estateName', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Lead Farm Comptroller / Administrator</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Lead Farm Comptroller / Administrator</label>
  <input
  type="text"
  value={settings.administrator}
  onChange={(e) => handleUpdate('administrator', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Registered GlobalGAP Plot / Code</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Registered GlobalGAP Plot / Code</label>
  <input
  type="text"
  value={settings.locationCode}
  onChange={(e) => handleUpdate('locationCode', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Local Currency Abbreviation</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Local Currency Abbreviation</label>
  <input
  type="text"
  value={settings.currency}
  onChange={(e) => handleUpdate('currency', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Farm Latitude (Degree Decimal)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Farm Latitude (Degree Decimal)</label>
  <input
  type="number"
  step="0.0001"
  value={settings.latitude}
  onChange={(e) => handleUpdate('latitude', parseFloat(e.target.value) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Farm Longitude (Degree Decimal)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Farm Longitude (Degree Decimal)</label>
  <input
  type="number"
  step="0.0001"
  value={settings.longitude}
  onChange={(e) => handleUpdate('longitude', parseFloat(e.target.value) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50 font-mono"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200 font-mono"
  />
  </div>
  </div>
 
  <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-start gap-3 mt-4">
- <ShieldCheck className="text-emerald-700 shrink-0 mt-0.5" size={16} />
- <div className="text-[11px] text-emerald-800 leading-relaxed font-semibold">
+ <ShieldCheck className="text-green-600 shrink-0 mt-0.5" size={16} />
+ <div className="text-[11px] text-green-600 leading-relaxed font-semibold">
  <span className="font-bold">Compliance Status: ISO Certified & Weather Connected.</span> Changing Latitude & Longitude dynamically recalibrates the live open-source open-meteo satellite feed to fetch local farm weather data.
  </div>
  </div>
@@ -368,29 +368,29 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  {activeSubSection === 'crops' && (
  <div className="space-y-6 animate-fadeIn">
  <div className="border-b pb-3.5">
- <h5 className="text-sm font-black uppercase text-slate-900">Crop Valuation & Sales baselines</h5>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <h5 className="text-sm font-semibold  text-gray-900">Crop Valuation & Sales baselines</h5>
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  Establish contractual export target quotes and standard pricing variables for avocado & green leaf tea sales.
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 font-sans">
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Avocado Monthly Export Volume Target (KG)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Avocado Monthly Export Volume Target (KG)</label>
  <input
  type="number"
  value={settings.avocadoTargetVolume}
  onChange={(e) => handleUpdate('avocadoTargetVolume', parseFloat(e.target.value) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Tea Sales Contract Price (Ksh per KG)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Tea Sales Contract Price (Ksh per KG)</label>
  <input
  type="number"
  value={settings.teaContractPrice}
  onChange={(e) => handleUpdate('teaContractPrice', parseFloat(e.target.value) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  </div>
@@ -408,39 +408,39 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  {activeSubSection === 'dairy' && (
  <div className="space-y-6 animate-fadeIn">
  <div className="border-b pb-3.5">
- <h5 className="text-sm font-black uppercase text-slate-900">Dairy & Gestation Wheel Calibration</h5>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <h5 className="text-sm font-semibold  text-gray-900">Dairy & Gestation Wheel Calibration</h5>
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  Tune internal biologic variables regulating the Animal Breeding Wheel calculations and alerts.
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 font-sans">
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Average Daily Milk Target per Cow (L)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Average Daily Milk Target per Cow (L)</label>
  <input
  type="number"
  step="0.1"
  value={settings.targetDailyMilk}
  onChange={(e) => handleUpdate('targetDailyMilk', parseFloat(e.target.value) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Dry-off Gestation Threshold Day</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Dry-off Gestation Threshold Day</label>
  <input
  type="number"
  value={settings.dryOffGestationDay}
  onChange={(e) => handleUpdate('dryOffGestationDay', parseInt(e.target.value, 10) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Standard Cattle Gestation Duration</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Standard Cattle Gestation Duration</label>
  <input
  type="number"
  value={settings.gestationDuration}
  onChange={(e) => handleUpdate('gestationDuration', parseInt(e.target.value, 10) || 0)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  />
  </div>
  </div>
@@ -458,19 +458,19 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  {activeSubSection === 'system' && (
  <div className="space-y-6 animate-fadeIn">
  <div className="border-b pb-3.5">
- <h5 className="text-sm font-black uppercase text-slate-900">System Integration & Simulation Engine</h5>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <h5 className="text-sm font-semibold  text-gray-900">System Integration & Simulation Engine</h5>
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  Toggle development controls, background auto-seeding routines, and simulated calendar clocks.
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 font-sans">
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Interactive Speed Calibration</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Interactive Speed Calibration</label>
  <select
  value={settings.simulationSpeed}
  onChange={(e) => handleUpdate('simulationSpeed', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  >
  <option value="Real-time">Real-time Clock Integration</option>
  <option value="Normal">Normal Dialing Rotation</option>
@@ -478,22 +478,22 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Roster & Lactation Logs Auto-Seeder</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Roster & Lactation Logs Auto-Seeder</label>
  <select
  value={settings.autoSeedingEnabled ? 'true' : 'false'}
  onChange={(e) => handleUpdate('autoSeedingEnabled', e.target.value === 'true')}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  >
  <option value="true">Active (Pre-populate default templates)</option>
  <option value="false">Inactive (Start entirely with empty state)</option>
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1.5">Mobile Auto-Rotate & Screen Turn</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1.5">Mobile Auto-Rotate & Screen Turn</label>
  <select
  value={settings.orientationPreference || 'any'}
  onChange={(e) => handleUpdate('orientationPreference', e.target.value)}
- className="border border-slate-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-slate-200/50"
+ className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-slate-50 border border-gray-200"
  >
  <option value="any">🔄 Allow Auto-Rotate (Free Turn)</option>
  <option value="portrait">📱 Lock Portrait (No Auto-Turn)</option>
@@ -506,58 +506,58 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Cloud Server & PWA Cache Diagnostics Module */}
- <div className="bg-slate-50 border border-slate-200 border border-slate-200 rounded-2xl p-4 space-y-4">
+ <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-4">
  <div>
- <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
- <Wifi size={13} className="text-emerald-700 font-bold" />
+ <h6 className="text-[11px] font-semibold  text-gray-900 flex items-center gap-1.5">
+ <Wifi size={13} className="text-green-600 font-bold" />
  Cloud Server & Mobile App Sync Diagnostics
  </h6>
- <p className="text-[10px] text-slate-900 font-medium leading-normal font-semibold mt-0.5">
+ <p className="text-[10px] text-gray-900 font-medium leading-normal font-semibold mt-0.5">
  Verify connection to the live cloud server hosting Gemini AI and clear persistent PWA caches from your device if they are outdated.
  </p>
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  {/* Connection Status box */}
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex flex-col justify-between text-left">
  <div>
- <span className="text-[9px] uppercase font-bold text-slate-900 font-medium block">Cloud API Signal</span>
+ <span className="text-[9px]  font-bold text-gray-900 font-medium block">Cloud API Signal</span>
  
  {/* Visual Indicator of Current Origin */}
- <span className="text-[9px] font-mono text-slate-900 font-medium block break-all font-semibold mt-0.5 bg-slate-50 border border-slate-200 p-1 rounded">
+ <span className="text-[9px] font-mono text-gray-900 font-medium block break-all font-semibold mt-0.5 bg-slate-50 border border-gray-200 p-1 rounded">
  App Host: {typeof window !== 'undefined' ? window.location.origin : 'Loading origin...'}
  </span>
 
  <div className="flex items-center gap-2 mt-2">
  {connState === 'idle' && (
- <span className="text-[11px] font-bold text-slate-900 font-medium">Not Tested</span>
+ <span className="text-[11px] font-bold text-gray-900 font-medium">Not Tested</span>
  )}
  {connState === 'checking' && (
  <div className="flex items-center gap-1.5">
- <RefreshCw size={11} className="animate-spin text-slate-900 font-medium" />
- <span className="text-[11px] font-bold text-slate-900 font-medium">Querying Server Status...</span>
+ <RefreshCw size={11} className="animate-spin text-gray-900 font-medium" />
+ <span className="text-[11px] font-bold text-gray-900 font-medium">Querying Server Status...</span>
  </div>
  )}
  {connState === 'online' && (
  <div className="flex items-center gap-1.5">
  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
- <span className="text-[11px] font-black text-emerald-800">Connected (Live)</span>
+ <span className="text-[11px] font-semibold text-green-600">Connected (Live)</span>
  </div>
  )}
  {connState === 'error' && (
  <div className="flex items-center gap-1.5">
  <span className="w-2 h-2 rounded-full bg-rose-500 inline-block font-sans"></span>
- <span className="text-[11px] font-black text-rose-800">Network Failure</span>
+ <span className="text-[11px] font-semibold text-rose-800">Network Failure</span>
  </div>
  )}
  </div>
  
  {connState === 'online' && (
- <div className="mt-2 text-[10px] leading-relaxed bg-emerald-50 border border-emerald-100 p-1.5 rounded-lg text-emerald-850 font-medium">
+ <div className="mt-2 text-[10px] leading-relaxed bg-emerald-50 border border-emerald-100 p-1.5 rounded-lg text-green-600 font-medium">
  {aiInitialized ? (
- <span className="text-emerald-900 font-bold">✓ Live Gemini Cloud AI is Fully Configured and Ready!</span>
+ <span className="text-green-600 font-bold">✓ Live Gemini Cloud AI is Fully Configured and Ready!</span>
  ) : (
- <span className="text-emerald-900 font-bold">✓ Sovereign Free AI Expert System is active & fully functional out-of-the-box (no key needed)!</span>
+ <span className="text-green-600 font-bold">✓ Sovereign Free AI Expert System is active & fully functional out-of-the-box (no key needed)!</span>
  )}
  </div>
  )}
@@ -576,17 +576,17 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="button"
  onClick={handleTestConnection}
  disabled={connState === 'checking'}
- className="mt-3 w-full py-1.5 px-3 bg-white shadow-sm hover:bg-slate-50 border border-slate-200 text-slate-900 text-[10px] uppercase font-black tracking-wider rounded-lg transition-all border-0 cursor-pointer disabled:opacity-50"
+ className="mt-3 w-full py-1.5 px-3 bg-white shadow-sm hover:bg-slate-50 border border-gray-200 text-gray-900 text-[10px]  font-semibold tracking-normal rounded-lg transition-all border-0 cursor-pointer disabled:opacity-50"
  >
  {connState === 'checking' ? 'Testing...' : 'Test Connection Status'}
  </button>
  </div>
 
  {/* Cache Purge box */}
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex flex-col justify-between text-left">
  <div>
- <span className="text-[9px] uppercase font-bold text-slate-900 font-medium block">Mobile PWA Cache Status</span>
- <p className="text-[9.5px] text-slate-900 font-medium leading-normal font-semibold mt-1">
+ <span className="text-[9px]  font-bold text-gray-900 font-medium block">Mobile PWA Cache Status</span>
+ <p className="text-[9.5px] text-gray-900 font-medium leading-normal font-semibold mt-1">
  If you installed this application on your phone, changes and code updates might not show up immediately because mobile browsers cache bundles heavily.
  </p>
  </div>
@@ -595,17 +595,17 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  type="button"
  onClick={handlePwaPurgeAndForceUpdate}
  disabled={isPurging}
- className="mt-3 w-full py-1.5 px-3 bg-rose-900/20 hover:bg-rose-55 border border-rose-200 hover:border-rose-300 text-rose-800 text-[10px] uppercase font-black tracking-wider rounded-lg transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 m-0"
+ className="mt-3 w-full py-1.5 px-3 bg-rose-900/20 hover:bg-rose-55 border border-rose-200 hover:border-rose-300 text-rose-800 text-[10px]  font-semibold tracking-normal rounded-lg transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 m-0"
  >
  <RefreshCw size={11} className={isPurging ? "animate-spin" : ""} />
  {isPurging ? 'Purging Cache...' : 'Purge Cache & Force Update'}
  </button>
  </div>
 
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex flex-col justify-between text-left sm:col-span-2">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex flex-col justify-between text-left sm:col-span-2">
  <div>
- <span className="text-[9px] uppercase font-bold text-slate-900 font-medium block">Cloud Sync Control</span>
- <p className="text-[9.5px] text-slate-900 font-medium leading-normal font-semibold mt-1">
+ <span className="text-[9px]  font-bold text-gray-900 font-medium block">Cloud Sync Control</span>
+ <p className="text-[9.5px] text-gray-900 font-medium leading-normal font-semibold mt-1">
  Use this switch to pause/resume Firestore cloud sync without editing code.
  </p>
  {!isFirestoreSyncEnabled && (
@@ -616,18 +616,18 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  <div className="mt-3 flex items-center justify-between gap-3">
- <div className="text-[10px] font-black uppercase tracking-wide text-slate-900 font-semibold">
+ <div className="text-[10px] font-semibold  tracking-wide text-gray-900 font-semibold">
  Status: {isFirestoreSyncEnabled ? (cloudSyncEnabled ? 'Enabled' : 'Paused') : 'Config Locked'}
  </div>
  <button
  type="button"
  disabled={!isFirestoreSyncEnabled}
  onClick={() => handleCloudSyncPreference(!cloudSyncEnabled)}
- className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-black tracking-wide border transition-colors cursor-pointer ${
+ className={`px-3 py-1.5 rounded-lg text-[10px]  font-semibold tracking-wide border transition-colors cursor-pointer ${
  !isFirestoreSyncEnabled
- ? 'bg-slate-50 border border-slate-200 border-slate-200 text-slate-900 font-medium cursor-not-allowed'
+ ? 'bg-slate-50 border border-gray-200 border-gray-200 text-gray-900 font-medium cursor-not-allowed'
  : cloudSyncEnabled
- ? 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+ ? 'bg-emerald-50 border-emerald-200 text-green-600 hover:bg-emerald-100'
  : 'bg-amber-900/20 border-amber-200 text-amber-800 hover:bg-amber-100'
  }`}
  >
@@ -639,16 +639,16 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Advanced App State Controls */}
- <div className="bg-white shadow-sm rounded-3xl p-6 shadow-sm border border-white/10 mb-6">
- <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-4 flex items-center">
+ <div className="bg-white shadow-sm rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
+ <h3 className="text-lg font-semibold text-gray-900  tracking-tight mb-4 flex items-center">
  <span className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center mr-3">⚠️</span>
  Account & System
  </h3>
  <div className="space-y-4">
- <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl border border-white/10 flex items-center justify-between">
+ <div className="p-4 bg-slate-50 border border-gray-200 rounded-2xl border border-gray-100 flex items-center justify-between">
  <div>
- <div className="font-bold text-slate-900">Switch Account / Sign Out</div>
- <div className="text-xs text-slate-900 font-medium mt-1">Leave the current database room and return to the login screen.</div>
+ <div className="font-bold text-gray-900">Switch Account / Sign Out</div>
+ <div className="text-xs text-gray-900 font-medium mt-1">Leave the current database room and return to the login screen.</div>
  </div>
  <button 
  onClick={async () => {
@@ -661,7 +661,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  sessionStorage.removeItem('jr_farm_entered');
  window.location.reload();
  }}
- className="px-4 py-2 bg-red-500 hover:bg-red-600 text-slate-900 font-bold rounded-xl shadow-sm text-sm"
+ className="px-4 py-2 bg-red-500 hover:bg-red-600 text-gray-900 font-bold rounded-xl shadow-sm text-sm"
  >
  Sign Out
  </button>
@@ -670,7 +670,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Data Import / Export Buttons */}
- <div className="pt-4 border-t border-white/10 flex flex-wrap gap-2">
+ <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
  <button
  onClick={() => {
  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(settings, null, 2));
@@ -681,7 +681,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  downloadAnchor.click();
  downloadAnchor.remove();
  }}
- className="px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
+ className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
  >
  <Download size={13} />
  Export Conf Config JSON
@@ -690,7 +690,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  onClick={() => {
  alert("Import workflow: Click to upload your backup configuration script in .json extension.");
  }}
- className="px-4 py-2 bg-slate-50 border border-slate-200 hover:bg-slate-50 border border-slate-200 text-slate-900 text-xs font-extrabold uppercase tracking-wider rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
+ className="px-4 py-2 bg-slate-50 border border-gray-200 hover:bg-slate-50 border border-gray-200 text-gray-900 text-xs font-semibold tracking-tight rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2"
  >
  <Upload size={13} />
  Import Backup Configuration
@@ -705,9 +705,9 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="border-b pb-3.5">
  <div className="flex items-center gap-2">
  <Monitor className="text-teal-700" size={18} />
- <h5 className="text-sm font-black uppercase text-slate-900">PC & Mobile App Installation Center (PWA)</h5>
+ <h5 className="text-sm font-semibold  text-gray-900">PC & Mobile App Installation Center (PWA)</h5>
  </div>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  JR Farm Omni-Estate is built as an offline-first, light-speed Progressive Web App. Install it on your computer or smartphone to use it offline, run in full-screen standalone mode, and save desktop space.
  </p>
  </div>
@@ -718,14 +718,14 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="flex gap-3">
  <AlertTriangle className="text-amber-700 shrink-0 mt-0.5" size={18} />
  <div>
- <h6 className="text-xs font-black text-amber-900 uppercase">Sandbox Container Frame Detected</h6>
+ <h6 className="text-xs font-semibold text-amber-900 ">Sandbox Container Frame Detected</h6>
  <p className="text-xs text-amber-800 leading-relaxed font-semibold mt-1">
  You are currently viewing JR Farm inside the Google AI Studio preview iframe sandbox. Browser security restrictions completely block PWA installations inside iframes.
  </p>
  </div>
  </div>
  
- <div className="bg-white shadow-sm /80 p-3 rounded-xl border border-amber-150 text-[11px] font-semibold text-slate-900 font-semibold leading-relaxed">
+ <div className="bg-white shadow-sm /80 p-3 rounded-xl border border-amber-150 text-[11px] font-semibold text-gray-900 font-semibold leading-relaxed">
  <strong>To Install:</strong> Click the button below to launch the app directly in a secure, full-size browser tab. This bypasses the iframe and triggers Chrome/Edge to display the native "Install App" button in your browser's URL address bar.
  </div>
 
@@ -733,7 +733,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  href={window.location.href}
  target="_blank"
  rel="noopener noreferrer"
- className="w-full sm:w-auto px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-slate-900 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 text-center no-underline inline-flex"
+ className="w-full sm:w-auto px-5 py-2.5 bg-amber-950 hover:bg-amber-900 text-gray-900 text-xs tracking-tight font-semibold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 text-center no-underline inline-flex"
  >
  <Globe size={13} />
  Open App in New Tab to Install
@@ -744,7 +744,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="flex gap-3">
  <CheckCircle2 className="text-teal-700 shrink-0 mt-0.5" size={18} />
  <div>
- <h6 className="text-xs font-black text-teal-900 uppercase">Direct Browser Environment Active</h6>
+ <h6 className="text-xs font-semibold text-teal-900 ">Direct Browser Environment Active</h6>
  <p className="text-xs text-teal-800 leading-relaxed font-semibold mt-1">
  Excellent! You are running the app directly in your browser. The app is fully installable on your computer.
  </p>
@@ -754,7 +754,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  {isInstallable ? (
  <button
  onClick={handleInstallClick}
- className="w-full sm:w-auto px-5 py-2.5 bg-teal-950 hover:bg-teal-900 text-slate-900 text-xs uppercase tracking-wider font-extrabold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 shadow-sm"
+ className="w-full sm:w-auto px-5 py-2.5 bg-teal-950 hover:bg-teal-900 text-gray-900 text-xs tracking-tight font-semibold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 shadow-sm"
  >
  <Download size={13} />
  Install JR Farm Omni-Estate Now
@@ -768,43 +768,43 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  )}
 
  {/* App PWA Requirements Verification Panel */}
- <div className="bg-slate-50 border border-slate-200 border border-slate-150 rounded-2xl p-4 space-y-3 text-left">
- <span className="text-[10px] font-black uppercase text-slate-900 font-medium tracking-wider block">App Eligibility & Diagnostics</span>
+ <div className="bg-slate-50 border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 text-left">
+ <span className="text-[10px] font-semibold  text-gray-900 font-medium tracking-normal block">App Eligibility & Diagnostics</span>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex items-center justify-between">
  <div>
- <span className="text-[10px] font-bold text-slate-900 block">1. Secure Connection (HTTPS)</span>
- <span className="text-[9px] text-slate-450 font-medium">Mandatory browser security requirement</span>
+ <span className="text-[10px] font-bold text-gray-900 block">1. Secure Connection (HTTPS)</span>
+ <span className="text-[9px] text-gray-500 font-medium">Mandatory browser security requirement</span>
  </div>
- <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">ACTIVE</span>
+ <span className="text-[10px] bg-emerald-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">ACTIVE</span>
  </div>
 
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex items-center justify-between">
  <div>
- <span className="text-[10px] font-bold text-slate-900 block">2. Web Manifest (manifest.json)</span>
- <span className="text-[9px] text-slate-450 font-medium">Valid application descriptor registered</span>
+ <span className="text-[10px] font-bold text-gray-900 block">2. Web Manifest (manifest.json)</span>
+ <span className="text-[9px] text-gray-500 font-medium">Valid application descriptor registered</span>
  </div>
- <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">VERIFIED</span>
+ <span className="text-[10px] bg-emerald-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">VERIFIED</span>
  </div>
 
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex items-center justify-between">
  <div>
- <span className="text-[10px] font-bold text-slate-900 block">3. Offline Service Worker (sw.js)</span>
- <span className="text-[9px] text-slate-450 font-medium">Caching offline assets shell</span>
+ <span className="text-[10px] font-bold text-gray-900 block">3. Offline Service Worker (sw.js)</span>
+ <span className="text-[9px] text-gray-500 font-medium">Caching offline assets shell</span>
  </div>
- <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">REGISTERED</span>
+ <span className="text-[10px] bg-emerald-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">REGISTERED</span>
  </div>
 
- <div className="bg-white shadow-sm p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+ <div className="bg-white shadow-sm p-3 rounded-xl border border-gray-200 flex items-center justify-between">
  <div>
- <span className="text-[10px] font-bold text-slate-900 block">4. Browser Sandboxed state</span>
- <span className="text-[9px] text-slate-450 font-medium">Iframe security limitations status</span>
+ <span className="text-[10px] font-bold text-gray-900 block">4. Browser Sandboxed state</span>
+ <span className="text-[9px] text-gray-500 font-medium">Iframe security limitations status</span>
  </div>
  {isInIframe ? (
- <span className="text-[10px] bg-amber-900/20 text-amber-800 px-2 py-0.5 rounded-full font-black">SANDBOXED (IFRAME)</span>
+ <span className="text-[10px] bg-amber-900/20 text-amber-800 px-2 py-0.5 rounded-full font-semibold">SANDBOXED (IFRAME)</span>
  ) : (
- <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-black">CLEAN (DIRECT)</span>
+ <span className="text-[10px] bg-emerald-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">CLEAN (DIRECT)</span>
  )}
  </div>
  </div>
@@ -812,16 +812,16 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
 
  {/* Step-by-Step Installation Instruction guides */}
  <div className="space-y-4">
- <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 block">How to Install on Your PC or Mac</span>
+ <span className="text-[11px] font-semibold tracking-tight text-gray-900 block">How to Install on Your PC or Mac</span>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
  {/* Google Chrome */}
- <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-200 space-y-2 text-left">
- <div className="w-8 h-8 rounded-lg bg-red-900/20 text-red-600 flex items-center justify-center font-bold text-xs uppercase">
+ <div className="bg-white shadow-sm p-4 rounded-xl border border-gray-200 space-y-2 text-left">
+ <div className="w-8 h-8 rounded-lg bg-red-900/20 text-red-600 flex items-center justify-center font-bold text-xs ">
  Ch
  </div>
- <h6 className="text-xs font-black text-slate-900">Google Chrome</h6>
- <ol className="text-[10.5px] text-slate-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+ <h6 className="text-xs font-semibold text-gray-900">Google Chrome</h6>
+ <ol className="text-[10.5px] text-gray-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
  <li>Open the application in a <strong>New Tab</strong>.</li>
  <li>Look at the address bar (far-right, next to bookmark star).</li>
  <li>Click the <strong>Install Icon</strong> (Monitor with down arrow).</li>
@@ -830,12 +830,12 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Microsoft Edge */}
- <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-200 space-y-2 text-left">
- <div className="w-8 h-8 rounded-lg bg-blue-900/20 text-blue-600 flex items-center justify-center font-bold text-xs uppercase">
+ <div className="bg-white shadow-sm p-4 rounded-xl border border-gray-200 space-y-2 text-left">
+ <div className="w-8 h-8 rounded-lg bg-blue-900/20 text-blue-600 flex items-center justify-center font-bold text-xs ">
  Ed
  </div>
- <h6 className="text-xs font-black text-slate-900">Microsoft Edge</h6>
- <ol className="text-[10.5px] text-slate-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+ <h6 className="text-xs font-semibold text-gray-900">Microsoft Edge</h6>
+ <ol className="text-[10.5px] text-gray-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
  <li>Launch the app origin URL in a <strong>New Tab</strong>.</li>
  <li>Click the <strong>App Available</strong> icon (three squares with a plus) in the address bar.</li>
  <li>Click <strong>Install</strong> to add it to your PC App Directory.</li>
@@ -843,12 +843,12 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Apple Safari */}
- <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-200 space-y-2 text-left">
- <div className="w-8 h-8 rounded-lg bg-teal-900/20 text-teal-600 flex items-center justify-center font-bold text-xs uppercase">
+ <div className="bg-white shadow-sm p-4 rounded-xl border border-gray-200 space-y-2 text-left">
+ <div className="w-8 h-8 rounded-lg bg-teal-900/20 text-teal-600 flex items-center justify-center font-bold text-xs ">
  Sa
  </div>
- <h6 className="text-xs font-black text-slate-900">Apple Safari (macOS)</h6>
- <ol className="text-[10.5px] text-slate-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
+ <h6 className="text-xs font-semibold text-gray-900">Apple Safari (macOS)</h6>
+ <ol className="text-[10.5px] text-gray-900 font-medium space-y-1.5 list-decimal pl-4 font-semibold leading-relaxed">
  <li>Load the app origin URL in Safari.</li>
  <li>Click the <strong>Share</strong> button in the top toolbar.</li>
  <li>Select <strong>Add to Dock</strong> from the dropdown list.</li>
@@ -860,30 +860,30 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
 
  {/* Mobile phone installation instructions */}
  <div className="space-y-4 pt-2">
- <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 block">How to Install on Your Smartphone (Android & iOS)</span>
+ <span className="text-[11px] font-semibold tracking-tight text-gray-900 block">How to Install on Your Smartphone (Android & iOS)</span>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {/* Android Phone */}
- <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-200 flex gap-4 text-left">
- <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+ <div className="bg-white shadow-sm p-4 rounded-xl border border-gray-200 flex gap-4 text-left">
+ <div className="w-10 h-10 rounded-xl bg-emerald-50 text-green-600 flex items-center justify-center shrink-0">
  <Smartphone size={20} />
  </div>
  <div className="space-y-1">
- <h6 className="text-xs font-black text-slate-900">Android Phones (Chrome / Samsung Internet)</h6>
- <p className="text-[10.5px] text-slate-900 font-medium leading-relaxed font-semibold">
+ <h6 className="text-xs font-semibold text-gray-900">Android Phones (Chrome / Samsung Internet)</h6>
+ <p className="text-[10.5px] text-gray-900 font-medium leading-relaxed font-semibold">
  Open the app URL in Chrome on your phone. Tap the <strong>three vertical dots menu</strong> in the top-right corner, select <strong>"Add to Home screen"</strong> (or <strong>"Install app"</strong>), and confirm.
  </p>
  </div>
  </div>
 
  {/* iPhone & iPad */}
- <div className="bg-white shadow-sm p-4 rounded-xl border border-slate-200 flex gap-4 text-left">
+ <div className="bg-white shadow-sm p-4 rounded-xl border border-gray-200 flex gap-4 text-left">
  <div className="w-10 h-10 rounded-xl bg-indigo-900/20 text-indigo-700 flex items-center justify-center shrink-0">
  <Smartphone size={20} />
  </div>
  <div className="space-y-1">
- <h6 className="text-xs font-black text-slate-900">Apple iPhones & iPads (Safari)</h6>
- <p className="text-[10.5px] text-slate-900 font-medium leading-relaxed font-semibold">
+ <h6 className="text-xs font-semibold text-gray-900">Apple iPhones & iPads (Safari)</h6>
+ <p className="text-[10.5px] text-gray-900 font-medium leading-relaxed font-semibold">
  Open the app URL in Safari. Tap the <strong>Share</strong> icon (the square with an arrow pointing up at the bottom), scroll down the list of options, and tap <strong>"Add to Home Screen"</strong>.
  </p>
  </div>
@@ -899,47 +899,47 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <div className="border-b pb-3.5">
  <div className="flex items-center gap-2">
  <Smartphone className="text-blue-600" size={18} />
- <h5 className="text-sm font-black uppercase text-slate-900">Google Play Store & Monetization Console</h5>
+ <h5 className="text-sm font-semibold  text-gray-900">Google Play Store & Monetization Console</h5>
  </div>
- <p className="text-[11px] text-slate-450 mt-1 font-semibold leading-relaxed">
+ <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
  Package this fully-certified farm management application into a production-ready Android Bundle (<span className="font-mono text-blue-700">.aab</span>) and configure live in-app monetization models.
  </p>
  </div>
 
  {/* Step 1: Calibration Fields */}
- <div className="bg-slate-50 border border-slate-200 border border-slate-150 p-5 rounded-2xl space-y-4">
- <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
- <Sliders size={12} className="text-slate-900 font-medium" />
+ <div className="bg-slate-50 border border-gray-200 border border-gray-200 p-5 rounded-2xl space-y-4">
+ <h6 className="text-[11px] font-semibold  text-gray-900 flex items-center gap-1.5">
+ <Sliders size={12} className="text-gray-900 font-medium" />
  1. App Store Deployment Variables
  </h6>
  
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans">
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Android Package Name (Application ID)</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Android Package Name (Application ID)</label>
  <input
  type="text"
  value={settings.playstorePackageId}
  onChange={(e) => handleUpdate('playstorePackageId', e.target.value)}
- className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-blue-500 bg-white shadow-sm "
+ className="border border-gray-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:ring-1 focus:ring-blue-500 bg-white shadow-sm "
  placeholder="e.g. com.company.app"
  />
- <span className="text-[9px] text-slate-900 font-medium font-semibold block mt-1">Unique global ID for Play Store URL listing</span>
+ <span className="text-[9px] text-gray-900 font-medium font-semibold block mt-1">Unique global ID for Play Store URL listing</span>
  </div>
  <div>
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Store Listing App Title</label>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Store Listing App Title</label>
  <input
  type="text"
  value={settings.playstoreAppTitle}
  onChange={(e) => handleUpdate('playstoreAppTitle', e.target.value)}
- className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:ring-1 focus:ring-blue-500 bg-white shadow-sm "
+ className="border border-gray-200 rounded-xl p-2.5 w-full text-xs font-bold focus:ring-1 focus:ring-blue-500 bg-white shadow-sm "
  placeholder="e.g. JR Farm Omni-Estate Manager"
  />
- <span className="text-[9px] text-slate-900 font-medium font-semibold block mt-1">Official user-facing app name on Google Play</span>
+ <span className="text-[9px] text-gray-900 font-medium font-semibold block mt-1">Official user-facing app name on Google Play</span>
  </div>
  </div>
 
- <div className="border-t border-slate-200 pt-3.5">
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-2 font-sans">App Monetization Model Strategy</label>
+ <div className="border-t border-gray-200 pt-3.5">
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-2 font-sans">App Monetization Model Strategy</label>
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
  {[
  { id: 'Ad Supported (AdMob)', title: 'Ad-Supported (Free)', desc: 'Generate passive revenue via responsive banner or interstitial ads' },
@@ -953,10 +953,10 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className={`p-3 rounded-xl border text-left flex flex-col justify-between cursor-pointer transition-all m-0 ${
  settings.monetizationStrategy === st.id 
  ? 'bg-blue-900/20 border-blue-400 text-blue-900 ring-1 ring-blue-200' 
- : 'bg-white shadow-sm border-slate-200 hover:border-slate-350 text-slate-900 font-semibold'
+ : 'bg-white shadow-sm border-gray-200 hover:border-gray-200 text-gray-900 font-semibold'
  }`}
  >
- <span className="text-[10px] font-black block">{st.title}</span>
+ <span className="text-[10px] font-semibold block">{st.title}</span>
  <span className="text-[8.5px] font-medium leading-normal opacity-85 mt-1 block">{st.desc}</span>
  </button>
  ))}
@@ -964,25 +964,25 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {settings.monetizationStrategy === 'Ad Supported (AdMob)' && (
- <div className="bg-white shadow-sm border border-slate-200 p-4 rounded-xl space-y-3 animate-fadeIn">
- <span className="text-[9px] font-black uppercase tracking-wider text-blue-700 block font-sans">Google AdMob Placement Configurations</span>
+ <div className="bg-white shadow-sm border border-gray-200 p-4 rounded-xl space-y-3 animate-fadeIn">
+ <span className="text-[9px] font-semibold tracking-tight text-blue-700 block font-sans">Google AdMob Placement Configurations</span>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 font-sans">
  <div>
- <label className="text-[9px] font-bold text-slate-900 font-medium uppercase block mb-1">AdMob Banner Unit ID</label>
+ <label className="text-[9px] font-bold text-gray-900 font-medium  block mb-1">AdMob Banner Unit ID</label>
  <input
  type="text"
  value={settings.admobBannerUnitId}
  onChange={(e) => handleUpdate('admobBannerUnitId', e.target.value)}
- className="border border-slate-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
+ className="border border-gray-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
  />
  </div>
  <div>
- <label className="text-[9px] font-bold text-slate-900 font-medium uppercase block mb-1">AdMob Interstitial Unit ID</label>
+ <label className="text-[9px] font-bold text-gray-900 font-medium  block mb-1">AdMob Interstitial Unit ID</label>
  <input
  type="text"
  value={settings.admobInterstitialUnitId}
  onChange={(e) => handleUpdate('admobInterstitialUnitId', e.target.value)}
- className="border border-slate-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
+ className="border border-gray-200 rounded-lg p-2 w-full text-[11px] font-mono focus:ring-1 focus:ring-blue-500"
  />
  </div>
  </div>
@@ -990,16 +990,16 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  )}
 
  {settings.monetizationStrategy === 'Premium Paid' && (
- <div className="bg-white shadow-sm border border-slate-200 p-4 rounded-xl space-y-3 animate-fadeIn w-full sm:w-1/2 font-sans">
- <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Price Tier Target (USD)</label>
+ <div className="bg-white shadow-sm border border-gray-200 p-4 rounded-xl space-y-3 animate-fadeIn w-full sm:w-1/2 font-sans">
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Price Tier Target (USD)</label>
  <div className="relative">
- <span className="absolute left-3 top-2.5 text-slate-900 font-medium font-bold">$</span>
+ <span className="absolute left-3 top-2.5 text-gray-900 font-medium font-bold">$</span>
  <input
  type="number"
  step="0.01"
  value={settings.premiumAppPrice}
  onChange={(e) => handleUpdate('premiumAppPrice', e.target.value)}
- className="border border-slate-200 rounded-lg p-2 pl-6 w-full text-xs font-mono font-bold text-slate-900"
+ className="border border-gray-200 rounded-lg p-2 pl-6 w-full text-xs font-mono font-bold text-gray-900"
  />
  </div>
  </div>
@@ -1007,13 +1007,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
 
  {/* Step 2: Ultimate Custom Go-To-Market Package Publishing Checklist */}
- <div className="bg-white shadow-sm border border-slate-150 p-5 rounded-2xl space-y-4">
+ <div className="bg-white shadow-sm border border-gray-200 p-5 rounded-2xl space-y-4">
  <div className="flex justify-between items-center border-b pb-2">
- <h6 className="text-[11px] font-black uppercase text-slate-900 flex items-center gap-1.5">
- <CheckCircle2 size={13} className="text-emerald-600" />
+ <h6 className="text-[11px] font-semibold  text-gray-900 flex items-center gap-1.5">
+ <CheckCircle2 size={13} className="text-green-600" />
  2. Google Play Store Launch Action Sequence
  </h6>
- <span className="text-[9px] bg-slate-50 border border-slate-200 px-2.5 py-1 rounded font-mono font-bold text-slate-900 font-medium">
+ <span className="text-[9px] bg-slate-50 border border-gray-200 px-2.5 py-1 rounded font-mono font-bold text-gray-900 font-medium">
  {Object.values(checklistCompleted).filter(Boolean).length} / 6 Verified
  </span>
  </div>
@@ -1057,7 +1057,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-colors duration-200 select-none ${
  checklistCompleted[task.id] 
  ? 'bg-emerald-50 border-emerald-200' 
- : 'bg-white shadow-sm hover:bg-slate-50 border border-slate-200/50'
+ : 'bg-white shadow-sm hover:bg-slate-50 border border-gray-200'
  }`}
  >
  <input 
@@ -1067,8 +1067,8 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className="mt-0.5 accent-emerald-600 cursor-pointer pointer-events-none"
  />
  <div className="text-left">
- <span className={`text-xs font-bold block ${checklistCompleted[task.id] ? 'text-slate-900 line-through' : 'text-slate-900'}`}>{task.title}</span>
- <span className="text-[10px] font-medium text-slate-450 mt-0.5 leading-normal block">{task.desc}</span>
+ <span className={`text-xs font-bold block ${checklistCompleted[task.id] ? 'text-gray-900 line-through' : 'text-gray-900'}`}>{task.title}</span>
+ <span className="text-[10px] font-medium text-gray-500 mt-0.5 leading-normal block">{task.desc}</span>
  </div>
  </div>
  ))}
@@ -1077,10 +1077,10 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
 
  {/* Step 3: Fast Export assets anchor */}
  <div className="bg-blue-900/20 border border-blue-200/60 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5">
- <div className="text-left text-slate-900 font-semibold">
- <span className="text-[9px] font-black uppercase text-blue-800 tracking-wider block font-sans">Ready to Publish?</span>
- <h6 className="text-[11px] font-black uppercase text-slate-900 mt-0.5">Generate Play Store Configuration Asset Pack</h6>
- <p className="text-[10px] text-slate-450 leading-relaxed font-semibold mt-0.5">
+ <div className="text-left text-gray-900 font-semibold">
+ <span className="text-[9px] font-semibold  text-blue-800 tracking-normal block font-sans">Ready to Publish?</span>
+ <h6 className="text-[11px] font-semibold  text-gray-900 mt-0.5">Generate Play Store Configuration Asset Pack</h6>
+ <p className="text-[10px] text-gray-500 leading-relaxed font-semibold mt-0.5">
  Click to download a certified deployment JSON manifest detailing system parameters, description scripts, and tags to paste directly into your Play Store Console console!
  </p>
  </div>
@@ -1113,7 +1113,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  downloadAnchor.click();
  downloadAnchor.remove();
  }}
- className="px-4 py-2 bg-blue-900 hover:bg-blue-850 text-slate-900 text-[10px] uppercase tracking-wider font-extrabold rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2 m-0 shadow-sm shrink-0"
+ className="px-4 py-2 bg-blue-900 hover:bg-blue-850 text-gray-900 text-[10px] tracking-tight font-semibold rounded-xl transition-all cursor-pointer border-0 flex items-center gap-2 m-0 shadow-sm shrink-0"
  >
  <Download size={13} />
  Download Play Store Pack

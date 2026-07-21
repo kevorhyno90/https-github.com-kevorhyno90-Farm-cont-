@@ -32,7 +32,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  };
 
  return (
- <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden font-sans text-slate-900">
+ <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden font-sans text-gray-900">
  {/* Animated Background Gradients */}
  <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.20),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.16),_transparent_30%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
  <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-300/30 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '5s' }} />
@@ -43,42 +43,42 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <div className="relative z-10 flex flex-col items-center max-w-lg w-full px-6 animate-slideIn">
  {/* Logo Container with Glassmorphism */}
  <div className="mb-10 relative group">
- <div className="absolute inset-0 bg-emerald-500/15 rounded-full blur-2xl group-hover:bg-emerald-400/25 transition-all duration-700"></div>
+ 
  <div 
- className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full border border-white/70 bg-white shadow-sm /75 shadow-[0_24px_70px_rgba(15,23,42,0.14)] p-4 flex items-center justify-center transform transition-transform duration-700 hover:scale-105 farm-soft-ring"
+ className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full border border-gray-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.14)] p-4 flex items-center justify-center transform transition-transform duration-700 hover:scale-105 farm-soft-ring"
  dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }}
  />
  </div>
 
  {/* Text Section */}
  <div className="text-center mb-12 space-y-4">
- <h1 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-900 to-amber-700 tracking-tight drop-shadow-sm">
+ <h1 className="text-4xl sm:text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-900 to-amber-700 tracking-tight drop-shadow-sm">
  JR Farm Estate
  </h1>
- <p className="text-slate-900 font-medium text-lg sm:text-xl font-medium tracking-wide">
+ <p className="text-gray-900 font-medium text-lg sm:text-xl font-medium tracking-wide">
  Omni-Estate Management System
  </p>
  </div>
 
  {/* Feature Badges */}
  <div className="flex justify-center gap-4 mb-12 w-full">
- <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
- <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
- <Leaf size={24} className="text-emerald-400" />
+ <div className="flex flex-col items-center gap-2 text-gray-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-gray-200 flex items-center justify-center shadow-sm">
+ <Leaf size={24} className="text-green-600" />
  </div>
- <span className="text-[10px] font-bold uppercase tracking-wider">Sustainable</span>
+ <span className="text-[10px] font-bold tracking-tight">Sustainable</span>
  </div>
- <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
- <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
+ <div className="flex flex-col items-center gap-2 text-gray-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-gray-200 flex items-center justify-center shadow-sm">
  <Sparkles size={24} className="text-amber-400" />
  </div>
- <span className="text-[10px] font-bold uppercase tracking-wider">Premium</span>
+ <span className="text-[10px] font-bold tracking-tight">Premium</span>
  </div>
- <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
- <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
+ <div className="flex flex-col items-center gap-2 text-gray-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-gray-200 flex items-center justify-center shadow-sm">
  <Shield size={24} className="text-teal-400" />
  </div>
- <span className="text-[10px] font-bold uppercase tracking-wider">Secure</span>
+ <span className="text-[10px] font-bold tracking-tight">Secure</span>
  </div>
  </div>
 
@@ -89,7 +89,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <button
  onClick={() => handleGoogleLogin(false)}
  disabled={loading}
- className="relative overflow-hidden group w-full bg-slate-50 hover:bg-white shadow-sm text-slate-900 font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="relative overflow-hidden group w-full bg-slate-50 hover:bg-gray-50 text-gray-900 font-semibold text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  <div className="relative flex items-center justify-center gap-3">
  <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -98,7 +98,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
  </svg>
- <span className="uppercase tracking-widest">{loading ? 'Loading...' : 'Google Login (PC)'}</span>
+ <span className="tracking-tight">{loading ? 'Loading...' : 'Google Login (PC)'}</span>
  </div>
  </button>
 
@@ -106,7 +106,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <button
  onClick={() => handleGoogleLogin(true)}
  disabled={loading}
- className="relative overflow-hidden group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_-12px_rgba(16,185,129,0.45)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="relative overflow-hidden group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-gray-900 font-semibold text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_-12px_rgba(16,185,129,0.45)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  <div className="absolute inset-0 bg-white shadow-sm /20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
  <div className="relative flex items-center justify-center gap-3">
@@ -116,7 +116,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
  </svg>
- <span className="uppercase tracking-widest">{loading ? 'Loading...' : 'Google Login (Mobile PWA)'}</span>
+ <span className="tracking-tight">{loading ? 'Loading...' : 'Google Login (Mobile PWA)'}</span>
  <ArrowRight size={24} />
  </div>
  </button>
@@ -124,7 +124,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  </div>
  
  {/* Footer Text */}
- <div className="absolute bottom-6 text-slate-900 font-medium text-xs font-bold tracking-widest uppercase">
+ <div className="absolute bottom-6 text-gray-900 font-medium text-xs font-bold tracking-normal ">
  © {new Date().getFullYear()} JR Farm Cooperative
  </div>
  </div>
