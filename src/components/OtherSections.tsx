@@ -1125,7 +1125,7 @@ export function OtherSections({
  <div>
  <div className="flex items-center gap-2">
  <h4 className="text-gray-500 font-semibold text-sm tracking-tight">Nyaronde Agronomy & Crops Hub</h4>
- <span className="text-[10px] bg-emerald-900 text-green-600 border border-green-700 px-2.5 py-0.5 rounded-full font-semibold tracking-tight">Nyamira County</span>
+ <span className="text-[10px] bg-white text-green-600 border border-green-700 px-2.5 py-0.5 rounded-full font-semibold tracking-tight">Nyamira County</span>
  </div>
  <p className="text-xs text-gray-900 font-medium font-medium">Coordinate windbreaker blue gum, pasture paddocks, and operations logs for Tea, Avocado, Bananas, Corn & Sorghum.</p>
  </div>
@@ -1196,7 +1196,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-emerald-850 active:scale-95 transition-all flex items-center gap-1.5 m-0"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white active:scale-95 transition-all flex items-center gap-1.5 m-0"
  >
  <Plus size={14} /> Registered Block
  </button>
@@ -1362,7 +1362,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-white hover:bg-emerald-900 transition-all text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
+ <button type="submit" className="px-5 py-2.5 bg-white hover:bg-white transition-all text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
  Commit Plot Record
  </button>
  </div>
@@ -1576,11 +1576,11 @@ export function OtherSections({
  </div>
  <div className="bg-white shadow-sm border border-gray-200 p-2 rounded-xl text-center">
  <span className="text-[7.5px]  font-semibold text-gray-900 font-medium block tracking-normal">Phosphorous (P)</span>
- <span className="text-xs font-semibold text-lime-305 text-lime-300 font-mono block mt-0.5">{phosphorus} ppm</span>
+ <span className="text-xs font-semibold text-lime-305 text-gray-700 font-mono block mt-0.5">{phosphorus} ppm</span>
  </div>
  <div className="bg-white shadow-sm border border-gray-200 p-2 rounded-xl text-center">
  <span className="text-[7.5px]  font-semibold text-gray-900 font-medium block tracking-normal">Potassium (K)</span>
- <span className="text-xs font-semibold text-sky-305 text-sky-305 text-sky-300 font-mono block mt-0.5">{potassium} ppm</span>
+ <span className="text-xs font-semibold text-sky-305 text-sky-305 text-gray-700 font-mono block mt-0.5">{potassium} ppm</span>
  </div>
  </div>
  </div>
@@ -1594,7 +1594,7 @@ export function OtherSections({
  <span>Projected Yield</span>
  </div>
  <div className="flex justify-between items-center text-xs font-semibold font-mono tracking-normal">
- <span className="text-amber-200">21.8 °C</span>
+ <span className="text-gray-800">21.8 °C</span>
  <span className="text-green-600">{mockPH} pH</span>
  <span className="text-gray-900 truncate max-w-[100px]" title={activeField.projectedHarvestVolume || "N/A"}>
  {activeField.projectedHarvestVolume || "N/A"}
@@ -1828,7 +1828,7 @@ export function OtherSections({
  <div className="flex gap-2">
  <button
  onClick={() => setSilShowAdd(!silShowAdd)}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 cursor-pointer shadow"
+ className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-800 hover:bg-white text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 cursor-pointer shadow"
  >
  <Plus size={14} />
  Log Silage Batch
@@ -2044,7 +2044,7 @@ export function OtherSections({
  <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
- <span className="font-mono bg-indigo-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
+ <span className="font-mono bg-white text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
  {item.id}
  </span>
  <span className="text-sm font-semibold text-gray-900">
@@ -2198,7 +2198,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0 cursor-pointer"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white flex items-center gap-1.5 m-0 cursor-pointer"
  >
  <Plus size={14} /> Log Crop Operation
  </button>
@@ -2335,7 +2335,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-white hover:bg-emerald-900 transition-all text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
+ <button type="submit" className="px-5 py-2.5 bg-white hover:bg-white transition-all text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
  Commit Task Record
  </button>
  </div>
@@ -2488,7 +2488,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-emerald-850 flex items-center gap-1.5 m-0 font-bold font-sans"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white flex items-center gap-1.5 m-0 font-bold font-sans"
  >
  <Plus size={14} /> Record Crop Sale
  </button>
@@ -2600,7 +2600,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 hover:bg-emerald-900 shadow transition-all">
+ <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 hover:bg-white shadow transition-all">
  Record Sale & Post Income
  </button>
  </div>
@@ -2807,7 +2807,7 @@ export function OtherSections({
  <div className="bg-white shadow-sm text-gray-900 font-bold p-6 rounded-3xl space-y-4 border border-gray-200">
  <div className="flex items-center gap-2">
  <span className="text-[10px] bg-amber-500 text-gray-500 font-semibold px-2.5 py-1 rounded-sm ">Veterinary Advisory</span>
- <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-1 rounded  font-bold">Comprehensive Poultry Guide</span>
+ <span className="text-[10px] bg-white text-gray-700 border border-indigo-800 px-2 py-1 rounded  font-bold">Comprehensive Poultry Guide</span>
  </div>
  <h4 className="text-xl font-semibold text-gray-900 tracking-tight text-gray-900 flex items-center gap-2">
  <span>🐔 Nyaronde Poultry Cooperative & Layer Advisor</span>
@@ -2815,7 +2815,7 @@ export function OtherSections({
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
  <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
- <span className="text-[10px] bg-emerald-900 text-green-600 px-2 py-0.5 rounded font-semibold ">Cohort 1: Chicks (Day 1 - Week 8)</span>
+ <span className="text-[10px] bg-white text-green-600 px-2 py-0.5 rounded font-semibold ">Cohort 1: Chicks (Day 1 - Week 8)</span>
  <h5 className="text-sm font-bold text-gray-900">Chops & Thermal Rearing</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
  Maintain brooder temperatures at 30-32°C during Week 1, decreasing 2°C weekly. Feed <strong>Chick Starter Crumble</strong> (high-protein ~20% CP) up to 35-40g daily per chick. Vaccinate strictly: 
@@ -2824,7 +2824,7 @@ export function OtherSections({
  </div>
 
  <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
- <span className="text-[10px] bg-amber-900 text-amber-100 px-2 py-0.5 rounded font-semibold ">Cohort 2: Growers (Week 9 - Week 18)</span>
+ <span className="text-[10px] bg-white text-gray-900 px-2 py-0.5 rounded font-semibold ">Cohort 2: Growers (Week 9 - Week 18)</span>
  <h5 className="text-sm font-bold text-gray-900">Weight Management & Deworming</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
  Transition birds to <strong>Growers Mash</strong>. Aim for uniform weights of 1.3 - 1.6 KG by week 18. Overfeeding causes pelvic fat pads resulting in future prolapses; underfeeding retards egg laying start. Deworm at Week 14. Give Fowl Pox vaccine at Week 18.
@@ -2832,7 +2832,7 @@ export function OtherSections({
  </div>
 
  <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-2">
- <span className="text-[10px] bg-indigo-900 text-indigo-100 px-2 py-0.5 rounded font-semibold ">Cohort 3: Layers (Week 19+)</span>
+ <span className="text-[10px] bg-white text-gray-900 px-2 py-0.5 rounded font-semibold ">Cohort 3: Layers (Week 19+)</span>
  <h5 className="text-sm font-bold text-gray-900">Calcium Fortification & Grits</h5>
  <p className="text-[11px] text-gray-900 font-medium font-medium leading-relaxed">
  Feed <strong>Layers Mash</strong> containing at least 3.5% Calcium. Add free-choice oyster shell grits to reinforce shell thickness and egg size, especially for older layers. Maintain 16 hours of daily photo-stimulation (lighting) to sustain over 85% Hen-Day lay output.
@@ -2946,7 +2946,7 @@ export function OtherSections({
  {((calcPouEggCrates * 30 / calcPouCount) * 100).toFixed(1)}%
  </span>
  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
- (calcPouEggCrates * 30 / calcPouCount) * 100 >= 80 ? 'bg-emerald-500/10 text-green-600 text-green-600 font-bold' : 'bg-red-500/10 text-red-300'
+ (calcPouEggCrates * 30 / calcPouCount) * 100 >= 80 ? 'bg-emerald-500/10 text-green-600 text-green-600 font-bold' : 'bg-red-500/10 text-gray-700'
  }`}>
  {((calcPouEggCrates * 30 / calcPouCount) * 100) >= 80 ? 'Peak Output' : 'Needs Review'}
  </span>
@@ -2963,7 +2963,7 @@ export function OtherSections({
  </div>
 
  <div className="mt-4 pt-3 border-t border-gray-200">
- <span className="text-[9px] font-semibold text-indigo-300 block  mb-1">Total Daily Feed Intakes</span>
+ <span className="text-[9px] font-semibold text-gray-700 block  mb-1">Total Daily Feed Intakes</span>
  <span className="text-sm font-semibold text-gray-900 font-medium font-mono">
  {calcPouFeedBags * 50} KG <span className="text-[10px] text-gray-500 font-bold">Total Feed Weight</span>
  </span>
@@ -3016,7 +3016,7 @@ export function OtherSections({
  })()}
  </div>
 
- <div className="text-[10px] bg-white shadow-sm border border-gray-200 p-2.5 rounded-xl text-yellow-300 mt-2 font-bold flex items-center gap-1.5">
+ <div className="text-[10px] bg-white shadow-sm border border-gray-200 p-2.5 rounded-xl text-gray-700 mt-2 font-bold flex items-center gap-1.5">
  <span>💡</span>
  <span>Target egg-laying benchmark is 1 crate/day for every 32-35 active feeding birds.</span>
  </div>
@@ -3036,7 +3036,7 @@ export function OtherSections({
  <div className="flex gap-2">
  <button
  onClick={() => setPouShowAdd(!pouShowAdd)}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-850 hover:bg-indigo-900 text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer"
+ className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-white text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer"
  >
  <Plus size={14} />
  Log Poultry Entry
@@ -3274,7 +3274,7 @@ export function OtherSections({
  <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
- <span className="font-mono bg-indigo-950 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold">
+ <span className="font-mono bg-white text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold">
  {item.id}
  </span>
  <span className="text-sm font-semibold text-gray-900">
@@ -3389,7 +3389,7 @@ export function OtherSections({
  setShowAddForm(!showAddForm);
  setLsType('Poultry');
  }}
- className="bg-amber-900 text-gray-900 font-semibold text-xs  px-4 py-2 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 cursor-pointer shadow-xs"
+ className="bg-white text-gray-900 font-semibold text-xs  px-4 py-2 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 cursor-pointer shadow-xs"
  >
  <Plus size={13} /> Add Activity Log
  </button>
@@ -3469,7 +3469,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
+ <button type="submit" className="px-5 py-2.5 bg-white hover:bg-amber-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
  Save Activity
  </button>
  </div>
@@ -3535,15 +3535,15 @@ export function OtherSections({
  {livestockSubTab === 'heifers' && (
  <div className="space-y-8 animate-fadeIn">
  {/* Educational Advisory on Heifer rearing */}
- <div className="bg-amber-900 text-amber-50 p-6 rounded-3xl space-y-3 shadow">
+ <div className="bg-white text-amber-50 p-6 rounded-3xl space-y-3 shadow">
  <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded font-semibold tracking-normal ">Reproductive Science</span>
  <h4 className="text-xl font-bold tracking-tight text-gray-900">🐄 Sustainable Heifer Growth to First Calving</h4>
- <p className="text-xs text-amber-100 leading-relaxed max-w-2xl font-medium">
+ <p className="text-xs text-gray-900 leading-relaxed max-w-2xl font-medium">
  Heifers are the future replacement cows of the dairy farm. Target steady, lean skeletel growth of <strong>655g to 750g average daily liveweight gain (ADG)</strong>. Monitor chest girth metrics so heifers can safely reach breeding size of <strong>290-310 KG</strong> at 14-16 months of maturity.
  </p>
  <div className="text-xs bg-amber-955 p-3 rounded-xl space-y-1.5 border border-amber-800">
  <span className="text-yellow-700 font-semibold  text-[10.5px] block">👑 Best Feeding Strategy</span>
- <p className="text-[10.5px] text-amber-100 leading-tight">
+ <p className="text-[10.5px] text-gray-900 leading-tight">
  Provide ad-libitum access to clean Boma Rhodes hay blocks, fortified with 1-2kg of high-energy grower meal raw formulation diariamente. Calcium and trace mineral salts are mandatory to ensure follicular maturation, ovulation capacity, and robust fertility cycles.
  </p>
  </div>
@@ -3595,7 +3595,7 @@ export function OtherSections({
  </div>
  </div>
 
- <div className={`${hefBreedingReady ? 'bg-indigo-950 text-amber-200' : 'bg-white shadow-sm text-gray-900 font-semibold'} p-5 rounded-2xl flex flex-col justify-between transition-all`}>
+ <div className={`${hefBreedingReady ? 'bg-white text-gray-800' : 'bg-white shadow-sm text-gray-900 font-semibold'} p-5 rounded-2xl flex flex-col justify-between transition-all`}>
  <div>
  <span className="text-[9px] font-semibold text-gray-900 font-medium block ">AI BREEDING ELIGIBILITY</span>
  <div className="text-lg font-semibold mt-2 tracking-tight">
@@ -3624,7 +3624,7 @@ export function OtherSections({
  <div className="flex gap-2">
  <button
  onClick={() => setHefShowAdd(!hefShowAdd)}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-900 hover:bg-amber-950 text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer"
+ className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-white text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer"
  >
  <Plus size={14} />
  Log Development metrics
@@ -3781,7 +3781,7 @@ export function OtherSections({
  <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1">
  <div className="flex flex-wrap items-center gap-2">
- <span className="font-mono bg-amber-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
+ <span className="font-mono bg-white text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
  {item.id}
  </span>
  <span className="text-sm font-semibold text-gray-900">
@@ -3850,29 +3850,29 @@ export function OtherSections({
  {livestockSubTab === 'quarantine' && (
  <div className="space-y-8 animate-fadeIn">
  {/* Introduction Safety Checklist banner */}
- <div className="bg-rose-950 text-[#fff] p-6 rounded-3xl space-y-4 border border-rose-900 shadow">
+ <div className="bg-white text-[#fff] p-6 rounded-3xl space-y-4 border border-rose-900 shadow">
  <div className="flex items-center gap-2">
  <span className="text-[10px] bg-yellow-400 text-rose-950 px-2.5 py-1 rounded font-semibold tracking-normal ">Biosecurity Protocol</span>
- <span className="text-[10px] bg-rose-900 text-rose-100 border border-rose-800 px-2 py-1 rounded  font-bold">Infection isolation</span>
+ <span className="text-[10px] bg-white text-gray-900 border border-rose-800 px-2 py-1 rounded  font-bold">Infection isolation</span>
  </div>
  <h4 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
  <span>🩺 Nyaronde Veterinary Quarantine isolation ledger</span>
  </h4>
  
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-[11px] pt-1">
- <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+ <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-gray-900 space-y-1">
  <span className="font-semibold  text-yellow-700 block">1. 21-Days Isolation</span>
  <span>All newly purchased cattle/goats must undergo a mandatory 21-day quarantine prior to herd merger.</span>
  </div>
- <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+ <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-gray-900 space-y-1">
  <span className="font-semibold  text-yellow-700 block">2. Dedicated Equipment</span>
  <span>Use exclusive feeding troughs, water buckets, and manure spades. Never move devices out of isolation zones.</span>
  </div>
- <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+ <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-gray-900 space-y-1">
  <span className="font-semibold  text-yellow-700 block">3. Footbath Hygiene</span>
  <span>Re-fill entrance footbaths with copper sulfate or chlorine disinfectant daily. Step in before boarding/leaving.</span>
  </div>
- <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-rose-100 space-y-1">
+ <div className="bg-rose-900/60 p-3 rounded-xl border border-rose-800 text-gray-900 space-y-1">
  <span className="font-semibold  text-yellow-700 block">4. Separate milking</span>
  <span>Always milk quarantined animals last. Pasteurize or safely discard milk; do not load into the main dairy cooler.</span>
  </div>
@@ -3948,7 +3948,7 @@ export function OtherSections({
  {(() => {
  let estimatedDisease = "General Isolation Observation";
  let protocolPriority = "Medium Concern";
- let protocolColor = "border-amber-500/30 bg-amber-500/10 text-amber-300";
+ let protocolColor = "border-amber-500/30 bg-amber-500/10 text-gray-700";
  let colorKey = "amber";
  let primaryMed = "Isolate and check temperature twice daily.";
  let bioSteps = "Observe for 7 days. Ensure footdisinfectant bath is renewed.";
@@ -3963,49 +3963,49 @@ export function OtherSections({
  } else if (diagSymptom === 'salivation_limping') {
  estimatedDisease = "🚨 Foot and Mouth Disease (FMD Virus)";
  protocolPriority = "CRITICAL BIOLOGICAL EMERGENCY (Strict Containment)";
- protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+ protocolColor = "border-red-500/40 bg-red-500/10 text-gray-700";
  colorKey = "red";
  primaryMed = "No direct cure. Support therapy: antiseptic foot washing, mild analgesics, oxytetracycline spray fields.";
  bioSteps = "Bar all visitors! Block all livestock movements. Dig deep pit for manure; sanitize tire tracks of outgoing feeds.";
  } else if (diagSymptom === 'bloody_waste') {
  estimatedDisease = "🚨 East Coast Fever (ECF - Tick Transmitted Protozoa)";
  protocolPriority = "CRITICAL (High Mortality Vet Alert)";
- protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+ protocolColor = "border-red-500/40 bg-red-500/10 text-gray-700";
  colorKey = "red";
  primaryMed = "Buparvaquone (Butalex) injection, plus Oxytetracycline LA.";
  bioSteps = "Intense systemic acaricide tick spraying/dip immediately for surrounding healthy herds.";
  } else if (diagSymptom === 'resp_green_poop') {
  estimatedDisease = "💀 Newcastle Disease or Gumboro / IBD Virus";
  protocolPriority = "CRITICAL (Extreme Virulence Layer Hazard)";
- protocolColor = "border-red-500/40 bg-red-500/10 text-rose-300";
+ protocolColor = "border-red-500/40 bg-red-500/10 text-gray-700";
  colorKey = "red";
  primaryMed = "No therapy available for active virus. Support with dynamic vitamins/electrolytes.";
  bioSteps = "Strictly incinerate or deep bury carcasses with quicklime. Sanitize brooder structures using formalin mist.";
  } else if (diagSymptom === 'bloody_chicks') {
  estimatedDisease = "🛡️ Avian Coccidiosis (Eimeria Parasite)";
  protocolPriority = "URGENT (Brooder Containment)";
- protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+ protocolColor = "border-amber-500/20 bg-amber-500/10 text-gray-700";
  colorKey = "amber";
  primaryMed = "Amprolium or Sulphaclozine-Sodium in drinking water for 5 continuous days.";
  bioSteps = "Eliminate wet wood shavings in brooders. Replace with clean, dry shavings. Keep drinker areas bone dry.";
  } else if (diagSymptom === 'soft_shells') {
  estimatedDisease = "⚠️ Egg Drop Syndrome or Calcium/D3 Starvation";
  protocolPriority = "NUTRITIONAL ADJUSTMENT";
- protocolColor = "border-cyan-500/20 bg-cyan-500/10 text-cyan-300";
+ protocolColor = "border-cyan-500/20 bg-cyan-500/10 text-gray-700";
  colorKey = "cyan";
  primaryMed = "Continuous layer mash supplement feed, Oyster chalk grit, Dicalcium Phosphate (DCP).";
  bioSteps = "Isolate older heavy-pecking hens. Maintain clean nests and feed bins.";
  } else if (diagSymptom === 'skin_nodules') {
  estimatedDisease = "⚠️ Lumpy Skin Disease / Capripox Virus";
  protocolPriority = "URGENT isolate (Vector Spread danger)";
- protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+ protocolColor = "border-amber-500/20 bg-amber-500/10 text-gray-700";
  colorKey = "amber";
  primaryMed = "Broad spectrum antibiotics to control secondary bacterial invasion, wound antiseptics.";
  bioSteps = "Spray mosquito control fields. Block tick and fly contacts inside zero-grazing isolators.";
  } else if (diagSymptom === 'cough_wasting') {
  estimatedDisease = "🛡️ Contagious Caprine Pleuropneumonia (CCPP Mycoplasma)";
  protocolPriority = "URGENT respiratory control";
- protocolColor = "border-amber-500/20 bg-amber-500/10 text-amber-300";
+ protocolColor = "border-amber-500/20 bg-amber-500/10 text-gray-700";
  colorKey = "amber";
  primaryMed = "Oxytetracycline LA dose or Tylosin injections.";
  bioSteps = "Avoid crowding. Keep airflow vents high in the goat shelter. Disinfect saliva droplets.";
@@ -4015,7 +4015,7 @@ export function OtherSections({
  <div className={`p-4 border rounded-2xl ${protocolColor} space-y-3`}>
  <div className="flex justify-between items-center border-b border-gray-100 pb-2">
  <span className="text-[10px]  font-semibold tracking-normal text-gray-900">Advisory diagnostics</span>
- <span className="text-[9.5px] font-mono font-semibold  text-yellow-300">{protocolPriority}</span>
+ <span className="text-[9.5px] font-mono font-semibold  text-gray-700">{protocolPriority}</span>
  </div>
  
  <div className="space-y-1">
@@ -4034,7 +4034,7 @@ export function OtherSections({
  </div>
  </div>
 
- <div className="pt-2 text-[9.5px] font-bold text-yellow-300 flex items-center gap-1.5 border-t border-white/5">
+ <div className="pt-2 text-[9.5px] font-bold text-gray-700 flex items-center gap-1.5 border-t border-white/5">
  <span>⚠️</span>
  <span>Always authorize treatment choices with a certified veterinarian before dosage.</span>
  </div>
@@ -4137,7 +4137,7 @@ export function OtherSections({
  <span className="text-[10px] text-gray-500 block font-bold">Clear date: {formattedMilkDate}</span>
  </div>
 
- <p className={`text-[10px] font-medium leading-relaxed ${isMilkCleared ? 'text-green-600' : 'text-rose-300'}`}>
+ <p className={`text-[10px] font-medium leading-relaxed ${isMilkCleared ? 'text-green-600' : 'text-gray-700'}`}>
  {isMilkCleared 
  ? "✔ Milk chemical residues are down. Safe to deliver to the dairy cooperative." 
  : `🔴 DISCARD! Milk has active antibiotic residues. Feeding calf is allowed, but do not sell to retail.`}
@@ -4158,7 +4158,7 @@ export function OtherSections({
  <span className="text-[10px] text-gray-500 block font-bold">Clear date: {formattedMeatDate}</span>
  </div>
 
- <p className={`text-[10px] font-medium leading-relaxed ${isMeatCleared ? 'text-green-600' : 'text-rose-300'}`}>
+ <p className={`text-[10px] font-medium leading-relaxed ${isMeatCleared ? 'text-green-600' : 'text-gray-700'}`}>
  {isMeatCleared 
  ? "✔ Meat tissues completely secure for packaging and direct slaughterhouse dispatch." 
  : `🔴 WARNING! Chemical withdrawals in muscle tissues are dangerous to consumer health.`}
@@ -4182,7 +4182,7 @@ export function OtherSections({
  <div className="flex gap-2">
  <button
  onClick={() => setQuaShowAdd(!quaShowAdd)}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-rose-900 hover:bg-rose-950 text-gray-900 rounded-xl font-bold text-xs tracking-tight m-0 shadow cursor-pointer transition-all"
+ className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-white text-gray-900 rounded-xl font-bold text-xs tracking-tight m-0 shadow cursor-pointer transition-all"
  >
  <Plus size={14} />
  Register Quarantine Isolate
@@ -4375,7 +4375,7 @@ export function OtherSections({
  <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1.5 flex-1 w-full">
  <div className="flex flex-wrap items-center gap-2">
- <span className="font-mono bg-rose-900 text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
+ <span className="font-mono bg-white text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
  {item.id}
  </span>
  <span className="text-sm font-semibold text-gray-900">
@@ -4506,7 +4506,7 @@ export function OtherSections({
  setShowAddForm(!showAddForm);
  setLsType('Dogs');
  }}
- className="bg-amber-900 text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0"
  >
  <Plus size={14} /> Add Ledger Log
  </button>
@@ -4587,7 +4587,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
+ <button type="submit" className="px-5 py-2.5 bg-white hover:bg-amber-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow">
  Save Activity
  </button>
  </div>
@@ -4882,7 +4882,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-amber-950 text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-900 flex items-center gap-1.5 m-0 font-sans font-bold cursor-pointer"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white flex items-center gap-1.5 m-0 font-sans font-bold cursor-pointer"
  >
  <Plus size={14} /> Register Dairy Goat
  </button>
@@ -4987,7 +4987,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-amber-950 text-gray-900 font-semibold text-xs  rounded-lg m-0 hover:bg-amber-900 shadow">
+ <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 hover:bg-white shadow">
  Save Record
  </button>
  </div>
@@ -5130,7 +5130,7 @@ export function OtherSections({
  </div>
 
  <div className="mt-4 pt-3 border-t border-gray-200">
- <span className="text-[9px] font-semibold text-indigo-300 block  mb-1">Target Average Daily Gain (ADG)</span>
+ <span className="text-[9px] font-semibold text-gray-700 block  mb-1">Target Average Daily Gain (ADG)</span>
  <div className="text-2xl font-semibold text-gray-900 text-gray-900 font-mono tracking-tight leading-none">
  {((calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000).toFixed(0)} <span className="text-xs text-gray-900 font-medium font-sans  font-semibold">g / Day</span>
  </div>
@@ -5164,7 +5164,7 @@ export function OtherSections({
  }
  })()}
  </div>
- <div className="text-[10.5px] bg-white shadow-sm border border-gray-200 p-2.5 rounded-xl text-yellow-300 mt-2">
+ <div className="text-[10.5px] bg-white shadow-sm border border-gray-200 p-2.5 rounded-xl text-gray-700 mt-2">
  💡 <strong>Rule of thumb:</strong> Do NOT wean by age alone. Wean only when the calf eats 1.5 KG of dry calf starter pellet daily for 3 consecutive days.
  </div>
  </div>
@@ -5175,7 +5175,7 @@ export function OtherSections({
  <span className="text-[10px]  font-semibold text-gray-500 text-gray-900 font-medium tracking-normal block">Optimal Calf Feeding Weaning Protocol Timeline</span>
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium leading-relaxed text-gray-900 font-medium">
  <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-amber-500/10 text-amber-300 font-semibold px-2 py-0.5 rounded block  w-fit">Days 1 - 3</span>
+ <span className="text-[9.5px] bg-amber-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Days 1 - 3</span>
  <h5 className="font-semibold text-gray-900 text-xs">The Colostrum Shield</h5>
  <p className="text-[11px] leading-snug">
  Feed colostrum equal to <strong>10% of birth weight</strong> (e.g. 3.5L for a 35kg calf) within 2 hours of birth. This transfers crucial maternal antibodies before gut closure.
@@ -5191,7 +5191,7 @@ export function OtherSections({
  </div>
 
  <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-blue-500/10 text-blue-300 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 9 - 10</span>
+ <span className="text-[9.5px] bg-blue-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 9 - 10</span>
  <h5 className="font-semibold text-gray-900 text-xs">Milk Deceleration</h5>
  <p className="text-[11px] leading-snug">
  Once starter feed intake reaches 1.0 KG daily, cut milk volume by half (single morning feeds of 2-3 Liters). This triggers the calf to eat search alternative nutrition form of dry starter.
@@ -5199,7 +5199,7 @@ export function OtherSections({
  </div>
 
  <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-indigo-500/10 text-indigo-300 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 11+</span>
+ <span className="text-[9.5px] bg-indigo-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 11+</span>
  <h5 className="font-semibold text-gray-900 text-xs">Weaning Complete</h5>
  <p className="text-[11px] leading-snug">
  Stop milk entirely once the calf consumes 1.5 KG dry starter pellets. Complete transition to weaner pellets, fine legumes, and unlimited clean dry water.
@@ -5234,7 +5234,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-amber-955 bg-amber-900 text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 font-sans font-bold"
+ className="bg-amber-955 bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 font-sans font-bold"
  >
  <Plus size={14} /> Register Young Calf
  </button>
@@ -5365,7 +5365,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow hover:bg-emerald-900 cursor-pointer">
+ <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow hover:bg-white cursor-pointer">
  Commit Calf Profile
  </button>
  </div>
@@ -5449,7 +5449,7 @@ export function OtherSections({
  {livestockSubTab === 'bsf' && (
  <div className="space-y-6">
  {/* Informative BSF protein guidelines container */}
- <div className="bg-zinc-850 bg-white shadow-sm border border-gray-200 p-5 rounded-3xl space-y-3 text-gray-900 font-bold">
+ <div className="bg-white bg-white shadow-sm border border-gray-200 p-5 rounded-3xl space-y-3 text-gray-900 font-bold">
  <div className="flex items-center gap-2">
  <Compass size={16} className="text-yellow-700 shrink-0" />
  <h5 className="text-[11px] font-semibold tracking-tight text-yellow-700">BLACK SOLDIER FLY (BSF) REVENUE FLUID STAGES</h5>
@@ -5502,7 +5502,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-zinc-900 hover:bg-zinc-850 text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl flex items-center gap-1.5 m-0 font-sans font-bold"
+ className="bg-white hover:bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl flex items-center gap-1.5 m-0 font-sans font-bold"
  >
  <Plus size={14} /> Log BSF Batch
  </button>
@@ -5636,7 +5636,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow cursor-pointer">
+ <button type="submit" className="px-5 py-2.5 bg-white hover:bg-zinc-800 text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow cursor-pointer">
  Log Fly Batch
  </button>
  </div>
@@ -5905,13 +5905,13 @@ export function OtherSections({
  )}
  <button
  onClick={() => { setShowAddForm(!showAddForm); setAsCategory('Poultry'); }}
- className="bg-emerald-900 text-gray-900 font-semibold text-xs  px-4 py-2.5 rounded-xl hover:bg-emerald-805 flex items-center gap-1.5 m-0"
+ className="bg-white text-gray-900 font-semibold text-xs  px-4 py-2.5 rounded-xl hover:bg-emerald-805 flex items-center gap-1.5 m-0"
  >
  <Plus size={14} /> Log Livestock Sale
  </button>
  <button
  onClick={() => { setShowAddForm(!showAddForm); setMCategory('Poultry'); }}
- className="bg-rose-900 text-gray-900 font-semibold text-xs  px-4 py-2.5 rounded-xl hover:bg-rose-805 flex items-center gap-1.5 m-0"
+ className="bg-white text-gray-900 font-semibold text-xs  px-4 py-2.5 rounded-xl hover:bg-rose-805 flex items-center gap-1.5 m-0"
  >
  <Plus size={14} /> Log Deceased Mortality
  </button>
@@ -6032,7 +6032,7 @@ export function OtherSections({
  </div>
  </div>
  <div className="flex justify-end gap-2">
- <button type="submit" className="px-5 py-2.5 text-xs font-semibold tracking-tight bg-emerald-900 border hover:bg-emerald-805 text-gray-900 rounded-xl cursor-pointer">Confirm Sale Transaction</button>
+ <button type="submit" className="px-5 py-2.5 text-xs font-semibold tracking-tight bg-white border hover:bg-emerald-805 text-gray-900 rounded-xl cursor-pointer">Confirm Sale Transaction</button>
  </div>
  </form>
 
@@ -6122,7 +6122,7 @@ export function OtherSections({
  />
  </div>
  <div className="flex justify-end gap-2">
- <button type="submit" className="px-5 py-2.5 text-xs font-semibold tracking-tight bg-rose-900 hover:bg-rose-805 text-gray-900 rounded-xl cursor-pointer">Log Loss Decease Event</button>
+ <button type="submit" className="px-5 py-2.5 text-xs font-semibold tracking-tight bg-white hover:bg-rose-805 text-gray-900 rounded-xl cursor-pointer">Log Loss Decease Event</button>
  </div>
  </form>
  </div>
@@ -6508,7 +6508,7 @@ export function OtherSections({
  )}
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-zinc-950 text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-zinc-805 active:scale-95 transition-all flex items-center justify-center gap-1.5 m-0 w-full md:w-auto shrink-0"
+ className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-zinc-805 active:scale-95 transition-all flex items-center justify-center gap-1.5 m-0 w-full md:w-auto shrink-0"
  >
  <Plus size={14} /> Core Register Stock
  </button>
@@ -6620,7 +6620,7 @@ export function OtherSections({
  >
  Cancel
  </button>
- <button type="submit" className="px-5 py-2.5 bg-zinc-950 text-gray-900 font-semibold text-xs  rounded-lg m-0">
+ <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0">
  Register Item
  </button>
  </div>
@@ -6889,7 +6889,7 @@ export function OtherSections({
  }
  setEditingField(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -6973,7 +6973,7 @@ export function OtherSections({
  }
  setEditingLivestock(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -7093,7 +7093,7 @@ export function OtherSections({
  }
  setEditingInventoryItem(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -7194,7 +7194,7 @@ export function OtherSections({
  }
  setEditingGoat(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -7322,7 +7322,7 @@ export function OtherSections({
  }
  setEditingCalf(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -7418,7 +7418,7 @@ export function OtherSections({
  }
  setEditingBsf(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>
@@ -7576,7 +7576,7 @@ export function OtherSections({
  }
  setEditingCropOp(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 hover:bg-indigo-900 transition-all text-gray-900 rounded-lg text-xs font-semibold  m-0 shadow cursor-pointer"
+ className="px-5 py-2.5 bg-white hover:bg-white transition-all text-gray-900 rounded-lg text-xs font-semibold  m-0 shadow cursor-pointer"
  >
  Save Changes
  </button>
@@ -7711,7 +7711,7 @@ export function OtherSections({
  }
  setEditingCropSale(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow"
+ className="px-5 py-2.5 bg-white text-gray-900 rounded-lg text-xs font-semibold  hover:bg-white m-0 shadow"
  >
  Save Changes
  </button>

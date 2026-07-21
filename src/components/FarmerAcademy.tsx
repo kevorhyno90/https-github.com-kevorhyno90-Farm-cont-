@@ -1682,10 +1682,10 @@ export default function FarmerAcademy({
  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div className="space-y-3 max-w-3xl">
  <div className="flex flex-wrap items-center gap-2">
- <span className="bg-emerald-900 text-green-600 font-semibold tracking-normal text-[9px]  px-3 py-1 rounded-full border border-emerald-700/50">
+ <span className="bg-white text-green-600 font-semibold tracking-normal text-[9px]  px-3 py-1 rounded-full border border-emerald-700/50">
  ⚡ MASTERCLASS SUPER-HUB
  </span>
- <span className="bg-amber-500/20 text-amber-300 font-bold text-[9px] px-2.5 py-1 rounded-full border border-amber-500/30">
+ <span className="bg-amber-500/20 text-gray-700 font-bold text-[9px] px-2.5 py-1 rounded-full border border-amber-500/30">
  LIVESTOCK + AGRONOMY SPECIFICATIONS
  </span>
  </div>
@@ -1734,7 +1734,7 @@ export default function FarmerAcademy({
  {searchTerm ? (
  <button 
  onClick={() => setSearchTerm('')}
- className="absolute inset-y-0 right-0 pr-4 flex items-center text-[10px] text-amber-400 hover:text-amber-300 font-semibold tracking-wide  border-0 bg-transparent cursor-pointer"
+ className="absolute inset-y-0 right-0 pr-4 flex items-center text-[10px] text-amber-400 hover:text-gray-700 font-semibold tracking-wide  border-0 bg-transparent cursor-pointer"
  >
  Clear
  </button>
@@ -1856,7 +1856,7 @@ export default function FarmerAcademy({
  onClick={() => { setActiveTab('quizzes' as any); }}
  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border font-semibold text-[11px]  tracking-wide transition-all cursor-pointer m-0 ${
  activeTab === ('quizzes' as any)
- ? 'bg-rose-950 text-gray-900 border-rose-950 shadow-sm'
+ ? 'bg-white text-gray-900 border-rose-950 shadow-sm'
  : 'bg-rose-900/20 text-rose-900 hover:bg-rose-100 border-rose-200'
  }`}
  id="tab-quizzes"
@@ -2036,7 +2036,7 @@ export default function FarmerAcademy({
  onClick={() => setSelectedCrop(pill.id)}
  className={`px-3 py-1.5 rounded-xl border text-[11px] font-semibold  cursor-pointer transition-all ${
  selectedCrop === pill.id
- ? 'bg-emerald-900 text-gray-900 border-emerald-900'
+ ? 'bg-white text-gray-900 border-emerald-900'
  : 'bg-white shadow-sm text-gray-900 font-medium hover:text-gray-900'
  }`}
  >
@@ -2318,7 +2318,7 @@ export default function FarmerAcademy({
  onClick={() => setSelectedAnimal(pill.id)}
  className={`px-3 py-1.5 rounded-xl border text-[11px] font-semibold  cursor-pointer transition-all ${
  selectedAnimal === pill.id
- ? 'bg-rose-955 bg-rose-950 text-gray-900 border-rose-950'
+ ? 'bg-rose-955 bg-white text-gray-900 border-rose-950'
  : 'bg-white shadow-sm text-gray-500 hover:text-gray-900'
  }`}
  >
@@ -2595,7 +2595,7 @@ export default function FarmerAcademy({
  </div>
  </div>
 
- <div className="bg-purple-950 text-purple-100 p-4 rounded-xl space-y-2 border border-purple-800">
+ <div className="bg-white text-gray-900 p-4 rounded-xl space-y-2 border border-purple-800">
  <span className="text-[10px] font-semibold  bg-purple-800 text-gray-900 px-2 py-0.5 rounded tracking-wide">
  👑 CRITICAL VET AI INSIGHT RECOMMENDATION
  </span>
@@ -2726,7 +2726,7 @@ export default function FarmerAcademy({
  <button
  type="button"
  onClick={handleLogBiogasSlurry}
- className="w-full bg-emerald-800 hover:bg-emerald-900 text-gray-900 font-semibold text-xs  py-3 rounded-xl border border-emerald-700 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+ className="w-full bg-emerald-800 hover:bg-white text-gray-900 font-semibold text-xs  py-3 rounded-xl border border-emerald-700 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
  >
  Harvest Bio-slurry & Log Green Offset
  </button>
@@ -3029,7 +3029,7 @@ export default function FarmerAcademy({
  <button
  type="button"
  onClick={() => handleVerifyAndDeductFertilizer(calcCrop, calcAcreage, data)}
- className="w-full bg-amber-700 hover:bg-amber-850 text-gray-900 font-semibold text-xs  py-3 rounded-xl border border-amber-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+ className="w-full bg-amber-700 hover:bg-white text-gray-900 font-semibold text-xs  py-3 rounded-xl border border-amber-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
  >
  Verify & Deduct from Store Inventory
  </button>
@@ -3257,7 +3257,7 @@ export default function FarmerAcademy({
  <button
  type="button"
  onClick={() => handlePublishFeedMarginProfit(revenue, feedCost)}
- className="w-full bg-emerald-700 hover:bg-emerald-850 text-white font-semibold text-xs  py-3 rounded-xl border border-emerald-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
+ className="w-full bg-emerald-700 hover:bg-white text-white font-semibold text-xs  py-3 rounded-xl border border-emerald-600 transition-all cursor-pointer flex items-center justify-center gap-2 m-0"
  >
  <Plus size={14} />
  Publish to Financial Ledger
@@ -3926,7 +3926,7 @@ export default function FarmerAcademy({
  <div className="space-y-2">
  <div className="flex justify-between items-center">
  <span className={`text-[8.5px] font-semibold  px-2 py-0.5 rounded-sm ${
- cs.category === 'livestock' ? 'bg-amber-900/40 text-amber-300 border border-amber-800/40' : 'bg-teal-900/40 text-teal-300 border border-teal-800/40'
+ cs.category === 'livestock' ? 'bg-amber-900/40 text-gray-700 border border-amber-800/40' : 'bg-teal-900/40 text-gray-700 border border-teal-800/40'
  }`}>
  {cs.category === 'livestock' ? '🐄 Livestock Veterinary' : '🌱 Crop Agronomy'}
  </span>
@@ -4033,7 +4033,7 @@ export default function FarmerAcademy({
  onClick={() => setSimChosenDiagnosis(diag)}
  className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-semibold transition-all ${
  isSelected
- ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
+ ? 'bg-white text-indigo-400 border-indigo-500/50'
  : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200'
  }`}
  >
@@ -4058,7 +4058,7 @@ export default function FarmerAcademy({
  onClick={() => setSimChosenTreatment(tr)}
  className={`w-full p-3 rounded-xl border text-left text-[10.5px] cursor-pointer font-semibold transition-all ${
  isSelected
- ? 'bg-indigo-950 text-indigo-400 border-indigo-500/50'
+ ? 'bg-white text-indigo-400 border-indigo-500/50'
  : 'bg-white shadow-sm text-gray-900 font-medium border-gray-200 hover:bg-white border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed'
  }`}
  >
@@ -4103,7 +4103,7 @@ export default function FarmerAcademy({
  <div className={`p-4 rounded-xl border ${
  simFeedback.success
  ? 'bg-white/40 border-emerald-500/30 text-green-600'
- : 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+ : 'bg-rose-950/40 border-rose-500/30 text-gray-700'
  } text-xs leading-relaxed font-semibold`}>
  <span className="font-semibold  block text-[10px] mb-1">
  {simFeedback.success ? '🏆 ACCURATE DIAGNOSIS CERTIFIED' : '❌ DIAGNOSTIC CRITIQUE'}
@@ -4218,7 +4218,7 @@ export default function FarmerAcademy({
  <div className="flex justify-between items-center">
  <span className="font-semibold">{sop.title}</span>
  <span className={`text-[9px]  font-mono px-1.5 py-0.5 rounded ${
- selectedAutoSop === sop.id ? 'bg-indigo-900 text-gray-900' : 'bg-white text-gray-900'
+ selectedAutoSop === sop.id ? 'bg-white text-gray-900' : 'bg-white text-gray-900'
  }`}>- {sop.count} {sop.unit.split(' ')[0]}</span>
  </div>
  </button>
@@ -4604,20 +4604,20 @@ export default function FarmerAcademy({
  </div>
 
  {/* Results panel */}
- <div className="bg-teal-950 text-gray-900 p-5 rounded-2xl space-y-4 border border-teal-900 shadow-sm">
- <h4 className="text-[10px] font-semibold  text-teal-300 tracking-normal">Predictive calculations (308d Cycle)</h4>
+ <div className="bg-white text-gray-900 p-5 rounded-2xl space-y-4 border border-teal-900 shadow-sm">
+ <h4 className="text-[10px] font-semibold  text-gray-700 tracking-normal">Predictive calculations (308d Cycle)</h4>
  
  <div className="grid grid-cols-2 gap-4">
  <div>
- <span className="text-[8.5px] text-teal-200 font-bold tracking-tight block">Est. Lactation Output</span>
+ <span className="text-[8.5px] text-gray-800 font-bold tracking-tight block">Est. Lactation Output</span>
  <h3 className="text-xl font-semibold text-gray-900 font-mono mt-0.5">{forecastingCurveData.totalMilk.toLocaleString(undefined, {maximumFractionDigits:0})} L</h3>
  </div>
  <div>
- <span className="text-[8.5px] text-teal-200 font-bold tracking-tight block">Predicted Peak Yield</span>
+ <span className="text-[8.5px] text-gray-800 font-bold tracking-tight block">Predicted Peak Yield</span>
  <h3 className="text-xl font-semibold text-gray-900 font-mono mt-0.5">{forecastingCurveData.adjustedPeak} L/day</h3>
  </div>
  <div className="col-span-2 border-t border-teal-900 pt-3">
- <span className="text-[8.5px] text-teal-200 font-bold tracking-tight block">Est. Total Feed Requirement (Dry Matter)</span>
+ <span className="text-[8.5px] text-gray-800 font-bold tracking-tight block">Est. Total Feed Requirement (Dry Matter)</span>
  <h3 className="text-lg font-semibold font-mono mt-0.5">{forecastingCurveData.totalFeed.toLocaleString(undefined, {maximumFractionDigits:0})} kg</h3>
  </div>
  </div>
@@ -4785,7 +4785,7 @@ export default function FarmerAcademy({
  setQuizDone(true);
  }
  }}
- className="px-5 py-2.5 bg-white hover:bg-emerald-900 text-gray-900 rounded-xl text-xs font-semibold tracking-tight cursor-pointer border-none shadow"
+ className="px-5 py-2.5 bg-white hover:bg-white text-gray-900 rounded-xl text-xs font-semibold tracking-tight cursor-pointer border-none shadow"
  >
  {currentQuizQ < 2 ? "Next Question" : "Complete Quiz"}
  </button>
