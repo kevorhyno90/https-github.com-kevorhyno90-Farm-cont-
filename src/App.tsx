@@ -332,9 +332,11 @@ function FarmCoreApp() {
   // Navigation tab state
   const [activeTab, _setActiveTab] = useState<string>('dash');
   const setActiveTab = (tab: string) => {
-    startTransition(() => {
-      _setActiveTab(tab);
-    });
+    setTimeout(() => {
+      startTransition(() => {
+        _setActiveTab(tab);
+      });
+    }, 0);
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
