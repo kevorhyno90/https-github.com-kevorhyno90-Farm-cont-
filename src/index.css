@@ -51,30 +51,21 @@
 
 @layer utilities {
   .farm-shell-panel {
-    background: var(--color-app-surface);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    background: #0f172a;
     border-color: var(--color-app-border);
-    box-shadow: 0 24px 90px rgba(2, 6, 23, 0.42);
-    color: var(--color-app-text);
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.6);
+    color: var(--color-app-text-strong);
   }
 
   .farm-shell-card {
-    background: var(--color-app-surface-strong);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    background: #1e293b;
     border: 1px solid var(--color-app-border);
-    box-shadow: 0 18px 55px rgba(2, 6, 23, 0.46);
-    color: var(--color-app-text);
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.5);
+    color: var(--color-app-text-strong);
   }
 
   .farm-soft-ring {
     box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.16), 0 20px 55px rgba(2, 6, 23, 0.42);
   }
-
-  
 }
+
