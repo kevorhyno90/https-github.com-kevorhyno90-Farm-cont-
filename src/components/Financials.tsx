@@ -973,7 +973,7 @@ export function Financials({
             )}
 
             {/* Table layout container */}
-            <div className="max-h-[400px] overflow-y-auto pr-1">
+            <div className="max-h-[400px] overflow-auto pr-1">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-200/50 bg-slate-50 text-slate-500 text-[10px] uppercase font-black">

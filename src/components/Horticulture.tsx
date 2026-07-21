@@ -418,7 +418,7 @@ export function Horticulture({
               </div>
             </div>
 
-            <div className="max-h-52 overflow-y-auto pr-1">
+            <div className="max-h-52 overflow-auto pr-1">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/50 text-[9px] uppercase font-black text-slate-400">

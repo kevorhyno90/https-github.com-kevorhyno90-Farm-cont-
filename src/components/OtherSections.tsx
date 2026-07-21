@@ -6628,7 +6628,7 @@ export function OtherSections({
           )}
 
           {/* Table display with interactive adjusters */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-655 font-black text-[10px] uppercase">

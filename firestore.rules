@@ -1,0 +1,22 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Allow authenticated users to read/write their farm data
+    // Assuming a structured data model by farm/user
+    match /farms/{farmId}/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // If the app relies on global state (all users share one estate), 
+    // restrict it to authenticated users.
+    match /jr_farm_estate_settings/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
