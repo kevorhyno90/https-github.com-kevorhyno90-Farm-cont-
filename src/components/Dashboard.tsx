@@ -316,7 +316,7 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.6, ease: "easeOut" }}
- className="space-y-8 farm-shell-card p-6 md:p-8 rounded-[2rem] text-white relative overflow-hidden"
+ className="space-y-8 farm-shell-card p-6 md:p-8 rounded-[2rem] text-slate-900 relative overflow-hidden"
  >
  {/* Background glow effects for premium feel */}
  <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none -z-0"></div>
@@ -335,7 +335,7 @@ export function Dashboard({
  whileHover={{ scale: 1.05 }}
  whileTap={{ scale: 0.95 }}
  onClick={() => setIsSwahili(!isSwahili)}
- className="px-4 py-2 rounded-xl bg-slate-900 /75 hover:bg-slate-900 border border-white/15 text-white font-semibold font-extrabold tracking-wider uppercase text-[10px] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+ className="px-4 py-2 rounded-xl bg-white shadow-sm /75 hover:bg-white shadow-sm border border-slate-200 text-slate-900 font-semibold font-extrabold tracking-wider uppercase text-[10px] transition-all flex items-center gap-2 shadow-sm cursor-pointer"
  >
  <Languages size={14} className="animate-pulse" />
  <span>{isSwahili ? "Swahili 🇰🇪" : "English 🇬🇧"}</span>
@@ -375,7 +375,7 @@ export function Dashboard({
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  transition={{ delay: 0.5 }}
- className="text-white font-medium font-medium font-medium text-xs md:text-sm leading-relaxed max-w-2xl"
+ className="text-slate-900 font-medium font-medium text-xs md:text-sm leading-relaxed max-w-2xl"
  >
  {t("Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.")}
  </motion.p>
@@ -386,16 +386,16 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.6 }}
- className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/15 max-w-4xl text-left"
+ className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-200 max-w-4xl text-left"
  >
  {[
- { label: "Management Core", value: "Sovereign Active", color: "text-white" },
+ { label: "Management Core", value: "Sovereign Active", color: "text-slate-900" },
  { label: "Audit Compliance", value: "100% Certified", color: "text-emerald-700" },
  { label: "Traceback Records", value: "Blockchain Latch", color: "text-amber-700" },
  { label: "System Node", value: "Online & Synced", color: "text-blue-700" }
  ].map((stat, i) => (
  <div key={i} className="space-y-1">
- <span className="text-[9px] uppercase font-black text-white font-medium font-medium tracking-widest">{t(stat.label)}</span>
+ <span className="text-[9px] uppercase font-black text-slate-900 font-medium tracking-widest">{t(stat.label)}</span>
  <span className={`text-xs font-black font-mono block ${stat.color}`}>{t(stat.value)}</span>
  </div>
  ))}
@@ -452,7 +452,7 @@ export function Dashboard({
  <div className={`absolute -right-4 -top-4 w-32 h-32 bg-${widget.color}-500/10 rounded-full blur-2xl group-hover:bg-${widget.color}-500/20 transition-all duration-500`}></div>
  <div className="flex justify-between items-start z-10 relative">
  <div>
- <p className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-widest">{widget.label}</p>
+ <p className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-widest">{widget.label}</p>
  <h3 className={`text-2xl font-black mt-2 font-mono ${widget.color === 'rose' && widget.label === 'Calving Alarm' ? 'text-rose-500 text-sm truncate max-w-[150px]' : 'text-slate-950'}`}>
  {widget.value}
  </h3>
@@ -476,7 +476,7 @@ export function Dashboard({
  className="farm-shell-panel p-6 rounded-[1.6rem] border border-white/70 text-left"
  >
  <div className="flex justify-between items-start mb-3">
- <span className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-widest font-sans">Agronomic Weather Advisory</span>
+ <span className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-widest font-sans">Agronomic Weather Advisory</span>
  <div className="p-2 bg-sky-500/20 text-sky-400 rounded-lg border border-sky-500/30">
  <CloudRain size={16} />
  </div>
@@ -495,7 +495,7 @@ export function Dashboard({
  className="farm-shell-panel p-6 rounded-[1.6rem] border border-white/70 text-left"
  >
  <div className="flex justify-between items-start mb-3">
- <span className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-widest font-sans">Unified Alarm Center</span>
+ <span className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-widest font-sans">Unified Alarm Center</span>
  <div className="p-2 bg-rose-500/20 text-rose-400 rounded-lg border border-rose-500/30">
  <AlertTriangle size={16} />
  </div>
@@ -510,7 +510,7 @@ export function Dashboard({
  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
  <span>Warehouse: {inventory.filter((i: any) => i.quantity <= i.minStock).length} feeds/chemicals below minimum.</span>
  </div>
- <div className="flex items-center gap-2 text-[11px] font-semibold text-white font-semibold">
+ <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-900 font-semibold">
  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
  <span>{todos.filter((t: any) => !t.completed).length} checklist task items pending.</span>
  </div>
@@ -525,19 +525,19 @@ export function Dashboard({
  >
  <div>
  <div className="flex justify-between items-start mb-3">
- <span className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-widest font-sans">App Shell Settings</span>
+ <span className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-widest font-sans">App Shell Settings</span>
  <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/30">
  <Smartphone size={16} />
  </div>
  </div>
  <h4 className="text-sm font-black text-slate-950 uppercase tracking-wide">PWA Mobile Shortcut</h4>
- <p className="text-[11px] text-white font-medium font-medium mt-2 leading-relaxed font-semibold">
+ <p className="text-[11px] text-slate-900 font-medium mt-2 leading-relaxed font-semibold">
  Pin JR Farm Omni-Estate directly to your mobile phone home screen. Works offline with lightning speed.
  </p>
  </div>
  <button
  onClick={() => alert("To install, open this application in a new browser tab and click the Install option in the URL address bar.")}
- className="mt-3 w-full py-2 bg-slate-950 hover:bg-slate-800 text-white border border-slate-900 text-[10px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer text-center"
+ className="mt-3 w-full py-2 bg-slate-50 hover:bg-slate-50 border border-slate-200 text-slate-900 border border-slate-200 text-[10px] uppercase tracking-widest font-black rounded-xl transition-all cursor-pointer text-center"
  >
  Install PWA
  </button>
@@ -576,7 +576,7 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.5 }}
- className="bg-indigo-950/40 text-white p-6 md:p-8 rounded-3xl border border-indigo-500/20 shadow-2xl relative overflow-hidden"
+ className="bg-indigo-950/40 text-slate-900 p-6 md:p-8 rounded-3xl border border-indigo-500/20 shadow-2xl relative overflow-hidden"
  >
  <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
  
@@ -600,10 +600,10 @@ export function Dashboard({
  <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
- <span className="text-xs uppercase font-black text-white font-bold tracking-wider">Off-Duty Today ({activeOffsToday.length})</span>
+ <span className="text-xs uppercase font-black text-slate-900 font-bold tracking-wider">Off-Duty Today ({activeOffsToday.length})</span>
  </div>
  {activeOffsToday.length === 0 ? (
- <p className="text-xs text-white font-semibold font-medium italic py-2">✓ Entire farm workforce is active.</p>
+ <p className="text-xs text-slate-900 font-semibold italic py-2">✓ Entire farm workforce is active.</p>
  ) : (
  <div className="space-y-3">
  {activeOffsToday.map((r) => {
@@ -612,12 +612,12 @@ export function Dashboard({
  <div key={r.id} className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-xl hover:bg-rose-950/30 transition-colors">
  <div className="flex justify-between items-start">
  <div>
- <span className="font-black text-sm text-white block">{r.staffName}</span>
+ <span className="font-black text-sm text-slate-900 block">{r.staffName}</span>
  <span className="text-[9px] uppercase font-black bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
  {r.type}
  </span>
  </div>
- <span className="text-[10px] uppercase font-black bg-slate-900 /15 text-white font-bold px-2 py-1 rounded">
+ <span className="text-[10px] uppercase font-black bg-white shadow-sm /15 text-slate-900 font-bold px-2 py-1 rounded">
  {sMatch?.unit || 'Unit'}
  </span>
  </div>
@@ -632,10 +632,10 @@ export function Dashboard({
  <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
- <span className="text-xs uppercase font-black text-white font-bold tracking-wider">Scheduled Leaves ({upcomingOffs.length})</span>
+ <span className="text-xs uppercase font-black text-slate-900 font-bold tracking-wider">Scheduled Leaves ({upcomingOffs.length})</span>
  </div>
  {upcomingOffs.length === 0 ? (
- <p className="text-xs text-white font-semibold font-medium italic py-2">No departures planned in next 3 days.</p>
+ <p className="text-xs text-slate-900 font-semibold italic py-2">No departures planned in next 3 days.</p>
  ) : (
  <div className="space-y-3">
  {upcomingOffs.map((r) => {
@@ -644,12 +644,12 @@ export function Dashboard({
  <div key={r.id} className="p-4 bg-amber-950/20 border border-amber-500/20 rounded-xl hover:bg-amber-950/30 transition-colors">
  <div className="flex justify-between items-start">
  <div>
- <span className="font-black text-sm text-white block">{r.staffName}</span>
+ <span className="font-black text-sm text-slate-900 block">{r.staffName}</span>
  <span className="text-[9px] uppercase font-black bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
  {r.type}
  </span>
  </div>
- <span className="text-[10px] uppercase font-black bg-slate-900 /15 text-white font-bold px-2 py-1 rounded">
+ <span className="text-[10px] uppercase font-black bg-white shadow-sm /15 text-slate-900 font-bold px-2 py-1 rounded">
  {sMatch?.unit || 'Unit'}
  </span>
  </div>
@@ -667,7 +667,7 @@ export function Dashboard({
  <div className="bg-black/20 p-5 rounded-2xl border border-white/10">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]"></span>
- <span className="text-xs uppercase font-black text-white font-bold tracking-wider">Labor Overlap Security ({conflicts.length})</span>
+ <span className="text-xs uppercase font-black text-slate-900 font-bold tracking-wider">Labor Overlap Security ({conflicts.length})</span>
  </div>
  {conflicts.length === 0 ? (
  <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold leading-relaxed">
@@ -766,20 +766,20 @@ export function Dashboard({
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: 0.6 }}
- className="bg-white/5 border border-white/15 p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden"
+ className="bg-white/5 border border-slate-200 p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden"
  >
  <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
  
- <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-5 border-b border-white/15 relative z-10">
+ <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-5 border-b border-slate-200 relative z-10">
  <div className="flex items-center gap-4">
  <div className={`p-4 rounded-2xl border ${bioScore >= 90 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
  {bioScore >= 90 ? <ShieldCheck size={28} className="animate-pulse" /> : <ShieldAlert size={28} className="animate-bounce" />}
  </div>
  <div>
- <h3 className="text-base font-black uppercase tracking-wider text-white">
+ <h3 className="text-base font-black uppercase tracking-wider text-slate-900">
  {isSwahili ? "Mizani ya Afya ya Shamba & Biosecurity" : "Real-time Biosecurity Core"}
  </h3>
- <p className="text-xs text-white font-semibold font-medium mt-1">
+ <p className="text-xs text-slate-900 font-semibold mt-1">
  Automated GlobalGAP quarantine tracking & pesticide pre-harvest audits.
  </p>
  </div>
@@ -787,12 +787,12 @@ export function Dashboard({
  
  <div className="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/10">
  <div className="text-right">
- <span className="text-[9px] font-black text-white font-semibold uppercase tracking-widest block mb-1">Quality Index</span>
+ <span className="text-[9px] font-black text-slate-900 font-semibold uppercase tracking-widest block mb-1">Quality Index</span>
  <span className={`text-xl font-mono font-black ${bioScore >= 90 ? 'text-emerald-400' : bioScore >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
  {bioScore}%
  </span>
  </div>
- <div className="w-24 h-3 bg-slate-900 /10 rounded-full overflow-hidden shrink-0">
+ <div className="w-24 h-3 bg-white shadow-sm /10 rounded-full overflow-hidden shrink-0">
  <motion.div 
  initial={{ width: 0 }}
  animate={{ width: `${bioScore}%` }}
@@ -821,14 +821,14 @@ export function Dashboard({
  </div>
 
  <div className="lg:col-span-8 space-y-4">
- <h4 className="text-xs font-black uppercase tracking-widest text-white font-semibold mb-3">
+ <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 font-semibold mb-3">
  Detected Warnings & PHI Audits ({allAlarms.length})
  </h4>
  {allAlarms.length === 0 ? (
- <div className="p-8 bg-black/20 border border-white/15 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
+ <div className="p-8 bg-black/20 border border-slate-200 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
  <ShieldCheck size={36} className="text-emerald-500" />
- <p className="text-sm text-white font-extrabold uppercase tracking-wide">✓ No active biological warnings</p>
- <p className="text-xs text-white font-semibold font-medium">Your farm complies 100% with GlobalGAP food export standards.</p>
+ <p className="text-sm text-slate-900 font-extrabold uppercase tracking-wide">✓ No active biological warnings</p>
+ <p className="text-xs text-slate-900 font-semibold">Your farm complies 100% with GlobalGAP food export standards.</p>
  </div>
  ) : (
  <div className="space-y-4 max-h-[22rem] overflow-y-auto pr-2 custom-scrollbar">
@@ -842,7 +842,7 @@ export function Dashboard({
  initial={{ opacity: 0, scale: 0.95 }}
  animate={{ opacity: 1, scale: 1 }}
  exit={{ opacity: 0, scale: 0.95 }}
- className="p-5 bg-black/20 border border-white/15 rounded-2xl hover:bg-black/30 transition-colors"
+ className="p-5 bg-black/20 border border-slate-200 rounded-2xl hover:bg-black/30 transition-colors"
  >
  <div className="flex justify-between items-start gap-4">
  <div className="flex gap-4 items-start">
@@ -853,10 +853,10 @@ export function Dashboard({
  <span className={`text-[9px] uppercase font-mono font-black text-${alarm.color}-400 block tracking-wider mb-1`}>
  {alarm.type}
  </span>
- <h5 className="text-sm font-black text-white uppercase leading-normal">
+ <h5 className="text-sm font-black text-slate-900 uppercase leading-normal">
  {alarm.title}
  </h5>
- <p className="text-xs text-white font-semibold font-medium mt-1 leading-relaxed">
+ <p className="text-xs text-slate-900 font-semibold mt-1 leading-relaxed">
  {alarm.desc}
  </p>
  </div>
@@ -880,7 +880,7 @@ export function Dashboard({
  initial={{ opacity: 0, height: 0 }}
  animate={{ opacity: 1, height: 'auto' }}
  exit={{ opacity: 0, height: 0 }}
- className="mt-4 pt-4 border-t border-white/15 bg-black/40 text-emerald-200 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
+ className="mt-4 pt-4 border-t border-slate-200 bg-black/40 text-emerald-200 p-5 rounded-xl font-mono text-xs leading-relaxed shadow-inner overflow-hidden"
  >
  <div className="flex items-center gap-2 text-emerald-400 font-black uppercase tracking-widest mb-3 border-b border-emerald-500/30 pb-2 text-[10px]">
  <ShieldCheck size={14} />
@@ -910,17 +910,17 @@ export function Dashboard({
  initial={{ opacity: 0, x: -20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.7 }}
- className="bg-white/5 p-6 md:p-8 rounded-3xl border border-white/15 shadow-2xl lg:col-span-2"
+ className="bg-white/5 p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xl lg:col-span-2"
  >
  <div className="flex justify-between items-center mb-8">
  <div>
- <h4 className="text-white font-black text-base uppercase tracking-widest">7-Day Milk Production Trend</h4>
- <p className="text-xs text-white font-semibold font-medium mt-1">Morning (AM) vs Afternoon (PM) yield</p>
+ <h4 className="text-slate-900 font-black text-base uppercase tracking-widest">7-Day Milk Production Trend</h4>
+ <p className="text-xs text-slate-900 font-semibold mt-1">Morning (AM) vs Afternoon (PM) yield</p>
  </div>
  </div>
  <div className="h-80 w-full bg-black/20 rounded-2xl p-4 border border-white/5 min-w-0">
  {chartData.length === 0 ? (
- <div className="h-full flex items-center justify-center text-white font-semibold text-sm font-mono">
+ <div className="h-full flex items-center justify-center text-slate-900 font-semibold text-sm font-mono">
  No milking records compiled yet.
  </div>
  ) : (
@@ -960,11 +960,11 @@ export function Dashboard({
  initial={{ opacity: 0, x: 20 }}
  animate={{ opacity: 1, x: 0 }}
  transition={{ delay: 0.8 }}
- className="bg-white/5 p-6 md:p-8 rounded-3xl border border-white/15 shadow-2xl flex flex-col"
+ className="bg-white/5 p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xl flex flex-col"
  >
  <div className="mb-6">
- <h4 className="text-white font-black text-base uppercase tracking-widest">Strategic Assignment</h4>
- <p className="text-xs text-white font-semibold font-medium mt-1">Link operations to key officers</p>
+ <h4 className="text-slate-900 font-black text-base uppercase tracking-widest">Strategic Assignment</h4>
+ <p className="text-xs text-slate-900 font-semibold mt-1">Link operations to key officers</p>
  </div>
 
  <form onSubmit={handleSubmitTodo} className="space-y-4 mb-6">
@@ -973,17 +973,17 @@ export function Dashboard({
  value={newTodo}
  onChange={(e) => setNewTodo(e.target.value)}
  placeholder="E.g. Clear pasture sector D..."
- className="w-full text-sm border border-white/10 rounded-xl px-4 py-3 bg-black/40 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all"
+ className="w-full text-sm border border-white/10 rounded-xl px-4 py-3 bg-black/40 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all"
  />
  <div className="flex gap-3">
  <select
  value={todoAssignee}
  onChange={(e) => setTodoAssignee(e.target.value)}
- className="flex-1 text-sm border border-white/15 rounded-xl px-4 py-2.5 bg-black/40 text-white font-bold font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
+ className="flex-1 text-sm border border-slate-200 rounded-xl px-4 py-2.5 bg-black/40 text-slate-900 font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none"
  >
- <option value="" className="bg-slate-900">-- Assign (Optional) --</option>
+ <option value="" className="bg-white shadow-sm">-- Assign (Optional) --</option>
  {staffList.map((s) => (
- <option key={s.id} value={s.name} className="bg-slate-900">
+ <option key={s.id} value={s.name} className="bg-white shadow-sm">
  {s.name} ({s.unit})
  </option>
  ))}
@@ -1002,7 +1002,7 @@ export function Dashboard({
  <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar flex-1">
  <AnimatePresence>
  {todos.length === 0 ? (
- <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-white font-semibold italic text-center py-8">All tasks completed successfully!</motion.p>
+ <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-900 font-semibold italic text-center py-8">All tasks completed successfully!</motion.p>
  ) : (
  todos.map((todo) => (
  <motion.div
@@ -1042,23 +1042,23 @@ export function Dashboard({
  }`}
  >
  <button onClick={() => onToggleTodo(todo.id)} className="flex items-start gap-4 flex-1 text-left cursor-pointer">
- <span className={`mt-0.5 shrink-0 ${todo.completed ? 'text-emerald-500' : 'text-white font-semibold'}`}>
+ <span className={`mt-0.5 shrink-0 ${todo.completed ? 'text-emerald-500' : 'text-slate-900 font-semibold'}`}>
  {todo.completed ? <CheckSquare size={18} /> : <Square size={18} />}
  </span>
  <div>
- <span className={`text-sm font-medium leading-relaxed ${todo.completed ? 'line-through text-white font-medium font-medium' : 'text-white'}`}>
+ <span className={`text-sm font-medium leading-relaxed ${todo.completed ? 'line-through text-slate-900 font-medium' : 'text-slate-900'}`}>
  {todo.text}
  </span>
  {todo.assigneeName && (
  <span className={`inline-block mt-2 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md font-mono ${
- todo.completed ? 'bg-white/5 text-white font-medium font-medium' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+ todo.completed ? 'bg-white/5 text-slate-900 font-medium' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
  }`}>
  👤 {todo.assigneeName}
  </span>
  )}
  </div>
  </button>
- <button onClick={() => onDeleteTodo(todo.id)} className="text-white font-medium hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-colors shrink-0 ml-2 cursor-pointer">
+ <button onClick={() => onDeleteTodo(todo.id)} className="text-slate-900 font-medium hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-colors shrink-0 ml-2 cursor-pointer">
  <Trash2 size={16} />
  </button>
  </motion.div>
@@ -1081,10 +1081,10 @@ export function Dashboard({
  <span className="text-[10px] uppercase font-black text-emerald-400 tracking-widest bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 rounded-lg font-mono mb-3 inline-block shadow-[0_0_15px_rgba(16,185,129,0.2)]">
  📡 LIVE SATELLITE METEOROLOGY
  </span>
- <h4 className="text-white font-black text-lg uppercase tracking-widest block">
+ <h4 className="text-slate-900 font-black text-lg uppercase tracking-widest block">
  {t("Nyaronde Weather & Agro-Advisory")}
  </h4>
- <p className="text-sm text-white font-medium font-medium font-medium mt-1 max-w-2xl">
+ <p className="text-sm text-slate-900 font-medium font-medium mt-1 max-w-2xl">
  Live orbital indices combined with soil moisture tension mapping for optimal agricultural compliance.
  </p>
  </div>
@@ -1093,7 +1093,7 @@ export function Dashboard({
  <button
  onClick={() => setIsLiveWeather(true)}
  className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-2 cursor-pointer ${
- isLiveWeather ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-white font-medium font-medium hover:text-white hover:bg-white/5'
+ isLiveWeather ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-slate-900 font-medium hover:text-slate-900 hover:bg-white/5'
  }`}
  >
  <Sparkles size={14} className={weatherLoading ? "animate-spin" : ""} />
@@ -1102,7 +1102,7 @@ export function Dashboard({
  <button
  onClick={() => { setIsLiveWeather(false); setWeatherCondition('sunny'); setSoilMoisture(42); }}
  className={`px-4 py-2.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-2 cursor-pointer ${
- !isLiveWeather ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'text-white font-medium font-medium hover:text-white hover:bg-white/5'
+ !isLiveWeather ? 'bg-indigo-500 text-slate-900 shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'text-slate-900 font-medium hover:text-slate-900 hover:bg-white/5'
  }`}
  >
  <span>Simulator</span>
@@ -1122,13 +1122,13 @@ export function Dashboard({
  </span>
  </div>
  <div>
- <span className="text-[10px] uppercase font-black text-white font-medium font-medium block tracking-widest leading-none mb-2">
+ <span className="text-[10px] uppercase font-black text-slate-900 font-medium block tracking-widest leading-none mb-2">
  {isLiveWeather ? "Satellite telemetry" : "Simulated Climate"}
  </span>
- <h5 className="text-lg font-black font-mono text-white">
+ <h5 className="text-lg font-black font-mono text-slate-900">
  {isLiveWeather ? (weatherLoading ? "Linking..." : liveWeather ? `${liveWeather.current.temperature_2m}°C` : "Orbiting...") : (weatherCondition === 'sunny' ? '23°C' : weatherCondition === 'rainy' ? '16°C' : '14°C')}
  </h5>
- <p className="text-xs text-white font-medium font-medium font-bold mt-1">
+ <p className="text-xs text-slate-900 font-medium font-bold mt-1">
  Humidity: {isLiveWeather ? (liveWeather?.current?.relative_humidity_2m ? `${liveWeather.current.relative_humidity_2m}%` : "76%") : (weatherCondition === 'sunny' ? '30%' : weatherCondition === 'rainy' ? '92%' : '65%')}
  </p>
  </div>
@@ -1137,14 +1137,14 @@ export function Dashboard({
  <div className="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-inner flex flex-col justify-center">
  {isLiveWeather ? (
  <div className="space-y-4">
- <span className="text-[10px] uppercase font-black text-white font-medium font-medium block tracking-widest leading-none">
+ <span className="text-[10px] uppercase font-black text-slate-900 font-medium block tracking-widest leading-none">
  Atmosphere & Wind
  </span>
  <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
- <span className="text-xs font-bold text-white font-medium flex items-center gap-2">
+ <span className="text-xs font-bold text-slate-900 font-medium flex items-center gap-2">
  <Wind size={14} className="text-emerald-400" /> Wind Velocity
  </span>
- <span className="font-mono text-sm font-black text-white">
+ <span className="font-mono text-sm font-black text-slate-900">
  {liveWeather ? `${liveWeather.current.wind_speed_10m} km/h` : "8.4 km/h"}
  </span>
  </div>
@@ -1152,7 +1152,7 @@ export function Dashboard({
  ) : (
  <div className="space-y-4">
  <div className="flex justify-between items-center">
- <span className="text-[10px] uppercase font-black text-white font-medium font-medium block tracking-widest">{t("Soil Moisture")}</span>
+ <span className="text-[10px] uppercase font-black text-slate-900 font-medium block tracking-widest">{t("Soil Moisture")}</span>
  <span className={`font-black font-mono text-xs px-2.5 py-1 rounded-md border ${
  soilMoisture < 25 ? 'bg-red-500/20 text-red-400 border-red-500/30' :
  soilMoisture > 75 ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
@@ -1164,7 +1164,7 @@ export function Dashboard({
  type="range"
  min="10" max="95" value={soilMoisture}
  onChange={(e) => setSoilMoisture(Number(e.target.value))}
- className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+ className="w-full h-2 bg-slate-50 border border-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
  />
  </div>
  )}
@@ -1191,7 +1191,7 @@ export function Dashboard({
  </span>
  <div className="flex gap-4 relative z-10">
  <span className="text-2xl mt-1">💡</span>
- <p className="text-sm text-white font-medium font-medium leading-relaxed">
+ <p className="text-sm text-slate-900 font-medium leading-relaxed">
  {isLiveWeather ? "High solar radiation accelerates avocado lipid accumulation. Keep water reserves high; review pesticide cycles." : "Excellent avocado oil conversion. Graded harvest lines should operate at maximum throughput. Ensure high cow safety water levels."}
  </p>
  </div>
@@ -1204,21 +1204,21 @@ export function Dashboard({
  </div>
  <div className="grid grid-cols-2 gap-3 mb-4">
  <div>
- <label className="text-[9px] uppercase tracking-widest font-black text-white font-medium font-medium block mb-1">Crop</label>
- <select value={calcCrop} onChange={(e: any) => setCalcCrop(e.target.value)} className="w-full bg-black/60 text-white font-bold text-xs border border-white/10 rounded-lg px-2 py-2 outline-none">
+ <label className="text-[9px] uppercase tracking-widest font-black text-slate-900 font-medium block mb-1">Crop</label>
+ <select value={calcCrop} onChange={(e: any) => setCalcCrop(e.target.value)} className="w-full bg-black/60 text-slate-900 font-bold text-xs border border-white/10 rounded-lg px-2 py-2 outline-none">
  <option value="tea">Tea</option>
  <option value="avocado">Avocado</option>
  <option value="napier">Napier</option>
  </select>
  </div>
  <div>
- <label className="text-[9px] uppercase tracking-widest font-black text-white font-medium font-medium block mb-1">pH</label>
- <input type="number" step="0.1" min="3" max="9" value={calcPh} onChange={(e: any) => setCalcPh(e.target.value)} className="w-full bg-black/60 text-white font-mono font-bold text-xs border border-white/10 rounded-lg px-2 py-2 outline-none" />
+ <label className="text-[9px] uppercase tracking-widest font-black text-slate-900 font-medium block mb-1">pH</label>
+ <input type="number" step="0.1" min="3" max="9" value={calcPh} onChange={(e: any) => setCalcPh(e.target.value)} className="w-full bg-black/60 text-slate-900 font-mono font-bold text-xs border border-white/10 rounded-lg px-2 py-2 outline-none" />
  </div>
  </div>
  <div className="bg-emerald-950/40 border border-emerald-500/30 p-3 rounded-xl">
  <span className="text-[9px] font-mono tracking-widest uppercase font-black text-yellow-400 block mb-1">Recommendation:</span>
- <p className="font-black text-white text-xs leading-tight mb-2">{calcResult.dosage}</p>
+ <p className="font-black text-slate-900 text-xs leading-tight mb-2">{calcResult.dosage}</p>
  <p className="text-[9px] text-emerald-400/80 italic leading-snug">{calcResult.description}</p>
  </div>
  </div>
@@ -1226,13 +1226,13 @@ export function Dashboard({
 
  {isLiveWeather && liveWeather?.daily && (
  <div className="pt-6 border-t border-white/10">
- <span className="text-[10px] uppercase font-black text-white font-medium font-medium block tracking-widest leading-none mb-4">
+ <span className="text-[10px] uppercase font-black text-slate-900 font-medium block tracking-widest leading-none mb-4">
  7-Day Forecast (Open-Meteo)
  </span>
  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
  {liveWeather.daily.time.map((time: string, i: number) => (
  <div key={time} className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5 min-w-[70px]">
- <span className="text-xs text-white font-medium font-medium font-bold mb-1">
+ <span className="text-xs text-slate-900 font-medium font-bold mb-1">
  {new Date(time).toLocaleDateString('en-US', { weekday: 'short' })}
  </span>
  <span className="text-xl mb-1">
@@ -1261,14 +1261,14 @@ export function Dashboard({
  <Bell size={20} className="text-blue-400" />
  </div>
  <div>
- <h4 className="text-white font-black text-base uppercase tracking-widest">Global Activity Log</h4>
- <p className="text-xs text-white font-medium font-medium font-medium mt-1">Live feed of farm events and notifications</p>
+ <h4 className="text-slate-900 font-black text-base uppercase tracking-widest">Global Activity Log</h4>
+ <p className="text-xs text-slate-900 font-medium font-medium mt-1">Live feed of farm events and notifications</p>
  </div>
  </div>
 
  <div className="bg-black/40 rounded-2xl border border-white/5 p-4 max-h-60 overflow-y-auto space-y-3 custom-scrollbar">
  {activityLogs.length === 0 ? (
- <div className="text-center text-white font-medium font-medium font-mono text-sm py-4">No recent activity</div>
+ <div className="text-center text-slate-900 font-medium font-mono text-sm py-4">No recent activity</div>
  ) : (
  activityLogs.map(log => (
  <div key={log.id} className="flex gap-4 p-3 bg-white/5 rounded-xl border border-white/5 items-start">
@@ -1281,8 +1281,8 @@ export function Dashboard({
  {log.type.toUpperCase()}
  </span>
  <div>
- <p className="text-sm font-medium text-white font-semibold">{log.message}</p>
- <span className="text-xs text-white font-medium font-medium font-mono">{new Date(log.timestamp).toLocaleString()}</span>
+ <p className="text-sm font-medium text-slate-900 font-semibold">{log.message}</p>
+ <span className="text-xs text-slate-900 font-medium font-mono">{new Date(log.timestamp).toLocaleString()}</span>
  </div>
  </div>
  ))
@@ -1298,11 +1298,11 @@ export function Dashboard({
  className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 relative z-10"
  >
  <div className="mb-6">
- <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-3 uppercase">
+ <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3 uppercase">
  <Sparkles className="text-yellow-400 animate-pulse" size={24} />
  Precision Suite
  </h3>
- <p className="text-sm text-white font-medium font-medium font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
+ <p className="text-sm text-slate-900 font-medium font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1325,8 +1325,8 @@ export function Dashboard({
  <div className={`p-3 bg-${tool.color}-500/20 text-${tool.color}-400 rounded-xl w-fit mb-4 border border-${tool.color}-500/30`}>
  <ToolIcon size={20} />
  </div>
- <h4 className={`text-sm font-black text-white uppercase tracking-wide group-hover:text-${tool.color}-400 transition-colors mb-2`}>{tool.label}</h4>
- <p className="text-xs text-white font-medium font-medium font-medium leading-relaxed">{tool.desc}</p>
+ <h4 className={`text-sm font-black text-slate-900 uppercase tracking-wide group-hover:text-${tool.color}-400 transition-colors mb-2`}>{tool.label}</h4>
+ <p className="text-xs text-slate-900 font-medium font-medium leading-relaxed">{tool.desc}</p>
  </motion.div>
  );
  })}

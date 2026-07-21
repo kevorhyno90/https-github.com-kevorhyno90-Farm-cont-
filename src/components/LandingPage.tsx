@@ -32,7 +32,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  };
 
  return (
- <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden font-sans text-white">
+ <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden font-sans text-slate-900">
  {/* Animated Background Gradients */}
  <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.20),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(245,158,11,0.16),_transparent_30%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
  <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-300/30 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '5s' }} />
@@ -45,7 +45,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <div className="mb-10 relative group">
  <div className="absolute inset-0 bg-emerald-500/15 rounded-full blur-2xl group-hover:bg-emerald-400/25 transition-all duration-700"></div>
  <div 
- className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full border border-white/70 bg-slate-900 /75 shadow-[0_24px_70px_rgba(15,23,42,0.14)] p-4 flex items-center justify-center transform transition-transform duration-700 hover:scale-105 farm-soft-ring"
+ className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full border border-white/70 bg-white shadow-sm /75 shadow-[0_24px_70px_rgba(15,23,42,0.14)] p-4 flex items-center justify-center transform transition-transform duration-700 hover:scale-105 farm-soft-ring"
  dangerouslySetInnerHTML={{ __html: LOGO_SVG_STRING }}
  />
  </div>
@@ -55,27 +55,27 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <h1 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-900 to-amber-700 tracking-tight drop-shadow-sm">
  JR Farm Estate
  </h1>
- <p className="text-white font-medium font-medium text-lg sm:text-xl font-medium tracking-wide">
+ <p className="text-slate-900 font-medium text-lg sm:text-xl font-medium tracking-wide">
  Omni-Estate Management System
  </p>
  </div>
 
  {/* Feature Badges */}
  <div className="flex justify-center gap-4 mb-12 w-full">
- <div className="flex flex-col items-center gap-2 text-white font-medium font-medium">
- <div className="w-12 h-12 rounded-2xl bg-slate-900 /80 border border-white/15 flex items-center justify-center shadow-sm">
+ <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
  <Leaf size={24} className="text-emerald-400" />
  </div>
  <span className="text-[10px] font-bold uppercase tracking-wider">Sustainable</span>
  </div>
- <div className="flex flex-col items-center gap-2 text-white font-medium font-medium">
- <div className="w-12 h-12 rounded-2xl bg-slate-900 /80 border border-white/15 flex items-center justify-center shadow-sm">
+ <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
  <Sparkles size={24} className="text-amber-400" />
  </div>
  <span className="text-[10px] font-bold uppercase tracking-wider">Premium</span>
  </div>
- <div className="flex flex-col items-center gap-2 text-white font-medium font-medium">
- <div className="w-12 h-12 rounded-2xl bg-slate-900 /80 border border-white/15 flex items-center justify-center shadow-sm">
+ <div className="flex flex-col items-center gap-2 text-slate-900 font-medium">
+ <div className="w-12 h-12 rounded-2xl bg-white shadow-sm /80 border border-slate-200 flex items-center justify-center shadow-sm">
  <Shield size={24} className="text-teal-400" />
  </div>
  <span className="text-[10px] font-bold uppercase tracking-wider">Secure</span>
@@ -89,7 +89,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <button
  onClick={() => handleGoogleLogin(false)}
  disabled={loading}
- className="relative overflow-hidden group w-full bg-slate-950 hover:bg-slate-900 text-white font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="relative overflow-hidden group w-full bg-slate-50 hover:bg-white shadow-sm text-slate-900 font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
  >
  <div className="relative flex items-center justify-center gap-3">
  <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -106,9 +106,9 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  <button
  onClick={() => handleGoogleLogin(true)}
  disabled={loading}
- className="relative overflow-hidden group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_-12px_rgba(16,185,129,0.45)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+ className="relative overflow-hidden group w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-900 font-black text-lg py-5 px-8 rounded-2xl shadow-[0_18px_50px_-12px_rgba(16,185,129,0.45)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
  >
- <div className="absolute inset-0 bg-slate-900 /20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+ <div className="absolute inset-0 bg-white shadow-sm /20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
  <div className="relative flex items-center justify-center gap-3">
  <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -124,7 +124,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
  </div>
  
  {/* Footer Text */}
- <div className="absolute bottom-6 text-white font-medium font-medium text-xs font-bold tracking-widest uppercase">
+ <div className="absolute bottom-6 text-slate-900 font-medium text-xs font-bold tracking-widest uppercase">
  © {new Date().getFullYear()} JR Farm Cooperative
  </div>
  </div>

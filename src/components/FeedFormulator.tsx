@@ -796,7 +796,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  if (averageCp >= 15 && averageCp < 18) {
  categoryLabel = 'Standard Ration (Young Milkers / Duck Cover Ratios)';
- categoryColor = 'text-green-600 bg-emerald-900/20 border-emerald-200';
+ categoryColor = 'text-green-600 bg-emerald-50 border-emerald-200';
  isOptimal = true;
  } else if (averageCp >= 18 && averageCp <= 21) {
  categoryLabel = 'Intense Lactation / Premium Poultry Layer Meal';
@@ -823,14 +823,14 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  return (
  <div className="space-y-8">
  {/* Introduction banner */}
- <div className="bg-slate-900 p-6 rounded-2xl border border-white/10 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+ <div className="bg-white shadow-sm p-6 rounded-2xl border border-white/10 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
  <div className="flex items-center gap-4">
  <div className="p-3 bg-emerald-100 text-emerald-950 rounded-xl shrink-0">
  <Beaker size={24} />
  </div>
  <div>
- <h4 className="text-white font-black text-sm uppercase tracking-wider">Feed Formulation Lab</h4>
- <p className="text-xs text-white font-medium font-medium font-medium">
+ <h4 className="text-slate-900 font-black text-sm uppercase tracking-wider">Feed Formulation Lab</h4>
+ <p className="text-xs text-slate-900 font-medium font-medium">
  Formulate custom feeds and analyze Crude Protein (CP%) & metabolizable energy (ME) dry-matter ratios. Access 500+ ingredients dynamically categorized below.
  </p>
  </div>
@@ -851,27 +851,27 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
  
  {/* Ingredient Register Library */}
- <div className="bg-slate-900 p-6 rounded-3xl border border-white/10 shadow-sm space-y-6 lg:col-span-1">
+ <div className="bg-white shadow-sm p-6 rounded-3xl border border-white/10 shadow-sm space-y-6 lg:col-span-1">
  <div>
  <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Ingredient Laboratory</h5>
- <p className="text-xs text-white font-medium font-medium mt-1 font-medium">Add materials to your compounding bank</p>
+ <p className="text-xs text-slate-900 font-medium mt-1 font-medium">Add materials to your compounding bank</p>
  </div>
 
  <form onSubmit={handleAddLabIngredient} className="space-y-4">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-wider block mb-1">Ingredient Name</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-wider block mb-1">Ingredient Name</label>
  <input
  type="text"
  required
  value={libName}
  onChange={(e) => setLibName(e.target.value)}
  placeholder="E.g. Groundnut Meal"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div className="grid grid-cols-2 gap-3">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-wider block mb-1">Crude Protein (CP %)</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-wider block mb-1">Crude Protein (CP %)</label>
  <input
  type="number"
  required
@@ -881,11 +881,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  value={libCp}
  onChange={(e) => setLibCp(e.target.value === '' ? '' : Number(e.target.value))}
  placeholder="E.g. 36"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-wider block mb-1">Energy ME (MJ/kg)</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-wider block mb-1">Energy ME (MJ/kg)</label>
  <input
  type="number"
  required
@@ -895,14 +895,14 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  value={libMe}
  onChange={(e) => setLibMe(e.target.value === '' ? '' : Number(e.target.value))}
  placeholder="E.g. 11.2"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  </div>
  
  <div className="grid grid-cols-2 gap-3">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-wider block mb-1">Cost / KG (Ksh)</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-wider block mb-1">Cost / KG (Ksh)</label>
  <input
  type="number"
  min="0"
@@ -910,15 +910,15 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  value={libCost}
  onChange={(e) => setLibCost(e.target.value === '' ? '' : Number(e.target.value))}
  placeholder="E.g. 45"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase tracking-wider block mb-1">Category</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase tracking-wider block mb-1">Category</label>
  <select
  value={libCategory}
  onChange={(e) => setLibCategory(e.target.value as any)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900 font-bold"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white shadow-sm font-bold"
  >
  <option value="Fodder">Fodder & Roughage</option>
  <option value="Concentrate">Concentrate</option>
@@ -932,7 +932,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  <button
  type="submit"
- className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase p-3.5 rounded-xl transition-all m-0"
+ className="w-full bg-white shadow-sm hover:bg-slate-50 border border-slate-200 text-slate-900 font-black text-xs uppercase p-3.5 rounded-xl transition-all m-0"
  >
  Add to Lab Inventory
  </button>
@@ -941,7 +941,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Current bank inventory - WITH MASSIVE 500 INGREDIENT EXPLORER */}
  <div className="border-t border-white/10 pt-5 space-y-3">
  <div className="flex justify-between items-center">
- <label className="text-[10px] font-bold text-white font-medium font-medium uppercase tracking-widest block">
+ <label className="text-[10px] font-bold text-slate-900 font-medium uppercase tracking-widest block">
  Lab Materials ({filteredIngredients.length} / {allIngredients.length})
  </label>
  </div>
@@ -953,9 +953,9 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  placeholder="Search 500+ ingredients..."
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
- className="text-xs border border-white/15 rounded-xl py-2 px-3 pl-8 w-full outline-slate-350"
+ className="text-xs border border-slate-200 rounded-xl py-2 px-3 pl-8 w-full outline-slate-350"
  />
- <span className="absolute left-2.5 top-3 text-[11px] text-white font-medium font-medium">🔍</span>
+ <span className="absolute left-2.5 top-3 text-[11px] text-slate-900 font-medium">🔍</span>
  </div>
 
  {/* Category tabs filters */}
@@ -967,8 +967,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => setActiveCategoryFilter(cat)}
  className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-wider shrink-0 border transition-all ${
  activeCategoryFilter === cat 
- ? 'bg-emerald-800 text-white border-emerald-900' 
- : 'bg-slate-800 text-white font-medium font-medium border-white/15 hover:bg-slate-800'
+ ? 'bg-emerald-800 text-slate-900 border-emerald-900' 
+ : 'bg-slate-50 border border-slate-200 text-slate-900 font-medium border-slate-200 hover:bg-slate-50 border border-slate-200'
  }`}
  >
  {cat}
@@ -979,30 +979,30 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Scrollable list */}
  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
  {filteredIngredients.length === 0 ? (
- <p className="text-[10px] text-white font-medium font-medium italic text-center py-4">No matching materials found.</p>
+ <p className="text-[10px] text-slate-900 font-medium italic text-center py-4">No matching materials found.</p>
  ) : (
  <>
  {filteredIngredients.slice(0, visibleCount).map((ing) => (
- <div key={ing.name} className="flex justify-between items-center p-2.5 border border-white/10 rounded-xl text-[11px] bg-slate-800/50 hover:bg-slate-800 transition-all">
+ <div key={ing.name} className="flex justify-between items-center p-2.5 border border-white/10 rounded-xl text-[11px] bg-slate-50 border border-slate-200/50 hover:bg-slate-50 border border-slate-200 transition-all">
  <div className="flex-1 min-w-0 pr-2">
  <div className="flex items-center gap-1.5">
- <span className="font-extrabold text-white truncate" title={ing.name}>{ing.name}</span>
+ <span className="font-extrabold text-slate-900 truncate" title={ing.name}>{ing.name}</span>
  {ing.category && (
  <span className="text-[8px] bg-indigo-900/20 text-indigo-700 px-1 rounded-sm uppercase font-extrabold tracking-wider shrink-0">
  {ing.category}
  </span>
  )}
  </div>
- <p className="text-[10px] text-white font-medium font-medium mt-0.5 font-semibold">
+ <p className="text-[10px] text-slate-900 font-medium mt-0.5 font-semibold">
  {ing.cost ? `Ksh ${ing.cost}/kg` : 'No price set'}
  </p>
  </div>
  <div className="text-right flex items-center gap-2">
  <div>
- <span className="font-mono font-bold bg-slate-900 text-emerald-950 border border-slate-150 px-1.5 py-0.5 rounded text-[10px] block">
+ <span className="font-mono font-bold bg-white shadow-sm text-emerald-950 border border-slate-150 px-1.5 py-0.5 rounded text-[10px] block">
  {ing.cp}% CP
  </span>
- <span className="font-mono text-white font-medium font-medium font-semibold block text-[9px] mt-0.5">
+ <span className="font-mono text-slate-900 font-medium font-semibold block text-[9px] mt-0.5">
  {ing.me} MJ
  </span>
  </div>
@@ -1011,7 +1011,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => onDeleteIngredientToLib(ing.name)}
- className="text-slate-305 hover:text-red-656 text-white font-medium font-medium hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0"
+ className="text-slate-305 hover:text-red-656 text-slate-900 font-medium hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0"
  title="Delete Material"
  >
  <Trash2 size={12} />
@@ -1024,7 +1024,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setVisibleCount((prev) => prev + 50)}
- className="w-full text-center py-2 text-[10px] font-black uppercase text-emerald-800 hover:text-emerald-950 bg-slate-800/60 hover:bg-slate-800 rounded-xl transition-all border border-white/15 mt-2 cursor-pointer"
+ className="w-full text-center py-2 text-[10px] font-black uppercase text-emerald-800 hover:text-emerald-950 bg-slate-50 border border-slate-200/60 hover:bg-slate-50 border border-slate-200 rounded-xl transition-all border border-slate-200 mt-2 cursor-pointer"
  >
  Show More (+{filteredIngredients.length - visibleCount} more items)
  </button>
@@ -1036,7 +1036,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  {/* Custom Batch Formulating Engine */}
- <div className="bg-slate-900 p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-2 space-y-6">
+ <div className="bg-white shadow-sm p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-2 space-y-6">
  {/* Mode Selector Tabs */}
  <div className="flex border-b border-white/10 pb-2 gap-4">
  <button
@@ -1044,8 +1044,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => setFormulationMode('sandbox')}
  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
  formulationMode === 'sandbox'
- ? 'border-emerald-800 text-white'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ ? 'border-emerald-800 text-slate-900'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  🛠️ Manual Compounding Sandbox
@@ -1055,8 +1055,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => setFormulationMode('lcf')}
  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
  formulationMode === 'lcf'
- ? 'border-emerald-800 text-white'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ ? 'border-emerald-800 text-slate-900'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  ⚙️ Least-Cost Feed (LCF) Optimizer
@@ -1080,7 +1080,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => setActivePresetTab(tab)}
  className={`text-[9px] font-black px-2.5 py-1 rounded-sm uppercase tracking-widest ${
  activePresetTab === tab 
- ? 'bg-indigo-900 text-white' 
+ ? 'bg-indigo-900 text-slate-900' 
  : 'bg-indigo-900/20 text-indigo-800 hover:bg-indigo-100'
  }`}
  >
@@ -1096,7 +1096,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.peak_lactation.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.peak_lactation.label}
  >
  🥛 Peak Lactation (19.5% CP)
@@ -1104,7 +1104,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.mid_lactation.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.mid_lactation.label}
  >
  🐄 Mid Lactation (16% CP)
@@ -1112,7 +1112,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.drycow.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.drycow.label}
  >
  🍂 Dry Cow Care (12% CP)
@@ -1120,7 +1120,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.heifers.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.heifers.label}
  >
  🍼 Growing Heifers (14.5% CP)
@@ -1128,7 +1128,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.steers.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.steers.label}
  >
  🥩 Fattening Steers (13.5% CP)
@@ -1141,7 +1141,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.poultry_layers.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.poultry_layers.label}
  >
  🥚 Layers Mash (18.0% CP)
@@ -1149,7 +1149,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.poultry_broilers.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.poultry_broilers.label}
  >
  🍗 Broiler Finisher (20.5% CP)
@@ -1157,7 +1157,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.poultry_kienyeji.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.poultry_kienyeji.label}
  >
  🐓 Kienyeji/Free Range (15.0% CP)
@@ -1169,7 +1169,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.calves_starter.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.calves_starter.label}
  >
  🍼 Pre-Weaner Starter Pellet (18.5% CP)
@@ -1180,7 +1180,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => setBatchItems(PRESETS.ducks_laying.items)}
- className="bg-slate-900 border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
+ className="bg-white shadow-sm border border-indigo-200 hover:bg-indigo-900/20 text-indigo-900 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider cursor-pointer m-0 transition-all shadow-xs"
  title={PRESETS.ducks_laying.label}
  >
  🦆 Laying Duck Mash (17.5% CP)
@@ -1192,20 +1192,20 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-4 gap-2">
  <div>
  <h5 className="text-[11px] font-black tracking-widest text-emerald-900 uppercase">Recipe Compounding Board</h5>
- <p className="text-xs text-white font-medium font-medium mt-1 font-medium">Add materials and specify relative weights (kilograms) in formula</p>
+ <p className="text-xs text-slate-900 font-medium mt-1 font-medium">Add materials and specify relative weights (kilograms) in formula</p>
  </div>
- <div className="text-[9px] text-white font-medium font-medium font-bold uppercase shrink-0">
+ <div className="text-[9px] text-slate-900 font-medium font-bold uppercase shrink-0">
  ⚡ Lag-free 500+ Material Querying
  </div>
  </div>
 
  {/* New Optimized Material Select & Search Section */}
- <div className="bg-slate-800 border border-white/15 p-4 rounded-2xl space-y-3 relative">
+ <div className="bg-slate-50 border border-slate-200 border border-slate-200 p-4 rounded-2xl space-y-3 relative">
  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
  <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
  <span>➕</span> Search & Choose ingredients to add
  </span>
- <span className="text-[9px] text-white font-medium font-medium font-bold uppercase">
+ <span className="text-[9px] text-slate-900 font-medium font-bold uppercase">
  Find exactly what you want from the full catalog
  </span>
  </div>
@@ -1222,7 +1222,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  }
  e.target.value = '';
  }}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-bold text-white font-semibold outline-none cursor-pointer"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-900 font-semibold outline-none cursor-pointer"
  defaultValue=""
  >
  <option value="" disabled>--- Quick Add Popular Material ---</option>
@@ -1245,7 +1245,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  setIsRecipeSearchDropdownOpen(true);
  }}
  onFocus={() => setIsRecipeSearchDropdownOpen(true)}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-semibold text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
  />
  {recipeSearchQuery && (
  <button
@@ -1254,7 +1254,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  setRecipeSearchQuery('');
  setIsRecipeSearchDropdownOpen(false);
  }}
- className="absolute right-3 top-3 text-white font-medium font-medium hover:text-white font-medium font-medium text-xs font-bold"
+ className="absolute right-3 top-3 text-slate-900 font-medium hover:text-slate-900 font-medium text-xs font-bold"
  >
  ✕
  </button>
@@ -1262,7 +1262,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  {/* Auto-suggest dropdown results */}
  {isRecipeSearchDropdownOpen && filteredRecipeIngredientsToAdd.length > 0 && (
- <div className="absolute left-0 right-0 mt-1 bg-slate-900 border border-white/15 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+ <div className="absolute left-0 right-0 mt-1 bg-white shadow-sm border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
  {filteredRecipeIngredientsToAdd.map((ing) => (
  <button
  key={ing.name}
@@ -1270,10 +1270,10 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => {
  handleAddIngredientToBatch(ing);
  }}
- className="w-full text-left p-2.5 hover:bg-slate-800 transition-colors flex justify-between items-center text-xs"
+ className="w-full text-left p-2.5 hover:bg-slate-50 border border-slate-200 transition-colors flex justify-between items-center text-xs"
  >
  <div className="min-w-0 pr-2">
- <span className="font-extrabold text-white block truncate">{ing.name}</span>
+ <span className="font-extrabold text-slate-900 block truncate">{ing.name}</span>
  {ing.category && (
  <span className="text-[8px] bg-indigo-900/20 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
  {ing.category}
@@ -1281,10 +1281,10 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  )}
  </div>
  <div className="text-right shrink-0 flex items-center gap-1.5">
- <span className="font-mono font-bold bg-emerald-900/20 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
+ <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
  {ing.cp}% CP
  </span>
- <span className="text-[9px] text-white font-medium font-medium font-semibold mt-0.5 font-mono">
+ <span className="text-[9px] text-slate-900 font-medium font-semibold mt-0.5 font-mono">
  {ing.me} MJ
  </span>
  </div>
@@ -1293,7 +1293,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
  )}
  {isRecipeSearchDropdownOpen && recipeSearchQuery && filteredRecipeIngredientsToAdd.length === 0 && (
- <div className="absolute left-0 right-0 mt-1 bg-slate-900 border border-white/15 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-white font-medium font-medium italic">
+ <div className="absolute left-0 right-0 mt-1 bg-white shadow-sm border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-900 font-medium italic">
  No matching unadded library materials.
  </div>
  )}
@@ -1304,35 +1304,35 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Dynamic Compounding Board Recipe List */}
  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
  {batchItems.length === 0 ? (
- <div className="text-center p-8 border-2 border-dashed border-white/15 rounded-2xl bg-slate-800">
- <p className="text-white font-medium font-medium font-extrabold text-sm uppercase">Get Started by Choosing Materials</p>
- <p className="text-white font-medium font-medium text-xs mt-1">Use the quick dropdown or type to search ingredients above to begin compounding.</p>
+ <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 border border-slate-200">
+ <p className="text-slate-900 font-medium font-extrabold text-sm uppercase">Get Started by Choosing Materials</p>
+ <p className="text-slate-900 font-medium text-xs mt-1">Use the quick dropdown or type to search ingredients above to begin compounding.</p>
  </div>
  ) : (
  batchItems.map((item) => {
  const rawIng = allIngredients.find((i) => i.name === item.name);
  return (
- <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-slate-800/70 border border-white/10 p-4 rounded-2xl transition-all hover:bg-slate-800 hover:border-slate-250">
+ <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between bg-slate-50 border border-slate-200/70 border border-white/10 p-4 rounded-2xl transition-all hover:bg-slate-50 border border-slate-200 hover:border-slate-250">
  <div className="flex-1 min-w-0 text-left">
  <div className="flex items-center gap-2">
- <span className="font-extrabold text-white text-xs sm:text-sm block truncate" title={item.name}>
+ <span className="font-extrabold text-slate-900 text-xs sm:text-sm block truncate" title={item.name}>
  {item.name}
  </span>
  {rawIng?.category && (
- <span className="text-[8px] bg-slate-800 text-white font-medium font-medium px-1.5 py-0.5 rounded uppercase font-black tracking-widest shrink-0">
+ <span className="text-[8px] bg-slate-50 border border-slate-200 text-slate-900 font-medium px-1.5 py-0.5 rounded uppercase font-black tracking-widest shrink-0">
  {rawIng.category}
  </span>
  )}
  </div>
  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 items-center">
- <span className="text-[10px] text-emerald-800 font-extrabold font-mono bg-emerald-900/20 px-1.5 py-0.5 rounded">
+ <span className="text-[10px] text-emerald-800 font-extrabold font-mono bg-emerald-50 px-1.5 py-0.5 rounded">
  {rawIng?.cp ?? 0}% CP
  </span>
  <span className="text-[10px] text-sky-800 font-extrabold font-mono bg-sky-900/20 px-1.5 py-0.5 rounded">
  {rawIng?.me ?? 0} MJ/kg
  </span>
  {rawIng?.cost && (
- <span className="text-[10px] text-white font-medium font-medium font-bold">
+ <span className="text-[10px] text-slate-900 font-medium font-bold">
  Ksh {rawIng.cost}/kg
  </span>
  )}
@@ -1350,16 +1350,16 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  value={item.amount}
  onChange={(e) => handleUpdateBatchAmount(item.id, parseFloat(e.target.value) || 0)}
  placeholder="KG"
- className="text-xs border border-white/15 rounded-xl p-2.5 w-full bg-slate-900 text-right font-mono font-black text-white outline-none focus:ring-1 focus:ring-emerald-500"
+ className="text-xs border border-slate-200 rounded-xl p-2.5 w-full bg-white shadow-sm text-right font-mono font-black text-slate-900 outline-none focus:ring-1 focus:ring-emerald-500"
  />
- <span className="text-[10px] font-black text-white font-medium font-medium uppercase font-mono">KG</span>
+ <span className="text-[10px] font-black text-slate-900 font-medium uppercase font-mono">KG</span>
  </div>
 
  {/* Remove Button */}
  <button
  type="button"
  onClick={() => handleRemoveBatchItem(item.id)}
- className="text-white font-medium font-medium hover:text-red-600 hover:bg-red-55 px-2.5 py-2.5 rounded-xl transition-all cursor-pointer m-0 border border-transparent hover:border-red-100"
+ className="text-slate-900 font-medium hover:text-red-600 hover:bg-red-55 px-2.5 py-2.5 rounded-xl transition-all cursor-pointer m-0 border border-transparent hover:border-red-100"
  title="Remove ingredient"
  >
  <Trash2 size={13} />
@@ -1375,22 +1375,22 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {totalWeight > 0 ? (
  <div className="space-y-4 pt-4 border-t border-white/10">
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
- <div className="p-4 bg-emerald-950 text-white rounded-2xl text-center shadow-md">
+ <div className="p-4 bg-emerald-950 text-slate-900 rounded-2xl text-center shadow-md">
  <span className="text-[10px] text-emerald-400/90 font-black tracking-wider uppercase block">Total Weight</span>
- <h3 className="text-3xl font-black font-mono mt-1 text-white">{totalWeight.toFixed(1)} <span className="text-xs">KG</span></h3>
+ <h3 className="text-3xl font-black font-mono mt-1 text-slate-900">{totalWeight.toFixed(1)} <span className="text-xs">KG</span></h3>
  </div>
 
- <div className="p-4 bg-emerald-950 text-white rounded-2xl text-center shadow-md border-l border-emerald-900">
+ <div className="p-4 bg-emerald-950 text-slate-900 rounded-2xl text-center shadow-md border-l border-emerald-900">
  <span className="text-[10px] text-emerald-400/90 font-black tracking-wider uppercase block">Crude Protein</span>
  <h3 className="text-3xl font-black font-mono mt-1 text-yellow-500">{averageCp.toFixed(1)}<span className="text-xs">%</span></h3>
  </div>
 
- <div className="p-4 bg-emerald-950 text-white rounded-2xl text-center shadow-md border-l border-emerald-900">
+ <div className="p-4 bg-emerald-950 text-slate-900 rounded-2xl text-center shadow-md border-l border-emerald-900">
  <span className="text-[10px] text-emerald-400/90 font-black tracking-wider uppercase block">Energy (ME)</span>
  <h3 className="text-3xl font-black font-mono mt-1 text-sky-400">{averageMe.toFixed(1)} <span className="text-[10px] font-normal">MJ/kg</span></h3>
  </div>
 
- <div className="p-4 bg-emerald-950 text-white rounded-2xl text-center shadow-md border-l border-emerald-900">
+ <div className="p-4 bg-emerald-950 text-slate-900 rounded-2xl text-center shadow-md border-l border-emerald-900">
  <span className="text-[10px] text-emerald-400/90 font-black tracking-wider uppercase block">Est. Cost</span>
  <h3 className="text-xl font-black font-mono mt-2 text-emerald-300">
  Ksh {totalCost.toLocaleString()}
@@ -1408,7 +1408,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  )}
  <div>
  <span className="font-extrabold uppercase tracking-wide block">Formulation Safety Diagnostic:</span>
- <p className="mt-0.5 font-semibold text-white font-semibold">{categoryLabel}</p>
+ <p className="mt-0.5 font-semibold text-slate-900 font-semibold">{categoryLabel}</p>
  </div>
  </div>
 
@@ -1450,34 +1450,34 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  )}
  </div>
  ) : (
- <div className="bg-slate-800 border border-white/10 p-8 rounded-2xl text-center">
- <span className="text-xs text-white font-medium font-medium font-extrabold">Batch parameters currently zero. Add ingredients and weights to compute diagnostics.</span>
+ <div className="bg-slate-50 border border-slate-200 border border-white/10 p-8 rounded-2xl text-center">
+ <span className="text-xs text-slate-900 font-medium font-extrabold">Batch parameters currently zero. Add ingredients and weights to compute diagnostics.</span>
  </div>
  )}
  </div>
  ) : (
  <div className="space-y-6 animate-fadeIn text-left">
  {/* LCF UI Header */}
- <div className="bg-slate-900 text-white font-bold p-5 rounded-2xl border border-slate-800 space-y-2">
+ <div className="bg-white shadow-sm text-slate-900 font-bold p-5 rounded-2xl border border-slate-200 space-y-2">
  <div className="flex items-center gap-2">
  <span className="text-[9px] bg-yellow-400 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider">LINEAR OPTIMAL MATRIX SOLVER</span>
- <span className="text-[9px] text-white font-medium font-medium font-black uppercase">Least-Cost Formulations (LCF)</span>
+ <span className="text-[9px] text-slate-900 font-medium font-black uppercase">Least-Cost Formulations (LCF)</span>
  </div>
- <h4 className="text-sm font-black text-white uppercase tracking-wider">Minimize formulation costs mathematically</h4>
- <p className="text-xs text-white font-medium leading-normal font-medium">
+ <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Minimize formulation costs mathematically</h4>
+ <p className="text-xs text-slate-900 font-medium leading-normal font-medium">
  Optimize your feed formulations using advanced mathematical calculators. Choose between classical Pearson's Square (for 2-ingredient blends) or Multi-Ingredient Simplex LP.
  </p>
  </div>
 
  {/* LCF Sub-Tabs Selector */}
- <div className="flex border-b border-white/15 pb-1 gap-6">
+ <div className="flex border-b border-slate-200 pb-1 gap-6">
  <button
  type="button"
  onClick={() => setLcfSubMode('simplex')}
  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
  lcfSubMode === 'simplex'
- ? 'border-emerald-700 text-white font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ ? 'border-emerald-700 text-slate-900 font-black'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  📊 Multi-Ingredient Simplex LP
@@ -1487,8 +1487,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => setLcfSubMode('pearsons')}
  className={`pb-2.5 px-1 text-xs font-black uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
  lcfSubMode === 'pearsons'
- ? 'border-emerald-700 text-white font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ ? 'border-emerald-700 text-slate-900 font-black'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  📐 Pearson's Square (2-Ingredients)
@@ -1498,23 +1498,23 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {lcfSubMode === 'pearsons' ? (
  /* Pearson's Square Interface */
  <div className="space-y-6 animate-fadeIn">
- <div className="bg-slate-800 p-5 border rounded-2xl border-white/10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+ <div className="bg-slate-50 border border-slate-200 p-5 border rounded-2xl border-white/10 grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Controls */}
  <div className="space-y-4">
- <div className="border-b border-white/15 pb-2">
- <h4 className="text-xs font-black text-white font-semibold uppercase tracking-wider">Formulation Ratios Controls</h4>
- <p className="text-[10px] text-white font-medium font-medium mt-0.5">Select your basal and protein concentrates</p>
+ <div className="border-b border-slate-200 pb-2">
+ <h4 className="text-xs font-black text-slate-900 font-semibold uppercase tracking-wider">Formulation Ratios Controls</h4>
+ <p className="text-[10px] text-slate-900 font-medium mt-0.5">Select your basal and protein concentrates</p>
  </div>
 
  <div className="space-y-3">
  <div>
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block mb-1">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block mb-1">
  🥩 Ingredient A (High Protein/Concentrate)
  </label>
  <select
  value={pearsonsIngA}
  onChange={(e) => setPearsonsIngA(e.target.value)}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-bold text-white font-semibold outline-none cursor-pointer"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-900 font-semibold outline-none cursor-pointer"
  >
  {allIngredients.filter(i => i.cp >= 15).map((ing) => (
  <option key={`p-a-${ing.name}`} value={ing.name}>
@@ -1525,13 +1525,13 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  <div>
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block mb-1">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block mb-1">
  🌽 Ingredient B (Low Protein/Basal Feed)
  </label>
  <select
  value={pearsonsIngB}
  onChange={(e) => setPearsonsIngB(e.target.value)}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-bold text-white font-semibold outline-none cursor-pointer"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-900 font-semibold outline-none cursor-pointer"
  >
  {allIngredients.filter(i => i.cp < 15).map((ing) => (
  <option key={`p-b-${ing.name}`} value={ing.name}>
@@ -1543,7 +1543,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  <div className="grid grid-cols-2 gap-4">
  <div>
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block mb-1">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block mb-1">
  🎯 Target CP %: <span className="text-emerald-800 font-extrabold font-mono">{pearsonsTargetCp}%</span>
  </label>
  <input
@@ -1553,11 +1553,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  step="0.5"
  value={pearsonsTargetCp}
  onChange={(e) => setPearsonsTargetCp(parseFloat(e.target.value) || 16)}
- className="text-xs border border-white/15 rounded-lg p-2.5 w-full font-mono font-bold"
+ className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
  />
  </div>
  <div>
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block mb-1">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block mb-1">
  ⚖️ Total Batch Size (kg):
  </label>
  <input
@@ -1566,7 +1566,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  max="10000"
  value={pearsonsTotalWeight}
  onChange={(e) => setPearsonsTotalWeight(parseFloat(e.target.value) || 100)}
- className="text-xs border border-white/15 rounded-lg p-2.5 w-full font-mono font-bold"
+ className="text-xs border border-slate-200 rounded-lg p-2.5 w-full font-mono font-bold"
  />
  </div>
  </div>
@@ -1574,7 +1574,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  {/* SVG Square Diagram */}
- <div className="flex items-center justify-center bg-slate-900 rounded-2xl p-4 border border-slate-800">
+ <div className="flex items-center justify-center bg-white shadow-sm rounded-2xl p-4 border border-slate-200">
  <svg width="100%" height="220" viewBox="0 0 450 220" className="font-mono text-[10px] font-bold max-w-full">
  {/* Diagonals */}
  <line x1="120" x2="330" y1="30" y2="190" stroke="#475569" strokeWidth="2" strokeDasharray="3 3" />
@@ -1620,11 +1620,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  {/* Calculations Details Output */}
  {pearsonsResult.isFeasible ? (
- <div className="bg-[#0f172a] text-white font-bold p-6 rounded-3xl space-y-5 border border-slate-800">
+ <div className="bg-[#0f172a] text-slate-900 font-bold p-6 rounded-3xl space-y-5 border border-slate-200">
  <div className="flex justify-between items-center border-b border-white/10 pb-3">
  <div>
  <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest block">Pearson's Square Formulation Result</span>
- <h4 className="text-sm font-black text-white mt-0.5 uppercase">Exact 2-Ingredient Balancing Complete</h4>
+ <h4 className="text-sm font-black text-slate-900 mt-0.5 uppercase">Exact 2-Ingredient Balancing Complete</h4>
  </div>
  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded bg-emerald-500 text-slate-950">
  100% Balanced CP% Target
@@ -1635,11 +1635,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Ingredient A details */}
  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
  <span className="text-[9px] text-emerald-400 block uppercase font-bold truncate max-w-full">{pearsonsResult.aObj.name}</span>
- <h3 className="text-xl font-black text-white font-mono">{pearsonsResult.pctA.toFixed(1)}%</h3>
- <p className="text-xs text-white font-medium font-medium font-semibold font-mono">
+ <h3 className="text-xl font-black text-slate-900 font-mono">{pearsonsResult.pctA.toFixed(1)}%</h3>
+ <p className="text-xs text-slate-900 font-medium font-semibold font-mono">
  {pearsonsResult.kgA.toFixed(1)} kg of formula
  </p>
- <p className="text-[10px] text-white font-medium font-medium font-semibold font-mono">
+ <p className="text-[10px] text-slate-900 font-medium font-semibold font-mono">
  Cost: Ksh {(pearsonsResult.kgA * (pearsonsResult.aObj.cost || 0)).toLocaleString(undefined, {maximumFractionDigits: 0})}
  </p>
  </div>
@@ -1647,11 +1647,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Ingredient B details */}
  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
  <span className="text-[9px] text-sky-400 block uppercase font-bold truncate max-w-full">{pearsonsResult.bObj.name}</span>
- <h3 className="text-xl font-black text-white font-mono">{pearsonsResult.pctB.toFixed(1)}%</h3>
- <p className="text-xs text-white font-medium font-medium font-semibold font-mono">
+ <h3 className="text-xl font-black text-slate-900 font-mono">{pearsonsResult.pctB.toFixed(1)}%</h3>
+ <p className="text-xs text-slate-900 font-medium font-semibold font-mono">
  {pearsonsResult.kgB.toFixed(1)} kg of formula
  </p>
- <p className="text-[10px] text-white font-medium font-medium font-semibold font-mono">
+ <p className="text-[10px] text-slate-900 font-medium font-semibold font-mono">
  Cost: Ksh {(pearsonsResult.kgB * (pearsonsResult.bObj.cost || 0)).toLocaleString(undefined, {maximumFractionDigits: 0})}
  </p>
  </div>
@@ -1659,8 +1659,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Aggregates */}
  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-1 text-left">
  <span className="text-[9px] text-amber-400 block uppercase font-bold">Combined Feed Metrics</span>
- <h3 className="text-sm font-black text-white font-mono">Total: Ksh {pearsonsResult.totalCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</h3>
- <p className="text-xs text-white font-medium font-medium font-semibold font-mono">
+ <h3 className="text-sm font-black text-slate-900 font-mono">Total: Ksh {pearsonsResult.totalCost.toLocaleString(undefined, {maximumFractionDigits: 0})}</h3>
+ <p className="text-xs text-slate-900 font-medium font-semibold font-mono">
  Unit Cost: Ksh {pearsonsResult.avgCostPerKg.toFixed(1)}/kg
  </p>
  <p className="text-[10px] text-sky-400 font-extrabold font-mono uppercase tracking-wide">
@@ -1669,8 +1669,8 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
  </div>
 
- <div className="bg-slate-950 p-4 rounded-xl border border-white/5 text-[11px] space-y-1">
- <span className="font-extrabold text-white font-medium font-medium uppercase tracking-wider block text-left">🎓 Mathematical Steps of Pearson Square formulation:</span>
+ <div className="bg-slate-50 p-4 rounded-xl border border-white/5 text-[11px] space-y-1">
+ <span className="font-extrabold text-slate-900 font-medium uppercase tracking-wider block text-left">🎓 Mathematical Steps of Pearson Square formulation:</span>
  <p className="text-slate-350 leading-relaxed font-semibold text-left">
  1. Subtract diagonally: Ingredient A parts = |{pearsonsResult.bObj.cp}% - {pearsonsTargetCp}%| = {pearsonsResult.partsA.toFixed(1)} parts.<br />
  2. Subtract diagonally: Ingredient B parts = |{pearsonsResult.aObj.cp}% - {pearsonsTargetCp}%| = {pearsonsResult.partsB.toFixed(1)} parts.<br />
@@ -1696,7 +1696,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <p className="text-xs leading-relaxed font-medium">
  {pearsonsResult.msg}
  </p>
- <p className="text-[11px] text-white font-medium font-medium italic">
+ <p className="text-[11px] text-slate-900 font-medium italic">
  Tip: To formulate a {pearsonsTargetCp}% protein blend, one ingredient must have a protein level HIGHER than {pearsonsTargetCp}% (e.g., Soya at {pearsonsResult.aObj.cp}%), and the other must be LOWER (e.g., Maize at {pearsonsResult.bObj.cp}%). Adjust your selections to resolve this constraint.
  </p>
  </div>
@@ -1706,9 +1706,9 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  /* Original Multi-Ingredient Solver Interface */
  <div className="space-y-6 animate-fadeIn">
  {/* Targets Setup */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800 p-5 border rounded-2xl border-white/10">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-200 p-5 border rounded-2xl border-white/10">
  <div className="space-y-2">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">
  🎯 Target Crude Protein Score: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetCp}% CP</span>
  </label>
  <input
@@ -1718,16 +1718,16 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  step="0.5"
  value={lcfTargetCp}
  onChange={(e) => setLcfTargetCp(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-emerald-800"
+ className="w-full h-1.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer accent-emerald-800"
  />
- <div className="flex justify-between text-[9px] text-white font-medium font-medium font-extrabold">
+ <div className="flex justify-between text-[9px] text-slate-900 font-medium font-extrabold">
  <span>10% CP (MAINTENANCE)</span>
  <span>40% CP (HIGH NITROGEN)</span>
  </div>
  </div>
 
  <div className="space-y-2">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">
  ⚡ Target Metabolizable Energy: <span className="font-mono text-emerald-800 font-extrabold text-xs">{lcfTargetMe} MJ/kg</span>
  </label>
  <input
@@ -1737,9 +1737,9 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  step="0.1"
  value={lcfTargetMe}
  onChange={(e) => setLcfTargetMe(parseFloat(e.target.value))}
- className="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer accent-emerald-800"
+ className="w-full h-1.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer accent-emerald-800"
  />
- <div className="flex justify-between text-[9px] text-white font-medium font-medium font-extrabold">
+ <div className="flex justify-between text-[9px] text-slate-900 font-medium font-extrabold">
  <span>7 MJ (ROUGHAGE)</span>
  <span>14 MJ (HIGH ENERGY FAT)</span>
  </div>
@@ -1749,17 +1749,17 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {/* Candidates Inventory Header */}
  <div className="space-y-4">
  <div className="flex justify-between items-center border-b border-white/10 pb-2">
- <span className="text-[10.5px] uppercase font-black text-white tracking-wider">Candidate Feedstuffs list & inclusion bounds</span>
- <span className="text-[9px] text-white font-medium font-medium font-bold uppercase">Toggle / Buy Price (KSH)</span>
+ <span className="text-[10.5px] uppercase font-black text-slate-900 tracking-wider">Candidate Feedstuffs list & inclusion bounds</span>
+ <span className="text-[9px] text-slate-900 font-medium font-bold uppercase">Toggle / Buy Price (KSH)</span>
  </div>
 
  {/* Search & Add candidates section */}
- <div className="bg-slate-800 border border-white/15 p-4 rounded-2xl space-y-3 relative">
+ <div className="bg-slate-50 border border-slate-200 border border-slate-200 p-4 rounded-2xl space-y-3 relative">
  <div className="flex flex-col sm:flex-row gap-2 justify-between sm:items-center">
  <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
  <span>➕</span> Add candidate raw materials to matrix
  </span>
- <span className="text-[9px] text-white font-medium font-medium font-bold uppercase">
+ <span className="text-[9px] text-slate-900 font-medium font-bold uppercase">
  Select below or search the 500+ material library
  </span>
  </div>
@@ -1776,7 +1776,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  }
  e.target.value = '';
  }}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-bold text-white font-semibold outline-none cursor-pointer"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-bold text-slate-900 font-semibold outline-none cursor-pointer"
  defaultValue=""
  >
  <option value="" disabled>--- Quick Add Popular Material ---</option>
@@ -1799,7 +1799,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  setIsLcfSearchDropdownOpen(true);
  }}
  onFocus={() => setIsLcfSearchDropdownOpen(true)}
- className="text-xs bg-slate-900 border border-white/15 rounded-xl p-2.5 w-full font-semibold text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
+ className="text-xs bg-white shadow-sm border border-slate-200 rounded-xl p-2.5 w-full font-semibold text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-emerald-500"
  />
  {lcfSearchQuery && (
  <button
@@ -1808,7 +1808,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  setLcfSearchQuery('');
  setIsLcfSearchDropdownOpen(false);
  }}
- className="absolute right-3 top-3 text-white font-medium font-medium hover:text-white font-medium font-medium text-xs font-bold"
+ className="absolute right-3 top-3 text-slate-900 font-medium hover:text-slate-900 font-medium text-xs font-bold"
  >
  ✕
  </button>
@@ -1816,7 +1816,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  {/* Dropdown search results */}
  {isLcfSearchDropdownOpen && filteredCandidatesToAdd.length > 0 && (
- <div className="absolute left-0 right-0 mt-1 bg-slate-900 border border-white/15 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+ <div className="absolute left-0 right-0 mt-1 bg-white shadow-sm border border-slate-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
  {filteredCandidatesToAdd.map((ing) => (
  <button
  key={ing.name}
@@ -1824,10 +1824,10 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  onClick={() => {
  handleAddLcfCandidate(ing);
  }}
- className="w-full text-left p-2.5 hover:bg-slate-800 transition-colors flex justify-between items-center text-xs"
+ className="w-full text-left p-2.5 hover:bg-slate-50 border border-slate-200 transition-colors flex justify-between items-center text-xs"
  >
  <div className="min-w-0 pr-2">
- <span className="font-extrabold text-white block truncate">{ing.name}</span>
+ <span className="font-extrabold text-slate-900 block truncate">{ing.name}</span>
  {ing.category && (
  <span className="text-[8px] bg-indigo-900/20 text-indigo-700 px-1 rounded uppercase font-black tracking-wider">
  {ing.category}
@@ -1835,10 +1835,10 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  )}
  </div>
  <div className="text-right shrink-0 flex items-center gap-1.5">
- <span className="font-mono font-bold bg-emerald-900/20 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
+ <span className="font-mono font-bold bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded text-[10px]">
  {ing.cp}% CP
  </span>
- <span className="text-[9px] text-white font-medium font-medium font-semibold mt-0.5 font-mono">
+ <span className="text-[9px] text-slate-900 font-medium font-semibold mt-0.5 font-mono">
  {ing.me} MJ
  </span>
  </div>
@@ -1847,7 +1847,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
  )}
  {isLcfSearchDropdownOpen && lcfSearchQuery && filteredCandidatesToAdd.length === 0 && (
- <div className="absolute left-0 right-0 mt-1 bg-slate-900 border border-white/15 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-white font-medium font-medium italic">
+ <div className="absolute left-0 right-0 mt-1 bg-white shadow-sm border border-slate-200 rounded-xl p-3 shadow-lg z-30 text-center text-[10px] text-slate-900 font-medium italic">
  No matching unadded library materials.
  </div>
  )}
@@ -1858,7 +1858,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
  {lcfCandidates.map((cand, idx) => (
  <div key={cand.name} className={`p-4 border rounded-2xl flex flex-col justify-between transition-all ${
- cand.enabled ? 'bg-slate-900 border-white/15 ring-1 ring-emerald-500/5' : 'bg-slate-800/50 border-white/10 opacity-60'
+ cand.enabled ? 'bg-white shadow-sm border-slate-200 ring-1 ring-emerald-500/5' : 'bg-slate-50 border border-slate-200/50 border-white/10 opacity-60'
  }`}>
  <div className="flex justify-between items-start gap-2">
  <div className="flex items-start gap-2.5">
@@ -1874,7 +1874,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  />
  <div>
  <div className="flex items-center gap-2">
- <span className="text-xs font-bold text-white block truncate leading-tight max-w-[140px]" title={cand.name}>{cand.name}</span>
+ <span className="text-xs font-bold text-slate-900 block truncate leading-tight max-w-[140px]" title={cand.name}>{cand.name}</span>
  <button
  type="button"
  onClick={() => {
@@ -1887,15 +1887,15 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <Trash2 size={11} />
  </button>
  </div>
- <span className="text-[9px] text-white font-medium font-medium font-bold block mt-1 font-mono uppercase">
+ <span className="text-[9px] text-slate-900 font-medium font-bold block mt-1 font-mono uppercase">
  {cand.cp}% CP • {cand.me} MJ
  </span>
  </div>
  </div>
  <div className="text-right shrink-0">
- <span className="text-[9px] text-white font-medium font-medium font-black uppercase block leading-none">Price/kg</span>
+ <span className="text-[9px] text-slate-900 font-medium font-black uppercase block leading-none">Price/kg</span>
  <div className="flex items-center gap-1 mt-1 font-mono">
- <span className="text-[9px] text-white font-medium font-medium font-bold">Ksh</span>
+ <span className="text-[9px] text-slate-900 font-medium font-bold">Ksh</span>
  <input
  type="number"
  value={cand.cost}
@@ -1904,16 +1904,16 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].cost = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-xs w-11 bg-slate-800 border p-1 rounded font-mono font-black text-right outline-none focus:border-emerald-500"
+ className="text-xs w-11 bg-slate-50 border border-slate-200 border p-1 rounded font-mono font-black text-right outline-none focus:border-emerald-500"
  />
  </div>
  </div>
  </div>
 
  {cand.enabled && (
- <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-white/10 text-[10px] font-semibold text-white font-medium font-medium">
+ <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-dashed border-white/10 text-[10px] font-semibold text-slate-900 font-medium">
  <div>
- <span className="text-white font-medium font-medium block uppercase text-[8px] font-bold">Min inclusion %</span>
+ <span className="text-slate-900 font-medium block uppercase text-[8px] font-bold">Min inclusion %</span>
  <input
  type="number"
  min="0"
@@ -1924,11 +1924,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].minLimit = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-[11px] font-mono font-bold w-full border bg-slate-800/50 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
+ className="text-[11px] font-mono font-bold w-full border bg-slate-50 border border-slate-200/50 p-1.5 rounded-lg text-center mt-1 outline-none focus:border-semibold"
  />
  </div>
  <div>
- <span className="text-white font-medium font-medium block uppercase text-[8px] font-bold">Max inclusion %</span>
+ <span className="text-slate-900 font-medium block uppercase text-[8px] font-bold">Max inclusion %</span>
  <input
  type="number"
  min="1"
@@ -1939,7 +1939,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  updated[idx].maxLimit = parseFloat(e.target.value) || 0;
  setLcfCandidates(updated);
  }}
- className="text-[11px] font-mono font-bold w-full border bg-slate-800/50 p-1.5 rounded-lg text-center mt-1 outline-none"
+ className="text-[11px] font-mono font-bold w-full border bg-slate-50 border border-slate-200/50 p-1.5 rounded-lg text-center mt-1 outline-none"
  />
  </div>
  </div>
@@ -1954,18 +1954,18 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  type="button"
  onClick={handleSolveLCF}
  disabled={isLcfSolving}
- className="w-full bg-[#0d3621] hover:bg-[#0c2f1e] text-white font-extrabold text-xs uppercase py-4 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+ className="w-full bg-[#0d3621] hover:bg-[#0c2f1e] text-slate-900 font-extrabold text-xs uppercase py-4 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
  >
  {isLcfSolving ? '⌛ SOLVING MATHEMATICAL MATRIX COMBINATIONS...' : '🚀 CALIBRATE LEAST-COST FORMULATION (LCF)'}
  </button>
 
  {/* Solver Output Results */}
  {lcfResult && (
- <div className="bg-[#0f172a] text-white p-5 rounded-3xl space-y-4 border border-slate-800 animate-fadeIn text-left">
+ <div className="bg-[#0f172a] text-slate-900 p-5 rounded-3xl space-y-4 border border-slate-200 animate-fadeIn text-left">
  <div className="flex justify-between items-center border-b border-white/10 pb-2.5">
  <div>
  <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Optimization Engine Report</span>
- <h4 className="text-xs font-black text-white mt-0.5">MATRIX SOLUTION REQUISITES MET</h4>
+ <h4 className="text-xs font-black text-slate-900 mt-0.5">MATRIX SOLUTION REQUISITES MET</h4>
  </div>
  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950">
  Feasible & Cost-Optimized
@@ -1974,19 +1974,19 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
 
  <div className="grid grid-cols-3 gap-2.5">
  <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
- <span className="text-[8.5px] text-white font-medium font-medium block uppercase font-bold">Optimal Cost/kg</span>
- <span className="text-lg font-mono font-black text-white mt-1 block">
+ <span className="text-[8.5px] text-slate-900 font-medium block uppercase font-bold">Optimal Cost/kg</span>
+ <span className="text-lg font-mono font-black text-slate-900 mt-1 block">
  Ksh {lcfResult.cost.toFixed(1)}
  </span>
  </div>
  <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
- <span className="text-[8.5px] text-white font-medium font-medium block uppercase font-bold">Crude Protein</span>
+ <span className="text-[8.5px] text-slate-900 font-medium block uppercase font-bold">Crude Protein</span>
  <span className="text-lg font-mono font-black text-amber-400 mt-1 block">
  {lcfResult.cp.toFixed(1)}%
  </span>
  </div>
  <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-center">
- <span className="text-[8.5px] text-white font-medium font-medium block uppercase font-bold">Metabolizable Energy</span>
+ <span className="text-[8.5px] text-slate-900 font-medium block uppercase font-bold">Metabolizable Energy</span>
  <span className="text-lg font-mono font-black text-sky-400 mt-1 block">
  {lcfResult.me.toFixed(1)} <span className="text-[9px] font-normal font-sans">MJ</span>
  </span>
@@ -1994,17 +1994,17 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  <div className="space-y-2 pt-1">
- <span className="text-[9px] uppercase font-black text-white font-medium font-medium block">Calculated Formulation Ratios:</span>
+ <span className="text-[9px] uppercase font-black text-slate-900 font-medium block">Calculated Formulation Ratios:</span>
  <div className="space-y-1">
  {lcfCandidates.filter(c => c.enabled).map((cand, idx) => {
  const weight = lcfResult.weights[idx] || 0;
  if (weight <= 0) return null;
  return (
- <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-950 p-2 rounded-lg border border-white/5">
- <span className="text-white font-medium font-sans">{cand.name}</span>
+ <div key={cand.name} className="flex items-center justify-between text-xs font-mono bg-slate-50 p-2 rounded-lg border border-white/5">
+ <span className="text-slate-900 font-medium font-sans">{cand.name}</span>
  <div className="flex gap-3">
  <span className="text-emerald-400 font-bold">{weight.toFixed(1)}%</span>
- <span className="text-white font-medium font-medium">({weight.toFixed(1)} kg)</span>
+ <span className="text-slate-900 font-medium">({weight.toFixed(1)} kg)</span>
  </div>
  </div>
  );
@@ -2029,15 +2029,15 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  </div>
 
  {/* Dynamic Animal Nutritional Requirements Panel */}
- <div className="bg-slate-900 text-white font-bold p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6 animate-fadeIn mt-6 text-left">
- <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b border-slate-800 pb-5">
+ <div className="bg-white shadow-sm text-slate-900 font-bold p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6 animate-fadeIn mt-6 text-left">
+ <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b border-slate-200 pb-5">
  <div>
  <div className="flex items-center gap-2">
  <span className="text-[9px] bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded font-black uppercase tracking-wider animate-pulse">OFFICIAL NRC/KALRO REFERENCE</span>
- <span className="text-[9px] text-white font-medium font-medium font-black uppercase">Standard Dietary Targets</span>
+ <span className="text-[9px] text-slate-900 font-medium font-black uppercase">Standard Dietary Targets</span>
  </div>
- <h4 className="text-lg font-black text-white uppercase tracking-wider mt-1.5 font-sans">Animal Nutritional Requirements Guidelines</h4>
- <p className="text-xs text-white font-medium font-medium font-medium mt-0.5">
+ <h4 className="text-lg font-black text-slate-900 uppercase tracking-wider mt-1.5 font-sans">Animal Nutritional Requirements Guidelines</h4>
+ <p className="text-xs text-slate-900 font-medium font-medium mt-0.5">
  Consult these official dietary metrics to guide your manual compounding and Least-Cost Feed (LCF) optimization parameters.
  </p>
  </div>
@@ -2052,7 +2052,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
  requirementsTab === catName
  ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
- : 'bg-slate-950 text-white font-medium font-medium border-slate-800 hover:text-white font-semibold'
+ : 'bg-slate-50 text-slate-900 font-medium border-slate-200 hover:text-slate-900 font-semibold'
  }`}
  >
  {catName === 'All' ? '📑 See All Stages' : catName}
@@ -2060,11 +2060,11 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  ))}
  </div>
 
- <div className="flex gap-1.5 border-l border-slate-800 pl-3">
+ <div className="flex gap-1.5 border-l border-slate-200 pl-3">
  <button
  type="button"
  onClick={() => scrollRequirements('left')}
- className="p-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-medium font-medium hover:text-white transition-colors cursor-pointer"
+ className="p-2 rounded-lg bg-slate-50 hover:bg-slate-50 border border-slate-200 border border-slate-200 text-slate-900 font-medium hover:text-slate-900 transition-colors cursor-pointer"
  title="Scroll Left"
  >
  <ChevronLeft size={16} />
@@ -2072,7 +2072,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <button
  type="button"
  onClick={() => scrollRequirements('right')}
- className="p-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-white font-medium font-medium hover:text-white transition-colors cursor-pointer"
+ className="p-2 rounded-lg bg-slate-50 hover:bg-slate-50 border border-slate-200 border border-slate-200 text-slate-900 font-medium hover:text-slate-900 transition-colors cursor-pointer"
  title="Scroll Right"
  >
  <ChevronRight size={16} />
@@ -2094,7 +2094,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  {filteredAnimalRequirements.map((req) => (
  <div
  key={req.stage}
- className="w-[280px] sm:w-[330px] shrink-0 snap-start bg-slate-950 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-emerald-500/30 hover:bg-slate-950 transition-all duration-300 shadow-xl"
+ className="w-[280px] sm:w-[330px] shrink-0 snap-start bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col justify-between hover:border-emerald-500/30 hover:bg-slate-50 transition-all duration-300 shadow-xl"
  >
  <div className="space-y-3">
  <div className="flex justify-between items-center gap-1.5">
@@ -2106,31 +2106,31 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  }`}>
  {req.grp}
  </span>
- <span className="text-[10px] text-white font-medium font-medium font-mono font-bold">{req.intake}</span>
+ <span className="text-[10px] text-slate-900 font-medium font-mono font-bold">{req.intake}</span>
  </div>
  <div>
- <h5 className="text-xs font-black text-white uppercase tracking-wider leading-snug">{req.stage}</h5>
- <p className="text-[11px] text-white font-medium font-medium leading-relaxed font-medium mt-1 min-h-[50px] line-clamp-3 hover:line-clamp-none transition-all duration-200">
+ <h5 className="text-xs font-black text-slate-900 uppercase tracking-wider leading-snug">{req.stage}</h5>
+ <p className="text-[11px] text-slate-900 font-medium leading-relaxed font-medium mt-1 min-h-[50px] line-clamp-3 hover:line-clamp-none transition-all duration-200">
  {req.desc}
  </p>
  </div>
  </div>
 
- <div className="space-y-3 pt-3 border-t border-slate-800/80 border-dashed mt-4">
+ <div className="space-y-3 pt-3 border-t border-slate-200/80 border-dashed mt-4">
  <div className="grid grid-cols-2 gap-2">
- <div className="p-2 bg-slate-900 border border-slate-800/30 rounded-xl text-center">
- <span className="text-[8px] text-white font-medium font-medium block uppercase font-bold tracking-wider">Protein (CP)</span>
+ <div className="p-2 bg-white shadow-sm border border-slate-200/30 rounded-xl text-center">
+ <span className="text-[8px] text-slate-900 font-medium block uppercase font-bold tracking-wider">Protein (CP)</span>
  <span className="text-xs font-mono font-black text-amber-400 mt-0.5 block">{req.cpRange}</span>
  </div>
- <div className="p-2 bg-slate-900 border border-slate-800/30 rounded-xl text-center">
- <span className="text-[8px] text-white font-medium font-medium block uppercase font-bold tracking-wider">Energy (ME)</span>
+ <div className="p-2 bg-white shadow-sm border border-slate-200/30 rounded-xl text-center">
+ <span className="text-[8px] text-slate-900 font-medium block uppercase font-bold tracking-wider">Energy (ME)</span>
  <span className="text-xs font-mono font-black text-sky-400 mt-0.5 block">{req.meRange}</span>
  </div>
  </div>
 
- <div className="space-y-1 p-2.5 bg-slate-900 border border-slate-800/40 rounded-xl">
- <span className="text-[8px] uppercase font-black text-white font-medium font-medium block tracking-wider">Ideal Feedstocks:</span>
- <p className="text-[10px] text-white font-medium leading-normal font-semibold italic truncate" title={req.ingredients}>
+ <div className="space-y-1 p-2.5 bg-white shadow-sm border border-slate-200/40 rounded-xl">
+ <span className="text-[8px] uppercase font-black text-slate-900 font-medium block tracking-wider">Ideal Feedstocks:</span>
+ <p className="text-[10px] text-slate-900 font-medium leading-normal font-semibold italic truncate" title={req.ingredients}>
  {req.ingredients}
  </p>
  </div>

@@ -121,7 +121,7 @@ export function Roster({
  const recordStatusColors = {
  Approved: 'bg-emerald-100 text-emerald-800 border-emerald-300',
  Pending: 'bg-amber-100 text-amber-800 border-amber-300',
- Completed: 'bg-slate-800 text-white border-white/20'
+ Completed: 'bg-slate-50 border border-slate-200 text-slate-900 border-white/20'
  };
 
  // Group counts
@@ -145,19 +145,19 @@ export function Roster({
  const attendancePercentage = totalStaffCount === 0 ? 0 : Math.round((activeStaffCount / totalStaffCount) * 100);
 
  return (
- <div className="space-y-8 animate-fadeIn text-white">
+ <div className="space-y-8 animate-fadeIn text-slate-900">
  {/* Roster overview banner */}
  <div className="farm-shell-panel flex flex-col md:flex-row justify-between items-start md:items-center p-6 border border-white/70 rounded-[1.6rem] shadow-sm gap-6 relative overflow-hidden">
- <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-900/20 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2 opacity-60"></div>
+ <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2 opacity-60"></div>
  <div className="flex items-center gap-5 z-10 w-full md:w-auto">
- <div className="p-3.5 bg-gradient-to-br from-emerald-700 to-emerald-950 text-white rounded-2xl shadow-lg shadow-emerald-900/20">
+ <div className="p-3.5 bg-gradient-to-br from-emerald-700 to-emerald-950 text-slate-900 rounded-2xl shadow-lg shadow-emerald-900/20">
  <Users size={26} strokeWidth={2.5} />
  </div>
  <div className="flex-1">
- <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1.5">Workforce & Duty Scheduler</h4>
+ <h4 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-1.5">Workforce & Duty Scheduler</h4>
  
  {/* Visual Progress Bar */}
- <div className="w-full max-w-[280px] h-2 bg-slate-800 rounded-full mb-2 overflow-hidden flex">
+ <div className="w-full max-w-[280px] h-2 bg-slate-50 border border-slate-200 rounded-full mb-2 overflow-hidden flex">
  <div 
  className="h-full bg-emerald-500 transition-all duration-1000 ease-out rounded-full" 
  style={{ width: `${attendancePercentage}%` }}
@@ -168,8 +168,8 @@ export function Roster({
  ></div>
  </div>
 
- <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-white font-medium font-medium font-bold items-center uppercase tracking-wider">
- <span>Total: <strong className="text-white text-xs">{totalStaffCount}</strong></span>
+ <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-900 font-medium font-bold items-center uppercase tracking-wider">
+ <span>Total: <strong className="text-slate-900 text-xs">{totalStaffCount}</strong></span>
  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
  <span className="text-emerald-700">Present: <strong className="text-emerald-900 text-xs">{activeStaffCount}</strong></span>
  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
@@ -192,7 +192,7 @@ export function Roster({
  {rosterSubTab === 'roster' ? (
  <button
  onClick={() => setShowAddForm(!showAddForm)}
- className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 active:scale-95 transition-all flex items-center gap-2 m-0 cursor-pointer"
+ className="bg-emerald-950 text-slate-900 font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-850 active:scale-95 transition-all flex items-center gap-2 m-0 cursor-pointer"
  >
  <UserPlus size={14} />
  {showAddForm ? 'Hide Form' : 'Register Operator'}
@@ -205,7 +205,7 @@ export function Roster({
  setOffStaffId(staffList[0].id);
  }
  }}
- className="bg-indigo-900 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-indigo-850 active:scale-95 transition-all flex items-center gap-2 m-0 cursor-pointer"
+ className="bg-indigo-900 text-slate-900 font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-indigo-850 active:scale-95 transition-all flex items-center gap-2 m-0 cursor-pointer"
  >
  <CalendarDays size={14} />
  {showOffForm ? 'Hide Form' : 'Schedule Off/Leave'}
@@ -215,13 +215,13 @@ export function Roster({
  </div>
 
  {/* Modern Sub-Tab Switcher Component */}
- <div className="flex border-b border-white/15 bg-slate-900 p-2 pb-0 rounded-2xl shadow-xs">
+ <div className="flex border-b border-slate-200 bg-white shadow-sm p-2 pb-0 rounded-2xl shadow-xs">
  <button
  onClick={() => setRosterSubTab('roster')}
  className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 cursor-pointer ${
  rosterSubTab === 'roster'
  ? 'border-emerald-850 text-emerald-950 font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  Workforce Directory
@@ -231,7 +231,7 @@ export function Roster({
  className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 flex items-center gap-2 cursor-pointer ${
  rosterSubTab === 'leaves'
  ? 'border-indigo-850 text-indigo-950 font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  Leave & Off-Duty Scheduler
@@ -244,7 +244,7 @@ export function Roster({
  className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 cursor-pointer ${
  rosterSubTab === 'attendance'
  ? 'border-sky-800 text-sky-950 font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  Daily Attendance
@@ -254,7 +254,7 @@ export function Roster({
  className={`px-5 py-3.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all m-0 cursor-pointer ${
  rosterSubTab === 'wages'
  ? 'border-amber-600 text-amber-950 font-black'
- : 'border-transparent text-white font-medium font-medium hover:text-white font-medium font-medium'
+ : 'border-transparent text-slate-900 font-medium hover:text-slate-900 font-medium'
  }`}
  >
  Wages & Advances
@@ -265,39 +265,39 @@ export function Roster({
  {rosterSubTab === 'roster' && (
  <div className="space-y-8">
  {showAddForm && (
- <form onSubmit={handleSubmit} className="bg-slate-900 p-8 rounded-3xl border border-white/15 shadow-lg space-y-6">
+ <form onSubmit={handleSubmit} className="bg-white shadow-sm p-8 rounded-3xl border border-slate-200 shadow-lg space-y-6">
  <div className="border-b border-white/10 pb-3">
- <h5 className="text-xs font-black text-white uppercase tracking-widest">Operator Registration Details</h5>
+ <h5 className="text-xs font-black text-slate-900 uppercase tracking-widest">Operator Registration Details</h5>
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Full Name</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Full Name</label>
  <input
  type="text"
  required
  value={name}
  onChange={(e) => setName(e.target.value)}
  placeholder="E.g. Mosoti Ogomba"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Role / Title</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Role / Title</label>
  <input
  type="text"
  required
  value={role}
  onChange={(e) => setRole(e.target.value)}
  placeholder="E.g. Senior Herdsman"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Staff Unit</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Staff Unit</label>
  <select
  value={unit}
  onChange={(e) => setUnit(e.target.value as any)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900 "
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white shadow-sm "
  >
  <option value="Dairy">Dairy</option>
  <option value="Horti">Horti</option>
@@ -307,34 +307,34 @@ export function Roster({
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Contact Phone (+254...)</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Contact Phone (+254...)</label>
  <input
  type="tel"
  required
  value={phone}
  onChange={(e) => setPhone(e.target.value)}
  placeholder="E.g. +254 712 345 678"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Shift Duty: Morning</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Shift Duty: Morning</label>
  <input
  type="text"
  value={shiftMorning}
  onChange={(e) => setShiftMorning(e.target.value)}
  placeholder="E.g. Milking & Calf Care"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Shift Duty: Afternoon</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Shift Duty: Afternoon</label>
  <input
  type="text"
  value={shiftAfternoon}
  onChange={(e) => setShiftAfternoon(e.target.value)}
  placeholder="E.g. TMR feed mixing"
- className="text-xs border border-white/15 rounded-lg p-3 w-full"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full"
  />
  </div>
  </div>
@@ -342,13 +342,13 @@ export function Roster({
  <button
  type="button"
  onClick={() => setShowAddForm(false)}
- className="px-5 py-3 border border-white/15 rounded-lg text-xs font-bold text-white font-medium font-medium m-0 cursor-pointer"
+ className="px-5 py-3 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 font-medium m-0 cursor-pointer"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-6 py-3 bg-emerald-950 text-white rounded-lg text-xs font-black uppercase m-0 cursor-pointer"
+ className="px-6 py-3 bg-emerald-950 text-slate-900 rounded-lg text-xs font-black uppercase m-0 cursor-pointer"
  >
  Save Officer
  </button>
@@ -357,15 +357,15 @@ export function Roster({
  )}
 
  {/* Modern Search & Filters Panel */}
- <div className="bg-slate-800 p-4 rounded-2xl border border-white/15 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+ <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
  <div className="relative w-full md:w-72">
- <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white font-medium font-medium" />
+ <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-900 font-medium" />
  <input
  type="text"
  placeholder="Search by name or role..."
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
- className="w-full text-xs border border-white/15 rounded-xl pl-9 pr-4 py-2.5 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700/10 text-white font-semibold font-medium"
+ className="w-full text-xs border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/10 text-slate-900 font-semibold"
  />
  </div>
 
@@ -383,8 +383,8 @@ export function Roster({
  onClick={() => setUnitFilter(btn.id as any)}
  className={`px-3.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all m-0 border cursor-pointer whitespace-nowrap ${
  unitFilter === btn.id
- ? 'bg-emerald-950 text-white border-transparent'
- : 'bg-slate-900 text-white font-medium font-medium border-white/15 hover:bg-slate-800'
+ ? 'bg-emerald-950 text-slate-900 border-transparent'
+ : 'bg-white shadow-sm text-slate-900 font-medium border-slate-200 hover:bg-slate-50 border border-slate-200'
  }`}
  >
  {btn.label}
@@ -408,7 +408,7 @@ export function Roster({
  .map((st) => (
  <div
  key={st.id}
- className={`bg-slate-900 border rounded-3xl shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+ className={`bg-white shadow-sm border rounded-3xl shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
  st.status === 'Off' ? 'border-dashed border-rose-300 opacity-90' : 
  st.status === 'On Leave' ? 'border-amber-200 opacity-95' :
  'border-white/10 hover:border-emerald-200'
@@ -425,20 +425,20 @@ export function Roster({
  {getInitials(st.name)}
  </div>
  <div>
- <span className="text-[9px] uppercase tracking-widest bg-slate-800 text-white font-medium font-medium px-2 py-0.5 rounded font-black max-w-[120px] truncate block text-center mb-1 w-max">
+ <span className="text-[9px] uppercase tracking-widest bg-slate-50 border border-slate-200 text-slate-900 font-medium px-2 py-0.5 rounded font-black max-w-[120px] truncate block text-center mb-1 w-max">
  {st.unit} Unit
  </span>
- <h5 className="text-sm font-black text-white leading-tight group-hover:text-emerald-700 transition-colors">{st.name}</h5>
- <p className="text-xs text-white font-medium font-medium font-bold mt-0.5">{st.role}</p>
+ <h5 className="text-sm font-black text-slate-900 leading-tight group-hover:text-emerald-700 transition-colors">{st.name}</h5>
+ <p className="text-xs text-slate-900 font-medium font-bold mt-0.5">{st.role}</p>
  </div>
  </div>
  <div className="flex flex-col items-end gap-2 shrink-0">
  {/* Quick Status Toggles */}
- <div className="flex bg-slate-800 rounded-lg p-0.5 shadow-inner">
+ <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-0.5 shadow-inner">
  <button
  onClick={() => onUpdateStatus(st.id, 'Present')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'Present' ? 'bg-emerald-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ st.status === 'Present' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Pres
@@ -446,7 +446,7 @@ export function Roster({
  <button
  onClick={() => onUpdateStatus(st.id, 'Off')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'Off' ? 'bg-rose-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ st.status === 'Off' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Off
@@ -454,7 +454,7 @@ export function Roster({
  <button
  onClick={() => onUpdateStatus(st.id, 'On Leave')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- st.status === 'On Leave' ? 'bg-amber-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ st.status === 'On Leave' ? 'bg-amber-500 text-slate-900 shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Lv
@@ -483,28 +483,28 @@ export function Roster({
  </div>
 
  <div className="mt-5 space-y-2">
- <div className="flex items-center gap-2 text-xs text-white font-medium font-medium">
- <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center">
- <Phone size={11} className="text-white font-medium font-medium" />
+ <div className="flex items-center gap-2 text-xs text-slate-900 font-medium">
+ <div className="w-6 h-6 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
+ <Phone size={11} className="text-slate-900 font-medium" />
  </div>
- <span className="font-semibold text-white font-medium font-medium font-mono">{st.phone}</span>
+ <span className="font-semibold text-slate-900 font-medium font-mono">{st.phone}</span>
  </div>
  </div>
  </div>
 
- <div className="bg-slate-800/70 p-5 space-y-3.5 relative overflow-hidden group-hover:bg-slate-800 transition-colors">
+ <div className="bg-slate-50 border border-slate-200/70 p-5 space-y-3.5 relative overflow-hidden group-hover:bg-slate-50 border border-slate-200 transition-colors">
  <div className="flex items-start gap-2.5">
- <Clock size={12} className="text-white font-medium font-medium shrink-0 mt-0.5" />
+ <Clock size={12} className="text-slate-900 font-medium shrink-0 mt-0.5" />
  <div>
- <span className="text-[10px] uppercase font-bold text-white font-medium font-medium block leading-none">Morning Shift</span>
- <p className="text-[11px] text-white font-medium font-medium font-medium mt-1 leading-normal">{st.shiftMorning}</p>
+ <span className="text-[10px] uppercase font-bold text-slate-900 font-medium block leading-none">Morning Shift</span>
+ <p className="text-[11px] text-slate-900 font-medium font-medium mt-1 leading-normal">{st.shiftMorning}</p>
  </div>
  </div>
  <div className="flex items-start gap-2.5">
- <Clock size={12} className="text-white font-medium font-medium shrink-0 mt-0.5" />
+ <Clock size={12} className="text-slate-900 font-medium shrink-0 mt-0.5" />
  <div>
- <span className="text-[10px] uppercase font-bold text-white font-medium font-medium block leading-none">Afternoon Shift</span>
- <p className="text-[11px] text-white font-medium font-medium font-medium mt-1 leading-normal">{st.shiftAfternoon}</p>
+ <span className="text-[10px] uppercase font-bold text-slate-900 font-medium block leading-none">Afternoon Shift</span>
+ <p className="text-[11px] text-slate-900 font-medium font-medium mt-1 leading-normal">{st.shiftAfternoon}</p>
  </div>
  </div>
  </div>
@@ -519,18 +519,18 @@ export function Roster({
  <div className="space-y-8">
  {/* New Leave/Off schedule form */}
  {showOffForm && (
- <form onSubmit={handleOffSubmit} className="bg-slate-900 p-8 rounded-3xl border border-white/15 shadow-lg space-y-6">
+ <form onSubmit={handleOffSubmit} className="bg-white shadow-sm p-8 rounded-3xl border border-slate-200 shadow-lg space-y-6">
  <div className="border-b border-indigo-100 pb-3 font-semibold">
  <h5 className="text-xs font-black text-indigo-950 uppercase tracking-widest">Book Staff Off-Duty / Leave Schedule</h5>
- <p className="text-[11px] text-white font-medium font-medium mt-0.5 font-medium">Define approved rest periods, annual leaves, and sick leaves for individual crew members.</p>
+ <p className="text-[11px] text-slate-900 font-medium mt-0.5 font-medium">Define approved rest periods, annual leaves, and sick leaves for individual crew members.</p>
  </div>
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Select Staff Member</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Select Staff Member</label>
  <select
  value={offStaffId}
  onChange={(e) => setOffStaffId(e.target.value)}
- className="text-xs border border-slate-250 border-white/15 rounded-lg p-3 w-full bg-slate-900 font-semibold"
+ className="text-xs border border-slate-250 border-slate-200 rounded-lg p-3 w-full bg-white shadow-sm font-semibold"
  required
  >
  <option value="" disabled>-- Pick Operator --</option>
@@ -542,11 +542,11 @@ export function Roster({
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Type of Leave/Off</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Type of Leave/Off</label>
  <select
  value={offType}
  onChange={(e) => setOffType(e.target.value as any)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900 font-semibold"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white shadow-sm font-semibold"
  >
  <option value="Day Off">Day Off</option>
  <option value="Annual Leave">Annual Leave</option>
@@ -555,11 +555,11 @@ export function Roster({
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Authorization Status</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Authorization Status</label>
  <select
  value={offStatus}
  onChange={(e) => setOffStatus(e.target.value as any)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full bg-slate-900 font-semibold"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full bg-white shadow-sm font-semibold"
  >
  <option value="Approved">Approved / Active Choice</option>
  <option value="Pending">Pending Audit</option>
@@ -567,33 +567,33 @@ export function Roster({
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Start Date</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Start Date</label>
  <input
  type="date"
  required
  value={offStart}
  onChange={(e) => setOffStart(e.target.value)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">End Date (Inclusive)</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">End Date (Inclusive)</label>
  <input
  type="date"
  required
  value={offEnd}
  onChange={(e) => setOffEnd(e.target.value)}
- className="text-xs border border-white/15 rounded-lg p-3 w-full font-semibold"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full font-semibold"
  />
  </div>
  <div>
- <label className="text-[10px] font-black tracking-widest text-white font-medium font-medium block mb-2 uppercase">Log Details / Coverage Notes</label>
+ <label className="text-[10px] font-black tracking-widest text-slate-900 font-medium block mb-2 uppercase">Log Details / Coverage Notes</label>
  <input
  type="text"
  value={offNotes}
  onChange={(e) => setOffNotes(e.target.value)}
  placeholder="E.g. Approved standard weekly rest day."
- className="text-xs border border-white/15 rounded-lg p-3 w-full font-medium"
+ className="text-xs border border-slate-200 rounded-lg p-3 w-full font-medium"
  />
  </div>
  </div>
@@ -601,13 +601,13 @@ export function Roster({
  <button
  type="button"
  onClick={() => setShowOffForm(false)}
- className="px-5 py-3 border border-white/15 rounded-lg text-xs font-bold text-white font-medium font-medium m-0 cursor-pointer"
+ className="px-5 py-3 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 font-medium m-0 cursor-pointer"
  >
  Cancel
  </button>
  <button
  type="submit"
- className="px-6 py-3 bg-indigo-900 text-white rounded-lg text-xs font-black uppercase m-0 cursor-pointer"
+ className="px-6 py-3 bg-indigo-900 text-slate-900 rounded-lg text-xs font-black uppercase m-0 cursor-pointer"
  >
  Save Schedule Record
  </button>
@@ -662,13 +662,13 @@ export function Roster({
  })()}
 
  {/* Leave/Off Schedules List Render */}
- <div className="bg-slate-900 border border-white/10 rounded-3xl shadow-sm overflow-hidden">
- <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-800/50">
+ <div className="bg-white shadow-sm border border-white/10 rounded-3xl shadow-sm overflow-hidden">
+ <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50 border border-slate-200/50">
  <div className="flex items-center gap-2">
  <ClipboardList size={16} className="text-indigo-650 text-indigo-700" />
- <h5 className="text-xs font-black text-white uppercase tracking-widest mb-0">Active Duty Schedule Registry</h5>
+ <h5 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-0">Active Duty Schedule Registry</h5>
  </div>
- <span className="text-[10px] font-bold text-white font-medium font-medium uppercase tracking-widest bg-slate-900 border px-3 py-1 rounded-full">{staffOffRecords.length} logs total</span>
+ <span className="text-[10px] font-bold text-slate-900 font-medium uppercase tracking-widest bg-white shadow-sm border px-3 py-1 rounded-full">{staffOffRecords.length} logs total</span>
  </div>
 
  {staffOffRecords.length === 0 ? (
@@ -679,7 +679,7 @@ export function Roster({
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
- <tr className="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-white font-medium font-medium bg-slate-800/20">
+ <tr className="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-900 font-medium bg-slate-50 border border-slate-200/20">
  <th className="p-5">Operator Name</th>
  <th className="p-5">Type of Leave/Off</th>
  <th className="p-5">Duration Period (Start - End)</th>
@@ -692,12 +692,12 @@ export function Roster({
  {staffOffRecords.map((r) => {
  const daysCount = Math.round((new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / (1000 * 3600 * 24)) + 1;
  return (
- <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
- <td className="p-5 font-bold text-white">
+ <tr key={r.id} className="hover:bg-slate-50 border border-slate-200/50 transition-colors">
+ <td className="p-5 font-bold text-slate-900">
  <div className="flex items-center gap-3">
  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
  r.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
- r.status === 'Completed' ? 'bg-slate-800 text-white font-medium font-medium' :
+ r.status === 'Completed' ? 'bg-slate-50 border border-slate-200 text-slate-900 font-medium' :
  'bg-amber-100 text-amber-800'
  }`}>
  {getInitials(r.staffName)}
@@ -712,23 +712,23 @@ export function Roster({
  </td>
  <td className="p-5 font-mono">
  <div className="flex items-center gap-2">
- <span className="font-extrabold text-white font-semibold bg-slate-800 px-2 py-1 rounded">{r.startDate}</span>
- <span className="text-white font-medium text-[10px]">→</span>
- <span className="font-extrabold text-white font-semibold bg-slate-800 px-2 py-1 rounded">{r.endDate}</span>
+ <span className="font-extrabold text-slate-900 font-semibold bg-slate-50 border border-slate-200 px-2 py-1 rounded">{r.startDate}</span>
+ <span className="text-slate-900 font-medium text-[10px]">→</span>
+ <span className="font-extrabold text-slate-900 font-semibold bg-slate-50 border border-slate-200 px-2 py-1 rounded">{r.endDate}</span>
  <span className="ml-2 text-[10px] font-black text-indigo-900 bg-indigo-900/20 border border-indigo-100 rounded-full px-2 py-0.5">
  {daysCount} {daysCount === 1 ? 'day' : 'days'}
  </span>
  </div>
  </td>
- <td className="p-5 text-white font-medium font-medium font-medium italic max-w-xs truncate" title={r.notes}>
+ <td className="p-5 text-slate-900 font-medium font-medium italic max-w-xs truncate" title={r.notes}>
  {r.notes || '—'}
  </td>
  <td className="p-5">
- <div className="flex bg-slate-800 rounded-lg p-0.5 shadow-inner w-max">
+ <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-0.5 shadow-inner w-max">
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Approved')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Approved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ r.status === 'Approved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Apprv
@@ -736,7 +736,7 @@ export function Roster({
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Pending')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ r.status === 'Pending' ? 'bg-amber-500 text-slate-900 shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Pend
@@ -744,7 +744,7 @@ export function Roster({
  <button
  onClick={() => onUpdateOffRecordStatus(r.id, 'Completed')}
  className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all m-0 cursor-pointer ${
- r.status === 'Completed' ? 'bg-slate-500 text-white shadow-sm' : 'text-white font-medium font-medium hover:bg-slate-800'
+ r.status === 'Completed' ? 'bg-slate-500 text-slate-900 shadow-sm' : 'text-slate-900 font-medium hover:bg-slate-50 border border-slate-200'
  }`}
  >
  Comp
@@ -756,7 +756,7 @@ export function Roster({
  {onEditStaffOffRecord && (
  <button
  onClick={() => setEditingStaffOffRecord(r)}
- className="text-white font-medium hover:text-indigo-850 p-1.5 rounded-lg hover:bg-slate-800 transition-colors inline-block m-0 cursor-pointer"
+ className="text-slate-900 font-medium hover:text-indigo-850 p-1.5 rounded-lg hover:bg-slate-50 border border-slate-200 transition-colors inline-block m-0 cursor-pointer"
  title="Edit record"
  >
  <CalendarDays size={13} />
@@ -764,7 +764,7 @@ export function Roster({
  )}
  <button
  onClick={() => onDeleteOffRecord(r.id)}
- className="text-white font-medium hover:text-red-700 p-1.5 rounded-lg hover:bg-slate-800 transition-colors inline-block m-0 cursor-pointer"
+ className="text-slate-900 font-medium hover:text-red-700 p-1.5 rounded-lg hover:bg-slate-50 border border-slate-200 transition-colors inline-block m-0 cursor-pointer"
  title="Delete record"
  >
  <Trash2 size={13} />
@@ -784,38 +784,38 @@ export function Roster({
 
  {/* Edit Operator Modal */}
  {editingStaff && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900 ">
- <div className="bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn">
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm ">
+ <div className="bg-white shadow-sm rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn">
  <div className="flex justify-between items-center pb-2 border-b border-white/10">
- <h3 className="text-sm font-black uppercase text-white">Edit Operator Registry</h3>
- <button onClick={() => setEditingStaff(null)} className="text-white font-medium font-medium hover:text-white font-medium font-medium font-bold m-0 cursor-pointer">✕</button>
+ <h3 className="text-sm font-black uppercase text-slate-900">Edit Operator Registry</h3>
+ <button onClick={() => setEditingStaff(null)} className="text-slate-900 font-medium hover:text-slate-900 font-medium font-bold m-0 cursor-pointer">✕</button>
  </div>
  <div className="space-y-3">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Operator Name</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Operator Name</label>
  <input
  type="text"
  value={editingStaff.name}
  onChange={(e) => setEditingStaff({ ...editingStaff, name: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  />
  </div>
  <div className="grid grid-cols-2 gap-2">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Role Type</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Role Type</label>
  <input
  type="text"
  value={editingStaff.role}
  onChange={(e) => setEditingStaff({ ...editingStaff, role: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Primary Unit</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Primary Unit</label>
  <select
  value={editingStaff.unit}
  onChange={(e) => setEditingStaff({ ...editingStaff, unit: e.target.value as any })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  >
  <option value="Dairy">Dairy</option>
  <option value="Horti">Horticultural</option>
@@ -826,31 +826,31 @@ export function Roster({
  </div>
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Phone Number</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Phone Number</label>
  <input
  type="text"
  value={editingStaff.phone}
  onChange={(e) => setEditingStaff({ ...editingStaff, phone: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
  />
  </div>
  <div className="grid grid-cols-2 gap-2">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">AM Shift Allocation</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">AM Shift Allocation</label>
  <input
  type="text"
  value={editingStaff.shiftMorning}
  onChange={(e) => setEditingStaff({ ...editingStaff, shiftMorning: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">PM Shift Allocation</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">PM Shift Allocation</label>
  <input
  type="text"
  value={editingStaff.shiftAfternoon}
  onChange={(e) => setEditingStaff({ ...editingStaff, shiftAfternoon: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  />
  </div>
  </div>
@@ -858,7 +858,7 @@ export function Roster({
  <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
  <button
  onClick={() => setEditingStaff(null)}
- className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-white font-medium font-medium hover:bg-slate-800 m-0 cursor-pointer"
+ className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 font-medium hover:bg-slate-50 border border-slate-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -869,7 +869,7 @@ export function Roster({
  }
  setEditingStaff(null);
  }}
- className="px-5 py-2.5 bg-emerald-950 text-white rounded-lg text-xs font-black uppercase hover:bg-emerald-900 m-0 shadow cursor-pointer"
+ className="px-5 py-2.5 bg-emerald-950 text-slate-900 rounded-lg text-xs font-black uppercase hover:bg-emerald-900 m-0 shadow cursor-pointer"
  >
  Save Changes
  </button>
@@ -880,15 +880,15 @@ export function Roster({
 
  {/* Edit Leave / Duty Schedule Modal */}
  {editingStaffOffRecord && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900 ">
- <div className="bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn">
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm ">
+ <div className="bg-white shadow-sm rounded-3xl w-full max-w-md shadow-2xl p-6 border border-white/10 space-y-4 animate-fadeIn">
  <div className="flex justify-between items-center pb-2 border-b border-white/10">
- <h3 className="text-sm font-black uppercase text-white">Edit Schedule Record</h3>
- <button onClick={() => setEditingStaffOffRecord(null)} className="text-white font-medium font-medium hover:text-white font-medium font-medium font-bold m-0 cursor-pointer">✕</button>
+ <h3 className="text-sm font-black uppercase text-slate-900">Edit Schedule Record</h3>
+ <button onClick={() => setEditingStaffOffRecord(null)} className="text-slate-900 font-medium hover:text-slate-900 font-medium font-bold m-0 cursor-pointer">✕</button>
  </div>
  <div className="space-y-3">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Target Personnel</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Target Personnel</label>
  <select
  value={editingStaffOffRecord.staffId}
  onChange={(e) => {
@@ -899,18 +899,18 @@ export function Roster({
  staffName: sel ? sel.name : editingStaffOffRecord.staffName
  });
  }}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  >
  {staffList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
  </select>
  </div>
  <div className="grid grid-cols-2 gap-2">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Interval Type</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Interval Type</label>
  <select
  value={editingStaffOffRecord.type}
  onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, type: e.target.value as any })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  >
  <option value="Day Off">Day Off</option>
  <option value="Annual Leave">Annual Leave</option>
@@ -919,11 +919,11 @@ export function Roster({
  </select>
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Current Status</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Current Status</label>
  <select
  value={editingStaffOffRecord.status}
  onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, status: e.target.value as any })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  >
  <option value="Pending">Pending</option>
  <option value="Approved">Approved</option>
@@ -933,38 +933,38 @@ export function Roster({
  </div>
  <div className="grid grid-cols-2 gap-2">
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Start Date</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Start Date</label>
  <input
  type="date"
  value={editingStaffOffRecord.startDate}
  onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, startDate: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
  />
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">End Date</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">End Date</label>
  <input
  type="date"
  value={editingStaffOffRecord.endDate}
  onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, endDate: e.target.value })}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
  />
  </div>
  </div>
  <div>
- <label className="text-[10px] font-black text-white font-medium font-medium uppercase block mb-1">Internal Reference Notes</label>
+ <label className="text-[10px] font-black text-slate-900 font-medium uppercase block mb-1">Internal Reference Notes</label>
  <textarea
  value={editingStaffOffRecord.notes}
  onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, notes: e.target.value })}
  rows={2}
- className="border border-white/15 rounded-lg p-3 w-full text-xs font-bold"
+ className="border border-slate-200 rounded-lg p-3 w-full text-xs font-bold"
  />
  </div>
  </div>
  <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
  <button
  onClick={() => setEditingStaffOffRecord(null)}
- className="px-4 py-2 border border-white/15 rounded-lg text-xs font-bold text-white font-medium font-medium hover:bg-slate-800 m-0 cursor-pointer"
+ className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 font-medium hover:bg-slate-50 border border-slate-200 m-0 cursor-pointer"
  >
  Cancel
  </button>
@@ -975,7 +975,7 @@ export function Roster({
  }
  setEditingStaffOffRecord(null);
  }}
- className="px-5 py-2.5 bg-indigo-950 text-white rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
+ className="px-5 py-2.5 bg-indigo-950 text-slate-900 rounded-lg text-xs font-black uppercase hover:bg-indigo-900 m-0 shadow cursor-pointer"
  >
  Save Changes
  </button>
@@ -986,15 +986,15 @@ export function Roster({
  
  {/* TAB 3: DAILY ATTENDANCE GRID */}
  {rosterSubTab === 'attendance' && (
- <div className="bg-slate-900 p-8 rounded-3xl border border-white/10 shadow-sm text-left space-y-6">
+ <div className="bg-white shadow-sm p-8 rounded-3xl border border-white/10 shadow-sm text-left space-y-6">
  <div>
- <h4 className="text-sm font-black uppercase text-white tracking-wide">Daily Attendance Grid Sheet</h4>
- <p className="text-xs text-white font-medium font-medium font-semibold mt-1">Directly toggle daily presence statuses for the farm workforce.</p>
+ <h4 className="text-sm font-black uppercase text-slate-900 tracking-wide">Daily Attendance Grid Sheet</h4>
+ <p className="text-xs text-slate-900 font-medium font-semibold mt-1">Directly toggle daily presence statuses for the farm workforce.</p>
  </div>
  <div className="border border-white/10 rounded-2xl overflow-x-auto">
  <table className="w-full text-left border-collapse text-xs font-semibold">
  <thead>
- <tr className="bg-slate-800 border-b border-white/10">
+ <tr className="bg-slate-50 border border-slate-200 border-b border-white/10">
  <th className="p-3">Staff Name</th>
  <th className="p-3">Role / Unit</th>
  <th className="p-3">Shift Plan</th>
@@ -1003,17 +1003,17 @@ export function Roster({
  </thead>
  <tbody>
  {staffList.map((worker) => (
- <tr key={worker.id} className="border-b border-white/10 hover:bg-slate-800/50">
- <td className="p-3 font-bold text-white font-semibold">{worker.name}</td>
- <td className="p-3 text-white font-medium font-medium">
- <span className="text-white font-semibold font-bold">{worker.role}</span> • {worker.unit}
+ <tr key={worker.id} className="border-b border-white/10 hover:bg-slate-50 border border-slate-200/50">
+ <td className="p-3 font-bold text-slate-900 font-semibold">{worker.name}</td>
+ <td className="p-3 text-slate-900 font-medium">
+ <span className="text-slate-900 font-semibold font-bold">{worker.role}</span> • {worker.unit}
  </td>
  <td className="p-3 font-mono text-[10.5px]">
  AM: {worker.shiftMorning} | PM: {worker.shiftAfternoon}
  </td>
  <td className="p-3 flex justify-center gap-1.5">
  {[
- { label: 'Present', color: 'emerald', bg: 'bg-emerald-900/20 text-emerald-800 border-emerald-200' },
+ { label: 'Present', color: 'emerald', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
  { label: 'Off', color: 'rose', bg: 'bg-rose-900/20 text-rose-800 border-rose-200' },
  { label: 'On Leave', color: 'indigo', bg: 'bg-indigo-900/20 text-indigo-800 border-indigo-200' }
  ].map((btn) => (
@@ -1023,7 +1023,7 @@ export function Roster({
  className={`px-3 py-1.5 border rounded-lg text-2xs uppercase tracking-wider font-black transition-all m-0 cursor-pointer ${
  worker.status === btn.label
  ? `${btn.bg} shadow-xs ring-1 ring-${btn.color}-500/10`
- : 'bg-slate-900 text-white font-medium font-medium border-white/15 hover:bg-slate-800 hover:text-white font-medium font-medium'
+ : 'bg-white shadow-sm text-slate-900 font-medium border-slate-200 hover:bg-slate-50 border border-slate-200 hover:text-slate-900 font-medium'
  }`}
  >
  {btn.label}
@@ -1042,10 +1042,10 @@ export function Roster({
  {rosterSubTab === 'wages' && (
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
  {/* Wages logger Form */}
- <div className="bg-slate-900 p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-5 space-y-6 self-start">
+ <div className="bg-white shadow-sm p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-5 space-y-6 self-start">
  <div>
- <h4 className="text-sm font-black uppercase text-white tracking-wide">Record Wage Advance or Payment</h4>
- <p className="text-xs text-white font-medium font-medium font-semibold mt-1">Publish paycheck advances or wage settlements directly to the cash flow ledger.</p>
+ <h4 className="text-sm font-black uppercase text-slate-900 tracking-wide">Record Wage Advance or Payment</h4>
+ <p className="text-xs text-slate-900 font-medium font-semibold mt-1">Publish paycheck advances or wage settlements directly to the cash flow ledger.</p>
  </div>
  
  <form
@@ -1085,8 +1085,8 @@ export function Roster({
  className="space-y-4"
  >
  <div className="space-y-1">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">Select Employee</label>
- <select name="workerId" className="w-full bg-slate-800 border border-white/15 rounded-xl px-3 py-2 text-xs font-semibold">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">Select Employee</label>
+ <select name="workerId" className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
  {staffList.map(w => (
  <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
  ))}
@@ -1095,27 +1095,27 @@ export function Roster({
  
  <div className="grid grid-cols-2 gap-4">
  <div className="space-y-1">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">Payment Type</label>
- <select name="payType" className="w-full bg-slate-800 border border-white/15 rounded-xl px-3 py-2 text-xs font-semibold">
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">Payment Type</label>
+ <select name="payType" className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
  <option value="Wage Advance">Wage Advance</option>
  <option value="Salary Settlement">Salary Settlement</option>
  <option value="Performance Bonus">Performance Bonus</option>
  </select>
  </div>
  <div className="space-y-1">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">Amount (Ksh)</label>
- <input type="number" name="amount" placeholder="e.g. 5000" className="w-full bg-slate-800 border border-white/15 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">Amount (Ksh)</label>
+ <input type="number" name="amount" placeholder="e.g. 5000" className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  </div>
  
  <div className="space-y-1">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">Payment Description</label>
- <input type="text" name="desc" placeholder="e.g. Week 2 pluckers advance" className="w-full bg-slate-800 border border-white/15 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">Payment Description</label>
+ <input type="text" name="desc" placeholder="e.g. Week 2 pluckers advance" className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  
  <div className="space-y-1">
- <label className="text-[10px] font-black uppercase text-white font-medium font-medium block">Date of Payment</label>
- <input type="date" name="payDate" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-800 border border-white/15 rounded-xl px-3 py-2 text-xs font-semibold" required />
+ <label className="text-[10px] font-black uppercase text-slate-900 font-medium block">Date of Payment</label>
+ <input type="date" name="payDate" defaultValue={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" required />
  </div>
  
  <button
@@ -1128,16 +1128,16 @@ export function Roster({
  </div>
  
  {/* Wages ledger brief view */}
- <div className="bg-slate-900 p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-7 space-y-6">
+ <div className="bg-white shadow-sm p-8 rounded-3xl border border-white/10 shadow-sm lg:col-span-7 space-y-6">
  <div>
- <h4 className="text-sm font-black uppercase text-white tracking-wide">Wage Accounting Ledger</h4>
- <p className="text-xs text-white font-medium font-medium font-semibold mt-1">Live review of labor costs registered on this estate.</p>
+ <h4 className="text-sm font-black uppercase text-slate-900 tracking-wide">Wage Accounting Ledger</h4>
+ <p className="text-xs text-slate-900 font-medium font-semibold mt-1">Live review of labor costs registered on this estate.</p>
  </div>
  
  <div className="border border-white/10 rounded-2xl overflow-x-auto">
  <table className="w-full text-left border-collapse text-xs font-semibold">
  <thead>
- <tr className="bg-slate-800 border-b border-white/10">
+ <tr className="bg-slate-50 border border-slate-200 border-b border-white/10">
  <th className="p-3">Date</th>
  <th className="p-3">Reference</th>
  <th className="p-3">Details</th>
@@ -1158,15 +1158,15 @@ export function Roster({
  if (wageTx.length === 0) {
  return (
  <tr>
- <td colSpan={4} className="p-6 text-center text-white font-medium font-medium italic">No wage transactions found. Log one to begin!</td>
+ <td colSpan={4} className="p-6 text-center text-slate-900 font-medium italic">No wage transactions found. Log one to begin!</td>
  </tr>
  );
  }
  return wageTx.map((tx) => (
- <tr key={tx.id} className="border-b border-white/10 hover:bg-slate-800/50">
+ <tr key={tx.id} className="border-b border-white/10 hover:bg-slate-50 border border-slate-200/50">
  <td className="p-3 font-mono">{tx.date}</td>
  <td className="p-3 font-bold text-emerald-900">{tx.id}</td>
- <td className="p-3 text-white font-medium font-medium font-medium">{tx.description}</td>
+ <td className="p-3 text-slate-900 font-medium font-medium">{tx.description}</td>
  <td className="p-3 text-right font-black text-rose-600 font-mono">Ksh {Number(tx.amount).toLocaleString()}</td>
  </tr>
  ));

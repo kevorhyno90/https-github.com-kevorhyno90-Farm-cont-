@@ -232,13 +232,13 @@ export function FirebaseSyncer() {
  <span className="font-bold text-sm">New data synced from cloud!</span>
  <button
  onClick={() => window.location.reload()}
- className="bg-slate-900 text-blue-600 px-3 py-1 rounded-full text-xs font-black hover:bg-blue-900/20"
+ className="bg-white shadow-sm text-blue-600 px-3 py-1 rounded-full text-xs font-black hover:bg-blue-900/20"
  >
  Refresh Now
  </button>
  <button
  onClick={() => setShowRefreshPrompt(false)}
- className="text-white hover:text-blue-200"
+ className="text-slate-900 hover:text-blue-200"
  >
  <CloudOff size={16} />
  </button>
@@ -252,7 +252,7 @@ export function FirebaseSyncer() {
  syncStatus === 'syncing' ? 'bg-blue-500 animate-pulse' :
  syncStatus === 'error' ? 'bg-red-500 hover:bg-red-600' :
  syncStatus === 'success' ? 'bg-emerald-500' :
- 'bg-slate-800 hover:bg-slate-700'
+ 'bg-slate-50 border border-slate-200 hover:bg-slate-100'
  } text-white group`}
  title={canUseFirestore ? 'Cloud Sync (Click to Force Sync)' : `Cloud Sync (${cloudSyncDisabledReason || 'Unavailable'})`}
  >

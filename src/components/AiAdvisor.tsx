@@ -118,7 +118,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  <button
  onClick={() => setIsOpen(true)}
  type="button"
- className="flex items-center gap-2.5 bg-gradient-to-r from-emerald-950 to-emerald-900 border border-emerald-800 text-white font-bold hover:text-white px-4.5 py-3.5 rounded-full shadow-2xl hover:scale-105 transition-all text-xs font-black uppercase tracking-wider relative group outline-hidden cursor-pointer"
+ className="flex items-center gap-2.5 bg-gradient-to-r from-emerald-950 to-emerald-900 border border-emerald-800 text-slate-900 font-bold hover:text-slate-900 px-4.5 py-3.5 rounded-full shadow-2xl hover:scale-105 transition-all text-xs font-black uppercase tracking-wider relative group outline-hidden cursor-pointer"
  >
  {/* Subtle heartbeat badge */}
  <span className="absolute -top-1.5 -right-1 flex h-3 w-3">
@@ -132,22 +132,22 @@ How can I assist you with livestock, crop health, or navigating this app today?`
 
  {/* Expanded Chat Pane */}
  {isOpen && (
- <div className="bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn">
+ <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn">
  {/* Panel Header */}
- <div className="bg-gradient-to-r from-emerald-950 to-emerald-900 p-4 border-b border-slate-800 flex justify-between items-center text-left">
+ <div className="bg-gradient-to-r from-emerald-950 to-emerald-900 p-4 border-b border-slate-200 flex justify-between items-center text-left">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
  <Sparkles size={16} />
  </div>
  <div>
- <h4 className="text-xs font-black text-white uppercase tracking-wide">Sovereign Expert Copilot</h4>
+ <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide">Sovereign Expert Copilot</h4>
  <p className="text-[9px] text-emerald-300 font-bold uppercase tracking-widest mt-0.5">{managerName}'s Expert Suite</p>
  </div>
  </div>
  <button
  onClick={() => setIsOpen(false)}
  type="button"
- className="p-1.5 text-white font-medium font-medium hover:text-white rounded-lg hover:bg-slate-900 /10 transition-all cursor-pointer"
+ className="p-1.5 text-slate-900 font-medium hover:text-slate-900 rounded-lg hover:bg-white shadow-sm /10 transition-all cursor-pointer"
  >
  <X size={16} />
  </button>
@@ -156,7 +156,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  {/* Messages container list */}
  <div 
  ref={scrollRef}
- className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-900 scrollbar-thin scrollbar-thumb-slate-800"
+ className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-white shadow-sm scrollbar-thin scrollbar-thumb-slate-800"
  >
  {messages.map((m, idx) => {
  const isModel = m.role === 'model';
@@ -172,7 +172,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  )}
  <div className={`p-3 rounded-2xl max-w-[85%] text-[11px] leading-relaxed shadow-sm font-medium ${
  isModel 
- ? 'bg-slate-900 text-white font-bold border border-slate-800 rounded-tl-xs' 
+ ? 'bg-white shadow-sm text-slate-900 font-bold border border-slate-200 rounded-tl-xs' 
  : 'bg-emerald-600 text-white rounded-tr-xs'
  }`}>
  {/* Beautifully render structured text with lists, bold tags, and headings */}
@@ -197,7 +197,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  return (
  <div key={lIdx} className="flex items-start gap-1.5 ml-1.5 mt-1 text-[11px]">
  <span className="text-emerald-400 select-none shrink-0">•</span>
- <span className="text-white font-bold leading-normal">{renderedLine}</span>
+ <span className="text-slate-900 font-bold leading-normal">{renderedLine}</span>
  </div>
  );
  }
@@ -206,7 +206,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  const isHeading = trimmed.startsWith('### ') || (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 100);
  
  return (
- <p key={lIdx} className={`${lIdx > 0 ? 'mt-1' : ''} ${isHeading ? 'text-[11.5px] font-black text-emerald-400 uppercase tracking-wide mt-3 pb-0.5 border-b border-emerald-950/40' : 'text-white font-bold'}`}>
+ <p key={lIdx} className={`${lIdx > 0 ? 'mt-1' : ''} ${isHeading ? 'text-[11.5px] font-black text-emerald-400 uppercase tracking-wide mt-3 pb-0.5 border-b border-emerald-950/40' : 'text-slate-900 font-bold'}`}>
  {renderedLine}
  </p>
  );
@@ -217,7 +217,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  })}
 
  {isLoading && (
- <div className="flex items-center gap-2 text-[10px] text-white font-medium font-medium font-mono pl-6 py-2">
+ <div className="flex items-center gap-2 text-[10px] text-slate-900 font-medium font-mono pl-6 py-2">
  <RefreshCw size={10} className="animate-spin text-emerald-400" />
  <span>AI is scanning multi-spectral indices...</span>
  </div>
@@ -225,13 +225,13 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  </div>
 
  {/* Rapid Suggestions chips bar */}
- <div className="px-4 py-2 bg-slate-900 border-t border-slate-800 flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none scroll-smooth">
+ <div className="px-4 py-2 bg-white shadow-sm border-t border-slate-200 flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none scroll-smooth">
  {suggestions.map((s, idx) => (
  <button
  key={idx}
  onClick={() => handleSendMessage(s)}
  type="button"
- className="bg-slate-800 hover:bg-slate-700/80 text-white font-medium hover:text-white border border-slate-750 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase transition-all duration-150 cursor-pointer text-left shrink-0"
+ className="bg-slate-50 border border-slate-200 hover:bg-slate-100/80 text-slate-900 font-medium hover:text-slate-900 border border-slate-750 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase transition-all duration-150 cursor-pointer text-left shrink-0"
  >
  {s}
  </button>
@@ -241,14 +241,14 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  {/* Form input controls footer */}
  <form 
  onSubmit={(e) => { e.preventDefault(); handleSendMessage(userInput); }}
- className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2.5"
+ className="p-3 bg-slate-50 border-t border-slate-200 flex items-center gap-2.5"
  >
  <input
  type="text"
  value={userInput}
  onChange={(e) => setUserInput(e.target.value)}
  placeholder="Ask about crops, feed protein, Gumboro..."
- className="flex-1 bg-slate-900 text-white font-bold placeholder:text-white font-medium font-medium text-xs px-3.5 py-2.5 rounded-xl border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden font-medium transition-all"
+ className="flex-1 bg-white shadow-sm text-slate-900 font-bold placeholder:text-slate-900 font-medium text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden font-medium transition-all"
  />
  <button
  type="submit"
@@ -256,7 +256,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  className={`p-2.5 rounded-xl transition-all ${
  userInput.trim() && !isLoading 
  ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 cursor-pointer' 
- : 'bg-slate-800 text-white font-medium font-medium cursor-not-allowed'
+ : 'bg-slate-50 border border-slate-200 text-white font-medium cursor-not-allowed'
  }`}
  >
  <Send size={14} />
