@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import LactationLedger from './dairy/LactationLedger';
 import GeneticsManager from './dairy/GeneticsManager';
 import { CowRegistry } from './dairy/CowRegistry';
 import { DairyDashboard } from './dairy/DairyDashboard';
@@ -409,6 +410,38 @@ export function DairyBreeding({
  </div>
 
  {/* SUB-TAB: GENETIC SEMEN INVENTORY */}
+
+        {subTab === 'lactation' && (
+          <LactationLedger
+            cows={cows}
+            milkRecords={milkRecords}
+            milkOutflow={milkOutflows}
+            milkOutflows={milkOutflows}
+            staffList={staffList}
+            aiRecords={aiRecords}
+            onTriggerSectionReport={onTriggerSectionReport}
+            onAddMilkRecord={onAddMilkRecord}
+            onEditMilkRecord={onEditMilkRecord}
+            onDeleteMilkRecord={onDeleteMilkRecord}
+            onAddOutflowRecord={onAddMilkOutflow}
+            onEditMilkOutflow={onEditMilkOutflow}
+            onDeleteMilkOutflow={onDeleteMilkOutflow}
+          />
+        )}
+
+
+        {subTab === 'breeding_wheel' && (
+          <GeneticsManager
+            cows={cows}
+            aiRecords={aiRecords}
+            getAverageYield={getAverageYield}
+            getCowAge={getCowAge}
+            onTriggerSectionReport={onTriggerSectionReport}
+            onGoToSubTab={setSubTab}
+            onUpdateCowStatus={onUpdateCowStatus}
+          />
+        )}
+
  {subTab === 'semen_inventory' && (
  <div className="space-y-6 animate-fadeIn" id="semen-inventory-section">
  <div className="bg-white shadow-sm text-gray-900 rounded-3xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">

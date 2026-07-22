@@ -16,8 +16,8 @@ interface LactationLedgerProps {
   milkRecords: MilkingRecord[];
   milkOutflow: MilkOutflowRecord[];
   onAddMilkRecord: (record: MilkingRecord) => void;
-  onEditMilkRecord: (id: string, record: MilkingRecord) => void;
-  onDeleteMilkRecord: (id: string) => void;
+  onEditMilkRecord?: (id: string, date: string, record: MilkingRecord) => void;
+  onDeleteMilkRecord: (id: string, date: string) => void;
   onAddOutflowRecord: (record: MilkOutflowRecord) => void;
   onEditMilkOutflow: (id: string, record: MilkOutflowRecord) => void;
   onDeleteMilkOutflow: (id: string) => void;
@@ -826,7 +826,7 @@ export default function LactationLedger({
  {onEditMilkRecord && (
  <button onClick={() => setEditingMilk(m)} className="text-gray-900 font-medium hover:text-green-600 transition-colors opacity-100"><PenSquare size={12}/></button>
  )}
- <button onClick={() => onDeleteMilkRecord(m.id)} className="text-gray-900 font-medium hover:text-red-500 transition-colors opacity-100"><Trash2 size={12}/></button>
+ <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-gray-900 font-medium hover:text-red-500 transition-colors opacity-100"><Trash2 size={12}/></button>
  </div>
  </div>
  );
@@ -1008,7 +1008,7 @@ export default function LactationLedger({
  ...editingMilk,
  totalSales: recalculatedSales
  };
- onEditMilkRecord(editingMilk.id, editingMilk.date);
+ onEditMilkRecord(editingMilk.id, editingMilk.date, finalRecord);
  }
  setEditingMilk(null);
  }}
