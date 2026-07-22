@@ -9,7 +9,7 @@ interface CowRegistryProps {
   onAddCow?: (cow: Cow) => void;
   onDeleteCow: (id: string) => void;
   onUpdateCowStatus?: (id: string, status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf') => void;
-  setEditingCow: (cow: Cow) => void;
+  onEditCow?: (id: string, updated: Cow) => void;
   onTriggerSectionReport?: (section: string) => void;
 }
 
@@ -19,7 +19,7 @@ export function CowRegistry({
   onAddCow,
   onDeleteCow,
   onUpdateCowStatus,
-  setEditingCow,
+  onEditCow,
   onTriggerSectionReport
 }: CowRegistryProps) {
 
@@ -31,6 +31,7 @@ export function CowRegistry({
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
   const [isDownloadingPedigree, setIsDownloadingPedigree] = useState(false);
 
+  const [editingCow, setEditingCow] = useState<Cow | null>(null);
   const [newCow, setNewCow] = useState<Partial<Cow>>({ status: 'Heifer' });
 
   // Derived Values
@@ -451,6 +452,188 @@ export function CowRegistry({
           </div>
         </div>
       )}
+        {/* Edit Cow Registry Modal */}
+ {editingCow && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm font-sans">
+ <div className="bg-white shadow-sm rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-gray-100 space-y-4 animate-fadeIn max-h-[90vh] overflow-y-auto">
+ <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+ <h3 className="text-sm font-semibold  text-gray-900">Edit Cow Record & Pedigree</h3>
+ <button onClick={() => setEditingCow(null)} className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold m-0 cursor-pointer">✕</button>
+ </div>
+ <div className="space-y-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Cow TAG / ID</label>
+ <input
+ type="text"
+ value={editingCow.id}
+ disabled
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
+ />
+ </div>
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Cow Friendly Name</label>
+ <input
+ type="text"
+ value={editingCow.name}
+ onChange={(e) => setEditingCow({ ...editingCow, name: e.target.value })}
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold"
+ />
+ </div>
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Breed Class</label>
+ <input
+ type="text"
+ value={editingCow.breed}
+ onChange={(e) => setEditingCow({ ...editingCow, breed: e.target.value })}
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold"
+ />
+ </div>
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Date of Birth</label>
+ <input
+ type="date"
+ value={editingCow.dob}
+ onChange={(e) => setEditingCow({ ...editingCow, dob: e.target.value })}
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ />
+ </div>
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Milking/Production Status</label>
+ <select
+ value={editingCow.status}
+ onChange={(e) => setEditingCow({ ...editingCow, status: e.target.value as any })}
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white shadow-sm "
+ >
+ <option value="Lactating">Lactating</option>
+ <option value="Dry">Dry Rest</option>
+ <option value="Heifer">Heifer</option>
+ <option value="In-Calf">In-Calf</option>
+ </select>
+ </div>
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Peak Yield Target (L/day)</label>
+ <input
+ type="number"
+ value={editingCow.peakYieldTarget || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, peakYieldTarget: e.target.value === '' ? undefined : Number(e.target.value) })}
+ placeholder="E.g. 30"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ />
+ </div>
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Studbook Reg # (Optional)</label>
+ <input
+ type="text"
+ value={editingCow.registrationNo || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, registrationNo: e.target.value })}
+ placeholder="E.g. KAG-HF-YYYY-1120"
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
+ />
+ </div>
+ </div>
+
+ {/* Pedigree section border divider */}
+ <div className="border-t border-gray-100 pt-3">
+ <span className="text-[10px] font-bold text-green-600 tracking-tight block mb-2">Pedigree Tree Config (Ancestry Ledger)</span>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ <div>
+ <label className="text-[9px] font-bold text-gray-900 font-medium  block mb-1">Sire (Father)</label>
+ <input
+ type="text"
+ value={editingCow.sire || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, sire: e.target.value })}
+ className="border border-gray-200 border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold"
+ />
+ </div>
+ <div>
+ <label className="text-[9px] font-bold text-gray-900 font-medium  block mb-1">Dam (Mother)</label>
+ <input
+ type="text"
+ value={editingCow.dam || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, dam: e.target.value })}
+ className="border border-gray-200 border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold"
+ />
+ </div>
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+ <div>
+ <label className="text-[9px] font-semibold text-gray-900 font-medium  block mb-1">Paternal Grand Sire</label>
+ <input
+ type="text"
+ value={editingCow.grandSirePaternal || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, grandSirePaternal: e.target.value })}
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs"
+ />
+ </div>
+ <div>
+ <label className="text-[9px] font-semibold text-gray-900 font-medium  block mb-1">Paternal Grand Dam</label>
+ <input
+ type="text"
+ value={editingCow.grandDamPaternal || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, grandDamPaternal: e.target.value })}
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs"
+ />
+ </div>
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+ <div>
+ <label className="text-[9px] font-semibold text-gray-900 font-medium  block mb-1">Maternal Grand Sire</label>
+ <input
+ type="text"
+ value={editingCow.grandSireMaternal || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, grandSireMaternal: e.target.value })}
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs"
+ />
+ </div>
+ <div>
+ <label className="text-[9px] font-semibold text-gray-900 font-medium  block mb-1">Maternal Grand Dam</label>
+ <input
+ type="text"
+ value={editingCow.grandDamMaternal || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, grandDamMaternal: e.target.value })}
+ className="border border-gray-200 rounded-lg p-2 w-full text-xs"
+ />
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Lactation Grade / General Notes</label>
+ <input
+ type="text"
+ value={editingCow.notes || ''}
+ onChange={(e) => setEditingCow({ ...editingCow, notes: e.target.value })}
+ className="border border-gray-200 rounded-lg p-3 w-full text-xs font-semibold"
+ />
+ </div>
+ </div>
+ <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+ <button
+ onClick={() => setEditingCow(null)}
+ className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer"
+ >
+ Cancel
+ </button>
+ <button
+ onClick={() => {
+ if (onEditCow) {
+ onEditCow(editingCow.id, editingCow);
+ }
+ setEditingCow(null);
+ }}
+ className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow cursor-pointer"
+ >
+ Save Changes
+ </button>
+ </div>
+ </div>
+ </div>
+ )}
     </>
   );
 }
