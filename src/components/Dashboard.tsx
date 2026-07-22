@@ -481,11 +481,34 @@ export function Dashboard({
  <CloudRain size={16} />
  </div>
  </div>
- <h4 className="text-sm font-semibold text-gray-500 tracking-wide">Heavy Rain Forecast • 18°C</h4>
- <p className="text-[10px] text-sky-600 font-bold mt-1">High Humidity (92%) • Spore Risk Alert</p>
- <div className="mt-3 p-3 bg-amber-900/20 border border-amber-200 rounded-xl text-[10.5px] leading-relaxed text-amber-900 font-medium">
- ⚠️ **Late Blight Spore Threat (Solanaceae)**: Cool mist and rainfall accelerate pathogen germination. Secure tomato blocks with protective copper fungicide immediately.
- </div>
+ {(() => {
+          const humidity = isLiveWeather && liveWeather?.current ? liveWeather.current.relative_humidity_2m : (weatherCondition === 'sunny' ? 30 : weatherCondition === 'rainy' ? 92 : 65);
+          const temp = isLiveWeather && liveWeather?.current ? liveWeather.current.temperature_2m : (weatherCondition === 'sunny' ? 23 : weatherCondition === 'rainy' ? 16 : 14);
+          const isHighHumidity = humidity > 80;
+          const isLowHumidity = humidity < 40;
+          const isCold = temp < 15;
+          
+          return (
+            <>
+              <h4 className="text-sm font-semibold text-gray-900 tracking-wide">
+                {isLiveWeather && liveWeather?.current ? 'Live Satellite' : 'Simulated'} • {temp}°C
+              </h4>
+              <p className={`text-[10px] font-bold mt-1 ${isHighHumidity ? 'text-amber-600' : isLowHumidity ? 'text-rose-600' : 'text-emerald-600'}`}>
+                Humidity ({humidity}%) • {isHighHumidity ? 'Spore Risk Alert' : isLowHumidity ? 'Drought Stress' : 'Optimal'}
+              </p>
+              <div className={`mt-3 p-3 rounded-xl text-[10.5px] leading-relaxed font-medium ${
+                isHighHumidity ? 'bg-amber-100 border border-amber-200 text-amber-900' : 
+                isLowHumidity ? 'bg-rose-100 border border-rose-200 text-rose-900' :
+                'bg-emerald-100 border border-emerald-200 text-emerald-900'
+              }`}>
+                {isHighHumidity && "⚠️ **Late Blight Spore Threat**: High humidity accelerates pathogen germination. Secure tomato blocks with protective fungicide."}
+                {isLowHumidity && "⚠️ **Drought Stress Alert**: Low humidity increases transpiration. Ensure drip irrigation systems are active for all young plants."}
+                {!isHighHumidity && !isLowHumidity && "✅ **Optimal Conditions**: Current humidity and temperature are within normal parameters for active crop growth."}
+                {isCold && " Cold temperatures detected, monitor young livestock."}
+              </div>
+            </>
+          );
+        })()}
  </motion.div>
  
  {/* Unified Alarms Card */}

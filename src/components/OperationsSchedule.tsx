@@ -791,7 +791,16 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  return (
  <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 relative group">
  <div>
+ <div className="flex justify-between items-start">
  <span className="text-[9px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <button
+ onClick={() => handleStartEdit(item)}
+ className="text-gray-400 hover:text-indigo-600 p-1 rounded cursor-pointer border-0 bg-transparent transition-colors"
+ title="Edit SOP operation values"
+ >
+ <PenSquare size={13} />
+ </button>
+ </div>
  <h4 className="text-xs font-semibold text-gray-900 mt-2 leading-snug">{item.operation}</h4>
  </div>
  <div className="text-[10px] text-gray-900 font-medium font-bold space-y-0.5">
@@ -838,7 +847,16 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  return (
  <div key={item.id} className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 relative">
  <div>
+ <div className="flex justify-between items-start">
  <span className="text-[9px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <button
+ onClick={() => handleStartEdit(item)}
+ className="text-gray-400 hover:text-indigo-600 p-1 rounded cursor-pointer border-0 bg-transparent transition-colors"
+ title="Edit SOP operation values"
+ >
+ <PenSquare size={13} />
+ </button>
+ </div>
  <h4 className="text-xs font-semibold text-gray-900 mt-2 leading-snug">{item.operation}</h4>
  </div>
  <div className="text-[10px] text-gray-900 font-medium font-bold space-y-0.5">
@@ -884,7 +902,16 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <div key={item.id} className="bg-white shadow-sm /80 p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3 opacity-90 relative">
  <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600"></div>
  <div>
+ <div className="flex justify-between items-start">
  <span className="text-[9px] bg-white border border-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-semibold ">{item.category}</span>
+ <button
+ onClick={() => handleStartEdit(item)}
+ className="text-gray-400 hover:text-indigo-600 p-1 rounded cursor-pointer border-0 bg-transparent transition-colors"
+ title="Edit SOP operation values"
+ >
+ <PenSquare size={13} />
+ </button>
+ </div>
  <h4 className="text-xs font-semibold text-gray-500 line-through mt-2 leading-snug">{item.operation}</h4>
  </div>
  <div className="text-[10px] text-gray-500 text-gray-900 font-medium font-bold space-y-0.5">

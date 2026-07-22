@@ -87,7 +87,7 @@ export function Financials({
  const saved = localStorage.getItem('jr_farm_exp_budget_caps');
  return saved ? JSON.parse(saved) : {
  'Animal Feed': 120000,
- 'Veternary Care': 35000,
+ 'Veterinary Care': 35000,
  'Sprays / Fertilizers': 50000,
  'Wages': 140000,
  'Maintenance / Fuel': 75000,
@@ -97,7 +97,7 @@ export function Financials({
  } catch {
  return {
  'Animal Feed': 120000,
- 'Veternary Care': 35000,
+ 'Veterinary Care': 35000,
  'Sprays / Fertilizers': 50000,
  'Wages': 140000,
  'Maintenance / Fuel': 75000,

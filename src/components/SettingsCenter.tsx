@@ -237,13 +237,13 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <Save size={13} />
  Save Configuration
  </button>
- <button
- onClick={handleFactoryReset}
- className="px-4 py-2 bg-white shadow-sm hover:bg-rose-900/20 border border-gray-200 text-gray-900 font-semibold hover:text-rose-700 text-xs tracking-tight font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-2 m-0"
- >
- <RotateCcw size={13} />
- Hard Reset
- </button>
+        <button
+          onClick={handleFactoryReset}
+          className="px-4 py-2 bg-rose-50 shadow-sm hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold hover:text-rose-800 text-xs tracking-tight rounded-xl transition-all cursor-pointer flex items-center gap-2 m-0"
+        >
+          <AlertTriangle size={13} />
+          Danger: Hard Reset
+        </button>
  </div>
  </div>
 
