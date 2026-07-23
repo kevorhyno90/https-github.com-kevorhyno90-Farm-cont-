@@ -329,15 +329,43 @@ function FarmCoreApp() {
     };
   }, []);
 
-  // Navigation tab state
-  const [activeTab, _setActiveTab] = useState<string>('dash');
-  const setActiveTab = (tab: string) => {
-    setTimeout(() => {
-      startTransition(() => {
-        _setActiveTab(tab);
-      });
-    }, 0);
-  };
+    // Navigation tab state (Hash router enabled for Mobile Back Button support)
+    const [activeTab, _setActiveTab] = useState<string>(() => {
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hash = window.location.hash.replace('#', '');
+        return hash || 'dash';
+      }
+      return 'dash';
+    });
+
+    useEffect(() => {
+      const handleHashChange = () => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash && hash !== activeTab) {
+          _setActiveTab(hash);
+        } else if (!hash && activeTab !== 'dash') {
+          _setActiveTab('dash');
+        }
+      };
+      window.addEventListener('hashchange', handleHashChange);
+      return () => window.removeEventListener('hashchange', handleHashChange);
+    }, [activeTab]);
+
+    const setActiveTab = (tab: string) => {
+      if (window.location.hash.replace('#', '') !== tab) {
+        if (tab === 'dash' && !window.location.hash) {
+          // already on dash without hash
+        } else {
+          window.history.pushState(null, '', tab === 'dash' ? window.location.pathname : `#${tab}`);
+        }
+      }
+      setTimeout(() => {
+        startTransition(() => {
+          _setActiveTab(tab);
+        });
+      }, 0);
+    };
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [liveTime, setLiveTime] = useState<string>('');
 
