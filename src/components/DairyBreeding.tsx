@@ -254,7 +254,7 @@ export function DairyBreeding({
  const dewormingReminders = cows.map(cow => {
  // Find latest deworming record
  const cowDoses = vetRecords
- .filter(r => r.cowId.toLowerCase() === cow.id.toLowerCase() && r.type === 'Deworming')
+ .filter(r => (r.cowId.toLowerCase() === cow.id.toLowerCase() || r.cowId.toLowerCase() === 'all animals') && r.type === 'Deworming')
  .sort((a, b) => b.date.localeCompare(a.date));
 
  const latestDose = cowDoses[0];
