@@ -229,10 +229,7 @@ export default function App() {
     }).catch(console.error);
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        sessionStorage.setItem('jr_farm_entered', 'true');
-        setHasEnteredApp(true);
-      }
+      // User is resolved, stop loading
       setIsAuthLoading(false);
     });
     
