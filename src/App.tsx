@@ -439,7 +439,7 @@ function FarmCoreApp() {
   // Reports composer filter states
   const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
   const [reportCategoryFilter, setReportCategoryFilter] = useState<string>('ALL');
-  const [reportDateFilter, setReportDateFilter] = useState<string>('all'); // all, today, week, month, last3months, last6months, specific_month, month_interval, year, custom
+  const [reportDateFilter, setReportDateFilter] = useState<string>('month'); // all, today, week, month, last3months, last6months, specific_month, month_interval, year, custom
   const [reportStartDate, setReportStartDate] = useState<string>('');
   const [reportEndDate, setReportEndDate] = useState<string>('');
   const [reportSpecificMonth, setReportSpecificMonth] = useState<string>(() => {

@@ -62,7 +62,7 @@ export default function LactationLedger({
  const [outflowDebtorAmount, setOutflowDebtorAmount] = useState<number | ''>('');
  const [showDownloadModal, setShowDownloadModal] = useState(false);
  const [downloadType, setDownloadType] = useState<'csv' | 'pdf'>('pdf');
- const [downloadPeriod, setDownloadPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
+ const [downloadPeriod, setDownloadPeriod] = useState<'today' | 'week' | 'month' | 'all'>('month');
  const [milkingDate, setMilkingDate] = useState(toIsoDate());
  const [filterCow, setFilterCow] = useState('');
  const [outflowDate, setOutflowDate] = useState(toIsoDate());
