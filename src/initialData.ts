@@ -414,6 +414,7 @@ export const INITIAL_COWS: Cow[] = [
     breed: 'Holstein-Friesian', 
     dob: '2021-04-12', 
     status: 'Dry', 
+    gender: 'Female',
     notes: 'High lactation index mother.',
     sire: 'Supreme Champion Bull (SH-404)',
     dam: 'Daisy Mother Superior (DM-09)',
@@ -429,6 +430,7 @@ export const INITIAL_COWS: Cow[] = [
     breed: 'Guernsey', 
     dob: '2020-08-30', 
     status: 'Lactating', 
+    gender: 'Female',
     notes: 'Solid prime butterfat producer.',
     sire: 'Giltspur Goldmine (GG-102)',
     dam: 'Sunset Buttercup (SB-55)',
@@ -444,6 +446,7 @@ export const INITIAL_COWS: Cow[] = [
     breed: 'Jersey', 
     dob: '2022-01-15', 
     status: 'Lactating', 
+    gender: 'Female',
     notes: 'Excellent feed conversion ratio.',
     sire: 'Jersey King (JK-202)',
     dam: 'Ruby Queen (RQ-101)',
@@ -459,6 +462,7 @@ export const INITIAL_COWS: Cow[] = [
     breed: 'Ayrshire', 
     dob: '2023-11-10', 
     status: 'Heifer', 
+    gender: 'Female',
     notes: 'Ready for first AI straw soon.',
     sire: 'Ayrshire Archer (AA-55)',
     dam: 'Blossom Senior (BS-82)',
@@ -474,6 +478,7 @@ export const INITIAL_COWS: Cow[] = [
     breed: 'Brown Swiss', 
     dob: '2021-12-22', 
     status: 'In-Calf', 
+    gender: 'Female',
     notes: 'Awaiting calving due in early July.',
     sire: 'Alpine Ranger (AR-101)',
     dam: 'Swiss Heidi (SH-44)',
@@ -482,6 +487,22 @@ export const INITIAL_COWS: Cow[] = [
     grandSireMaternal: 'Swiss Edelweiss (SE-21)',
     grandDamMaternal: 'Heidi Pure (HP-01)',
     registrationNo: 'KAG-BS-2021-3938'
+  },
+  { 
+    id: 'Bull-106 (Maximus)', 
+    name: 'Maximus', 
+    breed: 'Holstein-Friesian', 
+    dob: '2020-05-14', 
+    status: 'Bull', 
+    gender: 'Male',
+    notes: 'Active herd breeding sire and studbook bull.',
+    sire: 'Supreme Champion Bull (SH-404)',
+    dam: 'Meadow Queen (MQ-12)',
+    grandSirePaternal: 'Friesian King (FK-99)',
+    grandDamPaternal: 'Meadow Queen (MQ-12)',
+    grandSireMaternal: 'Dairy Lord (DL-88)',
+    grandDamMaternal: 'Super Milkmaid (SM-05)',
+    registrationNo: 'KAG-HF-2020-1102'
   }
 ];
 

@@ -146,6 +146,7 @@ export interface LivestockRecord {
   price?: number;
   buyer?: string;
   totalSales?: number;
+  gender?: 'Female' | 'Male' | 'Mixed' | string;
 }
 
 export interface FieldRecord {
@@ -193,7 +194,8 @@ export interface Cow {
   name: string;
   breed: string;
   dob: string;
-  status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf';
+  status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf' | 'Bull' | 'Steer' | 'Calf' | string;
+  gender?: 'Female' | 'Male' | string;
   notes: string;
   sire?: string;
   dam?: string;
@@ -240,6 +242,7 @@ export interface GoatRecord {
   activity: string; // e.g., "Kidding twins", "Foot rot dressing", "Normal grazing"
   notes: string;
   date: string;
+  gender?: 'Female' | 'Male' | 'Wether' | string;
 }
 
 export interface CalfRecord {

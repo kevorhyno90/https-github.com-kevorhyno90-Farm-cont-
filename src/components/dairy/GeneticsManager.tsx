@@ -396,7 +396,7 @@ export default function GeneticsManager({
  let lactationStartDay = 0;
  let scoreText = 'No active breeding timeline detected';
  let statusLabel: string = cow.status;
- let forecastStatus: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf' = cow.status;
+ let forecastStatus: any = cow.status;
 
  if (cow.status === 'In-Calf' || (cowAI && cowAI.status === 'Confirmed Pregnant')) {
  statusLabel = 'In-Calf (Gestation)';

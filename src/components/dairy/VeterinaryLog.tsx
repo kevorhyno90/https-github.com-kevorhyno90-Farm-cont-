@@ -141,7 +141,7 @@ export function VeterinaryLog({
  lastDateObj.setDate(lastDateObj.getDate() + 90);
  nextDate = toIsoDate(lastDateObj);
  }
- } else if (cow.status !== 'Heifer' && cow.status !== 'Dry' && cow.status !== 'Lactating' && cow.status !== 'In-Calf') {
+ } else if (!cow.status) {
  return null; // Skip non-relevant
  } else {
  // Never dewormed on log

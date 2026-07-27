@@ -200,9 +200,9 @@ export function DairyBreeding({
  let csv = 'data:text/csv;charset=utf-8,';
  csv += 'REGISTERED BREEDERS REGISTRY DIRECTORY\n';
  csv += `Generated: ${new Date().toLocaleString()}\n\n`;
- csv += 'Cow Tag ID,Name,Breed,DOB,Status,Lineage/Notes\n';
+ csv += 'Cow Tag ID,Name,Breed,Gender,DOB,Status,Lineage/Notes\n';
  cows.forEach((c) => {
- csv += `"${c.id}","${c.name}","${c.breed}","${c.dob}","${c.status}","${c.notes}"\n`;
+ csv += `"${c.id}","${c.name}","${c.breed}","${c.gender || 'Female'}","${c.dob}","${c.status}","${c.notes}"\n`;
  });
  const encodedUri = encodeURI(csv);
  const link = document.createElement('a');
@@ -270,7 +270,7 @@ export function DairyBreeding({
  lastDateObj.setDate(lastDateObj.getDate() + 90);
  nextDate = toIsoDate(lastDateObj);
  }
- } else if (cow.status !== 'Heifer' && cow.status !== 'Dry' && cow.status !== 'Lactating' && cow.status !== 'In-Calf') {
+ } else if (!cow.status) {
  return null; // Skip non-relevant
  } else {
  // Never dewormed on log

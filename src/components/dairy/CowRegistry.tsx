@@ -8,7 +8,7 @@ interface CowRegistryProps {
   milkRecords: MilkingRecord[];
   onAddCow?: (cow: Cow) => void;
   onDeleteCow: (id: string) => void;
-  onUpdateCowStatus?: (id: string, status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf') => void;
+  onUpdateCowStatus?: (id: string, status: Cow['status']) => void;
   onEditCow?: (id: string, updated: Cow) => void;
   onTriggerSectionReport?: (section: string) => void;
 }
@@ -27,12 +27,13 @@ export function CowRegistry({
   const [cowSearch, setCowSearch] = useState('');
   const [cowBreedFilter, setCowBreedFilter] = useState('');
   const [cowStatusFilter, setCowStatusFilter] = useState('');
+  const [cowGenderFilter, setCowGenderFilter] = useState('');
   const [showAddCowForm, setShowAddCowForm] = useState(false);
   const [pedigreeCow, setPedigreeCow] = useState<Cow | null>(null);
   const [isDownloadingPedigree, setIsDownloadingPedigree] = useState(false);
 
   const [editingCow, setEditingCow] = useState<Cow | null>(null);
-  const [newCow, setNewCow] = useState<Partial<Cow>>({ status: 'Heifer' });
+  const [newCow, setNewCow] = useState<Partial<Cow>>({ status: 'Heifer', gender: 'Female' });
 
   // Derived Values
   const uniqueBreeds = Array.from(new Set(cows.map(c => c.breed).filter(Boolean)));
@@ -94,11 +95,12 @@ export function CowRegistry({
   };
 
   const downloadBreedersCSV = () => {
-    const headers = ['Tag ID', 'Name', 'Breed', 'DOB', 'Sire', 'Dam', 'Reg. No', 'Status', 'Avg Yield (L)', 'Notes'];
+    const headers = ['Tag ID', 'Name', 'Breed', 'Gender', 'DOB', 'Sire', 'Dam', 'Reg. No', 'Status', 'Avg Yield (L)', 'Notes'];
     const rows = cows.map(cow => [
       cow.id,
       cow.name,
       cow.breed,
+      cow.gender || 'Female',
       cow.dob,
       cow.sire || '',
       cow.dam || '',
@@ -115,7 +117,7 @@ export function CowRegistry({
     if (onAddCow && newCow.id && newCow.breed) {
       onAddCow(newCow as Cow);
       setShowAddCowForm(false);
-      setNewCow({ status: 'Heifer' });
+      setNewCow({ status: 'Heifer', gender: 'Female' });
     }
   };
 
@@ -160,6 +162,18 @@ export function CowRegistry({
                 ))}
               </select>
             </div>
+
+            <div className="w-full sm:w-40">
+              <select
+                value={cowGenderFilter}
+                onChange={(e) => setCowGenderFilter(e.target.value)}
+                className="text-xs border border-slate-200 rounded-xl px-3 py-3 w-full font-bold text-slate-600 bg-white focus:outline-none cursor-pointer hover:border-slate-300 transition-all"
+              >
+                <option value="">All Genders</option>
+                <option value="Female">Female ♀</option>
+                <option value="Male">Male ♂</option>
+              </select>
+            </div>
           </div>
           
           <div className="flex flex-wrap items-center justify-end gap-2 w-full xl:w-auto">
@@ -195,11 +209,18 @@ export function CowRegistry({
         {showAddCowForm && (
           <form onSubmit={handleCowSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
             <h4 className="text-sm font-black text-slate-800 uppercase flex items-center gap-2 mb-4"><Plus size={16}/> Add New Cattle to Registry</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
               <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Cow Tag ID*</label><input required type="text" value={newCow.id || ''} onChange={e => setNewCow({...newCow, id: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
               <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Name / Nickname</label><input type="text" value={newCow.name || ''} onChange={e => setNewCow({...newCow, name: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
               <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Breed*</label><input required type="text" value={newCow.breed || ''} onChange={e => setNewCow({...newCow, breed: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
               <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Date of Birth</label><input type="date" value={newCow.dob || ''} onChange={e => setNewCow({...newCow, dob: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" /></div>
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Gender / Sex*</label>
+                <select required value={newCow.gender || 'Female'} onChange={e => setNewCow({...newCow, gender: e.target.value as any})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold bg-white">
+                  <option value="Female">Female ♀</option>
+                  <option value="Male">Male ♂</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Current Status*</label>
                 <select required value={newCow.status || 'Heifer'} onChange={e => setNewCow({...newCow, status: e.target.value as any})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold bg-white">
@@ -207,6 +228,9 @@ export function CowRegistry({
                   <option value="Dry">Dry</option>
                   <option value="Heifer">Heifer</option>
                   <option value="In-Calf">In-Calf</option>
+                  <option value="Bull">Bull (Breeding Male)</option>
+                  <option value="Steer">Steer (Castrated)</option>
+                  <option value="Calf">Young Calf</option>
                 </select>
               </div>
               <div><label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Registration No.</label><input type="text" value={newCow.registrationNo || ''} onChange={e => setNewCow({...newCow, registrationNo: e.target.value})} className="w-full text-xs p-2 border border-slate-200 rounded-lg font-bold" placeholder="Optional" /></div>
@@ -229,7 +253,8 @@ export function CowRegistry({
               const matchesSearch = (c.id?.toLowerCase().includes(searchLower) || c.name?.toLowerCase().includes(searchLower) || c.registrationNo?.toLowerCase().includes(searchLower));
               const matchesBreed = cowBreedFilter ? c.breed === cowBreedFilter : true;
               const matchesStatus = cowStatusFilter ? c.status === cowStatusFilter : true;
-              return matchesSearch && matchesBreed && matchesStatus;
+              const matchesGender = cowGenderFilter ? (c.gender || 'Female') === cowGenderFilter : true;
+              return matchesSearch && matchesBreed && matchesStatus && matchesGender;
             });
 
             if (filteredCows.length === 0) {
@@ -244,7 +269,7 @@ export function CowRegistry({
                   </p>
                   <button
                     type="button"
-                    onClick={() => { setCowSearch(''); setCowBreedFilter(''); setCowStatusFilter(''); }}
+                    onClick={() => { setCowSearch(''); setCowBreedFilter(''); setCowStatusFilter(''); setCowGenderFilter(''); }}
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-850 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer border-none"
                   >
                     Clear Filters
@@ -281,14 +306,20 @@ export function CowRegistry({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                    <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
                       <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
                         <span className="text-[9px] uppercase font-black text-slate-400 block">Breed</span>
                         <span className="font-extrabold text-slate-700 truncate block mt-0.5">{cow.breed}</span>
                       </div>
                       <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
-                        <span className="text-[9px] uppercase font-black text-slate-400 block">Calculated Age</span>
+                        <span className="text-[9px] uppercase font-black text-slate-400 block">Age</span>
                         <span className="font-extrabold text-slate-700 block mt-0.5">{getCowAge(cow.dob)}</span>
+                      </div>
+                      <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
+                        <span className="text-[9px] uppercase font-black text-slate-400 block">Gender</span>
+                        <span className={`font-extrabold block mt-0.5 ${cow.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`}>
+                          {cow.gender === 'Male' ? '♂ Male' : '♀ Female'}
+                        </span>
                       </div>
                     </div>
 
@@ -303,6 +334,9 @@ export function CowRegistry({
                         <option value="Dry">Dry</option>
                         <option value="Heifer">Heifer</option>
                         <option value="In-Calf">In-Calf</option>
+                        <option value="Bull">Bull</option>
+                        <option value="Steer">Steer</option>
+                        <option value="Calf">Calf</option>
                       </select>
                     </div>
                   </div>
@@ -501,20 +535,34 @@ export function CowRegistry({
  />
  </div>
  </div>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Milking/Production Status</label>
- <select
- value={editingCow.status}
- onChange={(e) => setEditingCow({ ...editingCow, status: e.target.value as any })}
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white shadow-sm "
- >
- <option value="Lactating">Lactating</option>
- <option value="Dry">Dry Rest</option>
- <option value="Heifer">Heifer</option>
- <option value="In-Calf">In-Calf</option>
- </select>
- </div>
+ <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-900 font-medium block mb-1">Gender / Sex</label>
+                    <select
+                      value={editingCow.gender || 'Female'}
+                      onChange={(e) => setEditingCow({ ...editingCow, gender: e.target.value as any })}
+                      className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white shadow-sm"
+                    >
+                      <option value="Female">Female ♀</option>
+                      <option value="Male">Male ♂</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Milking/Production Status</label>
+                    <select
+                      value={editingCow.status}
+                      onChange={(e) => setEditingCow({ ...editingCow, status: e.target.value as any })}
+                      className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold bg-white shadow-sm "
+                    >
+                      <option value="Lactating">Lactating</option>
+                      <option value="Dry">Dry Rest</option>
+                      <option value="Heifer">Heifer</option>
+                      <option value="In-Calf">In-Calf</option>
+                      <option value="Bull">Bull (Breeding Male)</option>
+                      <option value="Steer">Steer (Castrated)</option>
+                      <option value="Calf">Young Calf</option>
+                    </select>
+                  </div>
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Peak Yield Target (L/day)</label>
  <input
