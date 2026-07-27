@@ -803,6 +803,44 @@ function FarmCoreApp() {
     azollaRecords, setAzollaRecords
   } = useFarmState();
 
+  // Alarm / Reminder resolutions persistence
+  const [alarmResolutions, setAlarmResolutions] = useState<Record<string, { status: 'Done' | 'In Progress' | 'Failed' | 'Remind Later', timestamp: number }>>(() => {
+    try {
+      const raw = localStorage.getItem('jr_farm_alarm_resolutions');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_alarm_resolutions', JSON.stringify(alarmResolutions));
+    } catch (e) {
+      console.error('Failed to save alarm resolutions', e);
+    }
+  }, [alarmResolutions]);
+
+  const handleResolveAlarm = (alarmId: string, status: 'Done' | 'In Progress' | 'Failed' | 'Remind Later', vetId?: string) => {
+    setAlarmResolutions((prev) => ({
+      ...prev,
+      [alarmId]: { status, timestamp: Date.now() }
+    }));
+    if (alarmId.startsWith('vet-due-') || vetId) {
+      const targetId = vetId || alarmId.replace('vet-due-', '');
+      setVetRecords((prev) =>
+        prev.map((r) => (r.id === targetId ? { ...r, treatmentStatus: status, reminderStatus: status } : r))
+      );
+    }
+    const statusLabels = {
+      'Done': '✅ Marked Done! Reminder stopped.',
+      'In Progress': '🔄 Marked In Progress!',
+      'Failed': '❌ Marked Failed/Discontinued.',
+      'Remind Later': '⏰ Snoozed for 24 hours!'
+    };
+    triggerAppToastMessage(statusLabels[status]);
+  };
+
   // Report modal state
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
 
@@ -2862,7 +2900,7 @@ function FarmCoreApp() {
 
     // 2. Vet records (vaccinations, next boosters, deworming)
     vetRecords.forEach((vet) => {
-      if (vet.nextDueDate) {
+      if (vet.nextDueDate && vet.treatmentStatus !== 'Done' && vet.reminderStatus !== 'Done' && vet.treatmentStatus !== 'Failed' && vet.reminderStatus !== 'Failed') {
         const diffDays = Math.ceil(
           (new Date(vet.nextDueDate).getTime() - todayNum) / (1000 * 60 * 60 * 24)
         );
@@ -2965,38 +3003,38 @@ function FarmCoreApp() {
       }
     });
 
-    // New: Azolla Water and Nutrients Reminder
-    if (azollaRecords.length > 0) {
-      // Find latest record date
-      const sortedAzolla = [...azollaRecords].sort((a, b) => b.date.localeCompare(a.date));
-      const latest = sortedAzolla[0];
-      const diffDays = Math.ceil((todayNum - new Date(latest.date).getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays >= 3) {
+    // 6b. Azolla & BSF culture maintenance
+    const latestAzolla = azollaRecords[0];
+    if (latestAzolla) {
+      const diffDays = Math.ceil(
+        (new Date(latestAzolla.date).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+      );
+      if (diffDays <= -3) {
         list.push({
-          id: `azolla-water-${latest.id}`,
+          id: `azolla-water-${latestAzolla.id}`,
           section: 'Crops',
-          title: `💧 Azolla Ponds Maintenance Due`,
-          body: `It has been ${diffDays} days since the last Azolla harvest/record. Remember to top up water levels and add manure/nutrients to maintain optimal growth.`,
-          severity: 'medium',
-          actionLabel: 'Manage Azolla',
-          actionTab: 'azolla'
+          title: `🌿 Azolla Pond Water Check & Top-Up Needed`,
+          body: `Last recorded Azolla harvest/maintenance was 3+ days ago (${latestAzolla.date}). Check nutrient levels and top up water.`,
+          severity: 'info',
+          actionLabel: 'Azolla Culture',
+          actionTab: 'factory'
         });
       }
     }
 
-    // New: BSF Feeding and Egg Harvesting Reminder
-    const activeBsf = bsfRecords.filter(b => b.status !== 'Harvested');
-    activeBsf.forEach(batch => {
-      const diffDays = Math.ceil((todayNum - new Date(batch.inoculationDate).getTime()) / (1000 * 60 * 60 * 24));
-      // Remind every 3 days for feeding or egg check
-      if (diffDays > 0 && diffDays % 3 === 0) {
+    const activeBsfBatches = bsfRecords.filter((b) => b.status === 'Incubating' || b.status === 'Growing');
+    activeBsfBatches.forEach((batch) => {
+      const diffDays = Math.ceil(
+        (new Date(batch.date).getTime() - todayNum) / (1000 * 60 * 60 * 24)
+      );
+      if (diffDays <= -10) {
         list.push({
           id: `bsf-maint-${batch.id}-${diffDays}`,
-          section: 'Stock',
-          title: `🐛 BSF Batch Maintenance: ${batch.batchId}`,
-          body: `Batch ${batch.batchId} has been active for ${diffDays} days. Ensure consistent feeding (substrate) and check love cages for egg harvesting if applicable.`,
+          section: 'Crops',
+          title: `🐛 BSF Larvae Harvest Ready / Check Batch #${batch.batchNumber}`,
+          body: `Batch #${batch.batchNumber} initiated on ${batch.date} has been growing for ${Math.abs(diffDays)} days. Prepare for sieving or pupation transfer.`,
           severity: 'medium',
-          actionLabel: 'Check BSF Batches',
+          actionLabel: 'BSF Unit',
           actionTab: 'factory'
         });
       }
@@ -3029,7 +3067,17 @@ function FarmCoreApp() {
       }
     } catch (_) {}
 
-    return list;
+    return list.filter((alarm) => {
+      const res = alarmResolutions[alarm.id];
+      if (!res) return true;
+      if (res.status === 'Done' || res.status === 'Failed') return false;
+      if (res.status === 'Remind Later') {
+        if (now.getTime() - res.timestamp < 24 * 60 * 60 * 1000) {
+          return false;
+        }
+      }
+      return true;
+    });
   }, [
     aiRecords,
     vetRecords,
@@ -3039,7 +3087,8 @@ function FarmCoreApp() {
     cropOps,
     azollaRecords,
     bsfRecords,
-    alarmComputationDay
+    alarmComputationDay,
+    alarmResolutions
   ]);
 
   const visibleSensitiveSectionAlarms = useMemo(() => {
@@ -6230,30 +6279,69 @@ function FarmCoreApp() {
                                 {alarm.body}
                               </p>
 
-                              <div className="flex gap-2 pt-1.5">
-                                <button
-                                  onClick={() => {
-                                    setActiveTab(alarm.actionTab);
-                                    setBellNotificationTrayOpen(false);
-                                    triggerAppToastMessage(`Redirected to ${alarm.actionLabel}...`);
-                                  }}
-                                  className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase py-2 rounded-lg border-0 block cursor-pointer transition-colors"
-                                >
-                                  ⚙️ Go Resolve
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    triggerAppToastMessage("Scheduling lockscreen push...");
-                                    deferNotificationWork(() => {
-                                      triggerAppLockscreenNotification(alarm.title, alarm.body);
-                                      triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
-                                    });
-                                  }}
-                                  className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
-                                  title="Send this specific alarm to phone lockscreen tray"
-                                >
-                                  📲 Push Alert
-                                </button>
+                              <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-100 mt-2">
+                                <div className="flex gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setActiveTab(alarm.actionTab);
+                                      setBellNotificationTrayOpen(false);
+                                      triggerAppToastMessage(`Redirected to ${alarm.actionLabel}...`);
+                                    }}
+                                    className="flex-1 text-center bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase py-2 rounded-lg border-0 block cursor-pointer transition-colors"
+                                  >
+                                    ⚙️ Open {alarm.section}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      triggerAppToastMessage("Scheduling lockscreen push...");
+                                      deferNotificationWork(() => {
+                                        triggerAppLockscreenNotification(alarm.title, alarm.body);
+                                        triggerAppToastMessage("Pushed directly to phone lockscreen taskbar!");
+                                      });
+                                    }}
+                                    className="bg-yellow-500 text-slate-950 font-black text-[10px] uppercase px-3 py-2 rounded-lg border-0 cursor-pointer hover:bg-yellow-400"
+                                    title="Send this specific alarm to phone lockscreen tray"
+                                  >
+                                    📲 Push Alert
+                                  </button>
+                                </div>
+                                <div className="flex items-center justify-between gap-1 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
+                                  <span className="text-[9px] font-bold text-slate-600 px-1">Resolve:</span>
+                                  <div className="flex gap-1 flex-wrap justify-end">
+                                    <button
+                                      onClick={() => handleResolveAlarm(alarm.id, 'Done')}
+                                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] px-2 py-1 rounded border-0 cursor-pointer transition-colors flex items-center gap-0.5"
+                                      title="Mark Done - Stop reminding"
+                                    >
+                                      ✅ Done
+                                    </button>
+                                    <button
+                                      onClick={() => handleResolveAlarm(alarm.id, 'In Progress')}
+                                      className={`font-bold text-[9px] px-2 py-1 rounded border-0 cursor-pointer transition-colors flex items-center gap-0.5 ${
+                                        alarmResolutions[alarm.id]?.status === 'In Progress'
+                                          ? 'bg-amber-600 text-white'
+                                          : 'bg-white hover:bg-amber-50 text-amber-700 border border-amber-200'
+                                      }`}
+                                      title="Mark In Progress"
+                                    >
+                                      🔄 In Prog
+                                    </button>
+                                    <button
+                                      onClick={() => handleResolveAlarm(alarm.id, 'Remind Later')}
+                                      className="bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-bold text-[9px] px-2 py-1 rounded cursor-pointer transition-colors flex items-center gap-0.5"
+                                      title="Remind later (Snooze 24h)"
+                                    >
+                                      ⏰ Snooze
+                                    </button>
+                                    <button
+                                      onClick={() => handleResolveAlarm(alarm.id, 'Failed')}
+                                      className="bg-white hover:bg-red-50 text-red-600 border border-red-200 font-bold text-[9px] px-1.5 py-1 rounded cursor-pointer transition-colors"
+                                      title="Mark Failed"
+                                    >
+                                      ❌ Failed
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           ))

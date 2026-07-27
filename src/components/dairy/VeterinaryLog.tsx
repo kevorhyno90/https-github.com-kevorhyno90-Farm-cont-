@@ -61,7 +61,9 @@ export function VeterinaryLog({
  date: vetDate,
  type: vetType,
  treatment: vetTreatment.trim(),
- nextDueDate: vetType === 'Deworming' ? (vetNextDue || undefined) : undefined,
+ nextDueDate: vetNextDue || undefined,
+ treatmentStatus: 'Pending',
+ reminderStatus: 'Pending',
  cost: vetCost === '' ? 0 : Number(vetCost),
  staff: vetStaff,
  notes: vetNotes.trim() || 'Administered successfully',
@@ -688,15 +690,65 @@ export function VeterinaryLog({
  )}
 
  {record.retreatmentScheduled && (
- <div className="flex items-center gap-1.5 text-[10px] font-semibold text-red-900 bg-red-900/20 p-1.5 px-2.5 rounded-lg border border-red-100 w-fit ">
- <span>🔔 Critical: Retreatment Scheduled</span>
- </div>
- )}
- </div>
+  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-red-900 bg-red-900/20 p-1.5 px-2.5 rounded-lg border border-red-100 w-fit ">
+  <span>🔔 Critical: Retreatment Scheduled</span>
+  </div>
+  )}
 
- <div className="flex flex-row md:flex-col items-start md:items-end justify-between md:justify-start gap-4 text-left md:text-right shrink-0 border-t md:border-t-0 border-gray-100 pt-3 md:pt-0">
- <div>
- <span className="text-[9px]  font-semibold text-gray-900 font-medium block font-bold">Intervention Timestamp</span>
+  {/* Reminder / Treatment Status bar */}
+  <div className="flex items-center gap-1.5 flex-wrap pt-2 mt-2 border-t border-gray-100 w-full">
+  <span className="text-[10px] font-bold text-gray-700">Status:</span>
+  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+  (record.treatmentStatus || record.reminderStatus) === 'Done' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+  (record.treatmentStatus || record.reminderStatus) === 'In Progress' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+  (record.treatmentStatus || record.reminderStatus) === 'Failed' ? 'bg-red-100 text-red-800 border-red-300' :
+  (record.treatmentStatus || record.reminderStatus) === 'Remind Later' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+  'bg-gray-100 text-gray-700 border-gray-300'
+  }`}>
+  {(record.treatmentStatus || record.reminderStatus) === 'Done' ? '✅ Treatment Done (No Reminders)' :
+   (record.treatmentStatus || record.reminderStatus) === 'In Progress' ? '🔄 In Progress' :
+   (record.treatmentStatus || record.reminderStatus) === 'Failed' ? '❌ Failed / Discontinued' :
+   (record.treatmentStatus || record.reminderStatus) === 'Remind Later' ? '⏰ Snoozed (Remind Later)' :
+   '⏳ Pending / Active Reminder'}
+  </span>
+  {onEditVetRecord && (
+  <div className="flex gap-1 ml-auto">
+  <button
+  onClick={() => onEditVetRecord(record.id, { ...record, treatmentStatus: 'Done', reminderStatus: 'Done' })}
+  className="text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded cursor-pointer border border-emerald-700 transition-colors m-0"
+  title="Mark Treatment Done - stops future reminders"
+  >
+  ✅ Done
+  </button>
+  <button
+  onClick={() => onEditVetRecord(record.id, { ...record, treatmentStatus: 'In Progress', reminderStatus: 'In Progress' })}
+  className="text-[9px] font-bold bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded cursor-pointer border border-amber-600 transition-colors m-0"
+  title="Mark In Progress"
+  >
+  🔄 In Prog
+  </button>
+  <button
+  onClick={() => onEditVetRecord(record.id, { ...record, treatmentStatus: 'Remind Later', reminderStatus: 'Remind Later' })}
+  className="text-[9px] font-bold bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded cursor-pointer border border-purple-700 transition-colors m-0"
+  title="Remind Later (Snooze)"
+  >
+  ⏰ Snooze
+  </button>
+  <button
+  onClick={() => onEditVetRecord(record.id, { ...record, treatmentStatus: 'Failed', reminderStatus: 'Failed' })}
+  className="text-[9px] font-bold bg-red-600 hover:bg-red-700 text-white px-1.5 py-1 rounded cursor-pointer border border-red-700 transition-colors m-0"
+  title="Mark Failed"
+  >
+  ❌
+  </button>
+  </div>
+  )}
+  </div>
+  </div>
+
+  <div className="flex flex-row md:flex-col items-start md:items-end justify-between md:justify-start gap-4 text-left md:text-right shrink-0 border-t md:border-t-0 border-gray-100 pt-3 md:pt-0">
+  <div>
+  <span className="text-[9px]  font-semibold text-gray-900 font-medium block font-bold">Intervention Timestamp</span>
  <span className="text-xs font-semibold text-indigo-950 block mt-0.5 font-mono">{record.date}</span>
  <span className="text-[10px] text-gray-900 font-medium font-bold block mt-0.5">{record.staff}</span>
  </div>

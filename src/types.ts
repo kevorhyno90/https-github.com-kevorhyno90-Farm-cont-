@@ -231,6 +231,8 @@ export interface VetRecord {
   withdrawalMeatDays?: number;
   prognosis?: 'Good' | 'Fair' | 'Guarded' | 'Poor';
   retreatmentScheduled?: boolean;
+  treatmentStatus?: 'Done' | 'In Progress' | 'Failed' | 'Remind Later' | 'Pending';
+  reminderStatus?: 'Done' | 'In Progress' | 'Failed' | 'Remind Later' | 'Pending';
 }
 
 export interface GoatRecord {
