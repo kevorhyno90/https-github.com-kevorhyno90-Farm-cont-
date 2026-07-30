@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StaffMember, StaffOffRecord } from '../types';
-import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList, Printer, Download } from 'lucide-react';
-
+import { Users, UserPlus, Phone, Briefcase, Clock, Activity, Power, Trash2, Search, Filter, Calendar, Bell, Plus, ShieldAlert, CheckSquare, CalendarDays, ClipboardList, Printer, Download, Edit2 } from 'lucide-react';
+import { useFarmState } from '../context/FarmContext';
 interface RosterProps {
  staffList: StaffMember[];
  onUpdateStatus: (id: string, status: 'Present' | 'Off' | 'On Leave') => void;
@@ -31,6 +31,7 @@ export function Roster({
  onTriggerSectionReport,
  onAddTransaction
 }: RosterProps) {
+ const { financials, setFinancials } = useFarmState();
  // Navigation tabs of roster page
  const [rosterSubTab, setRosterSubTab] = useState<'roster' | 'leaves' | 'attendance' | 'wages'>('roster');
 
@@ -1142,23 +1143,16 @@ export function Roster({
  <th className="p-3">Reference</th>
  <th className="p-3">Details</th>
  <th className="p-3 text-right">Amount</th>
+ <th className="p-3 text-center">Actions</th>
  </tr>
  </thead>
  <tbody>
  {(() => {
- let wageTx: any[] = [];
- try {
- const saved = localStorage.getItem('jr_farm_financials');
- if (saved) {
- wageTx = JSON.parse(saved).filter((f: any) => f.category === 'Wages' || f.description.toLowerCase().includes('wage') || f.description.toLowerCase().includes('paid to'));
- }
- } catch (e) {
- console.error(e);
- }
+ const wageTx = financials.filter((f: any) => f.category === 'Wages' || f.description.toLowerCase().includes('wage') || f.description.toLowerCase().includes('paid to'));
  if (wageTx.length === 0) {
  return (
  <tr>
- <td colSpan={4} className="p-6 text-center text-gray-900 font-medium italic">No wage transactions found. Log one to begin!</td>
+ <td colSpan={5} className="p-6 text-center text-gray-900 font-medium italic">No wage transactions found. Log one to begin!</td>
  </tr>
  );
  }
@@ -1168,6 +1162,24 @@ export function Roster({
  <td className="p-3 font-bold text-green-600">{tx.id}</td>
  <td className="p-3 text-gray-900 font-medium font-medium">{tx.description}</td>
  <td className="p-3 text-right font-semibold text-rose-600 font-mono">Ksh {Number(tx.amount).toLocaleString()}</td>
+ <td className="p-3 text-center space-x-2">
+   <button onClick={() => {
+     const desc = prompt('Update details:', tx.description);
+     const amt = prompt('Update amount:', tx.amount);
+     if (desc !== null && amt !== null) {
+       setFinancials(financials.map(f => f.id === tx.id ? { ...f, description: desc, amount: Number(amt) } : f));
+     }
+   }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Wage Record">
+     <Edit2 size={16} />
+   </button>
+   <button onClick={() => {
+     if (window.confirm('Delete this wage transaction?')) {
+       setFinancials(financials.filter(f => f.id !== tx.id));
+     }
+   }} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Wage Record">
+     <Trash2 size={16} />
+   </button>
+ </td>
  </tr>
  ));
  })()}

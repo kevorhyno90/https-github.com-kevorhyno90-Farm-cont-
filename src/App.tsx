@@ -356,11 +356,7 @@ function FarmCoreApp() {
           window.history.pushState(null, '', tab === 'dash' ? window.location.pathname : `#${tab}`);
         }
       }
-      setTimeout(() => {
-        startTransition(() => {
-          _setActiveTab(tab);
-        });
-      }, 0);
+      _setActiveTab(tab);
     };
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
