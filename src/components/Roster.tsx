@@ -38,6 +38,9 @@ export function Roster({
  // New Editing State variables
  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
  const [editingStaffOffRecord, setEditingStaffOffRecord] = useState<StaffOffRecord | null>(null);
+ const [editingWageId, setEditingWageId] = useState<string | null>(null);
+ const [editWageDesc, setEditWageDesc] = useState('');
+ const [editWageAmount, setEditWageAmount] = useState('');
 
  // New staff registration form states
  const [name, setName] = useState('');
@@ -1148,7 +1151,7 @@ export function Roster({
  </thead>
  <tbody>
  {(() => {
- const wageTx = financials.filter((f: any) => f.category === 'Wages' || f.description.toLowerCase().includes('wage') || f.description.toLowerCase().includes('paid to'));
+ const wageTx = financials.filter((f: any) => f.category === 'Wages' || f.description?.toLowerCase()?.includes('wage') || f.description?.toLowerCase()?.includes('paid to'));
  if (wageTx.length === 0) {
  return (
  <tr>
@@ -1156,22 +1159,37 @@ export function Roster({
  </tr>
  );
  }
- return wageTx.map((tx) => (
+ return wageTx.map((tx) => {
+   const isEditing = editingWageId === tx.id;
+   return (
  <tr key={tx.id} className="border-b border-gray-100 hover:bg-white border border-gray-200">
  <td className="p-3 font-mono">{tx.date}</td>
  <td className="p-3 font-bold text-green-600">{tx.id}</td>
- <td className="p-3 text-gray-900 font-medium font-medium">{tx.description}</td>
- <td className="p-3 text-right font-semibold text-rose-600 font-mono">Ksh {Number(tx.amount).toLocaleString()}</td>
+ <td className="p-3 text-gray-900 font-medium font-medium">
+   {isEditing ? (
+     <input type="text" className="w-full p-1.5 border border-gray-300 rounded text-xs font-semibold focus:outline-none focus:border-amber-500" value={editWageDesc} onChange={e => setEditWageDesc(e.target.value)} />
+   ) : tx.description}
+ </td>
+ <td className="p-3 text-right font-semibold text-rose-600 font-mono">
+   {isEditing ? (
+     <input type="number" className="w-24 p-1.5 border border-gray-300 rounded text-xs font-semibold focus:outline-none focus:border-amber-500 text-right ml-auto block" value={editWageAmount} onChange={e => setEditWageAmount(e.target.value)} />
+   ) : `Ksh ${Number(tx.amount).toLocaleString()}`}
+ </td>
  <td className="p-3 text-center space-x-2">
-   <button onClick={() => {
-     const desc = prompt('Update details:', tx.description);
-     const amt = prompt('Update amount:', tx.amount);
-     if (desc !== null && amt !== null) {
-       setFinancials(financials.map(f => f.id === tx.id ? { ...f, description: desc, amount: Number(amt) } : f));
-     }
-   }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Wage Record">
-     <Edit2 size={16} />
-   </button>
+   {isEditing ? (
+     <button onClick={() => {
+       setFinancials(financials.map(f => f.id === tx.id ? { ...f, description: editWageDesc, amount: Number(editWageAmount) } : f));
+       setEditingWageId(null);
+     }} className="px-2 py-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 font-bold text-[10px] transition-colors">Save</button>
+   ) : (
+     <button onClick={() => {
+       setEditingWageId(tx.id);
+       setEditWageDesc(tx.description);
+       setEditWageAmount(String(tx.amount));
+     }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Wage Record">
+       <Edit2 size={16} />
+     </button>
+   )}
    <button onClick={() => {
      if (window.confirm('Delete this wage transaction?')) {
        setFinancials(financials.filter(f => f.id !== tx.id));
@@ -1181,7 +1199,7 @@ export function Roster({
    </button>
  </td>
  </tr>
- ));
+ )});
  })()}
  </tbody>
  </table>
