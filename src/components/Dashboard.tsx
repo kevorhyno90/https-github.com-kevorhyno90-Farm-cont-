@@ -620,13 +620,13 @@ export function Dashboard({
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {/* Off Today */}
- <div className="bg-white/10 p-5 rounded-2xl border border-white/10">
+ <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
- <span className="text-xs font-semibold text-white font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
+ <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
  </div>
  {activeOffsToday.length === 0 ? (
- <p className="text-xs text-white font-semibold italic py-2">✓ Entire farm workforce is active.</p>
+ <p className="text-xs text-indigo-200 font-semibold italic py-2">✓ Entire farm workforce is active.</p>
  ) : (
  <div className="space-y-3">
  {activeOffsToday.map((r) => {
@@ -635,12 +635,12 @@ export function Dashboard({
  <div key={r.id} className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-xl hover:bg-rose-950/30 transition-colors">
  <div className="flex justify-between items-start">
  <div>
- <span className="font-semibold text-sm text-white block">{r.staffName}</span>
+ <span className="font-semibold text-sm text-indigo-100 block">{r.staffName}</span>
  <span className="text-[9px] font-semibold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
  {r.type}
  </span>
  </div>
- <span className="text-[10px] font-semibold bg-white/10 shadow-sm text-white font-bold px-2 py-1 rounded">
+ <span className="text-[10px] font-semibold bg-indigo-950/40 shadow-sm text-indigo-200 font-bold px-2 py-1 rounded border border-indigo-500/30">
  {sMatch?.unit || 'Unit'}
  </span>
  </div>
@@ -652,13 +652,13 @@ export function Dashboard({
  </div>
 
  {/* Upcoming Offs */}
- <div className="bg-white/10 p-5 rounded-2xl border border-white/10">
+ <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
- <span className="text-xs font-semibold text-white font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
+ <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
  </div>
  {upcomingOffs.length === 0 ? (
- <p className="text-xs text-white font-semibold italic py-2">No departures planned in next 3 days.</p>
+ <p className="text-xs text-indigo-200 font-semibold italic py-2">No departures planned in next 3 days.</p>
  ) : (
  <div className="space-y-3">
  {upcomingOffs.map((r) => {
@@ -667,12 +667,12 @@ export function Dashboard({
  <div key={r.id} className="p-4 bg-amber-950/20 border border-amber-500/20 rounded-xl hover:bg-amber-950/30 transition-colors">
  <div className="flex justify-between items-start">
  <div>
- <span className="font-semibold text-sm text-white block">{r.staffName}</span>
+ <span className="font-semibold text-sm text-indigo-100 block">{r.staffName}</span>
  <span className="text-[9px] font-semibold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
  {r.type}
  </span>
  </div>
- <span className="text-[10px] font-semibold bg-white/10 shadow-sm text-white font-bold px-2 py-1 rounded">
+ <span className="text-[10px] font-semibold bg-indigo-950/40 shadow-sm text-indigo-200 font-bold px-2 py-1 rounded border border-indigo-500/30">
  {sMatch?.unit || 'Unit'}
  </span>
  </div>
@@ -687,13 +687,13 @@ export function Dashboard({
  </div>
 
  {/* Conflicts */}
- <div className="bg-white/10 p-5 rounded-2xl border border-white/10">
+ <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
  <div className="flex items-center gap-2 mb-4">
  <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]"></span>
- <span className="text-xs font-semibold text-white font-bold tracking-normal">Labor Overlap Security ({conflicts.length})</span>
+ <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Labor Overlap Security ({conflicts.length})</span>
  </div>
  {conflicts.length === 0 ? (
- <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold leading-relaxed">
+ <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold leading-relaxed shadow-inner">
  ✓ Optimal workforce redundancy intact. Overlap protection validated.
  </div>
  ) : (
