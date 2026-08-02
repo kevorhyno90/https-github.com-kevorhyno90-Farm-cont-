@@ -272,7 +272,7 @@ export function FirebaseSyncer() {
  lastSync ? `Synced ${lastSync.toLocaleTimeString()}` :
  'Cloud Sync'}
  </span>
- </button>
+ </motion.button>
 
  {!canUseFirestore && (
  <div className="fixed bottom-22 right-6 z-50 bg-amber-100 text-amber-900 border border-amber-300 rounded-full px-3 py-1 text-[10px] font-semibold  tracking-wide shadow-lg">
