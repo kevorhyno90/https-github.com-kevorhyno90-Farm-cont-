@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Bot, X, Send, MessagesSquare, ChevronDown, RefreshCw } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
 import { generateFreeAgroAdvisorResponse } from '../utils/localAi';
+import { motion } from 'motion/react';
 
 interface AiAdvisorProps {
  farmState: {
@@ -112,7 +113,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  };
 
  return (
- <div className="fixed bottom-6 right-6 z-50 font-sans" id="ai-advisor-wrapper">
+ <motion.div drag dragMomentum={false} className="fixed bottom-6 right-6 z-50 font-sans cursor-move" id="ai-advisor-wrapper">
  {/* Active Floating Toggle Button */}
  {!isOpen && (
  <button
@@ -132,7 +133,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
 
  {/* Expanded Chat Pane */}
  {isOpen && (
- <div className="bg-white border border-gray-200 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn">
+ <div className="bg-white border border-gray-200 rounded-3xl shadow-2xl w-80 sm:w-96 h-[480px] flex flex-col overflow-hidden animate-fadeIn cursor-default" onPointerDown={(e) => e.stopPropagation()}>
  {/* Panel Header */}
  <div className="bg-gradient-to-r from-emerald-950 to-emerald-900 p-4 border-b border-gray-200 flex justify-between items-center text-left">
  <div className="flex items-center gap-2">
@@ -264,6 +265,6 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  </form>
  </div>
  )}
- </div>
+ </motion.div>
  );
 }
