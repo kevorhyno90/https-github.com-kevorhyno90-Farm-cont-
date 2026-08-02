@@ -1675,7 +1675,7 @@ export default function FarmerAcademy({
  <div className="space-y-6 font-sans antialiased text-gray-900 animate-fadeIn" id="academy-root">
  
  {/* Academy Hero Banner */}
- <div className="bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 border border-emerald-900 rounded-3xl p-6 md:p-8 text-gray-900 relative overflow-hidden shadow-xl">
+ <div className="bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 border border-emerald-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl">
  
  
  
@@ -1685,14 +1685,14 @@ export default function FarmerAcademy({
  <span className="bg-white text-green-600 font-semibold tracking-normal text-[9px]  px-3 py-1 rounded-full border border-emerald-700/50">
  ⚡ MASTERCLASS SUPER-HUB
  </span>
- <span className="bg-amber-500/20 text-gray-700 font-bold text-[9px] px-2.5 py-1 rounded-full border border-amber-500/30">
+ <span className="bg-amber-500/20 text-amber-200 font-bold text-[9px] px-2.5 py-1 rounded-full border border-amber-500/30">
  LIVESTOCK + AGRONOMY SPECIFICATIONS
  </span>
  </div>
- <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 leading-tight">
+ <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white leading-tight">
  Farmer's Knowledge Academy
  </h2>
- <p className="text-green-600 text-xs md:text-sm leading-relaxed max-w-xl font-medium">
+ <p className="text-emerald-100 text-xs md:text-sm leading-relaxed max-w-xl font-medium">
  Achieve total compliance and record yields. Access scientific protocols for livestock health, crop-specific calendars, chemical quarantine controls (GlobalGAP PHI), compost engineering, and real-time simulators.
  </p>
  </div>
@@ -1701,19 +1701,19 @@ export default function FarmerAcademy({
  <button
  onClick={() => onTriggerSectionReport('academy')}
  type="button"
- className="bg-amber-500 hover:bg-amber-600 text-gray-500 font-semibold text-xs  p-4 rounded-2xl border border-amber-600/10 transition-all flex flex-col items-center justify-center shadow-lg cursor-pointer h-[66px] min-w-[85px] m-0 font-bold"
+ className="bg-amber-500 hover:bg-amber-600 text-gray-900 font-semibold text-xs  p-4 rounded-2xl border border-amber-600/10 transition-all flex flex-col items-center justify-center shadow-lg cursor-pointer h-[66px] min-w-[85px] m-0 font-bold"
  title="Download Expert Diagnostics & SOP Audit PDF Report"
  >
- <Download size={16} className="text-gray-500 mb-1" />
+ <Download size={16} className="text-gray-900 mb-1" />
  <span className="text-[9px] font-bold tracking-normal">Download PDF</span>
  </button>
  )}
  <div className="farm-shell-panel px-5 py-4 rounded-2xl border border-gray-200 text-center shadow-md h-[66px] flex flex-col justify-center">
- <span className="text-2xl font-semibold text-gray-900 text-yellow-500 block font-mono leading-none">15+</span>
+ <span className="text-2xl font-semibold text-yellow-500 block font-mono leading-none">15+</span>
  <span className="text-[9px] text-gray-900 font-medium font-bold tracking-tight block mt-0.5 whitespace-nowrap">App Crops & Beasts</span>
  </div>
  <div className="farm-shell-panel px-5 py-4 rounded-2xl border border-gray-200 text-center shadow-md h-[66px] flex flex-col justify-center">
- <span className="text-2xl font-semibold text-gray-900 text-green-600 block font-mono leading-none">4</span>
+ <span className="text-2xl font-semibold text-green-600 block font-mono leading-none">4</span>
  <span className="text-[9px] text-gray-900 font-medium font-bold tracking-tight block mt-0.5 whitespace-nowrap">Smart Simulators</span>
  </div>
  </div>

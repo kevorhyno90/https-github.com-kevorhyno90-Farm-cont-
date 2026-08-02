@@ -545,14 +545,14 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <div className="bg-white shadow-sm border border-gray-100 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
- <span className="p-1 px-2.5 bg-yellow-105 bg-yellow-100 text-yellow-800 rounded-lg text-[9px] font-semibold tracking-tight">
+ <span className="p-1 px-2.5 bg-yellow-100 text-yellow-800 rounded-lg text-[9px] font-semibold tracking-tight">
  Chronological Ledger
  </span>
- <span className="text-[10px] text-gray-900 font-medium font-semibold tracking-normal ">
+ <span className="text-[10px] text-gray-900 font-semibold tracking-normal">
  Operations Timetable System
  </span>
  </div>
- <h2 className="text-xl font-semibold text-gray-900 text-gray-900 flex items-center gap-2">
+ <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
  <Calendar className="text-green-600" size={22} />
  On-Farm Standard Operating Procedures
  </h2>
@@ -561,12 +561,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </p>
  </div>
 
- <div className="flex items-center gap-2 w-full sm:w-auto self-center md:self-auto ">
+ <div className="flex items-center gap-2 w-full sm:w-auto self-center md:self-auto">
  {onTriggerSectionReport && (
  <button
  onClick={() => onTriggerSectionReport('schedule')}
  type="button"
- className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-gray-500 hover:text-gray-500 border border-amber-600/10 font-bold text-xs  rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 h-10 font-bold"
+ className="flex items-center justify-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-gray-900 hover:text-gray-900 border border-amber-600/10 font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer m-0 shrink-0 h-10"
  title="Download Operations & Schedules PDF Report"
  >
  <Download size={13} />
@@ -591,15 +591,15 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </div>
 
  {/* Browser to Phone-Taskbar push control center */}
- <div className="bg-gradient-to-r from-indigo-950 to-slate-900 text-gray-900 rounded-3xl p-6 border border-indigo-900 shadow-md space-y-4">
+ <div className="bg-gradient-to-r from-indigo-950 to-slate-900 text-white rounded-3xl p-6 border border-indigo-900 shadow-md space-y-4">
  <div className="flex items-center justify-between flex-wrap gap-4">
  <div className="space-y-1">
  <div className="flex items-center gap-2">
  <span className="bg-indigo-700 text-indigo-100 font-bold text-[8.5px] tracking-tight px-2 py-0.5 rounded-full">
  Phone & Desktop Link
  </span>
- <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5  tracking-wide">
- <Bell size={14} className="text-yellow-700 shrink-0" /> Phone Taskbar Notification Driver
+ <h4 className="text-sm font-semibold text-white flex items-center gap-1.5 tracking-wide">
+ <Bell size={14} className="text-yellow-500 shrink-0" /> Phone Taskbar Notification Driver
  </h4>
  </div>
  <p className="text-xs text-indigo-200/80 font-medium max-w-xl">
@@ -610,12 +610,12 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  <div className="flex flex-col gap-3 min-w-xs">
  <div className="flex gap-2 flex-wrap sm:flex-nowrap justify-end">
  {permission === 'granted' ? (
- <span className="bg-emerald-800 text-green-600 text-[10px] font-semibold  px-4 py-2.5 rounded-xl block shrink-0 border border-emerald-700/50">
+ <span className="bg-emerald-800 text-emerald-300 text-[10px] font-semibold px-4 py-2.5 rounded-xl block shrink-0 border border-emerald-700/50">
  ✓ System Authorized
  </span>
  ) : permission === 'denied' ? (
  <div className="flex flex-col gap-2 w-full">
- <span className="bg-red-900/60 text-red-200 text-[9px] font-semibold  px-3 py-2 rounded-xl text-center border border-red-800/50">
+ <span className="bg-red-900/60 text-red-200 text-[9px] font-semibold px-3 py-2 rounded-xl text-center border border-red-800/50">
  ⚠️ Blocked by Sandbox Iframe
  </span>
  <a
