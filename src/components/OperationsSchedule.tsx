@@ -622,7 +622,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  href={window.location.href}
  target="_blank"
  rel="noopener noreferrer"
- className="bg-yellow-500 hover:bg-yellow-400 text-gray-500 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-all text-center inline-block cursor-pointer decoration-none"
+ className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 text-[10px] font-semibold px-4 py-2.5 rounded-xl transition-all text-center inline-block cursor-pointer decoration-none"
  >
  🚀 Open App in New Tab to Approve
  </a>
@@ -630,7 +630,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  ) : (
  <button
  onClick={requestNotificationPermission}
- className="bg-yellow-500 hover:bg-yellow-400 text-gray-500 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer border-0"
+ className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 text-[10px] font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer border-0"
  >
  🔔 Auth Notifications
  </button>
@@ -639,7 +639,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  {permission !== 'denied' && (
  <button
  onClick={handleTestNotificationImmediate}
- className="bg-white shadow-sm /10 hover:bg-gray-50 /15 text-gray-900 border border-white/20 text-[10px] font-semibold  px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
+ className="bg-white/10 shadow-sm hover:bg-white/20 text-white border border-white/20 text-[10px] font-semibold px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer m-0"
  >
  ⚡ Immediate Test Push
  </button>
