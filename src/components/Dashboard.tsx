@@ -595,120 +595,120 @@ export function Dashboard({
  }
 
  return (
- <motion.div 
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ delay: 0.5 }}
- className="bg-indigo-950/40 text-white p-6 md:p-8 rounded-3xl border border-indigo-500/20 shadow-2xl relative overflow-hidden"
- >
- 
- 
- <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-indigo-500/20 pb-5">
- <div className="flex items-center gap-4">
- <div className="p-3 bg-indigo-500/20 text-indigo-300 rounded-2xl border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
- <Bell size={20} className="animate-pulse" />
- </div>
- <div>
- <h4 className="text-sm font-semibold tracking-tight text-indigo-100">Workforce Duty & Leave Alert Center</h4>
- <p className="text-[10px] text-indigo-400 font-bold tracking-tight mt-1">Smart coverage guards & real-time team availability</p>
- </div>
- </div>
- <div className="text-xs font-mono text-indigo-200 bg-indigo-950/60 px-4 py-2 rounded-xl border border-indigo-500/30 font-semibold shadow-inner">
- SYSTEM CALENDAR: {todayString}
- </div>
- </div>
+          <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white text-gray-900 p-6 md:p-8 rounded-3xl border border-gray-200 shadow-xl relative overflow-hidden"
+        >
+          
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-gray-100 pb-5">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 shadow-sm">
+                <Bell size={20} className="animate-pulse" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold tracking-tight text-gray-900">Workforce Duty & Leave Alert Center</h4>
+                <p className="text-[10px] text-gray-500 font-bold tracking-tight mt-1">Smart coverage guards & real-time team availability</p>
+              </div>
+            </div>
+            <div className="text-xs font-mono text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 font-semibold shadow-inner">
+              SYSTEM CALENDAR: {todayString}
+            </div>
+          </div>
 
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- {/* Off Today */}
- <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
- <div className="flex items-center gap-2 mb-4">
- <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
- <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
- </div>
- {activeOffsToday.length === 0 ? (
- <p className="text-xs text-indigo-200 font-semibold italic py-2">✓ Entire farm workforce is active.</p>
- ) : (
- <div className="space-y-3">
- {activeOffsToday.map((r) => {
- const sMatch = staffList.find(s => s.id === r.staffId);
- return (
- <div key={r.id} className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-xl hover:bg-rose-950/30 transition-colors">
- <div className="flex justify-between items-start">
- <div>
- <span className="font-semibold text-sm text-indigo-100 block">{r.staffName}</span>
- <span className="text-[9px] font-semibold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
- {r.type}
- </span>
- </div>
- <span className="text-[10px] font-semibold bg-indigo-950/40 shadow-sm text-indigo-200 font-bold px-2 py-1 rounded border border-indigo-500/30">
- {sMatch?.unit || 'Unit'}
- </span>
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Off Today */}
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+                <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
+              </div>
+              {activeOffsToday.length === 0 ? (
+                <p className="text-xs text-gray-500 font-semibold italic py-2">✓ Entire farm workforce is active.</p>
+              ) : (
+                <div className="space-y-3">
+                  {activeOffsToday.map((r) => {
+                    const sMatch = staffList.find(s => s.id === r.staffId);
+                    return (
+                      <div key={r.id} className="p-4 bg-white border border-rose-100 rounded-xl hover:bg-rose-50 transition-colors shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-semibold text-sm text-gray-900 block">{r.staffName}</span>
+                            <span className="text-[9px] font-semibold bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-mono block mt-2 w-max border border-rose-200">
+                              {r.type}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-semibold bg-gray-100 shadow-sm text-gray-700 font-bold px-2 py-1 rounded border border-gray-200">
+                            {sMatch?.unit || 'Unit'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
- {/* Upcoming Offs */}
- <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
- <div className="flex items-center gap-2 mb-4">
- <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
- <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
- </div>
- {upcomingOffs.length === 0 ? (
- <p className="text-xs text-indigo-200 font-semibold italic py-2">No departures planned in next 3 days.</p>
- ) : (
- <div className="space-y-3">
- {upcomingOffs.map((r) => {
- const sMatch = staffList.find(s => s.id === r.staffId);
- return (
- <div key={r.id} className="p-4 bg-amber-950/20 border border-amber-500/20 rounded-xl hover:bg-amber-950/30 transition-colors">
- <div className="flex justify-between items-start">
- <div>
- <span className="font-semibold text-sm text-indigo-100 block">{r.staffName}</span>
- <span className="text-[9px] font-semibold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono block mt-2 w-max">
- {r.type}
- </span>
- </div>
- <span className="text-[10px] font-semibold bg-indigo-950/40 shadow-sm text-indigo-200 font-bold px-2 py-1 rounded border border-indigo-500/30">
- {sMatch?.unit || 'Unit'}
- </span>
- </div>
- <p className="text-[10px] text-amber-300 mt-3 font-mono font-bold tracking-tight">
- Starts: {r.startDate}
- </p>
- </div>
- );
- })}
- </div>
- )}
- </div>
+            {/* Upcoming Offs */}
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
+                <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
+              </div>
+              {upcomingOffs.length === 0 ? (
+                <p className="text-xs text-gray-500 font-semibold italic py-2">No departures planned in next 3 days.</p>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingOffs.map((r) => {
+                    const sMatch = staffList.find(s => s.id === r.staffId);
+                    return (
+                      <div key={r.id} className="p-4 bg-white border border-amber-100 rounded-xl hover:bg-amber-50 transition-colors shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-semibold text-sm text-gray-900 block">{r.staffName}</span>
+                            <span className="text-[9px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-mono block mt-2 w-max border border-amber-200">
+                              {r.type}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-semibold bg-gray-100 shadow-sm text-gray-700 font-bold px-2 py-1 rounded border border-gray-200">
+                            {sMatch?.unit || 'Unit'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-amber-600 mt-3 font-mono font-bold tracking-tight">
+                          Starts: {r.startDate}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
- {/* Conflicts */}
- <div className="bg-indigo-900/30 p-5 rounded-2xl border border-indigo-500/20 shadow-inner">
- <div className="flex items-center gap-2 mb-4">
- <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]"></span>
- <span className="text-xs font-semibold text-indigo-50 font-bold tracking-normal">Labor Overlap Security ({conflicts.length})</span>
- </div>
- {conflicts.length === 0 ? (
- <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-bold leading-relaxed shadow-inner">
- ✓ Optimal workforce redundancy intact. Overlap protection validated.
- </div>
- ) : (
- <div className="space-y-3 max-h-[12rem] overflow-y-auto pr-2 custom-scrollbar">
- {conflicts.map((msg, idx) => (
- <div key={idx} className="p-4 bg-rose-950/30 border border-rose-400/35 rounded-xl text-[11px] text-rose-200 font-bold leading-relaxed flex gap-3 items-start">
- <ShieldAlert size={14} className="text-rose-400 shrink-0 mt-0.5" />
- <span>{msg}</span>
- </div>
- ))}
- </div>
- )}
- </div>
- </div>
- </motion.div>
+            {/* Conflicts */}
+            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></span>
+                <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Labor Overlap Security ({conflicts.length})</span>
+              </div>
+              {conflicts.length === 0 ? (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-bold leading-relaxed shadow-sm">
+                  ✓ Optimal workforce redundancy intact. Overlap protection validated.
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[12rem] overflow-y-auto pr-2 custom-scrollbar">
+                  {conflicts.map((msg, idx) => (
+                    <div key={idx} className="p-4 bg-white border border-rose-200 rounded-xl text-[11px] text-rose-700 font-bold leading-relaxed flex gap-3 items-start shadow-sm hover:bg-rose-50 transition-colors">
+                      <ShieldAlert size={14} className="text-rose-500 shrink-0 mt-0.5" />
+                      <span>{msg}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
  );
  })()}
 
