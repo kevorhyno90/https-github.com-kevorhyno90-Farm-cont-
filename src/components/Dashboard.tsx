@@ -95,6 +95,18 @@ export function Dashboard({
  const [weatherCondition, setWeatherCondition] = useState<'sunny' | 'rainy' | 'dry-cold'>('sunny');
  const [soilMoisture, setSoilMoisture] = useState<number>(42);
 
+  // Filter out orphaned records for deleted cows so they don't show up as active alerts
+  const validQuarantineRecords = quarantineRecords.filter(q => 
+    q.animalType !== 'Cow' || cows.some(c => c.id === q.animalTagOrBatch)
+  );
+  
+  const validVetRecords = vetRecords.filter(vet => {
+    if (vet.animalCategory === 'Cow' || (!vet.animalCategory && vet.cowId.startsWith('Cow'))) {
+      return cows.some(c => c.id === vet.cowId);
+    }
+    return true;
+  });
+
  // 1. Kiswahili / English Translation system config
  const [isSwahili, setIsSwahili] = useState<boolean>(false);
  const t = (key: string): string => {
@@ -527,7 +539,7 @@ export function Dashboard({
  <div className="mt-2.5 space-y-2">
  <div className="flex items-center gap-2 text-[11px] font-semibold text-rose-700">
  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
- <span>{quarantineRecords.filter((q: any) => q.quarantineStatus !== 'Cleared & Released').length} Livestock in quarantine.</span>
+ <span>{validQuarantineRecords.filter((q: any) => q.quarantineStatus !== 'Cleared & Released').length} Livestock in quarantine.</span>
  </div>
  <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-700">
  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
@@ -715,9 +727,9 @@ export function Dashboard({
  {/* 🛡️ ACTIVE ESTATE HEALTH & BIO-SECURITY SCORECARD */}
  {(() => {
  const todayStr = new Date().toISOString().split('T')[0];
- const activeQuarantines = quarantineRecords.filter(q => q.quarantineStatus !== 'Cleared & Released');
+ const activeQuarantines = validQuarantineRecords.filter(q => q.quarantineStatus !== 'Cleared & Released');
  const activeSprayWarnings = sprayRecords.filter(s => s.safeDate >= todayStr);
- const activeWithdrawals = vetRecords.filter(vet => {
+ const activeWithdrawals = validVetRecords.filter(vet => {
  if (!vet.withdrawalMilkDays && !vet.withdrawalMeatDays) return false;
  const treatmentDate = new Date(vet.date);
  const withdrawalDays = Math.max(vet.withdrawalMilkDays || 0, vet.withdrawalMeatDays || 0);

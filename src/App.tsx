@@ -2817,13 +2817,15 @@ function FarmCoreApp() {
   const reportMilkVolume = filteredMilkRecords.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
   const reportTeaVolume = filteredTeaRecords.reduce((sum, r) => sum + r.qty, 0);
 
-  const activeAlarmsCount = aiRecords.filter(
+  const validAiRecords = aiRecords.filter(cycle => cows.some(c => c.id === cycle.cowId));
+
+  const activeAlarmsCount = validAiRecords.filter(
     (cycle) => cycle.status === 'Confirmed Pregnant' || cycle.status === 'Pending'
   ).length;
 
   // Compute upcoming due pregnancy
   const getUpcomingDueAlarm = (): string => {
-    const active = aiRecords.filter((cycle) => cycle.status === 'Confirmed Pregnant');
+    const active = validAiRecords.filter((cycle) => cycle.status === 'Confirmed Pregnant');
     if (!active.length) return '-- No Pending Births --';
     // Sort by due date relative to today
     const sorted = [...active].sort((a, b) => a.due.localeCompare(b.due));
