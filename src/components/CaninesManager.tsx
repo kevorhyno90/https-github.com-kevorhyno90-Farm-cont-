@@ -5,6 +5,11 @@ import {
   CanineTreatmentRecord,
   CanineSaleRecord,
   CanineMortalityRecord,
+  CaninePatrolRecord,
+  CanineTrainingRecord,
+  CanineFeedingRecord,
+  CanineBreedingRecord,
+  CanineKennelBiosecurityRecord,
   StaffMember,
   LivestockRecord
 } from '../types';
@@ -13,11 +18,13 @@ import {
   Calendar, FileText, Download, Share2, Printer, Heart, CheckCircle2,
   AlertTriangle, Clock, DollarSign, Eye, Activity, Phone, UserCheck,
   Stethoscope, Syringe, Sparkles, TrendingUp, ChevronRight, User,
-  MapPin, Check, FileSpreadsheet, LayoutGrid, Table
+  MapPin, Check, FileSpreadsheet, LayoutGrid, Table, Utensils,
+  Dumbbell, Moon, Sun, AlertCircle, Droplets, Baby, Filter, X
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { useFarmState } from '../context/FarmContext';
 import { toIsoDate, offsetIsoDate } from '../utils/dateHelper';
+import { exportToCsv } from '../utils/csvHelper';
 
 interface CaninesManagerProps {
   staffList?: StaffMember[];
@@ -26,8 +33,442 @@ interface CaninesManagerProps {
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
-type CanineSubTab = 'registry' | 'vaccines' | 'treatments' | 'sales' | 'mortality';
+type CanineSubTab =
+  | 'registry'
+  | 'vaccines'
+  | 'treatments'
+  | 'patrols'
+  | 'training'
+  | 'feeding'
+  | 'breeding'
+  | 'biosecurity'
+  | 'sales'
+  | 'mortality';
+
 type ViewMode = 'cards' | 'table';
+
+// Local storage persistent keys
+const STORAGE_KEYS = {
+  PROFILES: 'jr_farm_canine_profiles_v2',
+  VACCINES: 'jr_farm_canine_vaccines_v2',
+  TREATMENTS: 'jr_farm_canine_treatments_v2',
+  PATROLS: 'jr_farm_canine_patrols_v2',
+  TRAINING: 'jr_farm_canine_training_v2',
+  FEEDING: 'jr_farm_canine_feeding_v2',
+  BREEDING: 'jr_farm_canine_breeding_v2',
+  BIOSECURITY: 'jr_farm_canine_biosecurity_v2',
+  SALES: 'jr_farm_canine_sales_v2',
+  MORTALITY: 'jr_farm_canine_mortality_v2'
+};
+
+// Seed dogs for realistic operational experience
+const DEFAULT_DOGS: DogProfile[] = [
+  {
+    id: 'k9-001',
+    name: 'Major',
+    breed: 'German Shepherd (East German Working Line)',
+    gender: 'Male',
+    dob: '2022-04-15',
+    chipId: '985141001298411',
+    kennelNo: 'Kennel A-01 (Patrol Block)',
+    dutyRole: 'Perimeter Patrol',
+    status: 'Active Duty',
+    handlerName: 'Officer Kevin O. (Lead K-9 Handler)',
+    sire: 'Rex vom Haus (Imp. DE)',
+    dam: 'Kira vom Schwarzberg',
+    colorMarkings: 'Sable / Black & Tan',
+    acquisitionDate: '2022-06-10',
+    notes: 'Exceptional perimeter deterrence, fast bite engagement, trained in night tracking.'
+  },
+  {
+    id: 'k9-002',
+    name: 'Shadow',
+    breed: 'Belgian Malinois',
+    gender: 'Male',
+    dob: '2023-01-20',
+    chipId: '985141002381922',
+    kennelNo: 'Kennel A-02 (Tactical Bay)',
+    dutyRole: 'Main Gate Security',
+    status: 'Active Duty',
+    handlerName: 'Sgt. John Kimani',
+    sire: 'Ares du Domaine',
+    dam: 'Viper vom Falken',
+    colorMarkings: 'Fawn with Dark Mask',
+    acquisitionDate: '2023-03-15',
+    notes: 'High drive, instant obedience, vehicle inspection specialist, quick response.'
+  },
+  {
+    id: 'k9-003',
+    name: 'Rex',
+    breed: 'Rottweiler (Working Stock)',
+    gender: 'Male',
+    dob: '2021-11-05',
+    chipId: '985141003492833',
+    kennelNo: 'Kennel B-01 (Heavy Guard)',
+    dutyRole: 'Compound Guard',
+    status: 'Active Duty',
+    handlerName: 'Cpl. Samuel Ndungu',
+    sire: 'Titan von der Burg',
+    dam: 'Hera vom Silbersee',
+    colorMarkings: 'Black & Rust Mahogany',
+    acquisitionDate: '2022-01-10',
+    notes: 'Imposing presence, protective instinct around farm equipment & warehouse stores.'
+  },
+  {
+    id: 'k9-004',
+    name: 'Simba',
+    breed: 'Boerboel (South African Mastiff)',
+    gender: 'Neutered Male',
+    dob: '2022-08-10',
+    chipId: '985141004510294',
+    kennelNo: 'Kennel B-02 (Night Watch)',
+    dutyRole: 'Night Watch',
+    status: 'Active Duty',
+    handlerName: 'Security Team Night Shift',
+    sire: 'Groot Karoo Bullet',
+    dam: 'Kalahari Zara',
+    colorMarkings: 'Red Fawn with Black Mask',
+    acquisitionDate: '2022-10-15',
+    notes: 'Stationed at dairy pens and calf nursery overnight. Calm demeanor until aroused.'
+  },
+  {
+    id: 'k9-005',
+    name: 'Bella',
+    breed: 'German Shepherd',
+    gender: 'Female',
+    dob: '2021-06-18',
+    chipId: '985141005629184',
+    kennelNo: 'Maternity Bay M-01',
+    dutyRole: 'Breeding Stock',
+    status: 'Active Duty',
+    handlerName: 'Dr. Devin Omwenga',
+    sire: 'Von Jagdfuchs Max',
+    dam: 'Greta von der Donau',
+    colorMarkings: 'Deep Black & Red',
+    acquisitionDate: '2021-08-20',
+    notes: 'Proven dam with outstanding drive and calm maternal temperament. Litter registered.'
+  },
+  {
+    id: 'k9-006',
+    name: 'Bruno',
+    breed: 'Doberman Pinscher',
+    gender: 'Male',
+    dob: '2023-09-01',
+    chipId: '985141006738291',
+    kennelNo: 'Kennel C-01 (Apprentice Block)',
+    dutyRole: 'Puppy in Training',
+    status: 'In Training',
+    handlerName: 'Officer Kevin O.',
+    sire: 'Major (K9-001)',
+    dam: 'Bella (K9-005)',
+    colorMarkings: 'Black & Tan',
+    acquisitionDate: '2023-11-01',
+    notes: 'Completing Phase 2 obedience and perimeter familiarization. Excellent agility.'
+  }
+];
+
+const DEFAULT_VACCINES: CanineVaccinationRecord[] = [
+  {
+    id: 'vax-01',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    vaccineType: 'Rabies',
+    dateAdministered: '2024-03-10',
+    nextDueDate: '2025-03-10',
+    batchNo: 'RAB-NOB-9921',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 1500,
+    notes: 'Annual mandatory Rabies booster administered sub-Q. No adverse reaction.'
+  },
+  {
+    id: 'vax-02',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    vaccineType: 'DHLPP 5-in-1',
+    dateAdministered: '2024-03-10',
+    nextDueDate: '2025-03-10',
+    batchNo: 'DHLPP-ZOET-441',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 2500,
+    notes: 'Multi-booster covering Parvovirus, Distemper, Adenovirus & Leptospirosis.'
+  },
+  {
+    id: 'vax-03',
+    dogId: 'k9-002',
+    dogName: 'Shadow',
+    vaccineType: 'Rabies',
+    dateAdministered: '2024-04-12',
+    nextDueDate: '2025-04-12',
+    batchNo: 'RAB-DEF-3810',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 1500,
+    notes: 'Annual Rabies booster.'
+  },
+  {
+    id: 'vax-04',
+    dogId: 'k9-003',
+    dogName: 'Rex',
+    vaccineType: 'Deworming',
+    dateAdministered: '2024-08-01',
+    nextDueDate: '2024-11-01',
+    batchNo: 'ENDOG-882B',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 800,
+    notes: 'Broad-spectrum Praziquantel + Pyrantel pamoate tablet administration.'
+  },
+  {
+    id: 'vax-05',
+    dogId: 'k9-004',
+    dogName: 'Simba',
+    vaccineType: 'Flea & Tick Prevention',
+    dateAdministered: '2024-09-05',
+    nextDueDate: '2024-10-05',
+    batchNo: 'BRAV-CHEW-11',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 3200,
+    notes: 'Oral chewable isoxazoline protection against African ticks and tick-fever.'
+  }
+];
+
+const DEFAULT_TREATMENTS: CanineTreatmentRecord[] = [
+  {
+    id: 'treat-01',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    date: '2024-07-14',
+    diagnosis: 'Minor Pad Laceration (Right Hind)',
+    symptoms: 'Mild lameness after thorny brush night patrol sweep along tea perimeter',
+    treatmentAdministered: 'Antiseptic lavage (Chlorhexidine), silver sulfadiazine ointment, protective bandage for 48h. Amoxicillin 500mg BID x 5 days.',
+    temperature: 38.6,
+    weightKg: 38.5,
+    attendingVet: 'Dr. Devin Omwenga (General Farm Manager / DVM)',
+    cost: 2200,
+    status: 'Recovered',
+    nextFollowUpDate: '2024-07-20',
+    notes: 'Complete recovery, full weight-bearing resumed, returned to patrol.'
+  },
+  {
+    id: 'treat-02',
+    dogId: 'k9-003',
+    dogName: 'Rex',
+    date: '2024-08-22',
+    diagnosis: 'Acute Otitis Externa (Bilateral Ear Infection)',
+    symptoms: 'Head shaking, brown discharge in ear canal, discomfort on palpation',
+    treatmentAdministered: 'Surolan ear drops (5 drops per ear BID for 7 days), ear cleaning with Cerumene.',
+    temperature: 38.8,
+    weightKg: 46.2,
+    attendingVet: 'Dr. Devin Omwenga (General Farm Manager / DVM)',
+    cost: 1800,
+    status: 'Recovered',
+    notes: 'Canals clear and healthy upon otoscopic re-examination.'
+  }
+];
+
+const DEFAULT_PATROLS: CaninePatrolRecord[] = [
+  {
+    id: 'patrol-01',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    handlerName: 'Officer Kevin O.',
+    date: '2024-09-24',
+    shift: 'Night Shift (18:00 - 06:00)',
+    patrolSector: 'North Boundary & Tea Zone',
+    incidentStatus: 'All Clear (Normal)',
+    durationMinutes: 720,
+    notes: 'Full perimeter sweep completed every 90 minutes. High alert response, no intrusions.'
+  },
+  {
+    id: 'patrol-02',
+    dogId: 'k9-002',
+    dogName: 'Shadow',
+    handlerName: 'Sgt. John Kimani',
+    date: '2024-09-24',
+    shift: 'Day Shift (06:00 - 18:00)',
+    patrolSector: 'Main Gate Sentry',
+    incidentStatus: 'All Clear (Normal)',
+    durationMinutes: 720,
+    notes: 'Screened 14 delivery vehicles and visitors. Immediate sit-stay obedience maintained.'
+  },
+  {
+    id: 'patrol-03',
+    dogId: 'k9-004',
+    dogName: 'Simba',
+    handlerName: 'Night Security Unit',
+    date: '2024-09-23',
+    shift: 'Night Shift (18:00 - 06:00)',
+    patrolSector: 'Livestock & Dairy Pens',
+    incidentStatus: 'Predator / Wildlife Alert',
+    incidentDetails: 'Deterred marauding stray dog pack and feral wildlife near calf holding pen.',
+    durationMinutes: 720,
+    notes: 'Bark deterrence successful, fence intact, calves secured without incident.'
+  }
+];
+
+const DEFAULT_TRAINING: CanineTrainingRecord[] = [
+  {
+    id: 'tr-01',
+    dogId: 'k9-002',
+    dogName: 'Shadow',
+    trainingDate: '2024-09-18',
+    discipline: 'Bite Work & Protection',
+    level: 'Level 4: Tactical Master',
+    scorePercentage: 96,
+    trainerName: 'Lead Trainer Kevin O.',
+    passed: true,
+    nextEvaluationDate: '2024-12-18',
+    notes: 'Flawless bite grip on sleeve, instantaneous release on verbal command ("Out").'
+  },
+  {
+    id: 'tr-02',
+    dogId: 'k9-006',
+    dogName: 'Bruno',
+    trainingDate: '2024-09-20',
+    discipline: 'Basic Obedience (Heel/Sit/Down)',
+    level: 'Level 1: Novice/Puppy',
+    scorePercentage: 88,
+    trainerName: 'Officer Kevin O.',
+    passed: true,
+    nextEvaluationDate: '2024-10-20',
+    notes: 'Demonstrated solid off-leash heel work and 3-minute stay with distractions.'
+  },
+  {
+    id: 'tr-03',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    trainingDate: '2024-09-15',
+    discipline: 'Scent & Tracking',
+    level: 'Level 3: Advanced Guard',
+    scorePercentage: 92,
+    trainerName: 'Sgt. John Kimani',
+    passed: true,
+    nextEvaluationDate: '2024-11-15',
+    notes: 'Successfully tracked 600m perimeter scent trial through tea bushes in damp conditions.'
+  }
+];
+
+const DEFAULT_FEEDING: CanineFeedingRecord[] = [
+  {
+    id: 'feed-01',
+    dogId: 'k9-001',
+    dogName: 'Major',
+    date: '2024-09-25',
+    dietType: 'High-Protein Kibble (28%)',
+    dailyGrams: 850,
+    feedingSchedule: 'Once Daily (Evening)',
+    bodyConditionScore: 5,
+    weightKg: 38.5,
+    dailyCostKes: 380,
+    appetite: 'Vigorous / Excellent',
+    notes: 'Fed post-patrol at 18:30. Water bowl refreshed with electrolyte replenishment.'
+  },
+  {
+    id: 'feed-02',
+    dogId: 'k9-003',
+    dogName: 'Rex',
+    date: '2024-09-25',
+    dietType: 'Raw Meat & Bones (BARF)',
+    dailyGrams: 1100,
+    feedingSchedule: 'Once Daily (Evening)',
+    bodyConditionScore: 5,
+    weightKg: 46.2,
+    dailyCostKes: 480,
+    appetite: 'Vigorous / Excellent',
+    notes: 'Raw beef heart, trachea, and calcium bone meal mix. Stool firm and normal.'
+  }
+];
+
+const DEFAULT_BREEDING: CanineBreedingRecord[] = [
+  {
+    id: 'breed-01',
+    damId: 'k9-005',
+    damName: 'Bella',
+    sireName: 'Major (K9-001 - German Shepherd)',
+    heatDate: '2024-04-10',
+    matingDate: '2024-04-22',
+    expectedWhelpingDate: '2024-06-24',
+    actualWhelpingDate: '2024-06-23',
+    litterSize: 7,
+    malesCount: 4,
+    femalesCount: 3,
+    puppySurvivingCount: 7,
+    veterinaryNotes: 'Natural whelping supervised by Dr. Devin Omwenga. All 7 pups healthy, vigorous nursing.',
+    status: 'Weaned',
+    notes: 'Litter fully weaned at 8 weeks. 2 pups retained for farm security roster; 5 reserved for sale.'
+  }
+];
+
+const DEFAULT_BIOSECURITY: CanineKennelBiosecurityRecord[] = [
+  {
+    id: 'bio-01',
+    kennelId: 'Kennel Block A (Patrol Run 01-04)',
+    inspectionDate: '2024-09-24',
+    sanitizedWith: 'Virkon-S Disinfectant',
+    beddingReplaced: true,
+    waterBowlsSterilized: true,
+    pestsControlled: true,
+    status: 'Passed & Certified',
+    inspectedBy: 'Dr. Devin Omwenga, DVM',
+    notes: 'Power-washed, Virkon-S 1:100 contact time 30 mins, cedar shavings bedding replaced.'
+  },
+  {
+    id: 'bio-02',
+    kennelId: 'Maternity & Nursery Bay M-01',
+    inspectionDate: '2024-09-23',
+    sanitizedWith: 'Virkon-S Disinfectant',
+    beddingReplaced: true,
+    waterBowlsSterilized: true,
+    pestsControlled: true,
+    status: 'Passed & Certified',
+    inspectedBy: 'Officer Kevin O.',
+    notes: 'Thermal lamps checked, infrared thermometer reading 24°C, sanitization verified.'
+  }
+];
+
+const DEFAULT_SALES: CanineSaleRecord[] = [
+  {
+    id: 'sale-01',
+    dogName: 'Thor (Sire: Major x Dam: Bella)',
+    breed: 'German Shepherd (Working Line)',
+    saleDate: '2024-08-28',
+    buyerName: 'Eng. Patrick Mutiso',
+    buyerPhone: '+254 722 345 678',
+    buyerLocation: 'Karen, Nairobi',
+    amount: 85000,
+    paymentMethod: 'Bank Transfer',
+    receiptNumber: 'JR-K9-REC-2024-01',
+    purpose: 'Security Guard Dog',
+    notes: 'Supplied with complete JR Farm Veterinary Health Passport, microchip registered, vaccinated.'
+  },
+  {
+    id: 'sale-02',
+    dogName: 'Zeus (Sire: Major x Dam: Bella)',
+    breed: 'German Shepherd (Working Line)',
+    saleDate: '2024-09-02',
+    buyerName: 'Naivasha Horticultural Logistics Ltd',
+    buyerPhone: '+254 733 987 654',
+    buyerLocation: 'Naivasha Flower Farm Perimeter',
+    amount: 95000,
+    paymentMethod: 'M-Pesa',
+    receiptNumber: 'JR-K9-REC-2024-02',
+    purpose: 'Security Guard Dog',
+    notes: 'Trained for high-alert night deterrence. Delivered with 30-day health guarantee.'
+  }
+];
+
+const DEFAULT_MORTALITY: CanineMortalityRecord[] = [
+  {
+    id: 'mort-01',
+    dogName: 'Baron (Honorary Veteran)',
+    breed: 'Rottweiler',
+    dateOfDeath: '2023-10-14',
+    causeOfDeath: 'Natural Old Age / Congestive Heart Failure',
+    veterinaryFindings: 'Attained age 11 years. Post-mortem revealed end-stage cardiomegaly without infectious signs.',
+    attendingVet: 'Dr. Devin Omwenga, DVM',
+    disposalMethod: 'Estate Burial',
+    biosecurityPrecautions: 'Deep pit burial (2.5 meters) in designated farm canine sanctuary with agricultural quicklime seal.',
+    notes: 'Served JR Farm honorably as lead estate sentry for 9 years.'
+  }
+];
 
 export function CaninesManager({
   staffList = [],
@@ -44,1505 +485,1499 @@ export function CaninesManager({
   const [breedFilter, setBreedFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Today string
-  const todayStr = toIsoDate(new Date());
+  // Selected dog for detailed Dossier modal
+  const [dossierDog, setDossierDog] = useState<DogProfile | null>(null);
 
-  // =========================================================================
-  // PERSISTENT CANINE STORAGE (localStorage with initial seed)
-  // =========================================================================
+  // Persistence State
   const [dogs, setDogs] = useState<DogProfile[]>(() => {
     try {
-      const saved = localStorage.getItem('jr_farm_canine_profiles');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const stored = localStorage.getItem(STORAGE_KEYS.PROFILES);
+      return stored ? JSON.parse(stored) : DEFAULT_DOGS;
+    } catch {
+      return DEFAULT_DOGS;
     }
-    // Seed dogs
-    return [
-      {
-        id: 'k9-01',
-        name: 'Major',
-        breed: 'German Shepherd (GSD)',
-        gender: 'Male',
-        dob: '2023-03-15',
-        chipId: 'K9-JR-8821',
-        kennelNo: 'Kennel A-01',
-        dutyRole: 'Perimeter Patrol',
-        status: 'Active Duty',
-        handlerName: 'Corporal Charles Ngetich',
-        sire: 'Thor vom Haus',
-        dam: 'Bella von Alpha',
-        colorMarkings: 'Black & Tan Saddle',
-        notes: 'High drive, excellent perimeter deterrence and obedience.'
-      },
-      {
-        id: 'k9-02',
-        name: 'Rex',
-        breed: 'German Shepherd (GSD)',
-        gender: 'Male',
-        dob: '2023-03-15',
-        chipId: 'K9-JR-8822',
-        kennelNo: 'Kennel A-02',
-        dutyRole: 'Night Watch',
-        status: 'Active Duty',
-        handlerName: 'Corporal Charles Ngetich',
-        sire: 'Thor vom Haus',
-        dam: 'Bella von Alpha',
-        colorMarkings: 'Sable',
-        notes: 'Assigned to night patrols around milking parlor and fodder store.'
-      },
-      {
-        id: 'k9-03',
-        name: 'Bruno',
-        breed: 'Rottweiler',
-        gender: 'Neutered Male',
-        dob: '2022-07-20',
-        chipId: 'K9-JR-7419',
-        kennelNo: 'Kennel B-01',
-        dutyRole: 'Main Gate Security',
-        status: 'Active Duty',
-        handlerName: 'David Koech',
-        sire: 'Maximus King',
-        dam: 'Roxie Queen',
-        colorMarkings: 'Black & Mahogany',
-        notes: 'Stationed at primary farm entrance. Calm temperament, fierce guardian.'
-      },
-      {
-        id: 'k9-04',
-        name: 'Simba',
-        breed: 'Boerboel',
-        gender: 'Male',
-        dob: '2024-01-10',
-        chipId: 'K9-JR-9104',
-        kennelNo: 'Kennel C-01',
-        dutyRole: 'Livestock Guardian',
-        status: 'In Training',
-        handlerName: 'David Koech',
-        sire: 'Goliath South',
-        dam: 'Zara Shield',
-        colorMarkings: 'Fawn with Black Mask',
-        notes: 'Under training for pasture herd protection against night predators.'
-      }
-    ];
   });
 
-  useEffect(() => {
+  const [vaccines, setVaccines] = useState<CanineVaccinationRecord[]>(() => {
     try {
-      localStorage.setItem('jr_farm_canine_profiles', JSON.stringify(dogs));
-    } catch (e) {
-      console.error('Failed to save dogs to localStorage', e);
+      const stored = localStorage.getItem(STORAGE_KEYS.VACCINES);
+      return stored ? JSON.parse(stored) : DEFAULT_VACCINES;
+    } catch {
+      return DEFAULT_VACCINES;
     }
-  }, [dogs]);
-
-  // Vaccinations & Deworming records
-  const [vaccinations, setVaccinations] = useState<CanineVaccinationRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('jr_farm_canine_vaccinations');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-    return [
-      {
-        id: 'vax-01',
-        dogId: 'k9-01',
-        dogName: 'Major',
-        vaccineType: 'Rabies',
-        dateAdministered: offsetIsoDate(-60),
-        nextDueDate: offsetIsoDate(305),
-        batchNo: 'RAB-2026-X8',
-        administeredBy: 'Dr. Devin Omwenga (DVM)',
-        cost: 1500,
-        notes: 'Annual mandatory Rabies vaccine administered subcutaneously.'
-      },
-      {
-        id: 'vax-02',
-        dogId: 'k9-01',
-        dogName: 'Major',
-        vaccineType: 'Deworming',
-        dateAdministered: offsetIsoDate(-75),
-        nextDueDate: offsetIsoDate(15),
-        batchNo: 'PRZ-902',
-        administeredBy: 'Dr. Devin Omwenga (DVM)',
-        cost: 600,
-        notes: 'Praziquantel oral broad-spectrum tablet.'
-      },
-      {
-        id: 'vax-03',
-        dogId: 'k9-02',
-        dogName: 'Rex',
-        vaccineType: 'DHLPP 5-in-1',
-        dateAdministered: offsetIsoDate(-40),
-        nextDueDate: offsetIsoDate(325),
-        batchNo: 'DHLPP-8812',
-        administeredBy: 'Dr. Devin Omwenga (DVM)',
-        cost: 2500,
-        notes: 'Parvovirus, Distemper, Hepatitis multi-booster.'
-      },
-      {
-        id: 'vax-04',
-        dogId: 'k9-03',
-        dogName: 'Bruno',
-        vaccineType: 'Deworming',
-        dateAdministered: offsetIsoDate(-85),
-        nextDueDate: offsetIsoDate(5),
-        batchNo: 'PRZ-902',
-        administeredBy: 'Dr. Devin Omwenga (DVM)',
-        cost: 600,
-        notes: 'Quarterly routine deworming.'
-      }
-    ];
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_canine_vaccinations', JSON.stringify(vaccinations));
-    } catch (e) {
-      console.error('Failed to save vaccinations', e);
-    }
-  }, [vaccinations]);
-
-  // Clinical Treatments records
   const [treatments, setTreatments] = useState<CanineTreatmentRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('jr_farm_canine_treatments');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const stored = localStorage.getItem(STORAGE_KEYS.TREATMENTS);
+      return stored ? JSON.parse(stored) : DEFAULT_TREATMENTS;
+    } catch {
+      return DEFAULT_TREATMENTS;
     }
-    return [
-      {
-        id: 'tx-01',
-        dogId: 'k9-01',
-        dogName: 'Major',
-        date: offsetIsoDate(-10),
-        diagnosis: 'Minor paw pad laceration from perimeter fence wire',
-        symptoms: 'Mild limping on right forelimb, slight bleeding',
-        treatmentAdministered: 'Antiseptic chlorhexidine scrub, wound sutured (2 nylon stitches), Betamox LA injection',
-        temperature: 38.6,
-        weightKg: 36.5,
-        attendingVet: 'Dr. Devin Omwenga (DVM)',
-        cost: 2200,
-        status: 'Recovered',
-        notes: 'Wound fully healed, stitches removed, back on full duty.'
-      },
-      {
-        id: 'tx-02',
-        dogId: 'k9-04',
-        dogName: 'Simba',
-        date: offsetIsoDate(-3),
-        diagnosis: 'Mild gastrointestinal upset / diet change adaptation',
-        symptoms: 'Loose stool, slight lethargy, normal appetite',
-        treatmentAdministered: 'Probiotic paste (Canikur) + Oral rehydration salts + bland rice and boiled chicken diet',
-        temperature: 38.9,
-        weightKg: 42.0,
-        attendingVet: 'Dr. Devin Omwenga (DVM)',
-        cost: 1400,
-        status: 'Under Treatment',
-        nextFollowUpDate: offsetIsoDate(2),
-        notes: 'Improving well, stool firming up, active.'
-      }
-    ];
   });
 
-  useEffect(() => {
+  const [patrols, setPatrols] = useState<CaninePatrolRecord[]>(() => {
     try {
-      localStorage.setItem('jr_farm_canine_treatments', JSON.stringify(treatments));
-    } catch (e) {
-      console.error('Failed to save treatments', e);
+      const stored = localStorage.getItem(STORAGE_KEYS.PATROLS);
+      return stored ? JSON.parse(stored) : DEFAULT_PATROLS;
+    } catch {
+      return DEFAULT_PATROLS;
     }
-  }, [treatments]);
+  });
 
-  // Canine Sales & Placements
+  const [training, setTraining] = useState<CanineTrainingRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.TRAINING);
+      return stored ? JSON.parse(stored) : DEFAULT_TRAINING;
+    } catch {
+      return DEFAULT_TRAINING;
+    }
+  });
+
+  const [feeding, setFeeding] = useState<CanineFeedingRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.FEEDING);
+      return stored ? JSON.parse(stored) : DEFAULT_FEEDING;
+    } catch {
+      return DEFAULT_FEEDING;
+    }
+  });
+
+  const [breeding, setBreeding] = useState<CanineBreedingRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.BREEDING);
+      return stored ? JSON.parse(stored) : DEFAULT_BREEDING;
+    } catch {
+      return DEFAULT_BREEDING;
+    }
+  });
+
+  const [biosecurity, setBiosecurity] = useState<CanineKennelBiosecurityRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.BIOSECURITY);
+      return stored ? JSON.parse(stored) : DEFAULT_BIOSECURITY;
+    } catch {
+      return DEFAULT_BIOSECURITY;
+    }
+  });
+
   const [sales, setSales] = useState<CanineSaleRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('jr_farm_canine_sales');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const stored = localStorage.getItem(STORAGE_KEYS.SALES);
+      return stored ? JSON.parse(stored) : DEFAULT_SALES;
+    } catch {
+      return DEFAULT_SALES;
     }
-    return [
-      {
-        id: 'sale-01',
-        dogName: 'K-9 Kaiser',
-        breed: 'German Shepherd (GSD)',
-        saleDate: offsetIsoDate(-45),
-        buyerName: 'Kipchoge Security Services Ltd',
-        buyerPhone: '+254 722 890 123',
-        buyerLocation: 'Kericho Tea Hub',
-        amount: 85000,
-        paymentMethod: 'Bank Transfer',
-        receiptNumber: 'K9-INV-2026-001',
-        purpose: 'Security Guard Dog',
-        notes: 'Fully trained obedience & perimeter deterrence officer. Microchipped and vaccinated.'
-      }
-    ];
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_canine_sales', JSON.stringify(sales));
-    } catch (e) {
-      console.error('Failed to save sales', e);
-    }
-  }, [sales]);
-
-  // Canine Mortality & Post-Mortem Records
   const [mortalities, setMortalities] = useState<CanineMortalityRecord[]>(() => {
     try {
-      const saved = localStorage.getItem('jr_farm_canine_mortality');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
+      const stored = localStorage.getItem(STORAGE_KEYS.MORTALITY);
+      return stored ? JSON.parse(stored) : DEFAULT_MORTALITY;
+    } catch {
+      return DEFAULT_MORTALITY;
     }
-    return [];
   });
 
+  // Sync to LocalStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_canine_mortality', JSON.stringify(mortalities));
-    } catch (e) {
-      console.error('Failed to save mortalities', e);
-    }
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(dogs));
+  }, [dogs]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VACCINES, JSON.stringify(vaccines));
+  }, [vaccines]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.TREATMENTS, JSON.stringify(treatments));
+  }, [treatments]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PATROLS, JSON.stringify(patrols));
+  }, [patrols]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.TRAINING, JSON.stringify(training));
+  }, [training]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FEEDING, JSON.stringify(feeding));
+  }, [feeding]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.BREEDING, JSON.stringify(breeding));
+  }, [breeding]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.BIOSECURITY, JSON.stringify(biosecurity));
+  }, [biosecurity]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
+  }, [sales]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.MORTALITY, JSON.stringify(mortalities));
   }, [mortalities]);
 
   // Modals state
-  const [showAddDogModal, setShowAddDogModal] = useState(false);
-  const [editingDog, setEditingDog] = useState<DogProfile | null>(null);
-  const [selectedDogDossier, setSelectedDogDossier] = useState<DogProfile | null>(null);
-  const [showAddVaxModal, setShowAddVaxModal] = useState(false);
-  const [preselectedVaxDogId, setPreselectedVaxDogId] = useState<string>('');
-  const [showAddTxModal, setShowAddTxModal] = useState(false);
-  const [preselectedTxDogId, setPreselectedTxDogId] = useState<string>('');
-  const [showAddSaleModal, setShowAddSaleModal] = useState(false);
-  const [showAddMortalityModal, setShowAddMortalityModal] = useState(false);
+  const [modalType, setModalType] = useState<
+    | 'dog'
+    | 'vaccine'
+    | 'treatment'
+    | 'patrol'
+    | 'training'
+    | 'feeding'
+    | 'breeding'
+    | 'biosecurity'
+    | 'sale'
+    | 'mortality'
+    | null
+  >(null);
 
-  // Add / Edit Dog Form State
-  const [dogName, setDogName] = useState('');
-  const [dogBreed, setDogBreed] = useState('German Shepherd (GSD)');
-  const [dogGender, setDogGender] = useState<'Male' | 'Female' | 'Neutered Male' | 'Spayed Female'>('Male');
-  const [dogDob, setDogDob] = useState(() => offsetIsoDate(-365));
-  const [dogChip, setDogChip] = useState('');
-  const [dogKennel, setDogKennel] = useState('Kennel A-01');
-  const [dogRole, setDogRole] = useState<'Perimeter Patrol' | 'Main Gate Security' | 'Night Watch' | 'Livestock Guardian' | 'Compound Guard' | 'Breeding Stock' | 'Puppy in Training'>('Perimeter Patrol');
-  const [dogStatus, setDogStatus] = useState<'Active Duty' | 'In Training' | 'Medical Rest' | 'Off Duty' | 'Sold' | 'Deceased'>('Active Duty');
-  const [dogHandler, setDogHandler] = useState('');
-  const [dogSire, setDogSire] = useState('');
-  const [dogDam, setDogDam] = useState('');
-  const [dogMarkings, setDogMarkings] = useState('');
-  const [dogNotes, setDogNotes] = useState('');
+  const [editingItem, setEditingItem] = useState<any>(null);
 
-  // Add Vaccination Form State
-  const [vaxDogId, setVaxDogId] = useState('');
-  const [vaxType, setVaxType] = useState<'Rabies' | 'DHLPP 5-in-1' | 'Deworming' | 'Flea & Tick Prevention' | 'Parvovirus Booster' | 'Kennel Cough (Bordetella)' | 'Other'>('Rabies');
-  const [vaxDate, setVaxDate] = useState(todayStr);
-  const [vaxNextDue, setVaxNextDue] = useState(() => offsetIsoDate(365));
-  const [vaxBatch, setVaxBatch] = useState('');
-  const [vaxAdminBy, setVaxAdminBy] = useState('Dr. Devin Omwenga (DVM)');
-  const [vaxCost, setVaxCost] = useState('');
-  const [vaxNotes, setVaxNotes] = useState('');
+  // Form states
+  // 1. Dog Form
+  const [dogForm, setDogForm] = useState<Partial<DogProfile>>({
+    name: '',
+    breed: 'German Shepherd (East German Line)',
+    gender: 'Male',
+    dob: toIsoDate(new Date()),
+    chipId: '',
+    kennelNo: 'Kennel A-01',
+    dutyRole: 'Perimeter Patrol',
+    status: 'Active Duty',
+    handlerName: 'Officer Kevin O. (Lead K-9 Handler)',
+    sire: '',
+    dam: '',
+    colorMarkings: '',
+    notes: ''
+  });
 
-  // Add Treatment Form State
-  const [txDogId, setTxDogId] = useState('');
-  const [txDate, setTxDate] = useState(todayStr);
-  const [txDiagnosis, setTxDiagnosis] = useState('');
-  const [txSymptoms, setTxSymptoms] = useState('');
-  const [txMedication, setTxMedication] = useState('');
-  const [txTemp, setTxTemp] = useState('38.5');
-  const [txWeight, setTxWeight] = useState('35.0');
-  const [txVet, setTxVet] = useState('Dr. Devin Omwenga (DVM)');
-  const [txCost, setTxCost] = useState('');
-  const [txStatus, setTxStatus] = useState<'Recovered' | 'Under Treatment' | 'Critical' | 'Scheduled Follow-up'>('Recovered');
-  const [txNextFollowUp, setTxNextFollowUp] = useState('');
-  const [txNotes, setTxNotes] = useState('');
+  // 2. Vaccine Form
+  const [vaxForm, setVaxForm] = useState<Partial<CanineVaccinationRecord>>({
+    dogId: '',
+    dogName: '',
+    vaccineType: 'Rabies',
+    dateAdministered: toIsoDate(new Date()),
+    nextDueDate: offsetIsoDate(365),
+    batchNo: '',
+    administeredBy: 'Dr. Devin Omwenga, DVM',
+    cost: 1500,
+    notes: ''
+  });
 
-  // Add Sale Form State
-  const [saleDogId, setSaleDogId] = useState('');
-  const [saleDogName, setSaleDogName] = useState('');
-  const [saleBreed, setSaleBreed] = useState('German Shepherd (GSD)');
-  const [saleDate, setSaleDate] = useState(todayStr);
-  const [saleBuyer, setSaleBuyer] = useState('');
-  const [salePhone, setSalePhone] = useState('');
-  const [saleLocation, setSaleLocation] = useState('');
-  const [saleAmount, setSaleAmount] = useState('75000');
-  const [salePaymentMethod, setSalePaymentMethod] = useState<'Cash' | 'M-Pesa' | 'Bank Transfer'>('M-Pesa');
-  const [saleReceipt, setSaleReceipt] = useState('');
-  const [salePurpose, setSalePurpose] = useState<'Security Guard Dog' | 'Trained Family Pet' | 'Breeding' | 'Working Livestock Guardian'>('Security Guard Dog');
-  const [saleAutoFinance, setSaleAutoFinance] = useState(true);
-  const [saleNotes, setSaleNotes] = useState('');
+  // 3. Treatment Form
+  const [treatForm, setTreatForm] = useState<Partial<CanineTreatmentRecord>>({
+    dogId: '',
+    dogName: '',
+    date: toIsoDate(new Date()),
+    diagnosis: '',
+    symptoms: '',
+    treatmentAdministered: '',
+    temperature: 38.5,
+    weightKg: 35,
+    attendingVet: 'Dr. Devin Omwenga (General Farm Manager / DVM)',
+    cost: 2000,
+    status: 'Recovered',
+    nextFollowUpDate: '',
+    notes: ''
+  });
 
-  // Add Mortality Form State
-  const [mortDogId, setMortDogId] = useState('');
-  const [mortDogName, setMortDogName] = useState('');
-  const [mortBreed, setMortBreed] = useState('');
-  const [mortDate, setMortDate] = useState(todayStr);
-  const [mortCause, setMortCause] = useState('Acute Illness');
-  const [mortFindings, setMortFindings] = useState('');
-  const [mortVet, setMortVet] = useState('Dr. Devin Omwenga (DVM)');
-  const [mortDisposal, setMortDisposal] = useState<'Estate Burial' | 'Incineration' | 'Sanitary Disposal'>('Estate Burial');
-  const [mortBiosecurity, setMortBiosecurity] = useState('Kennel bleached with Virkon S, quarantine perimeter observed');
-  const [mortNotes, setMortNotes] = useState('');
+  // 4. Patrol Form
+  const [patrolForm, setPatrolForm] = useState<Partial<CaninePatrolRecord>>({
+    dogId: '',
+    dogName: '',
+    handlerName: 'Officer Kevin O.',
+    date: toIsoDate(new Date()),
+    shift: 'Night Shift (18:00 - 06:00)',
+    patrolSector: 'North Boundary & Tea Zone',
+    incidentStatus: 'All Clear (Normal)',
+    durationMinutes: 720,
+    incidentDetails: '',
+    notes: ''
+  });
 
-  // Security Handlers from staffList
-  const securityStaff = useMemo(() => {
-    return staffList.filter((s) => s.unit === 'Security' || s.role?.toLowerCase()?.includes('guard') || s.role?.toLowerCase()?.includes('security'));
-  }, [staffList]);
+  // 5. Training Form
+  const [trForm, setTrForm] = useState<Partial<CanineTrainingRecord>>({
+    dogId: '',
+    dogName: '',
+    trainingDate: toIsoDate(new Date()),
+    discipline: 'Bite Work & Protection',
+    level: 'Level 3: Advanced Guard',
+    scorePercentage: 90,
+    trainerName: 'Officer Kevin O.',
+    passed: true,
+    nextEvaluationDate: offsetIsoDate(90),
+    notes: ''
+  });
 
-  // =========================================================================
-  // VACCINE EXPIRY & OVERDUE HELPERS
-  // =========================================================================
-  const getVaccineStatus = (dogId: string) => {
-    const dogVaxes = vaccinations.filter((v) => v.dogId === dogId);
-    if (dogVaxes.length === 0) return { status: 'Unvaccinated', label: 'No vaccines logged', color: 'rose' };
+  // 6. Feeding Form
+  const [feedForm, setFeedForm] = useState<Partial<CanineFeedingRecord>>({
+    dogId: '',
+    dogName: '',
+    date: toIsoDate(new Date()),
+    dietType: 'High-Protein Kibble (28%)',
+    dailyGrams: 850,
+    feedingSchedule: 'Once Daily (Evening)',
+    bodyConditionScore: 5,
+    weightKg: 38,
+    dailyCostKes: 380,
+    appetite: 'Vigorous / Excellent',
+    notes: ''
+  });
 
-    const overdue = dogVaxes.some((v) => v.nextDueDate < todayStr);
-    if (overdue) return { status: 'Overdue', label: '⚠️ Vaccine / Booster Overdue', color: 'rose' };
+  // 7. Breeding Form
+  const [breedForm, setBreedForm] = useState<Partial<CanineBreedingRecord>>({
+    damId: '',
+    damName: '',
+    sireName: '',
+    heatDate: toIsoDate(new Date()),
+    matingDate: toIsoDate(new Date()),
+    expectedWhelpingDate: offsetIsoDate(63),
+    status: 'Mated / Pregnant',
+    litterSize: 0,
+    malesCount: 0,
+    femalesCount: 0,
+    veterinaryNotes: '',
+    notes: ''
+  });
 
-    const dueSoon = dogVaxes.some((v) => v.nextDueDate >= todayStr && v.nextDueDate <= offsetIsoDate(14));
-    if (dueSoon) return { status: 'DueSoon', label: '🔔 Booster Due Within 14d', color: 'amber' };
+  // 8. Biosecurity Form
+  const [bioForm, setBioForm] = useState<Partial<CanineKennelBiosecurityRecord>>({
+    kennelId: 'Kennel Block A (Patrol Run)',
+    inspectionDate: toIsoDate(new Date()),
+    sanitizedWith: 'Virkon-S Disinfectant',
+    beddingReplaced: true,
+    waterBowlsSterilized: true,
+    pestsControlled: true,
+    status: 'Passed & Certified',
+    inspectedBy: 'Dr. Devin Omwenga, DVM',
+    notes: ''
+  });
 
-    return { status: 'Current', label: '✓ All Vaccines Up-to-Date', color: 'emerald' };
+  // 9. Sale Form
+  const [saleForm, setSaleForm] = useState<Partial<CanineSaleRecord>>({
+    dogId: '',
+    dogName: '',
+    breed: 'German Shepherd',
+    saleDate: toIsoDate(new Date()),
+    buyerName: '',
+    buyerPhone: '',
+    buyerLocation: '',
+    amount: 85000,
+    paymentMethod: 'Bank Transfer',
+    receiptNumber: `JR-K9-${Date.now().toString().slice(-4)}`,
+    purpose: 'Security Guard Dog',
+    notes: ''
+  });
+  const [syncSaleToFinancials, setSyncSaleToFinancials] = useState(true);
+
+  // 10. Mortality Form
+  const [mortForm, setMortForm] = useState<Partial<CanineMortalityRecord>>({
+    dogId: '',
+    dogName: '',
+    breed: 'German Shepherd',
+    dateOfDeath: toIsoDate(new Date()),
+    causeOfDeath: '',
+    veterinaryFindings: '',
+    attendingVet: 'Dr. Devin Omwenga, DVM',
+    disposalMethod: 'Estate Burial',
+    biosecurityPrecautions: 'Deep sanitary pit with agricultural quicklime biosecurity seal.',
+    notes: ''
+  });
+
+  // CSV Exporters
+  const exportDogsCsv = () => {
+    const headers = ['Name', 'Breed', 'Gender', 'DOB', 'Chip ID', 'Kennel', 'Role', 'Status', 'Handler'];
+    const rows = filteredDogs.map(d => [
+      d.name, d.breed, d.gender, d.dob, d.chipId || '', d.kennelNo || '', d.dutyRole, d.status, d.handlerName || ''
+    ]);
+    exportToCsv('JR_Farm_Canine_Registry.csv', headers, rows);
   };
 
-  // KPIs
-  const totalDogsCount = dogs.length;
-  const activeDutyCount = dogs.filter((d) => d.status === 'Active Duty').length;
-  const trainingCount = dogs.filter((d) => d.status === 'In Training').length;
-  const medicalRestCount = dogs.filter((d) => d.status === 'Medical Rest').length;
-  const overdueVaxCount = dogs.filter((d) => getVaccineStatus(d.id).status === 'Overdue').length;
+  const exportVaccinesCsv = () => {
+    const headers = ['Canine Name', 'Vaccine Target', 'Date Administered', 'Next Due Date', 'Batch No', 'Administered By', 'Cost (KES)'];
+    const rows = vaccines.map(v => [
+      v.dogName, v.vaccineType, v.dateAdministered, v.nextDueDate, v.batchNo || '', v.administeredBy, v.cost || 0
+    ]);
+    exportToCsv('JR_Farm_Canine_Vaccinations.csv', headers, rows);
+  };
+
+  const exportTreatmentsCsv = () => {
+    const headers = ['Canine Name', 'Date', 'Diagnosis', 'Symptoms', 'Treatment', 'Temp (C)', 'Weight (kg)', 'Status', 'Attending Vet'];
+    const rows = treatments.map(t => [
+      t.dogName, t.date, t.diagnosis, t.symptoms || '', t.treatmentAdministered, t.temperature || '', t.weightKg || '', t.status, t.attendingVet
+    ]);
+    exportToCsv('JR_Farm_Canine_Treatments.csv', headers, rows);
+  };
+
+  // Helpers
+  const calculateAge = (dobString?: string) => {
+    if (!dobString) return 'Unknown';
+    const dob = new Date(dobString);
+    if (isNaN(dob.getTime())) return 'Unknown';
+    const now = new Date();
+    const months = (now.getFullYear() - dob.getFullYear()) * 12 + (now.getMonth() - dob.getMonth());
+    if (months < 1) return '< 1 month';
+    if (months < 12) return `${months} mo`;
+    const years = Math.floor(months / 12);
+    const remMonths = months % 12;
+    return remMonths > 0 ? `${years}y ${remMonths}m` : `${years} yrs`;
+  };
+
+  const isDueOrOverdue = (dueDateStr?: string) => {
+    if (!dueDateStr) return false;
+    const due = new Date(dueDateStr).getTime();
+    const now = new Date().getTime();
+    const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    return diffDays <= 14;
+  };
+
+  const getDueStatusText = (dueDateStr?: string) => {
+    if (!dueDateStr) return 'No Date';
+    const due = new Date(dueDateStr).getTime();
+    const now = new Date().getTime();
+    const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return `⚠️ Overdue by ${Math.abs(diffDays)}d`;
+    if (diffDays === 0) return '🚨 Due Today!';
+    if (diffDays <= 14) return `⏰ Due in ${diffDays}d`;
+    return `Upcoming in ${diffDays}d`;
+  };
+
+  // KPI Calculations
+  const stats = useMemo(() => {
+    const totalDogs = dogs.length;
+    const activeDuty = dogs.filter(d => d.status === 'Active Duty').length;
+    const inTraining = dogs.filter(d => d.status === 'In Training').length;
+    const overdueVax = vaccines.filter(v => isDueOrOverdue(v.nextDueDate)).length;
+    const totalPatrolsCount = patrols.length;
+    const totalSalesKes = sales.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const avgScore = training.length > 0 
+      ? Math.round(training.reduce((a, b) => a + (b.scorePercentage || 0), 0) / training.length) 
+      : 0;
+
+    return {
+      totalDogs,
+      activeDuty,
+      inTraining,
+      overdueVax,
+      totalPatrolsCount,
+      totalSalesKes,
+      avgScore
+    };
+  }, [dogs, vaccines, patrols, sales, training]);
 
   // Filtered Dogs
   const filteredDogs = useMemo(() => {
-    return dogs.filter((d) => {
+    return dogs.filter(dog => {
       const matchSearch =
-        d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (d.chipId && d.chipId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (d.handlerName && d.handlerName.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchBreed = breedFilter === 'all' || d.breed === breedFilter;
-      const matchStatus = statusFilter === 'all' || d.status === statusFilter;
+        dog.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        dog.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (dog.chipId && dog.chipId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (dog.handlerName && dog.handlerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (dog.kennelNo && dog.kennelNo.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchBreed = breedFilter === 'all' || dog.breed.toLowerCase().includes(breedFilter.toLowerCase());
+      const matchStatus = statusFilter === 'all' || dog.status === statusFilter;
+
       return matchSearch && matchBreed && matchStatus;
     });
   }, [dogs, searchTerm, breedFilter, statusFilter]);
 
-  // Auto-calculate next due date when vaccine type changes
-  const handleVaxTypeChange = (type: any) => {
-    setVaxType(type);
-    if (type === 'Deworming') {
-      setVaxNextDue(offsetIsoDate(90, new Date(vaxDate)));
-    } else if (type === 'Flea & Tick Prevention') {
-      setVaxNextDue(offsetIsoDate(30, new Date(vaxDate)));
-    } else {
-      setVaxNextDue(offsetIsoDate(365, new Date(vaxDate)));
-    }
+  // Handlers for Add / Edit
+  const handleOpenAddDog = () => {
+    setEditingItem(null);
+    setDogForm({
+      name: '',
+      breed: 'German Shepherd (East German Line)',
+      gender: 'Male',
+      dob: toIsoDate(new Date()),
+      chipId: `98514100${Math.floor(1000000 + Math.random() * 9000000)}`,
+      kennelNo: 'Kennel A-01',
+      dutyRole: 'Perimeter Patrol',
+      status: 'Active Duty',
+      handlerName: staffList.length > 0 ? staffList[0].name : 'Officer Kevin O.',
+      sire: '',
+      dam: '',
+      colorMarkings: '',
+      notes: ''
+    });
+    setModalType('dog');
   };
 
-  // =========================================================================
-  // SUBMIT HANDLERS
-  // =========================================================================
+  const handleEditDog = (dog: DogProfile) => {
+    setEditingItem(dog);
+    setDogForm(dog);
+    setModalType('dog');
+  };
+
   const handleSaveDog = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dogName.trim()) {
-      alert('Please enter canine official name.');
-      return;
-    }
+    if (!dogForm.name) return;
 
-    if (editingDog) {
-      setDogs(
-        dogs.map((d) =>
-          d.id === editingDog.id
-            ? {
-                ...d,
-                name: dogName.trim(),
-                breed: dogBreed,
-                gender: dogGender,
-                dob: dogDob,
-                chipId: dogChip.trim() || undefined,
-                kennelNo: dogKennel.trim() || undefined,
-                dutyRole: dogRole,
-                status: dogStatus,
-                handlerName: dogHandler.trim() || undefined,
-                sire: dogSire.trim() || undefined,
-                dam: dogDam.trim() || undefined,
-                colorMarkings: dogMarkings.trim() || undefined,
-                notes: dogNotes.trim() || undefined
-              }
-            : d
-        )
-      );
-      setEditingDog(null);
-      alert(`✓ Updated profile for ${dogName.trim()} successfully!`);
+    if (editingItem) {
+      setDogs(prev => prev.map(d => d.id === editingItem.id ? { ...d, ...dogForm } as DogProfile : d));
     } else {
       const newDog: DogProfile = {
-        id: `k9-${Date.now()}`,
-        name: dogName.trim(),
-        breed: dogBreed,
-        gender: dogGender,
-        dob: dogDob,
-        chipId: dogChip.trim() || `K9-JR-${Math.floor(1000 + Math.random() * 9000)}`,
-        kennelNo: dogKennel.trim() || 'Kennel A-01',
-        dutyRole: dogRole,
-        status: dogStatus,
-        handlerName: dogHandler.trim() || undefined,
-        sire: dogSire.trim() || undefined,
-        dam: dogDam.trim() || undefined,
-        colorMarkings: dogMarkings.trim() || undefined,
-        acquisitionDate: todayStr,
-        notes: dogNotes.trim() || undefined
-      };
-      setDogs([newDog, ...dogs]);
+        ...dogForm,
+        id: `k9-${Date.now().toString().slice(-4)}`
+      } as DogProfile;
+      setDogs(prev => [newDog, ...prev]);
 
-      // Sync with generic livestock records if needed
+      // Backwards compatibility with generic livestock ledger
       if (onAddLivestock) {
         onAddLivestock({
           type: 'Dogs',
           name: newDog.name,
-          countOrBreed: newDog.breed,
-          activity: `Registered into Canine Unit (${newDog.dutyRole})`,
-          notes: newDog.notes || 'Official security guard dog record',
-          date: todayStr
+          countOrBreed: `${newDog.breed} (Chip: ${newDog.chipId || 'N/A'})`,
+          activity: `K-9 Registered: ${newDog.dutyRole}`,
+          date: toIsoDate(new Date()),
+          notes: `Kennel: ${newDog.kennelNo || 'Main'} | Handler: ${newDog.handlerName || 'Security Unit'}`
         });
       }
+    }
+    setModalType(null);
+  };
 
-      setShowAddDogModal(false);
-      resetDogForm();
-      alert(`✓ Registered K-9 officer ${newDog.name} into JR Farm Security Unit!`);
+  const handleDeleteDog = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to remove canine ${name} from registry?`)) {
+      setDogs(prev => prev.filter(d => d.id !== id));
+      if (dossierDog?.id === id) setDossierDog(null);
     }
   };
 
-  const resetDogForm = () => {
-    setDogName('');
-    setDogBreed('German Shepherd (GSD)');
-    setDogGender('Male');
-    setDogDob(offsetIsoDate(-365));
-    setDogChip('');
-    setDogKennel('Kennel A-01');
-    setDogRole('Perimeter Patrol');
-    setDogStatus('Active Duty');
-    setDogHandler('');
-    setDogSire('');
-    setDogDam('');
-    setDogMarkings('');
-    setDogNotes('');
-  };
-
-  const handleOpenEditDog = (dog: DogProfile) => {
-    setEditingDog(dog);
-    setDogName(dog.name);
-    setDogBreed(dog.breed);
-    setDogGender(dog.gender);
-    setDogDob(dog.dob);
-    setDogChip(dog.chipId || '');
-    setDogKennel(dog.kennelNo || '');
-    setDogRole(dog.dutyRole);
-    setDogStatus(dog.status);
-    setDogHandler(dog.handlerName || '');
-    setDogSire(dog.sire || '');
-    setDogDam(dog.dam || '');
-    setDogMarkings(dog.colorMarkings || '');
-    setDogNotes(dog.notes || '');
-  };
-
-  // Submit Vaccination
-  const handleSaveVaccination = (e: React.FormEvent) => {
+  // Vaccine save
+  const handleSaveVaccine = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetDog = dogs.find((d) => d.id === vaxDogId) || dogs[0];
-    if (!targetDog) {
-      alert('Please register a dog first.');
-      return;
-    }
+    if (!vaxForm.dogName) return;
 
     const newVax: CanineVaccinationRecord = {
-      id: `vax-${Date.now()}`,
-      dogId: targetDog.id,
-      dogName: targetDog.name,
-      vaccineType: vaxType,
-      dateAdministered: vaxDate,
-      nextDueDate: vaxNextDue,
-      batchNo: vaxBatch.trim() || undefined,
-      administeredBy: vaxAdminBy.trim() || 'Dr. Devin Omwenga (DVM)',
-      cost: vaxCost ? Number(vaxCost) : undefined,
-      notes: vaxNotes.trim() || 'Standard preventive veterinary immunization'
-    };
+      ...vaxForm,
+      id: `vax-${Date.now().toString().slice(-4)}`
+    } as CanineVaccinationRecord;
 
-    setVaccinations([newVax, ...vaccinations]);
-    setShowAddVaxModal(false);
-    setVaxNotes('');
-    setVaxBatch('');
-    setVaxCost('');
-    alert(`✓ Logged ${vaxType} for ${targetDog.name}. Next booster scheduled for ${vaxNextDue}.`);
+    setVaccines(prev => [newVax, ...prev]);
+    setModalType(null);
+
+    // Also log in livestock general ledger
+    if (onAddLivestock) {
+      onAddLivestock({
+        type: 'Dogs',
+        name: newVax.dogName,
+        countOrBreed: `Canine Immunization (${newVax.vaccineType})`,
+        activity: `Vaccinated: ${newVax.vaccineType} (Due: ${newVax.nextDueDate})`,
+        date: newVax.dateAdministered,
+        notes: `Administered by: ${newVax.administeredBy} | Batch: ${newVax.batchNo || 'N/A'}`
+      });
+    }
   };
 
-  // Submit Treatment
+  // Treatment save
   const handleSaveTreatment = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetDog = dogs.find((d) => d.id === txDogId) || dogs[0];
-    if (!targetDog || !txDiagnosis.trim()) {
-      alert('Please enter clinical diagnosis.');
-      return;
+    if (!treatForm.dogName || !treatForm.diagnosis) return;
+
+    const newTreat: CanineTreatmentRecord = {
+      ...treatForm,
+      id: `treat-${Date.now().toString().slice(-4)}`
+    } as CanineTreatmentRecord;
+
+    setTreatments(prev => [newTreat, ...prev]);
+    setModalType(null);
+
+    if (onAddLivestock) {
+      onAddLivestock({
+        type: 'Dogs',
+        name: newTreat.dogName,
+        countOrBreed: `Veterinary Clinical Visit`,
+        activity: `Diagnosis: ${newTreat.diagnosis}`,
+        date: newTreat.date,
+        notes: `Status: ${newTreat.status} | Treatment: ${newTreat.treatmentAdministered}`
+      });
     }
-
-    const newTx: CanineTreatmentRecord = {
-      id: `tx-${Date.now()}`,
-      dogId: targetDog.id,
-      dogName: targetDog.name,
-      date: txDate,
-      diagnosis: txDiagnosis.trim(),
-      symptoms: txSymptoms.trim() || undefined,
-      treatmentAdministered: txMedication.trim() || 'Veterinary care administered',
-      temperature: txTemp ? Number(txTemp) : undefined,
-      weightKg: txWeight ? Number(txWeight) : undefined,
-      attendingVet: txVet.trim() || 'Dr. Devin Omwenga (DVM)',
-      cost: txCost ? Number(txCost) : undefined,
-      status: txStatus,
-      nextFollowUpDate: txNextFollowUp || undefined,
-      notes: txNotes.trim() || undefined
-    };
-
-    setTreatments([newTx, ...treatments]);
-
-    // If critical or under treatment, set dog status to Medical Rest
-    if (txStatus === 'Under Treatment' || txStatus === 'Critical') {
-      setDogs(dogs.map((d) => (d.id === targetDog.id ? { ...d, status: 'Medical Rest' } : d)));
-    } else if (txStatus === 'Recovered' && targetDog.status === 'Medical Rest') {
-      setDogs(dogs.map((d) => (d.id === targetDog.id ? { ...d, status: 'Active Duty' } : d)));
-    }
-
-    setShowAddTxModal(false);
-    setTxDiagnosis('');
-    setTxSymptoms('');
-    setTxMedication('');
-    setTxNotes('');
-    setTxCost('');
-    alert(`✓ Veterinary clinical treatment recorded for ${targetDog.name}!`);
   };
 
-  // Submit Sale
+  // Patrol save
+  const handleSavePatrol = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!patrolForm.dogName) return;
+
+    const newPatrol: CaninePatrolRecord = {
+      ...patrolForm,
+      id: `patrol-${Date.now().toString().slice(-4)}`
+    } as CaninePatrolRecord;
+
+    setPatrols(prev => [newPatrol, ...prev]);
+    setModalType(null);
+  };
+
+  // Training save
+  const handleSaveTraining = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trForm.dogName) return;
+
+    const newTr: CanineTrainingRecord = {
+      ...trForm,
+      id: `tr-${Date.now().toString().slice(-4)}`
+    } as CanineTrainingRecord;
+
+    setTraining(prev => [newTr, ...prev]);
+    setModalType(null);
+  };
+
+  // Feeding save
+  const handleSaveFeeding = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedForm.dogName) return;
+
+    const newFeed: CanineFeedingRecord = {
+      ...feedForm,
+      id: `feed-${Date.now().toString().slice(-4)}`
+    } as CanineFeedingRecord;
+
+    setFeeding(prev => [newFeed, ...prev]);
+    setModalType(null);
+  };
+
+  // Breeding save
+  const handleSaveBreeding = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!breedForm.damName) return;
+
+    const newBreed: CanineBreedingRecord = {
+      ...breedForm,
+      id: `breed-${Date.now().toString().slice(-4)}`
+    } as CanineBreedingRecord;
+
+    setBreeding(prev => [newBreed, ...prev]);
+    setModalType(null);
+  };
+
+  // Biosecurity save
+  const handleSaveBiosecurity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bioForm.kennelId) return;
+
+    const newBio: CanineKennelBiosecurityRecord = {
+      ...bioForm,
+      id: `bio-${Date.now().toString().slice(-4)}`
+    } as CanineKennelBiosecurityRecord;
+
+    setBiosecurity(prev => [newBio, ...prev]);
+    setModalType(null);
+  };
+
+  // Sale save
   const handleSaveSale = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetDog = dogs.find((d) => d.id === saleDogId);
-    const finalDogName = targetDog ? targetDog.name : saleDogName.trim();
-    if (!finalDogName || !saleBuyer.trim() || !saleAmount) {
-      alert('Please provide dog name, buyer details, and amount.');
-      return;
-    }
+    if (!saleForm.dogName || !saleForm.buyerName) return;
 
-    const amountNum = Number(saleAmount);
     const newSale: CanineSaleRecord = {
-      id: `sale-${Date.now()}`,
-      dogId: targetDog ? targetDog.id : undefined,
-      dogName: finalDogName,
-      breed: targetDog ? targetDog.breed : saleBreed,
-      saleDate: saleDate,
-      buyerName: saleBuyer.trim(),
-      buyerPhone: salePhone.trim(),
-      buyerLocation: saleLocation.trim() || undefined,
-      amount: amountNum,
-      paymentMethod: salePaymentMethod,
-      receiptNumber: saleReceipt.trim() || `K9-REC-${Date.now().toString().slice(-5)}`,
-      purpose: salePurpose,
-      notes: saleNotes.trim() || undefined
-    };
+      ...saleForm,
+      id: `sale-${Date.now().toString().slice(-4)}`
+    } as CanineSaleRecord;
 
-    setSales([newSale, ...sales]);
+    setSales(prev => [newSale, ...prev]);
 
-    // Mark dog as Sold if matched
-    if (targetDog) {
-      setDogs(dogs.map((d) => (d.id === targetDog.id ? { ...d, status: 'Sold' } : d)));
+    // Optional: mark dog as sold
+    if (newSale.dogId) {
+      setDogs(prev => prev.map(d => d.id === newSale.dogId ? { ...d, status: 'Sold' } : d));
     }
 
-    // Auto-record revenue in farm financials
-    if (saleAutoFinance && setFinancials) {
-      const finTx = {
-        id: `fin-k9-${Date.now()}`,
-        date: saleDate,
-        type: 'Income',
+    // Auto-record to Financials
+    if (syncSaleToFinancials && setFinancials) {
+      const financialEntry = {
+        id: `fin-${Date.now()}`,
+        date: newSale.saleDate,
+        type: 'Income' as const,
         category: 'Canine Sales',
-        amount: amountNum,
-        description: `Sale of K-9 ${finalDogName} (${newSale.breed}) to ${saleBuyer.trim()} [Receipt: ${newSale.receiptNumber}]`
+        amount: Number(newSale.amount) || 0,
+        description: `Sale of K-9 ${newSale.dogName} (${newSale.breed}) to ${newSale.buyerName}`,
+        referenceNumber: newSale.receiptNumber
       };
-      setFinancials((prev: any[]) => [finTx, ...prev]);
+      setFinancials((prev: any[]) => [financialEntry, ...prev]);
     }
 
-    setShowAddSaleModal(false);
-    setSaleBuyer('');
-    setSalePhone('');
-    setSaleNotes('');
-    alert(`✓ Canine sale successfully registered! KES ${amountNum.toLocaleString()} logged in Farm Ledger.`);
+    setModalType(null);
   };
 
-  // Submit Mortality
+  // Mortality save
   const handleSaveMortality = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetDog = dogs.find((d) => d.id === mortDogId);
-    const finalName = targetDog ? targetDog.name : mortDogName.trim();
-    if (!finalName || !mortCause.trim()) {
-      alert('Please provide dog name and cause of loss.');
-      return;
-    }
+    if (!mortForm.dogName || !mortForm.causeOfDeath) return;
 
     const newMort: CanineMortalityRecord = {
-      id: `mort-${Date.now()}`,
-      dogId: targetDog ? targetDog.id : undefined,
-      dogName: finalName,
-      breed: targetDog ? targetDog.breed : mortBreed || 'Canine',
-      dateOfDeath: mortDate,
-      causeOfDeath: mortCause.trim(),
-      veterinaryFindings: mortFindings.trim() || undefined,
-      attendingVet: mortVet.trim() || 'Dr. Devin Omwenga (DVM)',
-      disposalMethod: mortDisposal,
-      biosecurityPrecautions: mortBiosecurity.trim() || undefined,
-      notes: mortNotes.trim() || undefined
-    };
+      ...mortForm,
+      id: `mort-${Date.now().toString().slice(-4)}`
+    } as CanineMortalityRecord;
 
-    setMortalities([newMort, ...mortalities]);
+    setMortalities(prev => [newMort, ...prev]);
 
-    // Update dog status to Deceased
-    if (targetDog) {
-      setDogs(dogs.map((d) => (d.id === targetDog.id ? { ...d, status: 'Deceased' } : d)));
+    // Mark dog as deceased in registry
+    if (newMort.dogId) {
+      setDogs(prev => prev.map(d => d.id === newMort.dogId ? { ...d, status: 'Deceased' } : d));
     }
 
-    setShowAddMortalityModal(false);
-    setMortCause('');
-    setMortFindings('');
-    setMortNotes('');
-    alert(`✓ Logged mortality record for ${finalName}. Archive preserved for veterinary audit.`);
+    setModalType(null);
   };
 
-  // =========================================================================
-  // PDF REPORT GENERATOR: VETERINARY HEALTH PASSPORT & CENSUS AUDIT
-  // =========================================================================
-  const generateDogPassportPdf = (targetDog: DogProfile) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    const contentWidth = pageWidth - margin * 2;
-    let y = 14;
+  // PDF Generator 1: Single Dog Official Veterinary Health Passport
+  const generateDogHealthPassportPdf = (dog: DogProfile) => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const primaryColor = [15, 23, 42]; // Slate 900
+    const emeraldColor = [4, 120, 87]; // Emerald 700
 
-    // Header Bar
-    doc.setFillColor(6, 78, 59); // emerald-900
-    doc.rect(margin, y, contentWidth, 26, 'F');
+    // Header Background Strip
+    doc.setFillColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.rect(0, 0, 595.28, 40, 'F');
 
+    // Header Titles
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.text('JR FARM', margin + 6, y + 10);
+    doc.text('JR FARM — SOVEREIGN AGRI-SECURITY K-9 SQUAD', 40, 26);
+
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setFontSize(18);
+    doc.text('CANINE VETERINARY HEALTH PASSPORT & PEDIGREE', 40, 70);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(167, 243, 208); // emerald-200
-    doc.text('OFFICIAL K-9 CANINE VETERINARY HEALTH PASSPORT & PEDIGREE DOSSIER', margin + 6, y + 18);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Official Medical Record • Registration Chip: ${dog.chipId || 'UNTAGGED'} • Printed: ${toIsoDate(new Date())}`, 40, 84);
 
-    y += 33;
+    // Canine ID Card Block
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(40, 95, 515, 120, 6, 6, 'FD');
 
-    // SECTION A: CANINE CREDENTIALS
-    doc.setTextColor(6, 78, 59);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text(`1. CANINE IDENTIFICATION & CREDENTIALS — ${targetDog.name.toUpperCase()}`, margin, y);
-    y += 5;
+    doc.setTextColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.text('SECTION A: CANINE PEDIGREE & IDENTITY DOSSIER', 55, 115);
 
-    // Details Grid Table
-    doc.setFillColor(243, 244, 246);
-    doc.rect(margin, y, contentWidth, 34, 'F');
-    doc.setTextColor(31, 41, 55);
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`K-9 Name: ${dog.name}`, 55, 135);
+    doc.text(`Breed: ${dog.breed}`, 280, 135);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Sex / Status: ${dog.gender} (${dog.status})`, 55, 155);
+    doc.text(`Date of Birth: ${dog.dob} (Age: ${calculateAge(dog.dob)})`, 280, 155);
+
+    doc.text(`Kennel Unit: ${dog.kennelNo || 'Main'}`, 55, 175);
+    doc.text(`Assigned Handler: ${dog.handlerName || 'Estate Security Unit'}`, 280, 175);
+
+    doc.text(`Sire (Father): ${dog.sire || 'Registered Pedigree'}`, 55, 195);
+    doc.text(`Dam (Mother): ${dog.dam || 'Registered Pedigree'}`, 280, 195);
+
+    // Section B: Immunization Records
+    let yPos = 235;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.text('SECTION B: MANDATORY CORE IMMUNIZATIONS & DEWORMING', 40, yPos);
+    yPos += 12;
+
+    const dogVax = vaccines.filter(v => v.dogId === dog.id || v.dogName.toLowerCase() === dog.name.toLowerCase());
+    
+    // Table Header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(40, yPos, 515, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vaccine / Target', 50, yPos + 14);
+    doc.text('Admin Date', 200, yPos + 14);
+    doc.text('Batch / Serial', 285, yPos + 14);
+    doc.text('Booster Due', 380, yPos + 14);
+    doc.text('Attending Vet', 470, yPos + 14);
+    yPos += 20;
+
+    if (dogVax.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(148, 163, 184);
+      doc.text('No formal vaccination logs recorded for this canine yet.', 50, yPos + 16);
+      yPos += 25;
+    } else {
+      dogVax.forEach((v, idx) => {
+        doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+        doc.rect(40, yPos, 515, 18, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(40, yPos, 515, 18, 'S');
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.text(v.vaccineType, 50, yPos + 12);
+
+        doc.setFont('helvetica', 'normal');
+        doc.text(v.dateAdministered, 200, yPos + 12);
+        doc.text(v.batchNo || '—', 285, yPos + 12);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(isDueOrOverdue(v.nextDueDate) ? 220 : 15, isDueOrOverdue(v.nextDueDate) ? 38 : 23, isDueOrOverdue(v.nextDueDate) ? 38 : 42);
+        doc.text(v.nextDueDate, 380, yPos + 12);
+
+        doc.setTextColor(71, 85, 105);
+        doc.setFont('helvetica', 'normal');
+        doc.text(v.administeredBy || 'Dr. Devin Omwenga', 470, yPos + 12);
+        yPos += 18;
+      });
+    }
+
+    // Section C: Clinical Treatments
+    yPos += 18;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.text('SECTION C: CLINICAL EXAMINATIONS & DIAGNOSTIC TREATMENTS', 40, yPos);
+    yPos += 12;
+
+    const dogTreats = treatments.filter(t => t.dogId === dog.id || t.dogName.toLowerCase() === dog.name.toLowerCase());
+    
+    // Header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(40, yPos, 515, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.text('Date', 50, yPos + 14);
+    doc.text('Clinical Diagnosis', 115, yPos + 14);
+    doc.text('Treatment Administered', 260, yPos + 14);
+    doc.text('Status', 450, yPos + 14);
+    doc.text('Temp / Wt', 500, yPos + 14);
+    yPos += 20;
+
+    if (dogTreats.length === 0) {
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(148, 163, 184);
+      doc.text('No clinical injuries or medical illnesses reported; canine is healthy.', 50, yPos + 16);
+      yPos += 25;
+    } else {
+      dogTreats.forEach((t, idx) => {
+        doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+        doc.rect(40, yPos, 515, 20, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(40, yPos, 515, 20, 'S');
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text(t.date, 50, yPos + 13);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(t.diagnosis.substring(0, 28), 115, yPos + 13);
+
+        doc.setFont('helvetica', 'normal');
+        doc.text(t.treatmentAdministered.substring(0, 40), 260, yPos + 13);
+
+        doc.setTextColor(4, 120, 87);
+        doc.text(t.status, 450, yPos + 13);
+
+        doc.setTextColor(71, 85, 105);
+        doc.text(`${t.temperature || 38.5}°C / ${t.weightKg || '—'}kg`, 500, yPos + 13);
+        yPos += 20;
+      });
+    }
+
+    // Official Sign-off and Stamp Area
+    yPos = Math.max(yPos + 40, 680);
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(40, yPos, 260, yPos);
+    doc.line(335, yPos, 555, yPos);
+    doc.setLineDashPattern([], 0);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Attending Veterinarian Seal & Stamp', 40, yPos + 15);
+    doc.text('Presented & Approved by: Dr. Devin Omwenga', 335, yPos + 15);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('General Farm Manager / DVM (JR Farm)', 335, yPos + 28);
+    doc.text('Global Veterinary Standards & Sovereign Security Protocol', 40, yPos + 28);
+
+    doc.save(`JR_Farm_Canine_Passport_${dog.name.replace(/\s+/g, '_')}.pdf`);
+  };
+
+  // PDF Generator 2: Master Canine Operations & Health Audit Report
+  const generateFullCanineAuditPdf = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const emeraldColor = [4, 120, 87];
+
+    // Banner
+    doc.setFillColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.rect(0, 0, 595.28, 45, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('JR FARM — SECURITY CANINE UNIT AUDIT & CENSUS', 40, 28);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Comprehensive Estate Security, Health & Asset Valuation Report • Generated: ${new Date().toLocaleString()}`, 40, 60);
+
+    // KPI Summary
+    doc.setFillColor(241, 245, 249);
+    doc.rect(40, 70, 515, 45, 'F');
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(`Active Canines: ${stats.activeDuty} / ${stats.totalDogs}`, 55, 88);
+    doc.text(`In Training: ${stats.inTraining}`, 190, 88);
+    doc.text(`Overdue / Due Vaccines: ${stats.overdueVax}`, 280, 88);
+    doc.text(`Canine Sales Revenue: KES ${stats.totalSalesKes.toLocaleString()}`, 380, 88);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Total Patrol Shifts Logged: ${stats.totalPatrolsCount} | Overall Tactical Training Score: ${stats.avgScore}%`, 55, 104);
+
+    let yPos = 135;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.text('CANINE REGISTER & DEPLOYMENT SQUAD', 40, yPos);
+    yPos += 10;
+
+    // Table Header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(40, yPos, 515, 18, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(8.5);
+    doc.text('Name', 50, yPos + 12);
+    doc.text('Breed', 120, yPos + 12);
+    doc.text('Chip ID', 240, yPos + 12);
+    doc.text('Role', 340, yPos + 12);
+    doc.text('Handler', 420, yPos + 12);
+    doc.text('Status', 500, yPos + 12);
+    yPos += 18;
 
-    const leftCol = margin + 4;
-    const midCol = margin + 95;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Official K-9 Name:', leftCol, y + 7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.name, leftCol + 35, y + 7);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Breed / Phenotype:', midCol, y + 7);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.breed, midCol + 35, y + 7);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Microchip / Tag ID:', leftCol, y + 14);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.chipId || 'N/A', leftCol + 35, y + 14);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Date of Birth / Age:', midCol, y + 14);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.dob, midCol + 35, y + 14);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Gender / Sex:', leftCol, y + 21);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.gender, leftCol + 35, y + 21);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Duty Role / Station:', midCol, y + 21);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${targetDog.dutyRole} (${targetDog.kennelNo || 'Kennel'})`, midCol + 35, y + 21);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Assigned Handler:', leftCol, y + 28);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.handlerName || 'Estate Security Unit', leftCol + 35, y + 28);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Current Duty Status:', midCol, y + 28);
-    doc.setFont('helvetica', 'normal');
-    doc.text(targetDog.status, midCol + 35, y + 28);
-
-    y += 42;
-
-    // SECTION B: VACCINATION & DEWORMING TIMELINE
-    doc.setTextColor(6, 78, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('2. VACCINATION & DEWORMING IMMUNIZATION LEDGER', margin, y);
-    y += 5;
-
-    const dogVaxes = vaccinations.filter((v) => v.dogId === targetDog.id);
-
-    doc.setFillColor(243, 244, 246);
-    doc.rect(margin, y, contentWidth, 7, 'F');
-    doc.setTextColor(55, 65, 81);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-
-    doc.text('VACCINE / PROTOCOL', margin + 3, y + 5);
-    doc.text('DATE ADMINISTERED', margin + 55, y + 5);
-    doc.text('NEXT BOOSTER DUE', margin + 95, y + 5);
-    doc.text('BATCH #', margin + 135, y + 5);
-    doc.text('ADMINISTERED BY', margin + 160, y + 5);
-    y += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-
-    if (dogVaxes.length === 0) {
-      doc.setTextColor(156, 163, 175);
-      doc.text('No vaccinations logged yet for this canine.', margin + 3, y + 5);
-      y += 8;
-    } else {
-      dogVaxes.forEach((v) => {
-        doc.setTextColor(17, 24, 39);
-        doc.text(v.vaccineType, margin + 3, y + 4.5);
-        doc.text(v.dateAdministered, margin + 55, y + 4.5);
-
-        // Highlight overdue
-        const isOverdue = v.nextDueDate < todayStr;
-        doc.setTextColor(isOverdue ? 185 : 6, isOverdue ? 28 : 78, isOverdue ? 28 : 59);
-        doc.text(`${v.nextDueDate} ${isOverdue ? '(!)' : ''}`, margin + 95, y + 4.5);
-
-        doc.setTextColor(107, 114, 128);
-        doc.text(v.batchNo || '-', margin + 135, y + 4.5);
-        doc.text(v.administeredBy, margin + 160, y + 4.5);
-
-        doc.setDrawColor(229, 231, 235);
-        doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
-        y += 7.5;
-      });
-    }
-
-    y += 8;
-
-    // SECTION C: CLINICAL & MEDICAL TREATMENTS
-    doc.setTextColor(6, 78, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('3. VETERINARY CLINICAL EXAMS & TREATMENT RECORDS', margin, y);
-    y += 5;
-
-    const dogTxs = treatments.filter((t) => t.dogId === targetDog.id);
-
-    doc.setFillColor(243, 244, 246);
-    doc.rect(margin, y, contentWidth, 7, 'F');
-    doc.setTextColor(55, 65, 81);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-
-    doc.text('DATE', margin + 3, y + 5);
-    doc.text('CLINICAL DIAGNOSIS', margin + 28, y + 5);
-    doc.text('TREATMENT / ACTIVE COMPOUND', margin + 85, y + 5);
-    doc.text('TEMP / WT', margin + 145, y + 5);
-    doc.text('STATUS', margin + 170, y + 5);
-    y += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-
-    if (dogTxs.length === 0) {
-      doc.setTextColor(156, 163, 175);
-      doc.text('Clean medical history: No clinical veterinary interventions on record.', margin + 3, y + 5);
-      y += 8;
-    } else {
-      dogTxs.forEach((t) => {
-        doc.setTextColor(17, 24, 39);
-        doc.text(t.date, margin + 3, y + 4.5);
-        doc.text(t.diagnosis.substring(0, 32), margin + 28, y + 4.5);
-        doc.text(t.treatmentAdministered.substring(0, 34), margin + 85, y + 4.5);
-        doc.text(`${t.temperature ? `${t.temperature}°C` : '-'} / ${t.weightKg ? `${t.weightKg}k` : '-'}`, margin + 145, y + 4.5);
-        doc.text(t.status, margin + 170, y + 4.5);
-
-        doc.setDrawColor(229, 231, 235);
-        doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
-        y += 7.5;
-      });
-    }
-
-    y += 15;
-
-    // SECTION D: OFFICIAL APPROVAL & VET SIGN-OFF
-    doc.setFillColor(249, 250, 251);
-    doc.rect(margin, y, contentWidth, 22, 'F');
-    doc.setDrawColor(209, 213, 219);
-    doc.rect(margin, y, contentWidth, 22, 'D');
-
-    doc.setTextColor(55, 65, 81);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text('Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)', margin + 6, y + 8);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(107, 114, 128);
-    doc.text(
-      `Official JR Farm K-9 Security & Veterinary Health Record • Generated on ${new Date().toLocaleString()}`,
-      margin + 6,
-      y + 15
-    );
-
-    // Save PDF
-    doc.save(`JR_Farm_Canine_Passport_${targetDog.name}.pdf`);
-  };
-
-  // Full Census PDF
-  const generateFullCanineCensusPdf = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 14;
-    const contentWidth = pageWidth - margin * 2;
-    let y = 14;
-
-    // Header Bar
-    doc.setFillColor(6, 78, 59);
-    doc.rect(margin, y, contentWidth, 26, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('JR FARM', margin + 6, y + 10);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(167, 243, 208);
-    doc.text(`SECURITY CANINE UNIT CENSUS & VETERINARY AUDIT REPORT • DATE: ${todayStr}`, margin + 6, y + 18);
-
-    y += 34;
-
-    // KPIs Row
-    doc.setTextColor(6, 78, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10.5);
-    doc.text(
-      `CENSUS SUMMARY: Total Pack: ${totalDogsCount} | Active Duty: ${activeDutyCount} | In Training: ${trainingCount} | Medical Rest: ${medicalRestCount}`,
-      margin,
-      y
-    );
-    y += 8;
-
-    // Table 1: Roster
-    doc.setFillColor(243, 244, 246);
-    doc.rect(margin, y, contentWidth, 7, 'F');
-    doc.setTextColor(55, 65, 81);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-
-    doc.text('K-9 NAME', margin + 3, y + 5);
-    doc.text('BREED', margin + 35, y + 5);
-    doc.text('CHIP ID / KENNEL', margin + 75, y + 5);
-    doc.text('DUTY ROLE', margin + 115, y + 5);
-    doc.text('HANDLER', margin + 150, y + 5);
-    doc.text('STATUS', margin + 175, y + 5);
-    y += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-
-    dogs.forEach((d) => {
-      doc.setTextColor(17, 24, 39);
-      doc.text(d.name, margin + 3, y + 4.5);
-      doc.text(d.breed.substring(0, 20), margin + 35, y + 4.5);
-      doc.text(`${d.chipId || '-'} (${d.kennelNo || '-'})`, margin + 75, y + 4.5);
-      doc.text(d.dutyRole.substring(0, 18), margin + 115, y + 4.5);
-      doc.text((d.handlerName || 'Security').substring(0, 14), margin + 150, y + 4.5);
-      doc.text(d.status, margin + 175, y + 4.5);
-
-      doc.setDrawColor(229, 231, 235);
-      doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
-      y += 7.5;
+    dogs.forEach((d, idx) => {
+      doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+      doc.rect(40, yPos, 515, 16, 'F');
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(d.name, 50, yPos + 11);
+      doc.text(d.breed.substring(0, 24), 120, yPos + 11);
+      doc.text(d.chipId || '—', 240, yPos + 11);
+      doc.text(d.dutyRole, 340, yPos + 11);
+      doc.text(d.handlerName ? d.handlerName.substring(0, 16) : 'Unassigned', 420, yPos + 11);
+      doc.text(d.status, 500, yPos + 11);
+      yPos += 16;
     });
 
-    y += 10;
+    // Upcoming Immunization Alert
+    yPos += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(emeraldColor[0], emeraldColor[1], emeraldColor[2]);
+    doc.text('UPCOMING IMMUNIZATION & DEWORMING SCHEDULE', 40, yPos);
+    yPos += 10;
 
-    // Table 2: Sales Summary
-    if (sales.length > 0) {
-      doc.setTextColor(6, 78, 59);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text(`CANINE SALES & PLACEMENT LOGS (${sales.length} transactions)`, margin, y);
-      y += 5;
+    doc.setFillColor(15, 23, 42);
+    doc.rect(40, yPos, 515, 18, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8.5);
+    doc.text('Canine Name', 50, yPos + 12);
+    doc.text('Vaccine Target', 150, yPos + 12);
+    doc.text('Last Administered', 270, yPos + 12);
+    doc.text('Next Due Date', 370, yPos + 12);
+    doc.text('Attending Veterinarian', 460, yPos + 12);
+    yPos += 18;
 
-      doc.setFillColor(243, 244, 246);
-      doc.rect(margin, y, contentWidth, 7, 'F');
-      doc.setTextColor(55, 65, 81);
-      doc.setFontSize(7.5);
-      doc.text('DATE', margin + 3, y + 5);
-      doc.text('DOG NAME & BREED', margin + 28, y + 5);
-      doc.text('BUYER', margin + 80, y + 5);
-      doc.text('AMOUNT (KES)', margin + 130, y + 5);
-      doc.text('RECEIPT #', margin + 165, y + 5);
-      y += 8;
-
+    vaccines.slice(0, 12).forEach((v, idx) => {
+      doc.setFillColor(idx % 2 === 0 ? 255 : 248, idx % 2 === 0 ? 255 : 250, idx % 2 === 0 ? 255 : 252);
+      doc.rect(40, yPos, 515, 16, 'F');
+      doc.setTextColor(15, 23, 42);
       doc.setFont('helvetica', 'normal');
-      sales.forEach((s) => {
-        doc.setTextColor(17, 24, 39);
-        doc.text(s.saleDate, margin + 3, y + 4.5);
-        doc.text(`${s.dogName} (${s.breed})`.substring(0, 28), margin + 28, y + 4.5);
-        doc.text(s.buyerName.substring(0, 24), margin + 80, y + 4.5);
-        doc.text(`KES ${s.amount.toLocaleString()}`, margin + 130, y + 4.5);
-        doc.text(s.receiptNumber || '-', margin + 165, y + 4.5);
-        y += 7;
-      });
-      y += 8;
-    }
+      doc.setFontSize(8);
+      doc.text(v.dogName, 50, yPos + 11);
+      doc.text(v.vaccineType, 150, yPos + 11);
+      doc.text(v.dateAdministered, 270, yPos + 11);
+      doc.text(v.nextDueDate, 370, yPos + 11);
+      doc.text(v.administeredBy || 'Dr. Devin Omwenga', 460, yPos + 11);
+      yPos += 16;
+    });
 
     // Sign off
-    doc.setFillColor(249, 250, 251);
-    doc.rect(margin, y, contentWidth, 20, 'F');
-    doc.setTextColor(55, 65, 81);
+    yPos = Math.max(yPos + 40, 720);
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(40, yPos, 555, yPos);
+    doc.setLineDashPattern([], 0);
+
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text('Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)', margin + 6, y + 8);
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)', 40, yPos + 18);
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(107, 114, 128);
-    doc.text(`Official JR Farm Security Canine Census • Printed on ${new Date().toLocaleString()}`, margin + 6, y + 14);
+    doc.setTextColor(100, 116, 139);
+    doc.text('JR Farm Official Security & Livestock Registry • All rights reserved', 40, yPos + 30);
 
-    doc.save(`JR_Farm_Canine_Census_${todayStr}.pdf`);
+    doc.save(`JR_Farm_Master_Canine_Audit_${toIsoDate(new Date())}.pdf`);
   };
 
-  // WhatsApp Share
-  const handleShareSummary = () => {
-    const text = `*🐕 JR FARM — SECURITY CANINE UNIT AUDIT SUMMARY*
-📅 Date: ${todayStr}
+  // WhatsApp Roster Share
+  const handleShareWhatsApp = () => {
+    const text = `*JR FARM — SECURITY CANINE SQUAD BRIEFING* 🐕
+Date: ${toIsoDate(new Date())}
+Total Dogs: ${stats.totalDogs} | Active Duty: ${stats.activeDuty} | Training: ${stats.inTraining}
+Upcoming/Overdue Vaccines: ${stats.overdueVax}
+Patrol Shifts Completed: ${stats.totalPatrolsCount}
+Canine Commercial Sales: KES ${stats.totalSalesKes.toLocaleString()}
 
-• Total Guard Dogs: ${totalDogsCount}
-• Active Duty: ${activeDutyCount}
-• In Training: ${trainingCount}
-• Medical Rest: ${medicalRestCount}
-• Vaccine Overdue Alerts: ${overdueVaxCount}
+*Lead Canines on Active Duty:*
+${dogs.filter(d => d.status === 'Active Duty').map(d => `• ${d.name} (${d.breed}) - ${d.dutyRole} [Handler: ${d.handlerName || 'Security'}]`).join('\n')}
 
-📋 Guard Dogs Roster:
-${dogs.map((d) => `• ${d.name} (${d.breed}) — ${d.dutyRole} [${d.status}]`).join('\n')}
-
-Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
+_Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
 
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
   };
 
-  // Unique breeds
-  const breedOptions = useMemo(() => {
-    return Array.from(new Set(dogs.map((d) => d.breed)));
-  }, [dogs]);
-
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
-      {/* ========================================================================= */}
-      {/* TOP BANNER & ACTION BAR                                                   */}
-      {/* ========================================================================= */}
-      <div className="bg-white border border-gray-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200">
-              <Shield size={26} className="text-emerald-700" />
+    <div className="space-y-6">
+      {/* Top Banner & Header */}
+      <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-green-700 shrink-0 shadow-xs">
+              <Shield size={26} />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                JR FARM SECURITY SQUAD
-              </span>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight mt-1">
-                K-9 Security Canines &amp; Guard Dog Management
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-emerald-800 bg-emerald-100 rounded-full">
+                  JR FARM AGRI-SECURITY
+                </span>
+                <span className="text-xs text-gray-500 font-medium">K-9 Squadron & Working Dogs Hub</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mt-0.5">
+                Canine Management & Operations
               </h2>
+              <p className="text-xs text-gray-600 font-medium mt-1">
+                Complete registry, vaccination trackers, clinical treatments, night patrols, tactical training, breeding litters, and commercial sales ledger.
+              </p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 max-w-2xl font-medium">
-            Registry, clinical treatment records, mandatory Rabies &amp; DHLPP vaccine timelines, guard dog sales, and mortality audit archives.
-          </p>
-          <p className="text-[11px] text-emerald-800 font-bold mt-1">
-            Presented &amp; Approved by: Dr. Devin Omwenga (General Farm Manager)
-          </p>
-        </div>
 
-        {/* Global Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <button
-            onClick={generateFullCanineCensusPdf}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs shadow-md cursor-pointer transition-all hover:scale-102"
-            title="Download Full Unit PDF Census"
-          >
-            <Download size={14} />
-            <span>Download PDF Report</span>
-          </button>
+          {/* Quick Action Tools */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleShareWhatsApp}
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-green-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              title="Share Briefing to WhatsApp"
+            >
+              <Share2 size={14} />
+              <span>WhatsApp Briefing</span>
+            </button>
 
-          <button
-            onClick={handleShareSummary}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-            title="Share summary via WhatsApp"
-          >
-            <Share2 size={13} />
-            <span>Share</span>
-          </button>
+            <button
+              onClick={generateFullCanineAuditPdf}
+              type="button"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              title="Download Full Unit Audit PDF"
+            >
+              <Download size={14} />
+              <span>Master Unit Audit PDF</span>
+            </button>
 
-          <button
-            onClick={() => {
-              resetDogForm();
-              setEditingDog(null);
-              setShowAddDogModal(true);
-            }}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer transition-colors"
-          >
-            <Plus size={14} />
-            <span>Register Dog</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* KPI METRIC CARDS                                                          */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Total Pack</span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-gray-900">{totalDogsCount}</span>
-            <span className="text-xs font-semibold text-emerald-700">Officers</span>
+            <button
+              onClick={handleOpenAddDog}
+              type="button"
+              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+            >
+              <Plus size={15} />
+              <span>Register New Canine</span>
+            </button>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block mb-1">Active Duty</span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-800">{activeDutyCount}</span>
-            <span className="text-xs font-semibold text-gray-400">Patrols</span>
+        {/* 6 KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-6 border-t border-gray-100">
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Dogs</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-xl font-black text-gray-900">{stats.totalDogs}</span>
+              <span className="text-[10px] font-semibold text-gray-500">canines</span>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 block mb-1">In Training</span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-indigo-800">{trainingCount}</span>
-            <span className="text-xs font-semibold text-gray-400">Pups / Recruits</span>
+          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Active Patrol</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-xl font-black text-emerald-700">{stats.activeDuty}</span>
+              <span className="text-[10px] font-semibold text-emerald-600">on duty</span>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block mb-1">Medical Care</span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-amber-800">{medicalRestCount}</span>
-            <span className="text-xs font-semibold text-gray-400">Resting</span>
+          <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-100">
+            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">In Training</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-xl font-black text-amber-700">{stats.inTraining}</span>
+              <span className="text-[10px] font-semibold text-amber-600">apprentices</span>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs col-span-2 md:col-span-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 block mb-1">Vaccine Alerts</span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-rose-700">{overdueVaxCount}</span>
-            <span className="text-xs font-semibold text-rose-600">{overdueVaxCount > 0 ? 'Action Needed' : 'All Clear'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* SUB-TABS NAVIGATION                                                       */}
-      {/* ========================================================================= */}
-      <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 overflow-x-auto gap-1">
-        <button
-          onClick={() => setSubTab('registry')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-            subTab === 'registry' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <Shield size={14} className={subTab === 'registry' ? 'text-emerald-600' : ''} />
-          <span>1. K-9 Dog Registry</span>
-          <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-mono">{dogs.length}</span>
-        </button>
-
-        <button
-          onClick={() => setSubTab('vaccines')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-            subTab === 'vaccines' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <Syringe size={14} className={subTab === 'vaccines' ? 'text-emerald-600' : ''} />
-          <span>2. Vaccination &amp; Deworming</span>
-          {overdueVaxCount > 0 && (
-            <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.5 rounded-full font-bold animate-pulse">
-              {overdueVaxCount}
+          <div className={`p-3.5 rounded-2xl border ${stats.overdueVax > 0 ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100'}`}>
+            <span className={`text-[10px] font-bold uppercase tracking-wider block ${stats.overdueVax > 0 ? 'text-red-700' : 'text-gray-500'}`}>
+              Vaccine Alerts
             </span>
-          )}
-        </button>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className={`text-xl font-black ${stats.overdueVax > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                {stats.overdueVax}
+              </span>
+              <span className="text-[10px] font-semibold text-gray-500">due/overdue</span>
+            </div>
+          </div>
 
-        <button
-          onClick={() => setSubTab('treatments')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-            subTab === 'treatments' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <Stethoscope size={14} className={subTab === 'treatments' ? 'text-emerald-600' : ''} />
-          <span>3. Clinical Treatments</span>
-          <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-mono">{treatments.length}</span>
-        </button>
+          <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100">
+            <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider block">Patrol Shifts</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-xl font-black text-indigo-700">{stats.totalPatrolsCount}</span>
+              <span className="text-[10px] font-semibold text-indigo-600">logged</span>
+            </div>
+          </div>
 
-        <button
-          onClick={() => setSubTab('sales')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-            subTab === 'sales' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <DollarSign size={14} className={subTab === 'sales' ? 'text-emerald-600' : ''} />
-          <span>4. Canine Sales &amp; Placements</span>
-          <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-mono">{sales.length}</span>
-        </button>
+          <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100">
+            <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block">Canine Sales</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-base font-black text-blue-900">KES {(stats.totalSalesKes / 1000).toFixed(0)}k</span>
+              <span className="text-[10px] font-semibold text-blue-600">earned</span>
+            </div>
+          </div>
+        </div>
 
-        <button
-          onClick={() => setSubTab('mortality')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-            subTab === 'mortality' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <Heart size={14} className={subTab === 'mortality' ? 'text-rose-600' : ''} />
-          <span>5. Mortality &amp; Post-Mortem</span>
-          <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-mono">{mortalities.length}</span>
-        </button>
+        {/* Overdue Warning Callout if any */}
+        {stats.overdueVax > 0 && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-2xl flex items-center justify-between gap-3 text-red-800 text-xs">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-red-600 shrink-0" />
+              <span>
+                <strong>Veterinary Notice:</strong> {stats.overdueVax} canine(s) have immunizations or quarterly deworming due or overdue.
+              </span>
+            </div>
+            <button
+              onClick={() => setSubTab('vaccines')}
+              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[11px] transition-colors cursor-pointer shrink-0"
+            >
+              View Vaccines
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* SUB-TAB 1: DOG REGISTRY                                                   */}
-      {/* ========================================================================= */}
-      {subTab === 'registry' && (
-        <div className="space-y-6">
-          {/* Search, Filter & Layout Controls */}
-          <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-              <div className="relative flex-1 md:w-64">
-                <Search size={14} className="absolute left-3.5 top-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search dog name, breed, chip ID, handler..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full text-xs pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
+      {/* 10 Subtab Navigation Bar */}
+      <div className="flex items-center justify-between gap-2 overflow-x-auto bg-white p-1.5 rounded-2xl border border-gray-200 shadow-xs">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          <button
+            onClick={() => setSubTab('registry')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'registry'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🐕</span>
+            <span>Registry & Roster</span>
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{dogs.length}</span>
+          </button>
 
+          <button
+            onClick={() => setSubTab('vaccines')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'vaccines'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>💉</span>
+            <span>Vaccines & Deworming</span>
+            {stats.overdueVax > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setSubTab('treatments')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'treatments'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🩺</span>
+            <span>Clinical Treatments</span>
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{treatments.length}</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('patrols')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'patrols'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🛡️</span>
+            <span>Patrol & Sentry Logs</span>
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{patrols.length}</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('training')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'training'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🎖️</span>
+            <span>Training & Skills</span>
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{training.length}</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('feeding')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'feeding'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🥩</span>
+            <span>Nutrition & BCS</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('breeding')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'breeding'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🐾</span>
+            <span>Breeding & Litters</span>
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{breeding.length}</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('biosecurity')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'biosecurity'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🧼</span>
+            <span>Kennel Biosecurity</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('sales')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'sales'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>💰</span>
+            <span>Sales & Placements</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('mortality')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'mortality'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🕊️</span>
+            <span>Mortality & Biosecure Disposal</span>
+          </button>
+        </div>
+
+        {/* View Toggle (Only active for registry) */}
+        {subTab === 'registry' && (
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl shrink-0">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-1.5 rounded-lg text-xs transition-all ${
+                viewMode === 'cards' ? 'bg-white shadow-xs text-gray-900' : 'text-gray-500 hover:text-gray-900'
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid size={14} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-1.5 rounded-lg text-xs transition-all ${
+                viewMode === 'table' ? 'bg-white shadow-xs text-gray-900' : 'text-gray-500 hover:text-gray-900'
+              }`}
+              title="Data Table View"
+            >
+              <Table size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================= */}
+      {/* SUBTAB 1: REGISTRY & ROSTER */}
+      {/* ========================================================= */}
+      {subTab === 'registry' && (
+        <div className="space-y-4">
+          {/* Search & Filters */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div className="relative w-full sm:w-80">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search dog name, chip ID, handler..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <select
                 value={breedFilter}
-                onChange={(e) => setBreedFilter(e.target.value)}
-                className="text-xs border border-gray-200 rounded-xl px-3 py-2.5 bg-white font-semibold text-gray-700"
+                onChange={e => setBreedFilter(e.target.value)}
+                className="px-3 py-2 text-xs border border-gray-300 rounded-xl bg-white font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="all">All Breeds</option>
-                {breedOptions.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
+                <option value="German Shepherd">German Shepherd</option>
+                <option value="Belgian Malinois">Belgian Malinois</option>
+                <option value="Rottweiler">Rottweiler</option>
+                <option value="Boerboel">Boerboel</option>
+                <option value="Doberman">Doberman</option>
               </select>
 
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-xs border border-gray-200 rounded-xl px-3 py-2.5 bg-white font-semibold text-gray-700"
+                onChange={e => setStatusFilter(e.target.value)}
+                className="px-3 py-2 text-xs border border-gray-300 rounded-xl bg-white font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="all">All Duty Statuses</option>
+                <option value="all">All Statuses</option>
                 <option value="Active Duty">Active Duty</option>
                 <option value="In Training">In Training</option>
                 <option value="Medical Rest">Medical Rest</option>
-                <option value="Off Duty">Off Duty</option>
                 <option value="Sold">Sold</option>
                 <option value="Deceased">Deceased</option>
               </select>
-            </div>
 
-            <div className="flex items-center gap-2 self-end md:self-auto">
               <button
-                onClick={() => setViewMode('cards')}
-                className={`p-2 rounded-xl transition-all cursor-pointer ${
-                  viewMode === 'cards' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:text-gray-900'
-                }`}
-                title="Cards View"
+                onClick={() => {
+                  exportDogsCsv();
+                }}
+                className="p-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Export Registry to CSV"
               >
-                <LayoutGrid size={15} />
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-2 rounded-xl transition-all cursor-pointer ${
-                  viewMode === 'table' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:text-gray-900'
-                }`}
-                title="Table View"
-              >
-                <Table size={15} />
+                <FileSpreadsheet size={15} />
               </button>
             </div>
           </div>
 
-          {/* Dogs Cards View */}
+          {/* Cards View */}
           {viewMode === 'cards' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredDogs.map((d) => {
-                const vaxStat = getVaccineStatus(d.id);
-                return (
-                  <div
-                    key={d.id}
-                    className="bg-white rounded-3xl border border-gray-200 hover:border-emerald-300 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col justify-between"
-                  >
-                    <div className="p-5 border-b border-gray-100">
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-13 h-13 rounded-2xl bg-emerald-100 text-emerald-900 font-extrabold flex items-center justify-center text-lg shadow-inner">
-                            🐾
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                {d.dutyRole}
-                              </span>
-                              <span
-                                className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                                  d.status === 'Active Duty'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : d.status === 'In Training'
-                                    ? 'bg-indigo-100 text-indigo-800'
-                                    : d.status === 'Medical Rest'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-gray-100 text-gray-700'
-                                }`}
-                              >
-                                {d.status}
-                              </span>
-                            </div>
-                            <h3 className="text-base font-bold text-gray-900 leading-tight">{d.name}</h3>
-                            <p className="text-xs text-gray-500 font-medium">{d.breed}</p>
-                          </div>
-                        </div>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDogs.map(dog => (
+                <div
+                  key={dog.id}
+                  className="bg-white border border-gray-200 hover:border-emerald-300 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-600 to-slate-800"></div>
 
-                      {/* Credentials */}
-                      <div className="grid grid-cols-2 gap-2 mt-4 text-xs font-mono bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-400 block font-sans">Chip / Tag</span>
-                          <strong className="text-gray-900">{d.chipId || 'Not chipped'}</strong>
+                  <div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2 pt-1 mb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-black text-gray-900">{dog.name}</h3>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                              dog.status === 'Active Duty'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : dog.status === 'In Training'
+                                ? 'bg-amber-100 text-amber-800'
+                                : dog.status === 'Medical Rest'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {dog.status}
+                          </span>
                         </div>
-                        <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-400 block font-sans">Kennel</span>
-                          <strong className="text-gray-900">{d.kennelNo || 'General'}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-400 block font-sans">Gender</span>
-                          <strong className="text-gray-900">{d.gender}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-400 block font-sans">DOB / Age</span>
-                          <strong className="text-gray-900">{d.dob}</strong>
-                        </div>
+                        <p className="text-xs text-gray-600 font-medium mt-0.5">{dog.breed}</p>
                       </div>
-
-                      {/* Handler & Health status */}
-                      <div className="mt-3 flex items-center justify-between text-xs pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-1.5 text-gray-600">
-                          <UserCheck size={13} className="text-emerald-700" />
-                          <span>Handler: <strong className="text-gray-800">{d.handlerName || 'Security'}</strong></span>
-                        </div>
-                      </div>
-
-                      {/* Vaccine Badge */}
-                      <div className="mt-2.5">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-1 rounded-lg block text-center border ${
-                            vaxStat.color === 'emerald'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : vaxStat.color === 'amber'
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-rose-50 text-rose-800 border-rose-200'
-                          }`}
-                        >
-                          {vaxStat.label}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="p-3 bg-white flex items-center justify-between gap-1 text-xs">
-                      <button
-                        onClick={() => setSelectedDogDossier(d)}
-                        className="flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800 font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
-                      >
-                        <Eye size={13} />
-                        <span>Dossier</span>
-                      </button>
 
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => generateDogPassportPdf(d)}
-                          className="p-1.5 text-sky-700 hover:bg-sky-50 rounded-lg cursor-pointer"
-                          title="Generate Official Vet Health Passport PDF"
+                          onClick={() => setDossierDog(dog)}
+                          className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          title="View Full K-9 Dossier"
                         >
-                          <FileText size={14} />
+                          <Eye size={15} />
                         </button>
-
                         <button
-                          onClick={() => {
-                            setPreselectedVaxDogId(d.id);
-                            setVaxDogId(d.id);
-                            setShowAddVaxModal(true);
-                          }}
-                          className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer"
-                          title="Log Vaccine / Deworming"
+                          onClick={() => generateDogHealthPassportPdf(dog)}
+                          className="p-1.5 text-gray-400 hover:text-green-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          title="Download Veterinary Health Passport PDF"
                         >
-                          <Syringe size={14} />
+                          <Printer size={15} />
                         </button>
-
                         <button
-                          onClick={() => {
-                            setPreselectedTxDogId(d.id);
-                            setTxDogId(d.id);
-                            setShowAddTxModal(true);
-                          }}
-                          className="p-1.5 text-amber-700 hover:bg-amber-50 rounded-lg cursor-pointer"
-                          title="Log Veterinary Clinical Exam"
-                        >
-                          <Stethoscope size={14} />
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenEditDog(d)}
-                          className="p-1.5 text-gray-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg cursor-pointer"
+                          onClick={() => handleEditDog(dog)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                           title="Edit Profile"
                         >
                           <Edit2 size={14} />
                         </button>
-
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Delete ${d.name} from the canine registry?`)) {
-                              setDogs(dogs.filter((x) => x.id !== d.id));
-                            }
-                          }}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                          onClick={() => handleDeleteDog(dog.id, dog.name)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                           title="Delete Canine"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
+
+                    {/* Metadata Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100 my-3">
+                      <div>
+                        <span className="text-[10px] text-gray-500 font-bold block">Role & Post:</span>
+                        <span className="font-semibold text-gray-900 truncate block">{dog.dutyRole}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 font-bold block">Kennel Unit:</span>
+                        <span className="font-semibold text-gray-900 truncate block">{dog.kennelNo || 'Main Block'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 font-bold block">Age / DOB:</span>
+                        <span className="font-semibold text-gray-900 truncate block">{calculateAge(dog.dob)} ({dog.dob})</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 font-bold block">Chip / Tag:</span>
+                        <span className="font-mono font-semibold text-emerald-700 text-[11px] truncate block">
+                          {dog.chipId || 'Untagged'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Handler & Pedigree */}
+                    <div className="space-y-1.5 text-xs text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <User size={13} className="text-gray-400" />
+                        <span className="font-medium">Handler:</span>
+                        <span className="font-bold text-gray-800">{dog.handlerName || 'Estate Security Unit'}</span>
+                      </div>
+                      {dog.notes && (
+                        <p className="text-[11px] text-gray-500 italic bg-gray-50 p-2 rounded-xl border border-gray-100 line-clamp-2">
+                          "{dog.notes}"
+                        </p>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
+
+                  {/* Card Footer Actions */}
+                  <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
+                    <button
+                      onClick={() => setDossierDog(dog)}
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Open Dossier & History</span>
+                      <ChevronRight size={14} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setVaxForm(prev => ({ ...prev, dogId: dog.id, dogName: dog.name }));
+                        setModalType('vaccine');
+                      }}
+                      className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-green-700 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                    >
+                      + Vaccine
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             /* Table View */
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                      <th className="p-4">K-9 Officer</th>
-                      <th className="p-4">Breed &amp; Gender</th>
-                      <th className="p-4">Chip &amp; Kennel</th>
-                      <th className="p-4">Duty &amp; Handler</th>
-                      <th className="p-4">Vaccine Standing</th>
-                      <th className="p-4 text-center">Status</th>
-                      <th className="p-4 text-center">Actions</th>
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-white font-bold">
+                    <tr>
+                      <th className="p-3.5 pl-5">Canine Name</th>
+                      <th className="p-3.5">Breed</th>
+                      <th className="p-3.5">Gender</th>
+                      <th className="p-3.5">Age</th>
+                      <th className="p-3.5">Chip / ID</th>
+                      <th className="p-3.5">Duty Role</th>
+                      <th className="p-3.5">Kennel</th>
+                      <th className="p-3.5">Handler</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-right pr-5">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 font-medium">
-                    {filteredDogs.map((d) => {
-                      const vax = getVaccineStatus(d.id);
-                      return (
-                        <tr key={d.id} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="p-4">
-                            <div className="font-bold text-gray-900 text-sm">{d.name}</div>
-                            <div className="text-[10px] text-gray-400">DOB: {d.dob}</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-semibold text-gray-800">{d.breed}</div>
-                            <div className="text-[10px] text-gray-500">{d.gender}</div>
-                          </td>
-                          <td className="p-4 font-mono text-[11px]">
-                            <div>{d.chipId || '-'}</div>
-                            <div className="text-[10px] text-emerald-800 font-bold">{d.kennelNo || '-'}</div>
-                          </td>
-                          <td className="p-4">
-                            <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded text-[10px] border border-emerald-200">
-                              {d.dutyRole}
-                            </span>
-                            <div className="text-[10px] text-gray-500 mt-1">{d.handlerName || 'Security'}</div>
-                          </td>
-                          <td className="p-4">
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-block ${
-                                vax.color === 'emerald'
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                  : vax.color === 'amber'
-                                  ? 'bg-amber-50 text-amber-800 border-amber-200'
-                                  : 'bg-rose-50 text-rose-800 border-rose-200'
-                              }`}
-                            >
-                              {vax.label}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 border border-gray-200">
-                              {d.status}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => setSelectedDogDossier(d)}
-                                className="p-1.5 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg cursor-pointer"
-                                title="View Dossier"
-                              >
-                                <Eye size={14} />
-                              </button>
-                              <button
-                                onClick={() => generateDogPassportPdf(d)}
-                                className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg cursor-pointer"
-                                title="Passport PDF"
-                              >
-                                <FileText size={14} />
-                              </button>
-                              <button
-                                onClick={() => handleOpenEditDog(d)}
-                                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg cursor-pointer"
-                                title="Edit"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(`Delete ${d.name}?`)) setDogs(dogs.filter((x) => x.id !== d.id));
-                                }}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg cursor-pointer"
-                                title="Delete"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredDogs.map((dog, idx) => (
+                      <tr key={dog.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                        <td className="p-3.5 pl-5 font-bold text-gray-900">
+                          <button
+                            onClick={() => setDossierDog(dog)}
+                            className="hover:text-emerald-700 underline text-left cursor-pointer"
+                          >
+                            {dog.name}
+                          </button>
+                        </td>
+                        <td className="p-3.5 text-gray-700">{dog.breed}</td>
+                        <td className="p-3.5 text-gray-600">{dog.gender}</td>
+                        <td className="p-3.5 text-gray-600">{calculateAge(dog.dob)}</td>
+                        <td className="p-3.5 font-mono text-emerald-700 text-[11px]">{dog.chipId || '—'}</td>
+                        <td className="p-3.5 font-semibold text-gray-800">{dog.dutyRole}</td>
+                        <td className="p-3.5 text-gray-600">{dog.kennelNo || '—'}</td>
+                        <td className="p-3.5 text-gray-700">{dog.handlerName || '—'}</td>
+                        <td className="p-3.5">
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                              dog.status === 'Active Duty'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {dog.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-right pr-5 space-x-1 whitespace-nowrap">
+                          <button
+                            onClick={() => generateDogHealthPassportPdf(dog)}
+                            className="p-1 text-gray-500 hover:text-emerald-700 rounded transition-colors"
+                            title="Print Passport PDF"
+                          >
+                            <Printer size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleEditDog(dog)}
+                            className="p-1 text-gray-500 hover:text-blue-600 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDog(dog.id, dog.name)}
+                            className="p-1 text-gray-500 hover:text-red-600 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1551,130 +1986,96 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SUB-TAB 2: VACCINATION & DEWORMING HUB                                     */}
-      {/* ========================================================================= */}
+      {/* ========================================================= */}
+      {/* SUBTAB 2: VACCINES & DEWORMING */}
+      {/* ========================================================= */}
       {subTab === 'vaccines' && (
-        <div className="space-y-6">
-          {/* Protocol Guide */}
-          <div className="bg-white border border-gray-200 p-6 rounded-3xl shadow-sm space-y-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                  <Syringe size={18} className="text-emerald-600" />
-                  JR Farm Canine Immunization &amp; Parasite Control Schedule
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Mandatory biosecurity protocol enforced by Dr. Devin Omwenga (General Farm Manager / DVM).
-                </p>
-              </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Immunization, Rabies Prophylaxis & Deworming Hub</h3>
+              <p className="text-xs text-gray-500">Track Rabies, DHLPP 5-in-1, quarterly dewormers, and tick/flea prevention.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={exportVaccinesCsv}
+                className="px-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-1.5"
+              >
+                <FileSpreadsheet size={14} />
+                <span>Export CSV</span>
+              </button>
               <button
                 onClick={() => {
-                  setVaxDogId(dogs[0]?.id || '');
-                  setShowAddVaxModal(true);
+                  setVaxForm({
+                    dogId: dogs[0]?.id || '',
+                    dogName: dogs[0]?.name || '',
+                    vaccineType: 'Rabies',
+                    dateAdministered: toIsoDate(new Date()),
+                    nextDueDate: offsetIsoDate(365),
+                    batchNo: '',
+                    administeredBy: 'Dr. Devin Omwenga, DVM',
+                    cost: 1500,
+                    notes: ''
+                  });
+                  setModalType('vaccine');
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <Plus size={14} />
-                <span>+ Record Vaccine / Deworming</span>
+                <span>Log Vaccine / Deworming</span>
               </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs pt-2 border-t border-gray-100">
-              <div className="p-3.5 bg-emerald-50/60 border border-emerald-100 rounded-2xl">
-                <strong className="text-emerald-900 block font-bold text-xs">💉 Rabies Vaccine</strong>
-                <p className="text-emerald-800 text-[11px] mt-1">Annual mandatory booster. Crucial for farm staff &amp; visitor safety.</p>
-                <span className="text-[10px] text-emerald-700 font-mono mt-2 block">Interval: Every 12 Months</span>
-              </div>
-
-              <div className="p-3.5 bg-sky-50/60 border border-sky-100 rounded-2xl">
-                <strong className="text-sky-900 block font-bold text-xs">🛡️ DHLPP 5-in-1 Booster</strong>
-                <p className="text-sky-800 text-[11px] mt-1">Distemper, Hepatitis, Leptospirosis, Parvovirus, Parainfluenza.</p>
-                <span className="text-[10px] text-sky-700 font-mono mt-2 block">Interval: Every 12 Months</span>
-              </div>
-
-              <div className="p-3.5 bg-amber-50/60 border border-amber-100 rounded-2xl">
-                <strong className="text-amber-900 block font-bold text-xs">💊 Broad-Spectrum Deworming</strong>
-                <p className="text-amber-800 text-[11px] mt-1">Praziquantel / Fenbendazole compounds to prevent internal parasites.</p>
-                <span className="text-[10px] text-amber-700 font-mono mt-2 block">Interval: Every 3 Months</span>
-              </div>
-
-              <div className="p-3.5 bg-indigo-50/60 border border-indigo-100 rounded-2xl">
-                <strong className="text-indigo-900 block font-bold text-xs">🪲 Flea &amp; Tick Prevention</strong>
-                <p className="text-indigo-800 text-[11px] mt-1">Spot-on topical fipronil or Bravecto chewables to guard against tick fever.</p>
-                <span className="text-[10px] text-indigo-700 font-mono mt-2 block">Interval: Monthly / Quarterly</span>
-              </div>
             </div>
           </div>
 
-          {/* Vaccination Ledger Table */}
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h4 className="font-bold text-sm text-gray-900">Official Immunization Ledger</h4>
-              <span className="text-xs text-gray-500 font-mono">{vaccinations.length} records</span>
-            </div>
+          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                    <th className="p-4">K-9 Officer</th>
-                    <th className="p-4">Vaccine / Protocol</th>
-                    <th className="p-4">Administered Date</th>
-                    <th className="p-4">Next Booster Due</th>
-                    <th className="p-4">Batch # &amp; Cost</th>
-                    <th className="p-4">Attending DVM</th>
-                    <th className="p-4 text-center">Status</th>
-                    <th className="p-4 text-center">Actions</th>
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900 text-white font-bold">
+                  <tr>
+                    <th className="p-3.5 pl-5">Canine Name</th>
+                    <th className="p-3.5">Vaccine / Anthelmintic</th>
+                    <th className="p-3.5">Date Administered</th>
+                    <th className="p-3.5">Next Due Date</th>
+                    <th className="p-3.5">Booster Status</th>
+                    <th className="p-3.5">Batch / Serial</th>
+                    <th className="p-3.5">Attending Officer</th>
+                    <th className="p-3.5">Cost (KES)</th>
+                    <th className="p-3.5 text-right pr-5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-medium">
-                  {vaccinations.map((v) => {
-                    const isOverdue = v.nextDueDate < todayStr;
-                    const isDueSoon = !isOverdue && v.nextDueDate <= offsetIsoDate(14);
+                <tbody className="divide-y divide-gray-100">
+                  {vaccines.map((vax, idx) => {
+                    const dueWarning = isDueOrOverdue(vax.nextDueDate);
                     return (
-                      <tr key={v.id} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="p-4 font-bold text-gray-900">{v.dogName}</td>
-                        <td className="p-4">
-                          <span className="font-semibold text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200">
-                            {v.vaccineType}
-                          </span>
-                          {v.notes && <div className="text-[10px] text-gray-400 mt-1 max-w-xs truncate">{v.notes}</div>}
-                        </td>
-                        <td className="p-4 font-mono text-gray-700">{v.dateAdministered}</td>
-                        <td className="p-4 font-mono">
-                          <strong className={isOverdue ? 'text-rose-700 font-bold' : isDueSoon ? 'text-amber-700 font-bold' : 'text-emerald-800'}>
-                            {v.nextDueDate}
-                          </strong>
-                        </td>
-                        <td className="p-4 font-mono text-[11px]">
-                          <div>{v.batchNo || '-'}</div>
-                          {v.cost && <div className="text-gray-400">KES {v.cost.toLocaleString()}</div>}
-                        </td>
-                        <td className="p-4 text-gray-700">{v.administeredBy}</td>
-                        <td className="p-4 text-center">
+                      <tr key={vax.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                        <td className="p-3.5 pl-5 font-bold text-gray-900">{vax.dogName}</td>
+                        <td className="p-3.5 font-semibold text-emerald-800">{vax.vaccineType}</td>
+                        <td className="p-3.5 text-gray-600 font-mono">{vax.dateAdministered}</td>
+                        <td className="p-3.5 font-bold font-mono text-gray-900">{vax.nextDueDate}</td>
+                        <td className="p-3.5">
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              isOverdue
-                                ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                                : isDueSoon
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                              dueWarning
+                                ? 'bg-red-100 text-red-700 animate-pulse'
+                                : 'bg-emerald-100 text-emerald-800'
                             }`}
                           >
-                            {isOverdue ? '⚠️ Overdue' : isDueSoon ? 'Due Soon' : 'Valid'}
+                            {getDueStatusText(vax.nextDueDate)}
                           </span>
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="p-3.5 font-mono text-gray-500 text-[11px]">{vax.batchNo || '—'}</td>
+                        <td className="p-3.5 text-gray-700">{vax.administeredBy}</td>
+                        <td className="p-3.5 font-bold text-gray-900">KES {(vax.cost || 0).toLocaleString()}</td>
+                        <td className="p-3.5 text-right pr-5">
                           <button
                             onClick={() => {
                               if (window.confirm('Delete this vaccination log?')) {
-                                setVaccinations(vaccinations.filter((x) => x.id !== v.id));
+                                setVaccines(prev => prev.filter(v => v.id !== vax.id));
                               }
                             }}
-                            className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                            title="Delete"
+                            className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         </td>
                       </tr>
@@ -1687,91 +2088,199 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SUB-TAB 3: CLINICAL TREATMENTS                                            */}
-      {/* ========================================================================= */}
+      {/* ========================================================= */}
+      {/* SUBTAB 3: CLINICAL TREATMENTS */}
+      {/* ========================================================= */}
       {subTab === 'treatments' && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
             <div>
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Stethoscope size={18} className="text-emerald-600" />
-                Veterinary Clinical Diagnostics &amp; Treatments
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Exams, wound management, illness diagnosis, and prescription medications supervised by Dr. Devin Omwenga.
-              </p>
+              <h3 className="text-sm font-black text-gray-900">Veterinary Clinical Treatments & Health Exam</h3>
+              <p className="text-xs text-gray-500">Record illnesses, wounds, diagnoses, temperatures, and antibiotic courses.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={exportTreatmentsCsv}
+                className="px-3 py-2 border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-1.5"
+              >
+                <FileSpreadsheet size={14} />
+                <span>Export CSV</span>
+              </button>
+              <button
+                onClick={() => {
+                  setTreatForm({
+                    dogId: dogs[0]?.id || '',
+                    dogName: dogs[0]?.name || '',
+                    date: toIsoDate(new Date()),
+                    diagnosis: '',
+                    symptoms: '',
+                    treatmentAdministered: '',
+                    temperature: 38.5,
+                    weightKg: 35,
+                    attendingVet: 'Dr. Devin Omwenga (General Farm Manager / DVM)',
+                    cost: 2000,
+                    status: 'Recovered',
+                    nextFollowUpDate: '',
+                    notes: ''
+                  });
+                  setModalType('treatment');
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Log Clinical Exam / Treatment</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {treatments.map(treat => (
+              <div key={treat.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-base font-black text-gray-900">{treat.dogName}</h4>
+                      <span
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                          treat.status === 'Recovered'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : treat.status === 'Under Treatment'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {treat.status}
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-gray-500">Date: {treat.date}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Delete this treatment entry?')) {
+                        setTreatments(prev => prev.filter(t => t.id !== treat.id));
+                      }
+                    }}
+                    className="p-1 text-gray-400 hover:text-red-500 rounded"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Diagnosis:</span>
+                    <p className="font-bold text-gray-900">{treat.diagnosis}</p>
+                  </div>
+                  {treat.symptoms && (
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase block">Presenting Symptoms:</span>
+                      <p className="text-gray-700">{treat.symptoms}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Therapy & Prescription:</span>
+                    <p className="text-emerald-800 font-medium">{treat.treatmentAdministered}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-600 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <span>🌡️ {treat.temperature || 38.5}°C</span>
+                    <span>⚖️ {treat.weightKg || '—'} kg</span>
+                    <span>💰 KES {(treat.cost || 0).toLocaleString()}</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-gray-700">{treat.attendingVet}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 4: PATROL & SENTRY LOGS */}
+      {/* ========================================================= */}
+      {subTab === 'patrols' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Estate Perimeter Patrol & Gate Sentry Ledger</h3>
+              <p className="text-xs text-gray-500">Record patrol shifts, sector coverage, intruder deterrence, and wildlife defense.</p>
             </div>
             <button
               onClick={() => {
-                setTxDogId(dogs[0]?.id || '');
-                setShowAddTxModal(true);
+                setPatrolForm({
+                  dogId: dogs[0]?.id || '',
+                  dogName: dogs[0]?.name || '',
+                  handlerName: staffList.length > 0 ? staffList[0].name : 'Officer Kevin O.',
+                  date: toIsoDate(new Date()),
+                  shift: 'Night Shift (18:00 - 06:00)',
+                  patrolSector: 'North Boundary & Tea Zone',
+                  incidentStatus: 'All Clear (Normal)',
+                  durationMinutes: 720,
+                  incidentDetails: '',
+                  notes: ''
+                });
+                setModalType('patrol');
               }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus size={14} />
-              <span>+ Record Clinical Exam</span>
+              <span>Log Security Patrol Shift</span>
             </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h4 className="font-bold text-sm text-gray-900">Treatment &amp; Physical Examination Logs</h4>
-              <span className="text-xs text-gray-500 font-mono">{treatments.length} cases</span>
-            </div>
+          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                    <th className="p-4">Date</th>
-                    <th className="p-4">K-9 Patient</th>
-                    <th className="p-4">Clinical Diagnosis</th>
-                    <th className="p-4">Treatment Administered</th>
-                    <th className="p-4">Temp / Wt</th>
-                    <th className="p-4">Attending Vet</th>
-                    <th className="p-4 text-center">Status</th>
-                    <th className="p-4 text-center">Actions</th>
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900 text-white font-bold">
+                  <tr>
+                    <th className="p-3.5 pl-5">Date & Shift</th>
+                    <th className="p-3.5">K-9 & Handler</th>
+                    <th className="p-3.5">Sector Assigned</th>
+                    <th className="p-3.5">Duration</th>
+                    <th className="p-3.5">Incident Status</th>
+                    <th className="p-3.5">Observations / Incident Details</th>
+                    <th className="p-3.5 text-right pr-5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-medium">
-                  {treatments.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="p-4 font-mono text-gray-700">{t.date}</td>
-                      <td className="p-4 font-bold text-gray-900">{t.dogName}</td>
-                      <td className="p-4">
-                        <div className="font-semibold text-gray-900">{t.diagnosis}</div>
-                        {t.symptoms && <div className="text-[10px] text-gray-500 mt-0.5">Symptoms: {t.symptoms}</div>}
+                <tbody className="divide-y divide-gray-100">
+                  {patrols.map((pt, idx) => (
+                    <tr key={pt.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                      <td className="p-3.5 pl-5 font-mono">
+                        <span className="font-bold text-gray-900 block">{pt.date}</span>
+                        <span className="text-[11px] text-gray-500">{pt.shift}</span>
                       </td>
-                      <td className="p-4 text-gray-700 max-w-xs">{t.treatmentAdministered}</td>
-                      <td className="p-4 font-mono text-[11px]">
-                        <div>{t.temperature ? `${t.temperature}°C` : '-'}</div>
-                        <div className="text-gray-500">{t.weightKg ? `${t.weightKg} kg` : '-'}</div>
+                      <td className="p-3.5">
+                        <span className="font-bold text-gray-900 block">{pt.dogName}</span>
+                        <span className="text-[11px] text-gray-500">{pt.handlerName}</span>
                       </td>
-                      <td className="p-4 text-gray-700">{t.attendingVet}</td>
-                      <td className="p-4 text-center">
+                      <td className="p-3.5 font-semibold text-emerald-800">{pt.patrolSector}</td>
+                      <td className="p-3.5 text-gray-700">{pt.durationMinutes ? `${pt.durationMinutes / 60} hrs` : '12 hrs'}</td>
+                      <td className="p-3.5">
                         <span
-                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                            t.status === 'Recovered'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : t.status === 'Under Treatment'
-                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                              : 'bg-rose-100 text-rose-800 border border-rose-200'
+                          className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                            pt.incidentStatus === 'All Clear (Normal)'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
                           }`}
                         >
-                          {t.status}
+                          {pt.incidentStatus}
                         </span>
                       </td>
-                      <td className="p-4 text-center">
+                      <td className="p-3.5 text-gray-700 max-w-xs truncate">
+                        {pt.incidentDetails || pt.notes || 'Normal perimeter sweep completed without incident.'}
+                      </td>
+                      <td className="p-3.5 text-right pr-5">
                         <button
                           onClick={() => {
-                            if (window.confirm('Delete this treatment record?')) {
-                              setTreatments(treatments.filter((x) => x.id !== t.id));
+                            if (window.confirm('Delete this patrol record?')) {
+                              setPatrols(prev => prev.filter(p => p.id !== pt.id));
                             }
                           }}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                          title="Delete"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>
@@ -1783,93 +2292,417 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SUB-TAB 4: CANINE SALES & PLACEMENTS                                      */}
-      {/* ========================================================================= */}
-      {subTab === 'sales' && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* ========================================================= */}
+      {/* SUBTAB 5: TRAINING & SKILLS */}
+      {/* ========================================================= */}
+      {subTab === 'training' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
             <div>
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <DollarSign size={18} className="text-emerald-600" />
-                Trained Guard Dog &amp; Puppy Placements
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Log external security dog acquisitions, trained K-9 sales, and sync revenue directly with JR Farm accounts.
-              </p>
+              <h3 className="text-sm font-black text-gray-900">K-9 Tactical Training, Bite Work & Discipline Scores</h3>
+              <p className="text-xs text-gray-500">Track obedience, bite-release commands, scent detection trials, and certifications.</p>
             </div>
             <button
               onClick={() => {
-                setSaleDogId(dogs[0]?.id || '');
-                setShowAddSaleModal(true);
+                setTrForm({
+                  dogId: dogs[0]?.id || '',
+                  dogName: dogs[0]?.name || '',
+                  trainingDate: toIsoDate(new Date()),
+                  discipline: 'Bite Work & Protection',
+                  level: 'Level 3: Advanced Guard',
+                  scorePercentage: 90,
+                  trainerName: 'Officer Kevin O.',
+                  passed: true,
+                  nextEvaluationDate: offsetIsoDate(90),
+                  notes: ''
+                });
+                setModalType('training');
               }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus size={14} />
-              <span>+ Record Canine Sale / Placement</span>
+              <span>Log Training Session</span>
             </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <div>
-                <h4 className="font-bold text-sm text-gray-900">Sales &amp; Revenue Ledger</h4>
-                <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                  Total Canine Sales Revenue: KES{' '}
-                  {sales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}
-                </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {training.map(tr => (
+              <div key={tr.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-black text-gray-900">{tr.dogName}</h4>
+                    <span className="text-xs font-mono text-gray-500">{tr.trainingDate}</span>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 text-xs font-black rounded-xl ${
+                      tr.scorePercentage >= 90
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : tr.scorePercentage >= 75
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {tr.scorePercentage}%
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Discipline:</span>
+                    <span className="font-semibold text-gray-900">{tr.discipline}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Certification Tier:</span>
+                    <span className="font-semibold text-emerald-800">{tr.level}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Evaluator:</span>
+                    <span>{tr.trainerName}</span>
+                  </div>
+                  {tr.notes && (
+                    <p className="text-[11px] text-gray-500 italic bg-gray-50 p-2 rounded-xl border border-gray-100 mt-2">
+                      "{tr.notes}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                  <span>Next Eval: {tr.nextEvaluationDate || 'Scheduled in 90d'}</span>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Delete training record?')) {
+                        setTraining(prev => prev.filter(t => t.id !== tr.id));
+                      }
+                    }}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <span className="text-xs text-gray-500 font-mono">{sales.length} transactions</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 6: NUTRITION & BODY CONDITION SCORE (BCS) */}
+      {/* ========================================================= */}
+      {subTab === 'feeding' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Working Canine Nutrition, Rations & Body Condition Score</h3>
+              <p className="text-xs text-gray-500">Track high-protein rations (28% CP), BARF raw meat diets, and veterinary BCS (1-9).</p>
             </div>
+            <button
+              onClick={() => {
+                setFeedForm({
+                  dogId: dogs[0]?.id || '',
+                  dogName: dogs[0]?.name || '',
+                  date: toIsoDate(new Date()),
+                  dietType: 'High-Protein Kibble (28%)',
+                  dailyGrams: 850,
+                  feedingSchedule: 'Once Daily (Evening)',
+                  bodyConditionScore: 5,
+                  weightKg: 38,
+                  dailyCostKes: 380,
+                  appetite: 'Vigorous / Excellent',
+                  notes: ''
+                });
+                setModalType('feeding');
+              }}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Log Daily Feed & BCS</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {feeding.map(f => (
+              <div key={f.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-black text-gray-900">{f.dogName}</h4>
+                    <span className="text-xs text-gray-500">{f.date} • {f.feedingSchedule}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-black px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg">
+                      BCS {f.bodyConditionScore}/9 (Optimal)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Diet Formulation:</span>
+                    <span className="font-bold text-gray-900">{f.dietType}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Daily Ration:</span>
+                    <span className="font-bold text-emerald-800">{f.dailyGrams} grams / day</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Appetite:</span>
+                    <span className="font-semibold text-gray-800">{f.appetite}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Daily Feed Cost:</span>
+                    <span className="font-semibold text-gray-900">KES {(f.dailyCostKes || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {f.notes && (
+                  <p className="text-[11px] text-gray-500 italic bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    "{f.notes}"
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 7: BREEDING & LITTERS */}
+      {/* ========================================================= */}
+      {subTab === 'breeding' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Canine Breeding, Gestation (63d) & Whelping Nursery</h3>
+              <p className="text-xs text-gray-500">Manage maternal breeding lines, mating pairings, expected whelping dates, and puppy litters.</p>
+            </div>
+            <button
+              onClick={() => {
+                setBreedForm({
+                  damId: dogs.find(d => d.gender === 'Female')?.id || '',
+                  damName: dogs.find(d => d.gender === 'Female')?.name || 'Bella',
+                  sireName: 'Major (K9-001 - German Shepherd)',
+                  heatDate: toIsoDate(new Date()),
+                  matingDate: toIsoDate(new Date()),
+                  expectedWhelpingDate: offsetIsoDate(63),
+                  status: 'Mated / Pregnant',
+                  litterSize: 0,
+                  malesCount: 0,
+                  femalesCount: 0,
+                  veterinaryNotes: '',
+                  notes: ''
+                });
+                setModalType('breeding');
+              }}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Log Mating / Litter</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {breeding.map(br => (
+              <div key={br.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-black text-gray-900">{br.damName} × {br.sireName}</h4>
+                    <span className="text-xs text-gray-500">Mated: {br.matingDate}</span>
+                  </div>
+                  <span
+                    className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                      br.status === 'Weaned'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : br.status === 'Delivered (Litter Active)'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {br.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Expected Whelping:</span>
+                    <span className="font-bold text-gray-900">{br.expectedWhelpingDate}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Actual Whelping:</span>
+                    <span className="font-bold text-emerald-800">{br.actualWhelpingDate || 'Pending'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Litter Size:</span>
+                    <span className="font-bold text-gray-900">
+                      {br.litterSize ? `${br.litterSize} pups (${br.malesCount || 0}M / ${br.femalesCount || 0}F)` : 'In utero'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold block">Surviving Weaned:</span>
+                    <span className="font-bold text-emerald-800">{br.puppySurvivingCount || '—'} pups</span>
+                  </div>
+                </div>
+
+                {br.veterinaryNotes && (
+                  <p className="text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                    <strong>DVM Observation:</strong> {br.veterinaryNotes}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 8: KENNEL BIOSECURITY */}
+      {/* ========================================================= */}
+      {subTab === 'biosecurity' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Kennel Hygiene, Disinfection & Biosecurity Clearances</h3>
+              <p className="text-xs text-gray-500">Track Virkon-S disinfection schedules, bedding replacements, and kennel audit certificates.</p>
+            </div>
+            <button
+              onClick={() => {
+                setBioForm({
+                  kennelId: 'Kennel Block A (Patrol Run)',
+                  inspectionDate: toIsoDate(new Date()),
+                  sanitizedWith: 'Virkon-S Disinfectant',
+                  beddingReplaced: true,
+                  waterBowlsSterilized: true,
+                  pestsControlled: true,
+                  status: 'Passed & Certified',
+                  inspectedBy: 'Dr. Devin Omwenga, DVM',
+                  notes: ''
+                });
+                setModalType('biosecurity');
+              }}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Log Kennel Sanitization</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {biosecurity.map(bio => (
+              <div key={bio.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-black text-gray-900">{bio.kennelId}</h4>
+                    <span className="text-xs text-gray-500">Date: {bio.inspectionDate}</span>
+                  </div>
+                  <span className="px-2.5 py-1 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-1">
+                    <CheckCircle2 size={13} />
+                    <span>{bio.status}</span>
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Sanitization Agent:</span>
+                    <span className="font-semibold text-emerald-800">{bio.sanitizedWith}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Bedding Replaced:</span>
+                    <span className="text-gray-900">{bio.beddingReplaced ? 'Yes (Clean shavings)' : 'No'}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Water Bowls Sterilized:</span>
+                    <span className="text-gray-900">{bio.waterBowlsSterilized ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span className="font-bold">Inspecting Officer:</span>
+                    <span className="font-semibold text-gray-900">{bio.inspectedBy}</span>
+                  </div>
+                  {bio.notes && (
+                    <p className="text-[11px] text-gray-500 italic bg-gray-50 p-2 rounded-xl border border-gray-100">
+                      "{bio.notes}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB 9: SALES & PLACEMENTS */}
+      {/* ========================================================= */}
+      {subTab === 'sales' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
+            <div>
+              <h3 className="text-sm font-black text-gray-900">Commercial Pedigree Canine Sales & Placements</h3>
+              <p className="text-xs text-gray-500">Manage buyer agreements, trained canine handovers, and estate financial revenue.</p>
+            </div>
+            <button
+              onClick={() => {
+                setSaleForm({
+                  dogId: '',
+                  dogName: '',
+                  breed: 'German Shepherd',
+                  saleDate: toIsoDate(new Date()),
+                  buyerName: '',
+                  buyerPhone: '',
+                  buyerLocation: '',
+                  amount: 85000,
+                  paymentMethod: 'Bank Transfer',
+                  receiptNumber: `JR-K9-${Date.now().toString().slice(-4)}`,
+                  purpose: 'Security Guard Dog',
+                  notes: ''
+                });
+                setModalType('sale');
+              }}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Record Canine Sale</span>
+            </button>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                    <th className="p-4">Sale Date</th>
-                    <th className="p-4">Canine &amp; Breed</th>
-                    <th className="p-4">Buyer Particulars</th>
-                    <th className="p-4">Purpose</th>
-                    <th className="p-4 text-right">Amount (KES)</th>
-                    <th className="p-4">Payment &amp; Receipt</th>
-                    <th className="p-4 text-center">Actions</th>
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900 text-white font-bold">
+                  <tr>
+                    <th className="p-3.5 pl-5">Date</th>
+                    <th className="p-3.5">Canine / Breed</th>
+                    <th className="p-3.5">Buyer Details</th>
+                    <th className="p-3.5">Purpose</th>
+                    <th className="p-3.5">Payment Method</th>
+                    <th className="p-3.5">Receipt #</th>
+                    <th className="p-3.5">Sale Amount</th>
+                    <th className="p-3.5 text-right pr-5">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 font-medium">
-                  {sales.map((s) => (
-                    <tr key={s.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="p-4 font-mono text-gray-700">{s.saleDate}</td>
-                      <td className="p-4">
-                        <div className="font-bold text-gray-900">{s.dogName}</div>
-                        <div className="text-[10px] text-gray-500">{s.breed}</div>
+                <tbody className="divide-y divide-gray-100">
+                  {sales.map((sale, idx) => (
+                    <tr key={sale.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                      <td className="p-3.5 pl-5 font-mono text-gray-600">{sale.saleDate}</td>
+                      <td className="p-3.5">
+                        <span className="font-bold text-gray-900 block">{sale.dogName}</span>
+                        <span className="text-[11px] text-gray-500">{sale.breed}</span>
                       </td>
-                      <td className="p-4">
-                        <div className="font-semibold text-gray-900">{s.buyerName}</div>
-                        <div className="text-[10px] text-gray-500 font-mono">{s.buyerPhone}</div>
-                        {s.buyerLocation && <div className="text-[10px] text-gray-400">{s.buyerLocation}</div>}
+                      <td className="p-3.5">
+                        <span className="font-bold text-gray-900 block">{sale.buyerName}</span>
+                        <span className="text-[11px] text-gray-500">{sale.buyerPhone} • {sale.buyerLocation || 'Kenya'}</span>
                       </td>
-                      <td className="p-4">
-                        <span className="font-bold text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-200">
-                          {s.purpose}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right font-mono font-bold text-emerald-700 text-sm">
-                        KES {s.amount.toLocaleString()}
-                      </td>
-                      <td className="p-4 font-mono text-[11px]">
-                        <div>{s.paymentMethod}</div>
-                        <div className="text-gray-400 text-[10px]">{s.receiptNumber}</div>
-                      </td>
-                      <td className="p-4 text-center">
+                      <td className="p-3.5 text-gray-700">{sale.purpose}</td>
+                      <td className="p-3.5 font-medium text-gray-800">{sale.paymentMethod}</td>
+                      <td className="p-3.5 font-mono text-emerald-700 text-[11px]">{sale.receiptNumber}</td>
+                      <td className="p-3.5 font-black text-emerald-700">KES {sale.amount.toLocaleString()}</td>
+                      <td className="p-3.5 text-right pr-5">
                         <button
                           onClick={() => {
-                            if (window.confirm('Delete this canine sale transaction?')) {
-                              setSales(sales.filter((x) => x.id !== s.id));
+                            if (window.confirm('Delete this sale record?')) {
+                              setSales(prev => prev.filter(s => s.id !== sale.id));
                             }
                           }}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                          title="Delete"
+                          className="p-1 text-gray-400 hover:text-red-500 rounded"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>
@@ -1881,208 +2714,289 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SUB-TAB 5: MORTALITY & POST-MORTEM                                        */}
-      {/* ========================================================================= */}
+      {/* ========================================================= */}
+      {/* SUBTAB 10: MORTALITY & BIOSECURE DISPOSAL */}
+      {/* ========================================================= */}
       {subTab === 'mortality' && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-200">
             <div>
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Heart size={18} className="text-rose-600" />
-                Canine Mortality &amp; Post-Mortem Audit Archive
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Official records of canine deaths, post-mortem veterinary findings, and biosecurity disposal protocols.
-              </p>
+              <h3 className="text-sm font-black text-gray-900">Canine Mortality, Post-Mortem & Biosecure Disposal</h3>
+              <p className="text-xs text-gray-500">Record causes of death, veterinary autopsy findings, and deep quicklime sanitary burial.</p>
             </div>
             <button
               onClick={() => {
-                setMortDogId(dogs[0]?.id || '');
-                setShowAddMortalityModal(true);
+                setMortForm({
+                  dogId: '',
+                  dogName: '',
+                  breed: 'German Shepherd',
+                  dateOfDeath: toIsoDate(new Date()),
+                  causeOfDeath: '',
+                  veterinaryFindings: '',
+                  attendingVet: 'Dr. Devin Omwenga, DVM',
+                  disposalMethod: 'Estate Burial',
+                  biosecurityPrecautions: 'Deep sanitary pit with agricultural quicklime biosecurity seal.',
+                  notes: ''
+                });
+                setModalType('mortality');
               }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus size={14} />
-              <span>+ Record Canine Loss</span>
+              <span>Record Canine Mortality</span>
             </button>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h4 className="font-bold text-sm text-gray-900">Post-Mortem &amp; Loss Archive</h4>
-              <span className="text-xs text-gray-500 font-mono">{mortalities.length} cases</span>
-            </div>
-            {mortalities.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-xs italic">
-                ✓ No canine casualties or mortalities on record. All guard dogs healthy.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {mortalities.map(mort => (
+              <div key={mort.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-base font-black text-gray-900">{mort.dogName}</h4>
+                    <span className="text-xs text-gray-500">{mort.breed} • Date of Passing: {mort.dateOfDeath}</span>
+                  </div>
+                  <span className="px-2.5 py-1 text-xs font-bold bg-slate-100 text-slate-800 rounded-full">
+                    {mort.disposalMethod}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Cause of Death:</span>
+                    <p className="font-bold text-red-700">{mort.causeOfDeath}</p>
+                  </div>
+                  {mort.veterinaryFindings && (
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase block">Post-Mortem Findings:</span>
+                      <p className="text-gray-700">{mort.veterinaryFindings}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase block">Biosecurity Precautions:</span>
+                    <p className="text-gray-700">{mort.biosecurityPrecautions || 'Sanitary disposal completed.'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-gray-600 pt-2 border-t border-gray-100">
+                  <span>Attending DVM: {mort.attendingVet || 'Dr. Devin Omwenga, DVM'}</span>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Delete mortality entry?')) {
+                        setMortalities(prev => prev.filter(m => m.id !== mort.id));
+                      }
+                    }}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                      <th className="p-4">Date of Loss</th>
-                      <th className="p-4">Canine &amp; Breed</th>
-                      <th className="p-4">Cause of Death</th>
-                      <th className="p-4">Post-Mortem Findings</th>
-                      <th className="p-4">Disposal &amp; Biosecurity</th>
-                      <th className="p-4">Attending DVM</th>
-                      <th className="p-4 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 font-medium">
-                    {mortalities.map((m) => (
-                      <tr key={m.id} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="p-4 font-mono text-gray-700">{m.dateOfDeath}</td>
-                        <td className="p-4">
-                          <div className="font-bold text-gray-900">{m.dogName}</div>
-                          <div className="text-[10px] text-gray-500">{m.breed}</div>
-                        </td>
-                        <td className="p-4 font-bold text-rose-700">{m.causeOfDeath}</td>
-                        <td className="p-4 max-w-xs text-gray-600">{m.veterinaryFindings || 'Post-mortem conducted'}</td>
-                        <td className="p-4 text-gray-600">
-                          <div className="font-semibold text-gray-800">{m.disposalMethod}</div>
-                          {m.biosecurityPrecautions && <div className="text-[10px] text-gray-400">{m.biosecurityPrecautions}</div>}
-                        </td>
-                        <td className="p-4 text-gray-700">{m.attendingVet}</td>
-                        <td className="p-4 text-center">
-                          <button
-                            onClick={() => {
-                              if (window.confirm('Delete this mortality record?')) {
-                                setMortalities(mortalities.filter((x) => x.id !== m.id));
-                              }
-                            }}
-                            className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                            title="Delete"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: ADD / EDIT CANINE OFFICER PROFILE                                  */}
-      {/* ========================================================================= */}
-      {(showAddDogModal || editingDog) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-7 border border-gray-200 space-y-5">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-emerald-100 text-emerald-800 rounded-xl">
-                  <Shield size={20} />
+      {/* ========================================================= */}
+      {/* INTERACTIVE CANINE DOSSIER POPUP MODAL */}
+      {/* ========================================================= */}
+      {dossierDog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-green-700 flex items-center justify-center font-black text-xl">
+                  🐕
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">
-                    {editingDog ? `Edit K-9 Profile — ${editingDog.name}` : 'Register New Security Canine Officer'}
-                  </h3>
-                  <p className="text-xs text-gray-500">JR Farm Guard Dog &amp; Pedigree Registry</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-black text-gray-900">{dossierDog.name}</h3>
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                      {dossierDog.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 font-medium">{dossierDog.breed}</p>
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setShowAddDogModal(false);
-                  setEditingDog(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                onClick={() => setDossierDog(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveDog} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* Quick Details Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase block">Microchip Tag</span>
+                <span className="font-mono font-bold text-emerald-700">{dossierDog.chipId || 'Untagged'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase block">Age / Gender</span>
+                <span className="font-bold text-gray-900">{calculateAge(dossierDog.dob)} • {dossierDog.gender}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase block">Kennel Post</span>
+                <span className="font-bold text-gray-900">{dossierDog.kennelNo || 'Main'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase block">Assigned Handler</span>
+                <span className="font-bold text-gray-900">{dossierDog.handlerName || 'Estate Unit'}</span>
+              </div>
+            </div>
+
+            {/* Pedigree Details */}
+            <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-xs space-y-1">
+              <span className="font-bold text-emerald-900 block">Pedigree & Lineage:</span>
+              <div className="grid grid-cols-2 gap-2 text-gray-700">
+                <div><strong>Sire:</strong> {dossierDog.sire || 'Registered Pedigree Sire'}</div>
+                <div><strong>Dam:</strong> {dossierDog.dam || 'Registered Pedigree Dam'}</div>
+              </div>
+            </div>
+
+            {/* Specific Vaccine Timeline for this dog */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-black text-gray-900 uppercase tracking-wide">Immunization Records</h4>
+              <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden text-xs">
+                {vaccines.filter(v => v.dogId === dossierDog.id || v.dogName.toLowerCase() === dossierDog.name.toLowerCase()).map(v => (
+                  <div key={v.id} className="p-3 flex items-center justify-between bg-white hover:bg-slate-50">
+                    <div>
+                      <span className="font-bold text-gray-900">{v.vaccineType}</span>
+                      <span className="text-gray-500 block text-[11px]">Given: {v.dateAdministered} • Batch: {v.batchNo || 'N/A'}</span>
+                    </div>
+                    <span className="font-bold text-emerald-700">Next: {v.nextDueDate}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-[11px] text-gray-500">JR Farm Agri-Security Certified Dossier</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => generateDogHealthPassportPdf(dossierDog)}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Download Health Passport PDF</span>
+                </button>
+                <button
+                  onClick={() => setDossierDog(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: REGISTER / EDIT CANINE */}
+      {/* ========================================================= */}
+      {modalType === 'dog' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">
+                {editingItem ? 'Edit Canine Profile' : 'Register New Canine to Squad'}
+              </h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDog} className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Official Name *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>
                   <input
                     type="text"
                     required
-                    value={dogName}
-                    onChange={(e) => setDogName(e.target.value)}
-                    placeholder="e.g. Major or Rex"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-bold"
+                    placeholder="e.g. Major, Rex, Shadow"
+                    value={dogForm.name}
+                    onChange={e => setDogForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Breed / Phenotype *</label>
-                  <select
-                    value={dogBreed}
-                    onChange={(e) => setDogBreed(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
-                  >
-                    <option value="German Shepherd (GSD)">German Shepherd (GSD)</option>
-                    <option value="Rottweiler">Rottweiler</option>
-                    <option value="Belgian Malinois">Belgian Malinois</option>
-                    <option value="Boerboel">South African Boerboel</option>
-                    <option value="Doberman Pinscher">Doberman Pinscher</option>
-                    <option value="Labrador Retriever">Labrador Retriever</option>
-                    <option value="Cross-Breed Guard">Cross-Breed Guard</option>
-                  </select>
+                  <label className="block font-bold text-gray-700 mb-1">Breed / Lineage *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. German Shepherd"
+                    value={dogForm.breed}
+                    onChange={e => setDogForm(prev => ({ ...prev, breed: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Gender / Sex</label>
+                  <label className="block font-bold text-gray-700 mb-1">Gender *</label>
                   <select
-                    value={dogGender}
-                    onChange={(e) => setDogGender(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
+                    value={dogForm.gender}
+                    onChange={e => setDogForm(prev => ({ ...prev, gender: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
                     <option value="Male">Male (Intact)</option>
-                    <option value="Neutered Male">Neutered Male</option>
                     <option value="Female">Female (Intact)</option>
+                    <option value="Neutered Male">Neutered Male</option>
                     <option value="Spayed Female">Spayed Female</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Date of Birth</label>
+                  <label className="block font-bold text-gray-700 mb-1">Date of Birth</label>
                   <input
                     type="date"
-                    value={dogDob}
-                    onChange={(e) => setDogDob(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold font-mono"
+                    value={dogForm.dob}
+                    onChange={e => setDogForm(prev => ({ ...prev, dob: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Microchip / Collar Tag</label>
+                  <label className="block font-bold text-gray-700 mb-1">Microchip / Tattoo ID</label>
                   <input
                     type="text"
-                    value={dogChip}
-                    onChange={(e) => setDogChip(e.target.value)}
-                    placeholder="e.g. K9-JR-8821"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                    placeholder="e.g. 985141001298411"
+                    value={dogForm.chipId}
+                    onChange={e => setDogForm(prev => ({ ...prev, chipId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Kennel / Housing Area</label>
+                  <label className="block font-bold text-gray-700 mb-1">Kennel Unit</label>
                   <input
                     type="text"
-                    value={dogKennel}
-                    onChange={(e) => setDogKennel(e.target.value)}
                     placeholder="e.g. Kennel A-01"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold"
+                    value={dogForm.kennelNo}
+                    onChange={e => setDogForm(prev => ({ ...prev, kennelNo: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Duty Status</label>
+                  <label className="block font-bold text-gray-700 mb-1">Duty Role *</label>
                   <select
-                    value={dogStatus}
-                    onChange={(e) => setDogStatus(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
+                    value={dogForm.dutyRole}
+                    onChange={e => setDogForm(prev => ({ ...prev, dutyRole: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Perimeter Patrol">Perimeter Patrol</option>
+                    <option value="Main Gate Security">Main Gate Security</option>
+                    <option value="Night Watch">Night Watch</option>
+                    <option value="Compound Guard">Compound Guard</option>
+                    <option value="Livestock Guardian">Livestock Guardian</option>
+                    <option value="Breeding Stock">Breeding Stock</option>
+                    <option value="Puppy in Training">Puppy in Training</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Operational Status *</label>
+                  <select
+                    value={dogForm.status}
+                    onChange={e => setDogForm(prev => ({ ...prev, status: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
                     <option value="Active Duty">Active Duty</option>
                     <option value="In Training">In Training</option>
@@ -2092,98 +3006,61 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
                     <option value="Deceased">Deceased</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Assigned Security Role</label>
-                  <select
-                    value={dogRole}
-                    onChange={(e) => setDogRole(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
-                  >
-                    <option value="Perimeter Patrol">Perimeter Patrol (Fences &amp; Boundaries)</option>
-                    <option value="Main Gate Security">Main Gate Security (Access Control)</option>
-                    <option value="Night Watch">Night Watch (Milking Sheds &amp; Stores)</option>
-                    <option value="Livestock Guardian">Livestock Guardian (Predator Deterrence)</option>
-                    <option value="Compound Guard">Compound Guard (Homestead)</option>
-                    <option value="Breeding Stock">Breeding Stock</option>
-                    <option value="Puppy in Training">Puppy in Training</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Primary Security Handler</label>
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-gray-700 mb-1">Assigned Handler</label>
                   <input
                     type="text"
-                    value={dogHandler}
-                    onChange={(e) => setDogHandler(e.target.value)}
-                    placeholder="e.g. Corporal Charles Ngetich"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Sire (Father)</label>
-                  <input
-                    type="text"
-                    value={dogSire}
-                    onChange={(e) => setDogSire(e.target.value)}
-                    placeholder="e.g. Thor vom Haus"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
+                    placeholder="e.g. Officer Kevin O."
+                    value={dogForm.handlerName}
+                    onChange={e => setDogForm(prev => ({ ...prev, handlerName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Dam (Mother)</label>
+                  <label className="block font-bold text-gray-700 mb-1">Sire (Father)</label>
                   <input
                     type="text"
-                    value={dogDam}
-                    onChange={(e) => setDogDam(e.target.value)}
-                    placeholder="e.g. Bella von Alpha"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
+                    placeholder="Sire pedigree"
+                    value={dogForm.sire}
+                    onChange={e => setDogForm(prev => ({ ...prev, sire: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Color &amp; Markings</label>
+                  <label className="block font-bold text-gray-700 mb-1">Dam (Mother)</label>
                   <input
                     type="text"
-                    value={dogMarkings}
-                    onChange={(e) => setDogMarkings(e.target.value)}
-                    placeholder="e.g. Black &amp; Tan Saddle"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
+                    placeholder="Dam pedigree"
+                    value={dogForm.dam}
+                    onChange={e => setDogForm(prev => ({ ...prev, dam: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Special Behavior &amp; Training Notes</label>
-                <textarea
-                  rows={2}
-                  value={dogNotes}
-                  onChange={(e) => setDogNotes(e.target.value)}
-                  placeholder="e.g. Excellent bite grip, responds to Kiswahili commands, alert at night."
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
-                />
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-gray-700 mb-1">Temperament / Clinical Notes</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Drive, aggression control, bite certification, health conditions..."
+                    value={dogForm.notes}
+                    onChange={e => setDogForm(prev => ({ ...prev, notes: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddDogModal(false);
-                    setEditingDog(null);
-                  }}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 cursor-pointer font-bold"
+                  onClick={() => setModalType(null)}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-xl font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md cursor-pointer transition-colors"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm cursor-pointer"
                 >
-                  {editingDog ? 'Save Changes' : 'Save K-9 Officer'}
+                  Save Canine Profile
                 </button>
               </div>
             </form>
@@ -2191,148 +3068,96 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: RECORD VACCINATION / DEWORMING                                     */}
-      {/* ========================================================================= */}
-      {showAddVaxModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-7 border border-emerald-200 space-y-5">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Syringe size={18} className="text-emerald-600" />
-                <h3 className="text-base font-bold text-gray-900">Record Canine Vaccination &amp; Deworming</h3>
-              </div>
-              <button onClick={() => setShowAddVaxModal(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                ✕
+      {/* ========================================================= */}
+      {/* MODAL: VACCINE */}
+      {/* ========================================================= */}
+      {modalType === 'vaccine' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Log Canine Vaccination / Deworming</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveVaccination} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveVaccine} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
+                <select
+                  required
+                  value={vaxForm.dogName}
+                  onChange={e => {
+                    const found = dogs.find(d => d.name === e.target.value);
+                    setVaxForm(prev => ({ ...prev, dogName: e.target.value, dogId: found?.id || '' }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="">-- Choose Canine --</option>
+                  {dogs.map(d => (
+                    <option key={d.id} value={d.name}>{d.name} ({d.breed})</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Target Canine *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Vaccine / Anthelmintic *</label>
                   <select
-                    value={vaxDogId}
-                    onChange={(e) => setVaxDogId(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold"
+                    value={vaxForm.vaccineType}
+                    onChange={e => setVaxForm(prev => ({ ...prev, vaccineType: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
-                    {dogs.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.breed})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Vaccine / Protocol *</label>
-                  <select
-                    value={vaxType}
-                    onChange={(e) => handleVaxTypeChange(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold"
-                  >
-                    <option value="Rabies">Rabies (Annual)</option>
+                    <option value="Rabies">Rabies (Mandatory Annual)</option>
                     <option value="DHLPP 5-in-1">DHLPP 5-in-1 Multi-booster</option>
-                    <option value="Deworming">Deworming (Quarterly)</option>
-                    <option value="Flea & Tick Prevention">Flea &amp; Tick Prevention</option>
+                    <option value="Deworming">Deworming (Praziquantel - Quarterly)</option>
+                    <option value="Flea & Tick Prevention">Flea & Tick Prevention</option>
                     <option value="Parvovirus Booster">Parvovirus Booster</option>
                     <option value="Kennel Cough (Bordetella)">Kennel Cough (Bordetella)</option>
-                    <option value="Other">Other Protocol</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Administration Date</label>
-                  <input
-                    type="date"
-                    value={vaxDate}
-                    onChange={(e) => {
-                      setVaxDate(e.target.value);
-                      if (vaxType === 'Deworming') {
-                        setVaxNextDue(offsetIsoDate(90, new Date(e.target.value)));
-                      } else if (vaxType === 'Flea & Tick Prevention') {
-                        setVaxNextDue(offsetIsoDate(30, new Date(e.target.value)));
-                      } else {
-                        setVaxNextDue(offsetIsoDate(365, new Date(e.target.value)));
-                      }
-                    }}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Next Booster Due Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={vaxNextDue}
-                    onChange={(e) => setVaxNextDue(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-bold font-mono text-emerald-800"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Batch / Serial #</label>
+                  <label className="block font-bold text-gray-700 mb-1">Batch / Serial No.</label>
                   <input
                     type="text"
-                    value={vaxBatch}
-                    onChange={(e) => setVaxBatch(e.target.value)}
-                    placeholder="e.g. RAB-2026-X8"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                    placeholder="e.g. RAB-9921"
+                    value={vaxForm.batchNo}
+                    onChange={e => setVaxForm(prev => ({ ...prev, batchNo: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Cost (KES)</label>
+                  <label className="block font-bold text-gray-700 mb-1">Date Administered</label>
                   <input
-                    type="number"
-                    value={vaxCost}
-                    onChange={(e) => setVaxCost(e.target.value)}
-                    placeholder="e.g. 1500"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                    type="date"
+                    value={vaxForm.dateAdministered}
+                    onChange={e => setVaxForm(prev => ({ ...prev, dateAdministered: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Next Booster Due Date</label>
+                  <input
+                    type="date"
+                    value={vaxForm.nextDueDate}
+                    onChange={e => setVaxForm(prev => ({ ...prev, nextDueDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
               </div>
-
               <div>
-                <label className="font-semibold text-gray-700 block mb-1">Attending Surgeon / DVM</label>
+                <label className="block font-bold text-gray-700 mb-1">Attending Officer / DVM</label>
                 <input
                   type="text"
-                  value={vaxAdminBy}
-                  onChange={(e) => setVaxAdminBy(e.target.value)}
-                  placeholder="Dr. Devin Omwenga (DVM)"
-                  className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold"
+                  value={vaxForm.administeredBy}
+                  onChange={e => setVaxForm(prev => ({ ...prev, administeredBy: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                 />
               </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Observations / Notes</label>
-                <input
-                  type="text"
-                  value={vaxNotes}
-                  onChange={(e) => setVaxNotes(e.target.value)}
-                  placeholder="e.g. No adverse reaction observed, healthy weight."
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
-                />
-              </div>
-
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddVaxModal(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 cursor-pointer font-bold"
-                >
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md cursor-pointer transition-colors"
-                >
-                  Save Vaccination Log
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Vaccine
                 </button>
               </div>
             </form>
@@ -2340,163 +3165,118 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: RECORD CLINICAL EXAM & TREATMENT                                   */}
-      {/* ========================================================================= */}
-      {showAddTxModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-7 border border-emerald-200 space-y-5">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Stethoscope size={18} className="text-emerald-600" />
-                <h3 className="text-base font-bold text-gray-900">Record Veterinary Clinical Exam</h3>
-              </div>
-              <button onClick={() => setShowAddTxModal(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                ✕
+      {/* ========================================================= */}
+      {/* MODAL: CLINICAL TREATMENT */}
+      {/* ========================================================= */}
+      {modalType === 'treatment' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Record Veterinary Clinical Exam</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveTreatment} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveTreatment} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
+                <select
+                  required
+                  value={treatForm.dogName}
+                  onChange={e => {
+                    const found = dogs.find(d => d.name === e.target.value);
+                    setTreatForm(prev => ({ ...prev, dogName: e.target.value, dogId: found?.id || '' }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="">-- Choose Canine --</option>
+                  {dogs.map(d => (
+                    <option key={d.id} value={d.name}>{d.name} ({d.breed})</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Target Canine *</label>
-                  <select
-                    value={txDogId}
-                    onChange={(e) => setTxDogId(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold"
-                  >
-                    {dogs.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.breed})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Exam Date *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Exam Date</label>
                   <input
                     type="date"
-                    required
-                    value={txDate}
-                    onChange={(e) => setTxDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold font-mono"
+                    value={treatForm.date}
+                    onChange={e => setTreatForm(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Clinical Diagnosis *</label>
-                <input
-                  type="text"
-                  required
-                  value={txDiagnosis}
-                  onChange={(e) => setTxDiagnosis(e.target.value)}
-                  placeholder="e.g. Mild tick-fever symptoms / Foot pad abrasion"
-                  className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Symptoms Observed</label>
-                <input
-                  type="text"
-                  value={txSymptoms}
-                  onChange={(e) => setTxSymptoms(e.target.value)}
-                  placeholder="e.g. Reduced appetite, elevated body temperature"
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Prescription &amp; Medication Administered *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={txMedication}
-                  onChange={(e) => setTxMedication(e.target.value)}
-                  placeholder="e.g. Doxycycline 100mg BID x 14 days, Multivitamin injection, antiseptic spray"
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Body Temp (°C)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={txTemp}
-                    onChange={(e) => setTxTemp(e.target.value)}
-                    placeholder="38.5"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Body Weight (Kg)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={txWeight}
-                    onChange={(e) => setTxWeight(e.target.value)}
-                    placeholder="35.0"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Clinical Status</label>
+                  <label className="block font-bold text-gray-700 mb-1">Recovery Status</label>
                   <select
-                    value={txStatus}
-                    onChange={(e) => setTxStatus(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
+                    value={treatForm.status}
+                    onChange={e => setTreatForm(prev => ({ ...prev, status: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
                     <option value="Recovered">Recovered</option>
                     <option value="Under Treatment">Under Treatment</option>
-                    <option value="Critical">Critical</option>
                     <option value="Scheduled Follow-up">Scheduled Follow-up</option>
+                    <option value="Critical">Critical</option>
                   </select>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Diagnosis *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Minor paw pad laceration, Otitis externa"
+                  value={treatForm.diagnosis}
+                  onChange={e => setTreatForm(prev => ({ ...prev, diagnosis: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Prescription & Administered Therapy</label>
+                <textarea
+                  rows={2}
+                  placeholder="Medication dosage, antibiotic, ointment, bandaging..."
+                  value={treatForm.treatmentAdministered}
+                  onChange={e => setTreatForm(prev => ({ ...prev, treatmentAdministered: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Attending Vet</label>
-                  <input
-                    type="text"
-                    value={txVet}
-                    onChange={(e) => setTxVet(e.target.value)}
-                    placeholder="Dr. Devin Omwenga (DVM)"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Treatment Cost (KES)</label>
+                  <label className="block font-bold text-gray-700 mb-1">Temp (°C)</label>
                   <input
                     type="number"
-                    value={txCost}
-                    onChange={(e) => setTxCost(e.target.value)}
-                    placeholder="e.g. 2500"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                    step="0.1"
+                    value={treatForm.temperature}
+                    onChange={e => setTreatForm(prev => ({ ...prev, temperature: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={treatForm.weightKg}
+                    onChange={e => setTreatForm(prev => ({ ...prev, weightKg: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Cost (KES)</label>
+                  <input
+                    type="number"
+                    value={treatForm.cost}
+                    onChange={e => setTreatForm(prev => ({ ...prev, cost: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
               </div>
-
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddTxModal(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 cursor-pointer font-bold"
-                >
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md cursor-pointer transition-colors"
-                >
-                  Save Treatment Record
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Treatment
                 </button>
               </div>
             </form>
@@ -2504,176 +3284,514 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: RECORD CANINE SALE / PLACEMENT                                     */}
-      {/* ========================================================================= */}
-      {showAddSaleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-7 border border-emerald-200 space-y-5">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <DollarSign size={18} className="text-emerald-600" />
-                <h3 className="text-base font-bold text-gray-900">Record Guard Dog Sale / Placement</h3>
-              </div>
-              <button onClick={() => setShowAddSaleModal(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                ✕
+      {/* ========================================================= */}
+      {/* MODAL: PATROL */}
+      {/* ========================================================= */}
+      {modalType === 'patrol' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Log Security Patrol Shift</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveSale} className="space-y-4 text-xs">
+            <form onSubmit={handleSavePatrol} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
+                <select
+                  required
+                  value={patrolForm.dogName}
+                  onChange={e => {
+                    const found = dogs.find(d => d.name === e.target.value);
+                    setPatrolForm(prev => ({ ...prev, dogName: e.target.value, dogId: found?.id || '' }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="">-- Choose Canine --</option>
+                  {dogs.map(d => (
+                    <option key={d.id} value={d.name}>{d.name} ({d.breed})</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Select Dog from Pack</label>
+                  <label className="block font-bold text-gray-700 mb-1">Shift Type</label>
                   <select
-                    value={saleDogId}
-                    onChange={(e) => {
-                      setSaleDogId(e.target.value);
-                      const sel = dogs.find((d) => d.id === e.target.value);
-                      if (sel) {
-                        setSaleDogName(sel.name);
-                        setSaleBreed(sel.breed);
-                      }
-                    }}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold"
+                    value={patrolForm.shift}
+                    onChange={e => setPatrolForm(prev => ({ ...prev, shift: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
-                    <option value="">-- Or Manual Entry Below --</option>
-                    {dogs.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.breed})
-                      </option>
-                    ))}
+                    <option value="Night Shift (18:00 - 06:00)">Night Shift (18:00 - 06:00)</option>
+                    <option value="Day Shift (06:00 - 18:00)">Day Shift (06:00 - 18:00)</option>
+                    <option value="Evening Patrol (18:00 - 22:00)">Evening Patrol (18:00 - 22:00)</option>
+                    <option value="Perimeter Sweep">Perimeter Sweep</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Date of Sale *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Patrol Sector</label>
+                  <select
+                    value={patrolForm.patrolSector}
+                    onChange={e => setPatrolForm(prev => ({ ...prev, patrolSector: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="North Boundary & Tea Zone">North Boundary & Tea Zone</option>
+                    <option value="South Fence & Stream">South Fence & Stream</option>
+                    <option value="Main Gate Sentry">Main Gate Sentry</option>
+                    <option value="Livestock & Dairy Pens">Livestock & Dairy Pens</option>
+                    <option value="Homestead & Storage">Homestead & Storage</option>
+                    <option value="Full Estate Perimeter">Full Estate Perimeter</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Incident Status</label>
+                <select
+                  value={patrolForm.incidentStatus}
+                  onChange={e => setPatrolForm(prev => ({ ...prev, incidentStatus: e.target.value as any }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="All Clear (Normal)">All Clear (Normal)</option>
+                  <option value="Trespasser Deterred">Trespasser Deterred</option>
+                  <option value="Perimeter Breach / Fence Damage">Perimeter Breach / Fence Damage</option>
+                  <option value="Predator / Wildlife Alert">Predator / Wildlife Alert</option>
+                  <option value="Canine Fatigued / Injured">Canine Fatigued / Injured</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Incident / Patrol Observations</label>
+                <textarea
+                  rows={2}
+                  placeholder="Details of patrol rounds, fences inspected, intruder deterrence..."
+                  value={patrolForm.incidentDetails}
+                  onChange={e => setPatrolForm(prev => ({ ...prev, incidentDetails: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Patrol Record
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: TRAINING */}
+      {/* ========================================================= */}
+      {modalType === 'training' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Log Tactical Training Session</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveTraining} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
+                <select
+                  required
+                  value={trForm.dogName}
+                  onChange={e => {
+                    const found = dogs.find(d => d.name === e.target.value);
+                    setTrForm(prev => ({ ...prev, dogName: e.target.value, dogId: found?.id || '' }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="">-- Choose Canine --</option>
+                  {dogs.map(d => (
+                    <option key={d.id} value={d.name}>{d.name} ({d.breed})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Discipline</label>
+                  <select
+                    value={trForm.discipline}
+                    onChange={e => setTrForm(prev => ({ ...prev, discipline: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Bite Work & Protection">Bite Work & Protection</option>
+                    <option value="Basic Obedience (Heel/Sit/Down)">Basic Obedience</option>
+                    <option value="Advanced Obedience & Recall">Advanced Obedience</option>
+                    <option value="Perimeter & Fence Patrol">Perimeter & Fence Patrol</option>
+                    <option value="Scent & Tracking">Scent & Tracking</option>
+                    <option value="Agility & Obstacle">Agility & Obstacle</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Level / Tier</label>
+                  <select
+                    value={trForm.level}
+                    onChange={e => setTrForm(prev => ({ ...prev, level: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Level 1: Novice/Puppy">Level 1: Novice</option>
+                    <option value="Level 2: Intermediate Working">Level 2: Intermediate</option>
+                    <option value="Level 3: Advanced Guard">Level 3: Advanced</option>
+                    <option value="Level 4: Tactical Master">Level 4: Tactical Master</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Performance Score (%)</label>
                   <input
-                    type="date"
-                    required
-                    value={saleDate}
-                    onChange={(e) => setSaleDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold font-mono"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={trForm.scorePercentage}
+                    onChange={e => setTrForm(prev => ({ ...prev, scorePercentage: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Trainer</label>
+                  <input
+                    type="text"
+                    value={trForm.trainerName}
+                    onChange={e => setTrForm(prev => ({ ...prev, trainerName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
               </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Training Log
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-              {!saleDogId && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-semibold text-gray-700 block mb-1">Dog / Puppy Name *</label>
-                    <input
-                      type="text"
-                      value={saleDogName}
-                      onChange={(e) => setSaleDogName(e.target.value)}
-                      placeholder="e.g. Kaiser or Pack of 2 Pups"
-                      className="w-full border border-gray-200 rounded-xl p-2.5 font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-gray-700 block mb-1">Breed</label>
-                    <input
-                      type="text"
-                      value={saleBreed}
-                      onChange={(e) => setSaleBreed(e.target.value)}
-                      placeholder="German Shepherd"
-                      className="w-full border border-gray-200 rounded-xl p-2.5"
-                    />
-                  </div>
-                </div>
-              )}
-
+      {/* ========================================================= */}
+      {/* MODAL: FEEDING */}
+      {/* ========================================================= */}
+      {modalType === 'feeding' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Log Nutrition Ration & BCS</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveFeeding} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
+                <select
+                  required
+                  value={feedForm.dogName}
+                  onChange={e => {
+                    const found = dogs.find(d => d.name === e.target.value);
+                    setFeedForm(prev => ({ ...prev, dogName: e.target.value, dogId: found?.id || '' }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                >
+                  <option value="">-- Choose Canine --</option>
+                  {dogs.map(d => (
+                    <option key={d.id} value={d.name}>{d.name} ({d.breed})</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Buyer Full Name *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Diet Formulation</label>
+                  <select
+                    value={feedForm.dietType}
+                    onChange={e => setFeedForm(prev => ({ ...prev, dietType: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="High-Protein Kibble (28%)">High-Protein Kibble (28%)</option>
+                    <option value="Raw Meat & Bones (BARF)">Raw Meat & Bones (BARF)</option>
+                    <option value="Boiled Offal & Rice">Boiled Offal & Rice</option>
+                    <option value="Mixed Nutrition + Supplements">Mixed + Supplements</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Ration (Grams/Day)</label>
+                  <input
+                    type="number"
+                    value={feedForm.dailyGrams}
+                    onChange={e => setFeedForm(prev => ({ ...prev, dailyGrams: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Body Condition Score (1-9)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="9"
+                    value={feedForm.bodyConditionScore}
+                    onChange={e => setFeedForm(prev => ({ ...prev, bodyConditionScore: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Daily Cost (KES)</label>
+                  <input
+                    type="number"
+                    value={feedForm.dailyCostKes}
+                    onChange={e => setFeedForm(prev => ({ ...prev, dailyCostKes: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Feeding Log
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: BREEDING */}
+      {/* ========================================================= */}
+      {modalType === 'breeding' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Record Breeding Mating / Litter</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveBreeding} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Dam (Mother) *</label>
                   <input
                     type="text"
                     required
-                    value={saleBuyer}
-                    onChange={(e) => setSaleBuyer(e.target.value)}
-                    placeholder="e.g. Kipchoge Security Services"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-bold"
+                    value={breedForm.damName}
+                    onChange={e => setBreedForm(prev => ({ ...prev, damName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Buyer Phone *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Sire (Father) *</label>
                   <input
-                    type="tel"
+                    type="text"
                     required
-                    value={salePhone}
-                    onChange={(e) => setSalePhone(e.target.value)}
-                    placeholder="+254 722 000 000"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                    value={breedForm.sireName}
+                    onChange={e => setBreedForm(prev => ({ ...prev, sireName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Mating Date</label>
+                  <input
+                    type="date"
+                    value={breedForm.matingDate}
+                    onChange={e => setBreedForm(prev => ({
+                      ...prev,
+                      matingDate: e.target.value,
+                      expectedWhelpingDate: offsetIsoDate(63, new Date(e.target.value))
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Expected Whelping (+63d)</label>
+                  <input
+                    type="date"
+                    value={breedForm.expectedWhelpingDate}
+                    onChange={e => setBreedForm(prev => ({ ...prev, expectedWhelpingDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
               </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Breeding Record
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-              <div className="grid grid-cols-3 gap-3">
+      {/* ========================================================= */}
+      {/* MODAL: BIOSECURITY */}
+      {/* ========================================================= */}
+      {modalType === 'biosecurity' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Record Kennel Biosecurity & Disinfection</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveBiosecurity} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Kennel Unit / Block *</label>
+                <input
+                  type="text"
+                  required
+                  value={bioForm.kennelId}
+                  onChange={e => setBioForm(prev => ({ ...prev, kennelId: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Sale Price (KES) *</label>
+                  <label className="block font-bold text-gray-700 mb-1">Disinfectant Agent</label>
+                  <select
+                    value={bioForm.sanitizedWith}
+                    onChange={e => setBioForm(prev => ({ ...prev, sanitizedWith: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Virkon-S Disinfectant">Virkon-S Disinfectant</option>
+                    <option value="Bleach (Sodium Hypochlorite)">Bleach (Sodium Hypochlorite)</option>
+                    <option value="Lime Wash (Calcium Hydroxide)">Lime Wash (Agricultural Lime)</option>
+                    <option value="High-Pressure Steam / Water Wash">Steam & Power Wash</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Audit Status</label>
+                  <select
+                    value={bioForm.status}
+                    onChange={e => setBioForm(prev => ({ ...prev, status: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Passed & Certified">Passed & Certified</option>
+                    <option value="Needs Deep Scrub">Needs Deep Scrub</option>
+                    <option value="Quarantine Sealed">Quarantine Sealed</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Save Biosecurity Audit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: SALE */}
+      {/* ========================================================= */}
+      {modalType === 'sale' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Record Canine Sale / Placement</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveSale} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Thor"
+                    value={saleForm.dogName}
+                    onChange={e => setSaleForm(prev => ({ ...prev, dogName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Breed *</label>
+                  <input
+                    type="text"
+                    required
+                    value={saleForm.breed}
+                    onChange={e => setSaleForm(prev => ({ ...prev, breed: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Buyer Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Eng. Patrick Mutiso"
+                    value={saleForm.buyerName}
+                    onChange={e => setSaleForm(prev => ({ ...prev, buyerName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Buyer Phone *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="+254 7..."
+                    value={saleForm.buyerPhone}
+                    onChange={e => setSaleForm(prev => ({ ...prev, buyerPhone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Sale Price (KES) *</label>
                   <input
                     type="number"
                     required
-                    value={saleAmount}
-                    onChange={(e) => setSaleAmount(e.target.value)}
-                    placeholder="e.g. 75000"
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono font-bold text-emerald-800 text-sm"
+                    value={saleForm.amount}
+                    onChange={e => setSaleForm(prev => ({ ...prev, amount: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
-
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Payment Method</label>
+                  <label className="block font-bold text-gray-700 mb-1">Payment Method</label>
                   <select
-                    value={salePaymentMethod}
-                    onChange={(e) => setSalePaymentMethod(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
+                    value={saleForm.paymentMethod}
+                    onChange={e => setSaleForm(prev => ({ ...prev, paymentMethod: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   >
                     <option value="M-Pesa">M-Pesa</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Cash">Cash</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Placement Purpose</label>
-                  <select
-                    value={salePurpose}
-                    onChange={(e) => setSalePurpose(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
-                  >
-                    <option value="Security Guard Dog">Security Guard Dog</option>
-                    <option value="Trained Family Pet">Trained Family Pet</option>
-                    <option value="Breeding">Breeding Stock</option>
-                    <option value="Working Livestock Guardian">Working Livestock Guardian</option>
-                  </select>
-                </div>
               </div>
-
-              <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center gap-2">
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl text-emerald-900">
                 <input
                   type="checkbox"
-                  id="autoFinanceCheck"
-                  checked={saleAutoFinance}
-                  onChange={(e) => setSaleAutoFinance(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
+                  id="syncFin"
+                  checked={syncSaleToFinancials}
+                  onChange={e => setSyncSaleToFinancials(e.target.checked)}
+                  className="rounded text-emerald-600 focus:ring-emerald-500"
                 />
-                <label htmlFor="autoFinanceCheck" className="text-xs font-semibold text-emerald-950 cursor-pointer">
-                  Auto-record revenue in JR Farm Financials (Category: Canine Sales)
+                <label htmlFor="syncFin" className="font-bold cursor-pointer">
+                  Auto-sync revenue to JR Farm Financials under category "Canine Sales"
                 </label>
               </div>
-
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddSaleModal(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 cursor-pointer font-bold"
-                >
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md cursor-pointer transition-colors"
-                >
-                  Confirm Sale &amp; Placement
+                <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+                  Confirm Sale
                 </button>
               </div>
             </form>
@@ -2681,316 +3799,92 @@ Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)`;
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL: RECORD CANINE LOSS / MORTALITY                                     */}
-      {/* ========================================================================= */}
-      {showAddMortalityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-7 border border-rose-200 space-y-5">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Heart size={18} className="text-rose-600" />
-                <h3 className="text-base font-bold text-gray-900">Record Canine Mortality &amp; Post-Mortem</h3>
-              </div>
-              <button onClick={() => setShowAddMortalityModal(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                ✕
+      {/* ========================================================= */}
+      {/* MODAL: MORTALITY */}
+      {/* ========================================================= */}
+      {modalType === 'mortality' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-black text-gray-900">Record Canine Mortality</h3>
+              <button onClick={() => setModalType(null)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+                <X size={16} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveMortality} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveMortality} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Target Canine *</label>
-                  <select
-                    value={mortDogId}
-                    onChange={(e) => {
-                      setMortDogId(e.target.value);
-                      const sel = dogs.find((d) => d.id === e.target.value);
-                      if (sel) {
-                        setMortDogName(sel.name);
-                        setMortBreed(sel.breed);
-                      }
-                    }}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold"
-                  >
-                    <option value="">-- Select from Pack --</option>
-                    {dogs.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.breed})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Date of Loss *</label>
-                  <input
-                    type="date"
-                    required
-                    value={mortDate}
-                    onChange={(e) => setMortDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Primary Cause of Loss *</label>
-                <select
-                  value={mortCause}
-                  onChange={(e) => setMortCause(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-bold text-rose-800"
-                >
-                  <option value="Snake Bite / Envenomation">Snake Bite / Envenomation</option>
-                  <option value="Suspected Acute Poisoning">Suspected Acute Poisoning</option>
-                  <option value="Gastric Dilatation-Volvulus (Bloat)">Gastric Dilatation-Volvulus (Bloat)</option>
-                  <option value="Severe Trauma / Patrol Injury">Severe Trauma / Patrol Injury</option>
-                  <option value="Old Age & Heart Failure">Old Age &amp; Heart Failure</option>
-                  <option value="Canine Parvovirus">Canine Parvovirus</option>
-                  <option value="Other Illness">Other Illness</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="font-semibold text-gray-700 block mb-1">Post-Mortem Veterinary Findings</label>
-                <textarea
-                  rows={2}
-                  value={mortFindings}
-                  onChange={(e) => setMortFindings(e.target.value)}
-                  placeholder="e.g. Fang marks on lateral neck, severe tissue necrosis, lung congestion consistent with venomous viper bite."
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Disposal Protocol</label>
-                  <select
-                    value={mortDisposal}
-                    onChange={(e) => setMortDisposal(e.target.value as any)}
-                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
-                  >
-                    <option value="Estate Burial">Estate Sanitary Deep Burial with Quicklime</option>
-                    <option value="Incineration">Incineration</option>
-                    <option value="Sanitary Disposal">Authorized Veterinary Disposal</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-gray-700 block mb-1">Attending Surgeon</label>
+                  <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>
                   <input
                     type="text"
-                    value={mortVet}
-                    onChange={(e) => setMortVet(e.target.value)}
-                    placeholder="Dr. Devin Omwenga (DVM)"
-                    className="w-full border border-gray-200 rounded-xl p-2.5"
+                    required
+                    value={mortForm.dogName}
+                    onChange={e => setMortForm(prev => ({ ...prev, dogName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                   />
                 </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Breed *</label>
+                  <input
+                    type="text"
+                    required
+                    value={mortForm.breed}
+                    onChange={e => setMortForm(prev => ({ ...prev, breed: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Date of Death</label>
+                  <input
+                    type="date"
+                    value={mortForm.dateOfDeath}
+                    onChange={e => setMortForm(prev => ({ ...prev, dateOfDeath: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Disposal Method</label>
+                  <select
+                    value={mortForm.disposalMethod}
+                    onChange={e => setMortForm(prev => ({ ...prev, disposalMethod: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                  >
+                    <option value="Estate Burial">Estate Sanitary Burial (Quicklime)</option>
+                    <option value="Incineration">Veterinary Incineration</option>
+                    <option value="Sanitary Disposal">Sanitary Biosecure Disposal</option>
+                  </select>
+                </div>
               </div>
-
               <div>
-                <label className="font-semibold text-gray-700 block mb-1">Biosecurity Precautions Taken</label>
+                <label className="block font-bold text-gray-700 mb-1">Cause of Death *</label>
                 <input
                   type="text"
-                  value={mortBiosecurity}
-                  onChange={(e) => setMortBiosecurity(e.target.value)}
-                  placeholder="e.g. Kennels disinfected with Virkon S, other dogs inspected."
-                  className="w-full border border-gray-200 rounded-xl p-2.5"
+                  required
+                  placeholder="e.g. Acute snake envenomation, Gastric dilatation-volvulus (GDV)"
+                  value={mortForm.causeOfDeath}
+                  onChange={e => setMortForm(prev => ({ ...prev, causeOfDeath: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
                 />
               </div>
-
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Post-Mortem Findings</label>
+                <textarea
+                  rows={2}
+                  placeholder="Necropsy observations by attending veterinarian..."
+                  value={mortForm.veterinaryFindings}
+                  onChange={e => setMortForm(prev => ({ ...prev, veterinaryFindings: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+                />
+              </div>
               <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddMortalityModal(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 cursor-pointer font-bold"
-                >
+                <button type="button" onClick={() => setModalType(null)} className="px-4 py-2 text-gray-700 font-bold">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-md cursor-pointer transition-colors"
-                >
-                  Record Mortality Case
+                <button type="submit" className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold">
+                  Save Mortality Entry
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL: CANINE PROFILE DOSSIER                                             */}
-      {/* ========================================================================= */}
-      {selectedDogDossier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-7 border border-gray-200 space-y-6">
-            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-900 text-2xl font-black flex items-center justify-center shadow-inner">
-                  🐾
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      {selectedDogDossier.dutyRole}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        selectedDogDossier.status === 'Active Duty'
-                          ? 'bg-emerald-500 text-white'
-                          : selectedDogDossier.status === 'In Training'
-                          ? 'bg-indigo-500 text-white'
-                          : 'bg-amber-500 text-white'
-                      }`}
-                    >
-                      {selectedDogDossier.status}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">{selectedDogDossier.name}</h3>
-                  <p className="text-xs text-gray-500 font-medium">{selectedDogDossier.breed}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedDogDossier(null)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-lg cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => generateDogPassportPdf(selectedDogDossier)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer transition-colors"
-              >
-                <Download size={13} />
-                <span>Download Official Vet Passport PDF</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setPreselectedVaxDogId(selectedDogDossier.id);
-                  setVaxDogId(selectedDogDossier.id);
-                  setShowAddVaxModal(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold border border-emerald-200 cursor-pointer"
-              >
-                <Syringe size={13} />
-                <span>+ Log Vaccine</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setPreselectedTxDogId(selectedDogDossier.id);
-                  setTxDogId(selectedDogDossier.id);
-                  setShowAddTxModal(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-semibold border border-amber-200 cursor-pointer"
-              >
-                <Stethoscope size={13} />
-                <span>+ Log Treatment</span>
-              </button>
-            </div>
-
-            {/* Dossier Grid Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Identity &amp; Housing</span>
-                <div>
-                  <span className="text-gray-500">Microchip Tag ID:</span>{' '}
-                  <strong className="text-gray-900 font-mono">{selectedDogDossier.chipId || 'Not provided'}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Kennel Location:</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.kennelNo || 'General Unit'}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Date of Birth:</span>{' '}
-                  <strong className="text-gray-900 font-mono">{selectedDogDossier.dob}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Gender / Reproduction:</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.gender}</strong>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">Security &amp; Pedigree</span>
-                <div>
-                  <span className="text-gray-500">Assigned Handler:</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.handlerName || 'Estate Security Unit'}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Sire (Father):</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.sire || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Dam (Mother):</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.dam || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-gray-500">Color / Coat:</span>{' '}
-                  <strong className="text-gray-900">{selectedDogDossier.colorMarkings || 'Standard'}</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Vaccine History in Dossier */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-900 mb-2">Vaccine &amp; Deworming Standing</h4>
-              <div className="border border-gray-100 rounded-xl overflow-hidden text-xs">
-                {vaccinations.filter((v) => v.dogId === selectedDogDossier.id).length === 0 ? (
-                  <div className="p-3 text-gray-400 italic text-center">No vaccination logs registered for this dog yet.</div>
-                ) : (
-                  vaccinations
-                    .filter((v) => v.dogId === selectedDogDossier.id)
-                    .map((v) => (
-                      <div key={v.id} className="p-2.5 flex justify-between items-center border-b border-gray-100 last:border-none">
-                        <div>
-                          <strong className="text-gray-900 mr-2">{v.vaccineType}</strong>
-                          <span className="text-gray-500 font-mono text-[10px]">
-                            Administered: {v.dateAdministered} • Next Due: {v.nextDueDate}
-                          </span>
-                        </div>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            v.nextDueDate < todayStr ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
-                          }`}
-                        >
-                          {v.nextDueDate < todayStr ? 'Overdue' : 'Valid'}
-                        </span>
-                      </div>
-                    ))
-                )}
-              </div>
-            </div>
-
-            {/* Medical History in Dossier */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-900 mb-2">Medical &amp; Veterinary Treatment History</h4>
-              <div className="border border-gray-100 rounded-xl overflow-hidden text-xs">
-                {treatments.filter((t) => t.dogId === selectedDogDossier.id).length === 0 ? (
-                  <div className="p-3 text-gray-400 italic text-center">Clean veterinary record: No illnesses or injuries.</div>
-                ) : (
-                  treatments
-                    .filter((t) => t.dogId === selectedDogDossier.id)
-                    .map((t) => (
-                      <div key={t.id} className="p-2.5 flex justify-between items-start border-b border-gray-100 last:border-none">
-                        <div>
-                          <strong className="text-gray-900 block">{t.diagnosis}</strong>
-                          <span className="text-gray-500 text-[10px] block mt-0.5">{t.treatmentAdministered}</span>
-                          <span className="text-gray-400 font-mono text-[9px] block mt-0.5">Date: {t.date} • Vet: {t.attendingVet}</span>
-                        </div>
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                          {t.status}
-                        </span>
-                      </div>
-                    ))
-                )}
-              </div>
-            </div>
           </div>
         </div>
       )}

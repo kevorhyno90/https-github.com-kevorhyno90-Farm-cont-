@@ -520,3 +520,78 @@ export interface CanineMortalityRecord {
   notes?: string;
 }
 
+export interface CaninePatrolRecord {
+  id: string;
+  dogId: string;
+  dogName: string;
+  handlerName: string;
+  date: string; // YYYY-MM-DD
+  shift: 'Night Shift (18:00 - 06:00)' | 'Day Shift (06:00 - 18:00)' | 'Evening Patrol (18:00 - 22:00)' | 'Perimeter Sweep';
+  patrolSector: 'North Boundary & Tea Zone' | 'South Fence & Stream' | 'Main Gate Sentry' | 'Livestock & Dairy Pens' | 'Homestead & Storage' | 'Full Estate Perimeter';
+  incidentStatus: 'All Clear (Normal)' | 'Trespasser Deterred' | 'Perimeter Breach / Fence Damage' | 'Predator / Wildlife Alert' | 'Canine Fatigued / Injured';
+  incidentDetails?: string;
+  durationMinutes?: number;
+  notes?: string;
+}
+
+export interface CanineTrainingRecord {
+  id: string;
+  dogId: string;
+  dogName: string;
+  trainingDate: string; // YYYY-MM-DD
+  discipline: 'Bite Work & Protection' | 'Basic Obedience (Heel/Sit/Down)' | 'Advanced Obedience & Recall' | 'Perimeter & Fence Patrol' | 'Scent & Tracking' | 'Agility & Obstacle' | 'Socialization';
+  level: 'Level 1: Novice/Puppy' | 'Level 2: Intermediate Working' | 'Level 3: Advanced Guard' | 'Level 4: Tactical Master';
+  scorePercentage: number; // 0 - 100
+  trainerName: string;
+  passed: boolean;
+  nextEvaluationDate?: string;
+  notes?: string;
+}
+
+export interface CanineFeedingRecord {
+  id: string;
+  dogId: string;
+  dogName: string;
+  date: string; // YYYY-MM-DD
+  dietType: 'High-Protein Kibble (28%)' | 'Raw Meat & Bones (BARF)' | 'Boiled Offal & Rice' | 'Mixed Nutrition + Supplements';
+  dailyGrams: number; // Daily ration weight
+  feedingSchedule: 'Once Daily (Evening)' | 'Twice Daily (Morning & Evening)' | 'Three Times (Puppy Routine)';
+  bodyConditionScore: number; // 1 to 9 (Ideal: 4-5)
+  weightKg?: number;
+  dailyCostKes?: number;
+  appetite: 'Vigorous / Excellent' | 'Normal' | 'Sluggish / Picky' | 'Refused Food (Alert Vet)';
+  notes?: string;
+}
+
+export interface CanineBreedingRecord {
+  id: string;
+  damId: string;
+  damName: string;
+  sireName: string;
+  heatDate: string; // YYYY-MM-DD
+  matingDate: string; // YYYY-MM-DD
+  expectedWhelpingDate: string; // YYYY-MM-DD (+63 days)
+  actualWhelpingDate?: string;
+  litterSize?: number;
+  malesCount?: number;
+  femalesCount?: number;
+  puppySurvivingCount?: number;
+  veterinaryNotes?: string;
+  status: 'Mated / Pregnant' | 'Delivered (Litter Active)' | 'Weaned' | 'Unsuccessful Mating';
+  notes?: string;
+}
+
+export interface CanineKennelBiosecurityRecord {
+  id: string;
+  kennelId: string;
+  inspectionDate: string; // YYYY-MM-DD
+  sanitizedWith: 'Virkon-S Disinfectant' | 'Bleach (Sodium Hypochlorite)' | 'Lime Wash (Calcium Hydroxide)' | 'High-Pressure Steam / Water Wash';
+  beddingReplaced: boolean;
+  waterBowlsSterilized: boolean;
+  pestsControlled: boolean;
+  status: 'Passed & Certified' | 'Needs Deep Scrub' | 'Quarantine Sealed';
+  inspectedBy: string;
+  notes?: string;
+}
+
+
