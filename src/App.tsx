@@ -76,6 +76,7 @@ const AzollaManager = React.lazy(() => import('./components/AzollaManager').then
 const SprayLog = React.lazy(() => import('./components/SprayLog').then(m => ({ default: m.SprayLog })));
 const Financials = React.lazy(() => import('./components/Financials').then(m => ({ default: m.Financials })));
 const OtherSections = React.lazy(() => import('./components/OtherSections').then(m => ({ default: m.OtherSections })));
+const CaninesManager = React.lazy(() => import('./components/CaninesManager').then(m => ({ default: m.CaninesManager })));
 const BackupCenter = React.lazy(() => import('./components/BackupCenter').then(m => ({ default: m.BackupCenter })));
 const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
@@ -6768,8 +6769,8 @@ function FarmCoreApp() {
             />
           )}
 
-          {/* Sub-view switcher for agronomy / canine logs / warehouse */}
-          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'canines' || activeTab === 'bsf' || activeTab === 'biogas') && (
+          {/* Sub-view switcher for agronomy / warehouse / general livestock */}
+          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'bsf' || activeTab === 'biogas') && (
             <OtherSections
               viewType={
                 activeTab === 'fields' ? 'fields' :
@@ -6781,7 +6782,6 @@ function FarmCoreApp() {
                 activeTab === 'calves' ? 'calves' :
                 activeTab === 'heifers' ? 'heifers' :
                 activeTab === 'poultry' ? 'poultry' :
-                activeTab === 'canines' ? 'canines' :
                 activeTab === 'bsf' ? 'bsf' :
                 activeTab === 'biogas' ? 'biogas' :
                 undefined
@@ -6841,6 +6841,15 @@ function FarmCoreApp() {
               quarantineRecords={quarantineRecords}
               onAddQuarantine={handleAddQuarantine}
               onDeleteQuarantine={handleDeleteQuarantine}
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
+
+          {activeTab === 'canines' && (
+            <CaninesManager
+              staffList={staffList}
+              livestock={livestock}
+              onAddLivestock={handleAddLivestock}
               onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}

@@ -440,3 +440,83 @@ export interface AzollaRecord {
   expensesKsh?: number;
   notes?: string;
 }
+
+export interface DogProfile {
+  id: string;
+  name: string;
+  breed: string; // German Shepherd, Rottweiler, Belgian Malinois, Boerboel, Doberman, Labrador, etc.
+  gender: 'Male' | 'Female' | 'Neutered Male' | 'Spayed Female';
+  dob: string; // YYYY-MM-DD
+  chipId?: string; // Microchip / Tattoo / Collar Tag
+  kennelNo?: string; // E.g. Kennel A-01
+  dutyRole: 'Perimeter Patrol' | 'Main Gate Security' | 'Night Watch' | 'Livestock Guardian' | 'Compound Guard' | 'Breeding Stock' | 'Puppy in Training';
+  status: 'Active Duty' | 'In Training' | 'Medical Rest' | 'Off Duty' | 'Sold' | 'Deceased';
+  handlerId?: string;
+  handlerName?: string;
+  sire?: string;
+  dam?: string;
+  colorMarkings?: string;
+  acquisitionDate?: string;
+  notes?: string;
+}
+
+export interface CanineVaccinationRecord {
+  id: string;
+  dogId: string;
+  dogName: string;
+  vaccineType: 'Rabies' | 'DHLPP 5-in-1' | 'Deworming' | 'Flea & Tick Prevention' | 'Parvovirus Booster' | 'Kennel Cough (Bordetella)' | 'Other';
+  dateAdministered: string; // YYYY-MM-DD
+  nextDueDate: string; // YYYY-MM-DD
+  batchNo?: string;
+  administeredBy: string; // E.g. Dr. Devin Omwenga
+  cost?: number; // KES
+  notes?: string;
+}
+
+export interface CanineTreatmentRecord {
+  id: string;
+  dogId: string;
+  dogName: string;
+  date: string; // YYYY-MM-DD
+  diagnosis: string; // Clinical diagnosis
+  symptoms?: string;
+  treatmentAdministered: string; // Medication / Injection / Wound dressing
+  temperature?: number; // °C
+  weightKg?: number;
+  attendingVet: string; // Default: Dr. Devin Omwenga (General Farm Manager / DVM)
+  cost?: number; // KES
+  status: 'Recovered' | 'Under Treatment' | 'Critical' | 'Scheduled Follow-up';
+  nextFollowUpDate?: string;
+  notes?: string;
+}
+
+export interface CanineSaleRecord {
+  id: string;
+  dogId?: string;
+  dogName: string;
+  breed: string;
+  saleDate: string; // YYYY-MM-DD
+  buyerName: string;
+  buyerPhone: string;
+  buyerLocation?: string;
+  amount: number; // KES
+  paymentMethod: 'Cash' | 'M-Pesa' | 'Bank Transfer';
+  receiptNumber?: string;
+  purpose: 'Security Guard Dog' | 'Trained Family Pet' | 'Breeding' | 'Working Livestock Guardian';
+  notes?: string;
+}
+
+export interface CanineMortalityRecord {
+  id: string;
+  dogId?: string;
+  dogName: string;
+  breed: string;
+  dateOfDeath: string; // YYYY-MM-DD
+  causeOfDeath: string; // E.g. Snake bite, Acute poisoning, Gastric torsion, Old age, Parvovirus
+  veterinaryFindings?: string;
+  attendingVet?: string;
+  disposalMethod: 'Estate Burial' | 'Incineration' | 'Sanitary Disposal';
+  biosecurityPrecautions?: string;
+  notes?: string;
+}
+
