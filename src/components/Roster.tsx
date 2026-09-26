@@ -896,26 +896,24 @@ export function Roster({
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
             <button
+              onClick={() => generateMonthlyPdf('download')}
+              type="button"
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-amber-500/30 transition-all active:scale-95 cursor-pointer"
+              title="Download Monthly Attendance, Jobs & Leaves PDF"
+            >
+              <Download size={16} />
+              Download PDF Report
+            </button>
+
+            <button
               onClick={() => setShowMonthlyReportModal(true)}
               type="button"
               className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-all shadow-md cursor-pointer"
-              title="Download & Share Monthly Attendance & Leave PDF"
+              title="Select Month, Print & WhatsApp Share"
             >
-              <FileText size={15} />
-              Monthly PDF &amp; Share
+              <Share2 size={14} />
+              Share / Print Options
             </button>
-
-            {onTriggerSectionReport && (
-              <button
-                onClick={() => onTriggerSectionReport('staff')}
-                type="button"
-                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs transition-all border border-white/15 cursor-pointer backdrop-blur-sm"
-                title="System Report"
-              >
-                <Download size={14} />
-                Quick PDF
-              </button>
-            )}
 
             <button
               onClick={() => {
@@ -1693,7 +1691,16 @@ export function Roster({
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => generateMonthlyPdf('download')}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+                title="Download Attendance PDF"
+              >
+                <Download size={14} />
+                Download PDF
+              </button>
+
               <button
                 onClick={markAllPresentToday}
                 className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
@@ -1839,13 +1846,21 @@ export function Roster({
                 Schedule rest periods, set return dates &amp; times, configure next rotation dates, and access permanent editable logs.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => generateMonthlyPdf('download')}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-sm cursor-pointer"
+                title="Download Leaves & Rotation PDF"
+              >
+                <Download size={14} />
+                Download PDF
+              </button>
               <button
                 onClick={() => setShowMonthlyReportModal(true)}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl text-xs font-bold border border-indigo-200 cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 rounded-xl text-xs font-bold border border-indigo-200 cursor-pointer"
               >
                 <Printer size={14} />
-                Monthly Leaves PDF
+                Print / Share
               </button>
               <button
                 onClick={() => setShowOffForm(!showOffForm)}
