@@ -571,7 +571,7 @@ export function Roster({
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('JUNIOR & DEVIN ESTATE FARMS', margin + 6, y + 10);
+    doc.text('JR FARM', margin + 6, y + 10);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
@@ -759,7 +759,7 @@ export function Roster({
     const monthLeaves = staffOffRecords.filter(
       (r) => r.startDate.startsWith(reportMonth) || r.endDate.startsWith(reportMonth)
     );
-    const summaryText = `📋 *Junior & Devin Estate Farms - Workforce Report (${reportMonth})*\n` +
+    const summaryText = `📋 *JR Farm - Workforce Report (${reportMonth})*\n` +
       `👥 Total Personnel: ${totalStaffCount}\n` +
       `✅ Currently on Duty: ${activeStaffCount}\n` +
       `🌴 Off / On Leave: ${offTodayCount + leaveTodayCount}\n` +
@@ -2973,7 +2973,7 @@ export function Roster({
                 <div id="printable-payslip" className="bg-white border-2 border-dashed border-gray-200 p-5 rounded-2xl space-y-4">
                   <div className="text-center border-b border-gray-200 pb-3">
                     <h2 className="text-sm font-extrabold uppercase tracking-widest text-emerald-900">
-                      Junior &amp; Devin Estate Farms
+                      JR Farm
                     </h2>
                     <p className="text-[10px] text-gray-500">Employee Remuneration Slip • Period: {payslipMonth}</p>
                   </div>
