@@ -457,16 +457,21 @@ export interface GoatKidRecord {
 
 export interface CalfRecord {
   id: string;
-  calfId: string;
-  damId: string; // Mother Cow tag
+  calfId?: string;
+  damId?: string; // Mother Cow tag
   dob: string; // Date of birth
-  milkIntakeLiters: number; // Daily liquid feeder volume
+  milkIntakeLiters?: number; // Daily liquid feeder volume
   creepFeedIntroDate?: string; // Creep ration start
-  weaned: boolean;
+  weaned?: boolean;
   notes: string;
-  date: string;
+  date?: string;
   calfName?: string;
   sex?: 'Male' | 'Female';
+  tag?: string;
+  weight?: number;
+  status?: string;
+  dam?: string;
+  sire?: string;
 }
 
 export interface BsfRecord {
@@ -668,14 +673,22 @@ export interface SilageRecord {
 
 export interface HeiferRecord {
   id: string;
-  cowId: string; // Target heifer identification tag
-  dateLogged: string; // YYYY-MM-DD
-  weightKg: number; // Target 280-320kg for insemination
+  cowId?: string; // Target heifer identification tag
+  dateLogged?: string; // YYYY-MM-DD
+  weightKg?: number; // Target 280-320kg for insemination
   girthCm?: number; // chest girth correlation
-  feedRationType: string; // "Grower cake + dry Rhodes fiber", "Dairy meal booster", "Silage + High Protein legume"
-  averageDailyGainGrams: number;
-  breedingReady: boolean; // status if weight & puberty parameters met
+  feedRationType?: string; // "Grower cake + dry Rhodes fiber", "Dairy meal booster", "Silage + High Protein legume"
+  averageDailyGainGrams?: number;
+  breedingReady?: boolean; // status if weight & puberty parameters met
   notes: string;
+  tag?: string;
+  breed?: string;
+  dob?: string;
+  girth?: number;
+  weight?: number;
+  sire?: string;
+  dam?: string;
+  status?: string;
 }
 
 export interface PoultryRecord {
