@@ -105,6 +105,7 @@ export function Roster({
   const [formShiftMorning, setFormShiftMorning] = useState('');
   const [formShiftAfternoon, setFormShiftAfternoon] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  const [formAnnualLeave, setFormAnnualLeave] = useState('21');
 
   // Off / Leave scheduler form state
   const [offStaffId, setOffStaffId] = useState('');
@@ -170,6 +171,49 @@ export function Roster({
 
   // Today string for reminder matching
   const todayStr = toIsoDate(new Date());
+
+  // Helper to calculate days between two ISO date strings (inclusive)
+  const calculateLeaveDays = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return 1;
+    const d1 = new Date(startDate).getTime();
+    const d2 = new Date(endDate).getTime();
+    if (isNaN(d1) || isNaN(d2)) return 1;
+    const diffTime = d2 - d1;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diffDays);
+  };
+
+  // Helper to calculate Annual Leave stats (entitlement, days taken this calendar year, remaining days)
+  const getStaffAnnualLeaveStats = (staffId: string) => {
+    const member = staffList.find((s) => s.id === staffId);
+    const entitlement = member?.annualLeaveEntitlement !== undefined ? member.annualLeaveEntitlement : 21;
+    const currentYear = new Date().getFullYear().toString();
+
+    // Sum all Annual Leave records (Approved or Completed) in current calendar year
+    const annualLeaveRecords = staffOffRecords.filter((r) => {
+      return (
+        r.staffId === staffId &&
+        r.type === 'Annual Leave' &&
+        (r.status === 'Approved' || r.status === 'Completed') &&
+        (r.startDate.startsWith(currentYear) || r.endDate.startsWith(currentYear))
+      );
+    });
+
+    const daysTaken = annualLeaveRecords.reduce((total, r) => {
+      return total + calculateLeaveDays(r.startDate, r.endDate);
+    }, 0);
+
+    const remaining = Math.max(0, entitlement - daysTaken);
+    const percentageUsed = entitlement > 0 ? Math.min(100, Math.round((daysTaken / entitlement) * 100)) : 0;
+
+    return {
+      entitlement,
+      daysTaken,
+      remaining,
+      percentageUsed,
+      recordsCount: annualLeaveRecords.length
+    };
+  };
 
   // REMINDER 1: Due to Leave / Go Off Today (or active today)
   const departureReminders = useMemo(() => {
@@ -243,6 +287,7 @@ export function Roster({
       wageType: formWageType,
       baseSalary: formBaseSalary ? Number(formBaseSalary) : undefined,
       dailyRate: formWageType === 'Daily' && formBaseSalary ? Number(formBaseSalary) : undefined,
+      annualLeaveEntitlement: formAnnualLeave ? Number(formAnnualLeave) : 21,
       mpesaNumber: formMpesa.trim() || undefined,
       bankDetails: formBank.trim() || undefined,
       emergencyContactName: formEmergencyName.trim() || undefined,
@@ -256,6 +301,7 @@ export function Roster({
     setFormNationalId('');
     setFormStation('');
     setFormBaseSalary('');
+    setFormAnnualLeave('21');
     setFormMpesa('');
     setFormBank('');
     setFormEmergencyName('');
@@ -599,9 +645,9 @@ export function Roster({
     doc.setFontSize(8);
 
     doc.text('EMPLOYEE', margin + 3, y + 5.5);
-    doc.text('UNIT & ROLE', margin + 45, y + 5.5);
-    doc.text('STATION', margin + 90, y + 5.5);
-    doc.text('AM SHIFT TASK', margin + 125, y + 5.5);
+    doc.text('UNIT & ROLE', margin + 40, y + 5.5);
+    doc.text('ANNUAL LEAVE', margin + 82, y + 5.5);
+    doc.text('AM SHIFT TASK', margin + 124, y + 5.5);
     doc.text('STATUS', margin + 165, y + 5.5);
     y += 9;
 
@@ -610,11 +656,12 @@ export function Roster({
 
     staffList.forEach((st) => {
       checkPageBreak(8);
+      const ls = getStaffAnnualLeaveStats(st.id);
       doc.setTextColor(17, 24, 39);
-      doc.text(st.name.substring(0, 22), margin + 3, y + 4.5);
-      doc.text(`${st.role} (${st.unit})`.substring(0, 25), margin + 45, y + 4.5);
-      doc.text((st.assignedStation || 'General').substring(0, 18), margin + 90, y + 4.5);
-      doc.text((st.shiftMorning || 'Standard duty').substring(0, 22), margin + 125, y + 4.5);
+      doc.text(st.name.substring(0, 20), margin + 3, y + 4.5);
+      doc.text(`${st.role} (${st.unit})`.substring(0, 22), margin + 40, y + 4.5);
+      doc.text(`${ls.remaining}d rem (${ls.daysTaken}/${ls.entitlement}d)`, margin + 82, y + 4.5);
+      doc.text((st.shiftMorning || 'Standard duty').substring(0, 22), margin + 124, y + 4.5);
 
       // Status pill text
       doc.setTextColor(st.status === 'Present' ? 16 : 185, st.status === 'Present' ? 120 : 28, 28);
@@ -1166,7 +1213,7 @@ export function Roster({
                 <h4 className="text-[11px] uppercase tracking-wider font-bold text-emerald-800 mb-3 flex items-center gap-1.5">
                   <CreditCard size={13} /> 3. Contact &amp; Remuneration
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
                     <label className="text-xs font-semibold text-gray-700 block mb-1.5">Primary Phone (+254...) *</label>
                     <input
@@ -1200,6 +1247,18 @@ export function Roster({
                       onChange={(e) => setFormBaseSalary(e.target.value)}
                       placeholder={formWageType === 'Daily' ? 'e.g. 750' : 'e.g. 25000'}
                       className="w-full text-xs border border-gray-200 rounded-xl p-3 font-mono focus:outline-none focus:border-emerald-500 font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1.5">Annual Leave Days</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="365"
+                      value={formAnnualLeave}
+                      onChange={(e) => setFormAnnualLeave(e.target.value)}
+                      placeholder="e.g. 21"
+                      className="w-full text-xs border border-gray-200 rounded-xl p-3 font-semibold text-emerald-800 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
@@ -1461,6 +1520,35 @@ export function Roster({
                           WhatsApp
                         </a>
                       </div>
+
+                      {/* Annual Leave Entitlement Progress Tracker */}
+                      {(() => {
+                        const ls = getStaffAnnualLeaveStats(st.id);
+                        return (
+                          <div className="mt-3 pt-2.5 border-t border-gray-100">
+                            <div className="flex items-center justify-between text-[11px] mb-1">
+                              <span className="font-bold text-gray-700 flex items-center gap-1">
+                                🌴 Annual Leave:
+                              </span>
+                              <span className={`font-mono font-bold ${ls.remaining > 5 ? 'text-emerald-700' : ls.remaining > 0 ? 'text-amber-700' : 'text-rose-700'}`}>
+                                {ls.remaining} / {ls.entitlement} days left
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${
+                                  ls.remaining > 5 ? 'bg-emerald-500' : ls.remaining > 0 ? 'bg-amber-500' : 'bg-rose-500'
+                                }`}
+                                style={{ width: `${ls.percentageUsed}%` }}
+                              />
+                            </div>
+                            <div className="flex justify-between items-center text-[9px] text-gray-500 mt-1 font-medium">
+                              <span>{ls.daysTaken}d used in {new Date().getFullYear()}</span>
+                              <span>{ls.entitlement}d allowance</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Shifts */}
@@ -1538,6 +1626,7 @@ export function Roster({
                       <th className="p-4">Department / Station</th>
                       <th className="p-4">Contact</th>
                       <th className="p-4">Contract &amp; Pay</th>
+                      <th className="p-4">Annual Leave</th>
                       <th className="p-4">Shifts (AM / PM)</th>
                       <th className="p-4 text-center">Status</th>
                       <th className="p-4 text-center">Actions</th>
@@ -1579,6 +1668,22 @@ export function Roster({
                               {formatKsh(st.baseSalary || st.dailyRate)}
                             </div>
                           )}
+                        </td>
+                        <td className="p-4">
+                          {(() => {
+                            const ls = getStaffAnnualLeaveStats(st.id);
+                            return (
+                              <div>
+                                <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                                  <span className={`w-2 h-2 rounded-full shrink-0 ${ls.remaining > 5 ? 'bg-emerald-500' : ls.remaining > 0 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                                  <span>{ls.remaining}d left</span>
+                                </div>
+                                <div className="text-[10px] text-gray-500 mt-0.5 font-mono">
+                                  {ls.daysTaken}/{ls.entitlement}d used
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="p-4 text-[11px]">
                           <div>
@@ -1928,6 +2033,39 @@ export function Roster({
                     <option value="Completed">Completed Cycle</option>
                   </select>
                 </div>
+
+                {/* Live Annual Leave Balance Display & Warning */}
+                {(() => {
+                  const targetId = offStaffId || staffList[0]?.id;
+                  if (!targetId) return null;
+                  const ls = getStaffAnnualLeaveStats(targetId);
+                  const selectedMember = staffList.find((s) => s.id === targetId);
+                  const requestedDays = calculateLeaveDays(offStart, offEnd);
+                  const isOverLimit = offType === 'Annual Leave' && requestedDays > ls.remaining;
+
+                  return (
+                    <div className="md:col-span-3 p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                      <div>
+                        <span className="text-[11px] font-bold text-emerald-950 flex items-center gap-1.5">
+                          🌴 Annual Leave Balance for {selectedMember?.name}:
+                        </span>
+                        <p className="text-[10px] text-emerald-800 mt-0.5">
+                          <strong>{ls.remaining} days available</strong> out of {ls.entitlement} days entitlement for {new Date().getFullYear()} ({ls.daysTaken} days already taken).
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-900 shadow-xs">
+                          Requested: {requestedDays} {requestedDays === 1 ? 'day' : 'days'}
+                        </span>
+                        {isOverLimit && (
+                          <span className="text-[10px] font-bold bg-rose-100 text-rose-800 px-2.5 py-1 rounded-lg border border-rose-200 animate-pulse">
+                            ⚠️ Exceeds remaining {ls.remaining}d balance!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Departure Date & Time */}
                 <div>
@@ -2905,6 +3043,56 @@ export function Roster({
               </div>
             </div>
 
+            {/* Annual Leave Entitlement & Balance Dossier Card */}
+            {(() => {
+              const ls = getStaffAnnualLeaveStats(selectedStaffDossier.id);
+              return (
+                <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200/80 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] uppercase font-bold text-emerald-900 tracking-wider flex items-center gap-1.5">
+                      🌴 Annual Leave Balance &amp; Entitlement ({new Date().getFullYear()})
+                    </span>
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${ls.remaining > 5 ? 'bg-emerald-200 text-emerald-900' : ls.remaining > 0 ? 'bg-amber-200 text-amber-900' : 'bg-rose-200 text-rose-900'}`}>
+                      {ls.remaining} Days Remaining
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-xs">
+                      <span className="text-[10px] text-gray-500 block">Annual Entitlement</span>
+                      <strong className="text-base font-bold text-gray-900">{ls.entitlement}</strong>
+                      <span className="text-[9px] text-gray-400 block">Days / Year</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-xs">
+                      <span className="text-[10px] text-gray-500 block">Days Taken</span>
+                      <strong className="text-base font-bold text-amber-700">{ls.daysTaken}</strong>
+                      <span className="text-[9px] text-gray-400 block">Days in {new Date().getFullYear()}</span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-xs">
+                      <span className="text-[10px] text-gray-500 block">Available Balance</span>
+                      <strong className={`text-base font-bold ${ls.remaining > 5 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {ls.remaining}
+                      </strong>
+                      <span className="text-[9px] text-gray-400 block">Days Left</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[10px] text-gray-600 mb-1 font-semibold">
+                      <span>Usage Rate: {ls.percentageUsed}%</span>
+                      <span>{ls.daysTaken} of {ls.entitlement} days used</span>
+                    </div>
+                    <div className="w-full bg-emerald-200/50 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${ls.remaining > 5 ? 'bg-emerald-600' : ls.remaining > 0 ? 'bg-amber-500' : 'bg-rose-600'}`}
+                        style={{ width: `${ls.percentageUsed}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div>
               <h4 className="text-xs font-bold text-gray-900 mb-2">Leave History for {selectedStaffDossier.name}</h4>
               <div className="border border-gray-100 rounded-xl overflow-hidden text-xs">
@@ -3147,6 +3335,38 @@ export function Roster({
                     }
                     className="border border-gray-200 rounded-xl p-2.5 w-full font-mono"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Annual Leave Entitlement (Days)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="365"
+                    value={editingStaff.annualLeaveEntitlement !== undefined ? editingStaff.annualLeaveEntitlement : 21}
+                    onChange={(e) =>
+                      setEditingStaff({
+                        ...editingStaff,
+                        annualLeaveEntitlement: Number(e.target.value)
+                      })
+                    }
+                    className="border border-gray-200 rounded-xl p-2.5 w-full font-bold text-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Contract Type</label>
+                  <select
+                    value={editingStaff.contractType || 'Permanent'}
+                    onChange={(e) => setEditingStaff({ ...editingStaff, contractType: e.target.value as any })}
+                    className="border border-gray-200 rounded-xl p-2.5 w-full bg-white font-semibold"
+                  >
+                    <option value="Permanent">Permanent</option>
+                    <option value="Contract">Fixed-term Contract</option>
+                    <option value="Casual">Casual / Daily Paid</option>
+                    <option value="Intern">Intern / Trainee</option>
+                  </select>
                 </div>
               </div>
 

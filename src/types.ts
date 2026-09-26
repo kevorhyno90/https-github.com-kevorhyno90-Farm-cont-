@@ -148,6 +148,7 @@ export interface StaffMember {
   assignedStation?: string;
   notes?: string;
   gender?: 'Male' | 'Female' | 'Other';
+  annualLeaveEntitlement?: number; // Statutory or agreed annual leave days (default 21)
 }
 
 export interface DailyAttendanceRecord {

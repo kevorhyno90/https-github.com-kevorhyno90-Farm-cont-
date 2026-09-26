@@ -41,7 +41,7 @@ import {
  Area
 } from 'recharts';
 import { MilkingRecord, Todo, StaffOffRecord, StaffMember, Cow, QuarantineRecord, SprayRecord, FieldRecord, VetRecord, ActivityLogEntry } from '../types';
-import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout, Smartphone } from 'lucide-react';
+import { CalendarIcon, Bell, Users, Eye, ShieldCheck, ShieldAlert, Heart, Sprout, Smartphone, Clock, CheckCircle2, UserCheck } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
 interface DashboardProps {
  milkRecords: MilkingRecord[];
@@ -588,6 +588,8 @@ export function Dashboard({
  return d.toISOString().split('T')[0];
  };
 
+ const departuresToday = staffOffRecords.filter(r => r.status === 'Approved' && r.startDate === todayString);
+ const returnsDueToday = staffOffRecords.filter(r => r.status === 'Approved' && r.endDate <= todayString);
  const activeOffsToday = staffOffRecords.filter(r => r.status === 'Approved' && r.startDate <= todayString && todayString <= r.endDate);
  const upcomingOffs = staffOffRecords.filter(r => r.status === 'Approved' && r.startDate > todayString && r.startDate <= getDayOffsetString(3));
  
@@ -621,21 +623,207 @@ export function Dashboard({
                 <Bell size={20} className="animate-pulse" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold tracking-tight text-gray-900">Workforce Duty & Leave Alert Center</h4>
-                <p className="text-[10px] text-gray-500 font-bold tracking-tight mt-1">Smart coverage guards & real-time team availability</p>
+                <h4 className="text-sm font-semibold tracking-tight text-gray-900">Workforce Duty &amp; Leave Alert Center</h4>
+                <p className="text-[10px] text-gray-500 font-bold tracking-tight mt-1">Smart coverage guards, daily departure reminders &amp; team availability</p>
               </div>
             </div>
-            <div className="text-xs font-mono text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 font-semibold shadow-inner">
-              SYSTEM CALENDAR: {todayString}
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-mono text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 font-semibold shadow-inner">
+                SYSTEM CALENDAR: {todayString}
+              </div>
+              {onNavigateToTab && (
+                <button
+                  onClick={() => onNavigateToTab('roster')}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer hover:shadow"
+                >
+                  <span>Staff Roster</span>
+                  <ArrowRight size={13} />
+                </button>
+              )}
             </div>
           </div>
+
+          {/* 🚀 HIGH-PRIORITY DAILY DEPARTURE & RETURN REMINDERS BANNER */}
+          {(departuresToday.length > 0 || returnsDueToday.length > 0) ? (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 🛫 DEPARTURES TODAY */}
+              {departuresToday.length > 0 ? (
+                <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
+                      <span className="text-xs font-bold text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                        <Clock size={14} className="text-amber-700" />
+                        Departing On Off/Leave Today ({departuresToday.length})
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full">
+                      Departure Action
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {departuresToday.map((r) => {
+                      const sMatch = staffList.find(s => s.id === r.staffId);
+                      return (
+                        <div key={r.id} className="bg-white border border-amber-200 rounded-xl p-3 shadow-xs flex flex-col justify-between gap-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-bold text-xs text-gray-900">{r.staffName}</div>
+                              <div className="text-[10px] text-gray-500">{sMatch?.role || 'Staff'} • <strong className="text-emerald-700">{sMatch?.unit || 'Unit'}</strong></div>
+                            </div>
+                            <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-200">
+                              {r.type}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[10px] bg-amber-50/60 p-2 rounded-lg font-mono">
+                            <div>
+                              <span className="text-gray-500 block">Departure:</span>
+                              <strong className="text-amber-900">{r.departureTime || '05:00 PM'}</strong>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 block">Return:</span>
+                              <strong className="text-emerald-800">{r.endDate} {r.returnTime ? `(${r.returnTime})` : ''}</strong>
+                            </div>
+                          </div>
+
+                          {r.handoverStaffName && (
+                            <div className="text-[10px] text-gray-600 flex items-center gap-1">
+                              <UserCheck size={11} className="text-emerald-600" />
+                              <span>Relief handover: <strong className="text-gray-800">{r.handoverStaffName}</strong></span>
+                            </div>
+                          )}
+
+                          {onNavigateToTab && (
+                            <button
+                              onClick={() => onNavigateToTab('roster')}
+                              className="w-full mt-1 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <span>Review &amp; Confirm in Staff Roster</span>
+                              <ArrowRight size={11} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-center justify-between text-xs text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <span>No personnel departures scheduled for today ({todayString}).</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 🛬 RETURNS DUE TODAY / OVERDUE */}
+              {returnsDueToday.length > 0 ? (
+                <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-sky-500 animate-pulse" />
+                      <span className="text-xs font-bold text-sky-950 uppercase tracking-wide flex items-center gap-1.5">
+                        <UserCheck size={14} className="text-sky-700" />
+                        Due Return Today / Overdue ({returnsDueToday.length})
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-sky-200/80 text-sky-900 px-2 py-0.5 rounded-full">
+                      Check-In
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {returnsDueToday.map((r) => {
+                      const sMatch = staffList.find(s => s.id === r.staffId);
+                      const isOverdue = r.endDate < todayString;
+                      return (
+                        <div key={r.id} className="bg-white border border-sky-200 rounded-xl p-3 shadow-xs flex flex-col justify-between gap-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-bold text-xs text-gray-900">{r.staffName}</div>
+                              <div className="text-[10px] text-gray-500">{sMatch?.role || 'Staff'} • <strong className="text-emerald-700">{sMatch?.unit || 'Unit'}</strong></div>
+                            </div>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${isOverdue ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-sky-100 text-sky-800 border-sky-200'}`}>
+                              {isOverdue ? '⚠️ Overdue Return' : 'Due Today'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[10px] bg-sky-50/60 p-2 rounded-lg font-mono">
+                            <div>
+                              <span className="text-gray-500 block">Expected Return:</span>
+                              <strong className={isOverdue ? 'text-rose-700' : 'text-sky-900'}>
+                                {r.endDate} {r.returnTime ? `(${r.returnTime})` : ''}
+                              </strong>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 block">Next Scheduled Off:</span>
+                              <strong className="text-indigo-800">{r.nextScheduledOffDate || 'Standard rotation'}</strong>
+                            </div>
+                          </div>
+
+                          {onNavigateToTab && (
+                            <button
+                              onClick={() => onNavigateToTab('roster')}
+                              className="w-full mt-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <span>Process Return in Staff Roster</span>
+                              <ArrowRight size={11} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex items-center justify-between text-xs text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <span>No staff returns due or overdue for today ({todayString}).</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-6 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  ✓
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-emerald-950">Daily Off &amp; Leave Schedule Clear</p>
+                  <p className="text-[10px] text-emerald-700">No workforce departures or returns scheduled for today ({todayString}). All active staff accounted for.</p>
+                </div>
+              </div>
+              {onNavigateToTab && (
+                <button
+                  onClick={() => onNavigateToTab('roster')}
+                  className="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer underline"
+                >
+                  Open Leave Manager →
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Off Today */}
             <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
-                <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+                  <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Off-Duty Today ({activeOffsToday.length})</span>
+                </div>
+                {onNavigateToTab && (
+                  <button
+                    onClick={() => onNavigateToTab('roster')}
+                    className="text-[10px] text-indigo-600 hover:underline font-bold cursor-pointer"
+                  >
+                    View all
+                  </button>
+                )}
               </div>
               {activeOffsToday.length === 0 ? (
                 <p className="text-xs text-gray-500 font-semibold italic py-2">✓ Entire farm workforce is active.</p>
@@ -656,6 +844,15 @@ export function Dashboard({
                             {sMatch?.unit || 'Unit'}
                           </span>
                         </div>
+                        <div className="mt-2.5 pt-2 border-t border-rose-100/60 text-[10px] text-gray-600 font-mono flex justify-between">
+                          <span>Back: {r.endDate}</span>
+                          {r.returnTime && <span className="text-emerald-700 font-bold">{r.returnTime}</span>}
+                        </div>
+                        {r.handoverStaffName && (
+                          <div className="text-[9px] text-gray-500 mt-1">
+                            Relief: <strong className="text-gray-700">{r.handoverStaffName}</strong>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -665,9 +862,19 @@ export function Dashboard({
 
             {/* Upcoming Offs */}
             <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
-                <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></span>
+                  <span className="text-xs font-semibold text-gray-900 font-bold tracking-normal">Scheduled Leaves ({upcomingOffs.length})</span>
+                </div>
+                {onNavigateToTab && (
+                  <button
+                    onClick={() => onNavigateToTab('roster')}
+                    className="text-[10px] text-indigo-600 hover:underline font-bold cursor-pointer"
+                  >
+                    Schedule
+                  </button>
+                )}
               </div>
               {upcomingOffs.length === 0 ? (
                 <p className="text-xs text-gray-500 font-semibold italic py-2">No departures planned in next 3 days.</p>
@@ -688,9 +895,10 @@ export function Dashboard({
                             {sMatch?.unit || 'Unit'}
                           </span>
                         </div>
-                        <p className="text-[10px] text-amber-600 mt-3 font-mono font-bold tracking-tight">
-                          Starts: {r.startDate}
-                        </p>
+                        <div className="mt-2.5 pt-2 border-t border-amber-100/60 text-[10px] text-amber-700 font-mono font-bold flex justify-between">
+                          <span>Starts: {r.startDate}</span>
+                          <span>{r.departureTime || '05:00 PM'}</span>
+                        </div>
                       </div>
                     );
                   })}
