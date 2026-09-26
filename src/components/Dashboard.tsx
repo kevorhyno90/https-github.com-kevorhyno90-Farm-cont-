@@ -426,7 +426,7 @@ export function Dashboard({
  icon: Heart, 
  color: "blue",
  delay: 0.1,
- actionTab: "cows"
+ actionTab: "dairy"
  },
  { 
  label: "Milk Yield (Today)", 

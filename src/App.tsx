@@ -4422,16 +4422,10 @@ function FarmCoreApp() {
     { id: 'roster', label: 'Staff Roster', icon: Users, category: 'Main' },
 
     { id: 'factory', label: 'Feed Formulator', icon: FlaskConical, category: 'Feed & Factory' },
-    { id: 'tmr', label: 'TMR Mixing', icon: Truck, category: 'Feed & Factory' },
     { id: 'bsf', label: 'Organic BSF Batches', icon: Leaf, category: 'Feed & Factory' },
 
     { id: 'dairy', label: 'Dairy Cattle & Milk', icon: Activity, category: 'Livestock' },
-    { id: 'breeding', label: 'AI & Breeding Cycles', icon: CalendarDays, category: 'Livestock' },
-    { id: 'veterinary', label: 'Veterinary Clinic', icon: HeartPulse, category: 'Livestock' },
-    { id: 'cows', label: 'Cattle Registry', icon: Award, category: 'Livestock' },
     { id: 'goats', label: 'Caprine Goat Logs', icon: Sparkles, category: 'Livestock' },
-    { id: 'calves', label: 'Liquidfed Calves', icon: Compass, category: 'Livestock' },
-    { id: 'heifers', label: 'Heifer Progeny', icon: Award, category: 'Livestock' },
     { id: 'poultry', label: 'Poultry Hub', icon: ClipboardList, category: 'Livestock' },
     { id: 'canines', label: 'Security Canines', icon: Shield, category: 'Livestock' },
 
@@ -6810,13 +6804,7 @@ function FarmCoreApp() {
             />
           )}
 
-          {activeTab === 'tmr' && (
-            <TmrMixing
-              onTriggerSectionReport={handleTriggerSectionReport}
-            />
-          )}
-
-          {(activeTab === 'dairy' || activeTab === 'dairy_milk' || activeTab === 'breeding' || activeTab === 'veterinary' || activeTab === 'cows') && (
+          {(activeTab === 'dairy' || activeTab === 'dairy_milk' || activeTab === 'breeding' || activeTab === 'veterinary' || activeTab === 'cows' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'tmr') && (
             <DairyBreeding
               milkRecords={milkRecords}
               aiRecords={aiRecords}
@@ -6851,11 +6839,16 @@ function FarmCoreApp() {
               semenInventory={semenInventory}
               setSemenInventory={setSemenInventory}
               onAddCalfRecord={handleAddCalfRecord}
+              silageRecords={silageRecords}
+              onAddSilage={handleAddSilage}
+              onDeleteSilage={handleDeleteSilage}
               activeSubModule={
                 activeTab === 'dairy_milk' ? 'milk' :
                 activeTab === 'breeding' ? 'breeding' :
                 activeTab === 'veterinary' ? 'veterinary' :
                 activeTab === 'cows' ? 'cows' :
+                (activeTab === 'calves' || activeTab === 'heifers') ? 'calves' :
+                activeTab === 'tmr' ? 'tmr' :
                 undefined
               }
             />
@@ -6936,7 +6929,7 @@ function FarmCoreApp() {
           )}
 
           {/* Sub-view switcher for agronomy / warehouse / general livestock */}
-          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'biogas') && (
+          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'poultry' || activeTab === 'biogas') && (
             <OtherSections
               viewType={
                 activeTab === 'fields' ? 'fields' :
@@ -6945,8 +6938,6 @@ function FarmCoreApp() {
               }
               activeSubModule={
                 activeTab === 'goats' ? 'goats' :
-                activeTab === 'calves' ? 'calves' :
-                activeTab === 'heifers' ? 'heifers' :
                 activeTab === 'poultry' ? 'poultry' :
                 activeTab === 'biogas' ? 'biogas' :
                 undefined
