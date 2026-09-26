@@ -213,6 +213,14 @@ export interface StaffOffRecord {
   endDate: string; // YYYY-MM-DD
   notes?: string;
   status: 'Approved' | 'Pending' | 'Completed';
+
+  // Smart departure & return tracking
+  departureTime?: string; // e.g. "05:00 PM"
+  returnTime?: string; // e.g. "07:00 AM"
+  actualReturnDate?: string; // YYYY-MM-DD
+  nextScheduledOffDate?: string; // YYYY-MM-DD (next scheduled off rotation)
+  handoverStaffId?: string;
+  handoverStaffName?: string;
 }
 
 export interface Cow {

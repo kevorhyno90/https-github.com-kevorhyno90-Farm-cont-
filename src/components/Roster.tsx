@@ -3,10 +3,12 @@ import { StaffMember, StaffOffRecord } from '../types';
 import {
   Users, UserPlus, Phone, Clock, Trash2, Search, Calendar, Plus,
   CalendarDays, Download, Edit2, DollarSign, Wallet, FileText,
-  CheckCircle2, XCircle, AlertCircle, Building, UserCheck, MessageSquare,
-  ChevronLeft, ChevronRight, Eye, LayoutGrid, Table, Printer, Shield,
-  BadgeCheck, Sparkles, MapPin, CreditCard, User, AlertTriangle
+  CheckCircle2, AlertCircle, Building, UserCheck, MessageSquare,
+  ChevronLeft, ChevronRight, Eye, LayoutGrid, Table, Printer,
+  Sparkles, MapPin, CreditCard, User, AlertTriangle, Bell, Share2,
+  ArrowRight, Check, Send, ShieldCheck, History, CornerDownRight
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { useFarmState } from '../context/FarmContext';
 import { toIsoDate, offsetIsoDate } from '../utils/dateHelper';
 
@@ -58,6 +60,22 @@ export function Roster({
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
 
+  // Monthly Report Modal state (PDF & Share)
+  const [showMonthlyReportModal, setShowMonthlyReportModal] = useState(false);
+  const [reportMonth, setReportMonth] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // Departure & Rotation Processing Modal
+  const [processingDepartureRecord, setProcessingDepartureRecord] = useState<StaffOffRecord | null>(null);
+  const [modalDepartureTime, setModalDepartureTime] = useState('05:00 PM');
+  const [modalReturnDate, setModalReturnDate] = useState('');
+  const [modalReturnTime, setModalReturnTime] = useState('07:00 AM');
+  const [modalNextOffDate, setModalNextOffDate] = useState('');
+  const [modalHandoverId, setModalHandoverId] = useState('');
+  const [autoQueueNextOff, setAutoQueueNextOff] = useState(true);
+
   // Editing state variables
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [editingStaffOffRecord, setEditingStaffOffRecord] = useState<StaffOffRecord | null>(null);
@@ -93,6 +111,10 @@ export function Roster({
   const [offType, setOffType] = useState<'Day Off' | 'Annual Leave' | 'Sick Leave' | 'Compassionate Leave'>('Day Off');
   const [offStart, setOffStart] = useState(() => toIsoDate(new Date()));
   const [offEnd, setOffEnd] = useState(() => toIsoDate(new Date()));
+  const [offDepartureTime, setOffDepartureTime] = useState('05:00 PM');
+  const [offReturnTime, setOffReturnTime] = useState('07:00 AM');
+  const [offNextScheduledDate, setOffNextScheduledDate] = useState(() => offsetIsoDate(7));
+  const [offHandoverStaffId, setOffHandoverStaffId] = useState('');
   const [offNotes, setOffNotes] = useState('');
   const [offStatus, setOffStatus] = useState<'Approved' | 'Pending' | 'Completed'>('Approved');
 
@@ -100,6 +122,7 @@ export function Roster({
   const [searchTerm, setSearchTerm] = useState('');
   const [unitFilter, setUnitFilter] = useState<'all' | 'Dairy' | 'Horti' | 'Fields' | 'Security' | 'General'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Present' | 'Off' | 'On Leave'>('all');
+  const [leaveStatusFilter, setLeaveStatusFilter] = useState<'all' | 'active' | 'Completed'>('all');
 
   // Daily Attendance persistent state
   const [attendanceDate, setAttendanceDate] = useState(() => toIsoDate(new Date()));
@@ -114,7 +137,6 @@ export function Roster({
     }
   });
 
-  // Save daily attendance to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('jr_farm_attendance_records', JSON.stringify(dailyAttendanceMap));
@@ -146,6 +168,23 @@ export function Roster({
   // Wage filter state
   const [wageStaffFilter, setWageStaffFilter] = useState<string>('all');
 
+  // Today string for reminder matching
+  const todayStr = toIsoDate(new Date());
+
+  // REMINDER 1: Due to Leave / Go Off Today (or active today)
+  const departureReminders = useMemo(() => {
+    return staffOffRecords.filter((r) => {
+      return r.status === 'Approved' && r.startDate === todayStr;
+    });
+  }, [staffOffRecords, todayStr]);
+
+  // REMINDER 2: Due to Return Today / Overdue Return
+  const returnReminders = useMemo(() => {
+    return staffOffRecords.filter((r) => {
+      return r.status === 'Approved' && r.endDate <= todayStr;
+    });
+  }, [staffOffRecords, todayStr]);
+
   // KPI Calculations
   const totalStaffCount = staffList.length;
   const activeStaffCount = staffList.filter((s) => s.status === 'Present').length;
@@ -154,7 +193,7 @@ export function Roster({
   const attendancePercentage = totalStaffCount === 0 ? 0 : Math.round((activeStaffCount / totalStaffCount) * 100);
 
   // Monthly labor expense from financials
-  const currentMonthPrefix = toIsoDate(new Date()).slice(0, 7);
+  const currentMonthPrefix = todayStr.slice(0, 7);
   const monthlyLaborExpense = useMemo(() => {
     return financials
       .filter((f: any) => {
@@ -177,7 +216,6 @@ export function Roster({
       .toUpperCase();
   };
 
-  // Helper to format currency
   const formatKsh = (amount?: number) => {
     return `KES ${(amount || 0).toLocaleString()}`;
   };
@@ -212,7 +250,6 @@ export function Roster({
       notes: formNotes.trim() || undefined
     });
 
-    // Reset Form
     setFormName('');
     setFormRole('');
     setFormPhone('');
@@ -240,18 +277,107 @@ export function Roster({
     const member = staffList.find((s) => s.id === targetStaffId);
     if (!member) return;
 
+    const handoverMember = staffList.find((s) => s.id === offHandoverStaffId);
+
     onAddOffRecord({
       staffId: targetStaffId,
       staffName: member.name,
       type: offType,
       startDate: offStart,
       endDate: offEnd,
+      departureTime: offDepartureTime,
+      returnTime: offReturnTime,
+      nextScheduledOffDate: offNextScheduledDate,
+      handoverStaffId: offHandoverStaffId || undefined,
+      handoverStaffName: handoverMember ? handoverMember.name : undefined,
       notes: offNotes.trim() || 'Scheduled rest day / authorized leave',
       status: offStatus
     });
 
+    // If starting today, update member status to Off or On Leave
+    if (offStart === todayStr && offStatus === 'Approved') {
+      onUpdateStatus(targetStaffId, offType === 'Day Off' ? 'Off' : 'On Leave');
+    }
+
     setOffNotes('');
     setShowOffForm(false);
+  };
+
+  // Open Departure & Next Rotation Modal
+  const openProcessDepartureModal = (rec: StaffOffRecord) => {
+    setProcessingDepartureRecord(rec);
+    setModalDepartureTime(rec.departureTime || '05:00 PM');
+    setModalReturnDate(rec.endDate || todayStr);
+    setModalReturnTime(rec.returnTime || '07:00 AM');
+    setModalNextOffDate(rec.nextScheduledOffDate || offsetIsoDate(7, new Date(rec.endDate || todayStr)));
+    setModalHandoverId(rec.handoverStaffId || '');
+  };
+
+  // Confirm Departure, Set Return & Next Off
+  const handleConfirmDeparture = () => {
+    if (!processingDepartureRecord) return;
+
+    const handover = staffList.find((s) => s.id === modalHandoverId);
+
+    const updated: StaffOffRecord = {
+      ...processingDepartureRecord,
+      departureTime: modalDepartureTime,
+      endDate: modalReturnDate,
+      returnTime: modalReturnTime,
+      nextScheduledOffDate: modalNextOffDate,
+      handoverStaffId: modalHandoverId || undefined,
+      handoverStaffName: handover ? handover.name : undefined,
+      status: 'Approved'
+    };
+
+    if (onEditStaffOffRecord) {
+      onEditStaffOffRecord(processingDepartureRecord.id, updated);
+    }
+
+    // Set staff live status to Off or On Leave
+    onUpdateStatus(
+      processingDepartureRecord.staffId,
+      processingDepartureRecord.type === 'Day Off' ? 'Off' : 'On Leave'
+    );
+
+    // Optionally auto-queue next scheduled off rotation record
+    if (autoQueueNextOff && modalNextOffDate) {
+      const nextEndDate = modalNextOffDate; // single day by default
+      onAddOffRecord({
+        staffId: processingDepartureRecord.staffId,
+        staffName: processingDepartureRecord.staffName,
+        type: processingDepartureRecord.type,
+        startDate: modalNextOffDate,
+        endDate: nextEndDate,
+        departureTime: modalDepartureTime,
+        returnTime: modalReturnTime,
+        notes: `Next scheduled rotation following ${processingDepartureRecord.type}`,
+        status: 'Pending'
+      });
+    }
+
+    setProcessingDepartureRecord(null);
+    alert(`✓ Departure confirmed for ${processingDepartureRecord.staffName}. Return scheduled for ${modalReturnDate} at ${modalReturnTime}. Next off rotation queued for ${modalNextOffDate}.`);
+  };
+
+  // Mark Returned & Completed
+  const handleMarkReturned = (rec: StaffOffRecord) => {
+    const updated: StaffOffRecord = {
+      ...rec,
+      actualReturnDate: todayStr,
+      status: 'Completed'
+    };
+
+    if (onEditStaffOffRecord) {
+      onEditStaffOffRecord(rec.id, updated);
+    } else {
+      onUpdateOffRecordStatus(rec.id, 'Completed');
+    }
+
+    // Restore employee status to Present
+    onUpdateStatus(rec.staffId, 'Present');
+
+    alert(`✓ Marked ${rec.staffName} as returned and completed! Record is permanently preserved in the audit archive.`);
   };
 
   // Attendance handlers for active date
@@ -285,8 +411,7 @@ export function Roster({
       return { ...prev, [attendanceDate]: dayRecords };
     });
 
-    // If today, also update live status
-    if (attendanceDate === toIsoDate(new Date()) && status !== 'Half Day') {
+    if (attendanceDate === todayStr && status !== 'Half Day') {
       onUpdateStatus(staffId, status);
     }
   };
@@ -295,7 +420,7 @@ export function Roster({
     const updatedDay: Record<string, { status: 'Present' | 'Off' | 'On Leave' | 'Half Day'; timeIn?: string; notes?: string }> = {};
     staffList.forEach((s) => {
       updatedDay[s.id] = { status: 'Present', timeIn: '07:00 AM', notes: 'Full shift completed' };
-      if (attendanceDate === toIsoDate(new Date())) {
+      if (attendanceDate === todayStr) {
         onUpdateStatus(s.id, 'Present');
       }
     });
@@ -350,32 +475,6 @@ export function Roster({
     return warnings;
   }, [staffList, staffOffRecords]);
 
-  // Export Staff Directory to CSV
-  const handleExportCSV = () => {
-    const headers = ['ID', 'Name', 'Role', 'Unit', 'Station', 'Phone', 'Contract', 'Wage Type', 'Salary/Rate', 'Status'];
-    const rows = staffList.map((s) => [
-      `"${s.id}"`,
-      `"${s.name}"`,
-      `"${s.role}"`,
-      `"${s.unit}"`,
-      `"${s.assignedStation || ''}"`,
-      `"${s.phone}"`,
-      `"${s.contractType || 'Permanent'}"`,
-      `"${s.wageType || 'Monthly'}"`,
-      `"${s.baseSalary || s.dailyRate || 0}"`,
-      `"${s.status}"`
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `farm_employees_${toIsoDate(new Date())}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // Filtered staff list for Directory
   const filteredStaff = useMemo(() => {
     return staffList.filter((st) => {
@@ -400,6 +499,42 @@ export function Roster({
     });
   }, [staffList, searchTerm, unitFilter, statusFilter]);
 
+  // Filtered Leave Records
+  const filteredLeaveRecords = useMemo(() => {
+    return staffOffRecords.filter((r) => {
+      if (leaveStatusFilter === 'all') return true;
+      if (leaveStatusFilter === 'Completed') return r.status === 'Completed';
+      if (leaveStatusFilter === 'active') return r.status === 'Approved' || r.status === 'Pending';
+      return true;
+    });
+  }, [staffOffRecords, leaveStatusFilter]);
+
+  // Export Staff Directory to CSV
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Name', 'Role', 'Unit', 'Station', 'Phone', 'Contract', 'Wage Type', 'Salary/Rate', 'Status'];
+    const rows = staffList.map((s) => [
+      `"${s.id}"`,
+      `"${s.name}"`,
+      `"${s.role}"`,
+      `"${s.unit}"`,
+      `"${s.assignedStation || ''}"`,
+      `"${s.phone}"`,
+      `"${s.contractType || 'Permanent'}"`,
+      `"${s.wageType || 'Monthly'}"`,
+      `"${s.baseSalary || s.dailyRate || 0}"`,
+      `"${s.status}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `farm_employees_${todayStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Wages ledger filtered records
   const wageLedgerRecords = useMemo(() => {
     return financials.filter((f: any) => {
@@ -411,11 +546,331 @@ export function Roster({
     });
   }, [financials, wageStaffFilter, staffList]);
 
+  // =========================================================================
+  // GENERATE MONTHLY PDF REPORT (jsPDF)
+  // =========================================================================
+  const generateMonthlyPdf = (action: 'download' | 'print' = 'download') => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 14;
+
+    const checkPageBreak = (neededHeight: number) => {
+      if (y + neededHeight > pageHeight - 15) {
+        doc.addPage();
+        y = 15;
+      }
+    };
+
+    // Header Bar
+    doc.setFillColor(6, 78, 59); // emerald-900
+    doc.rect(margin, y, contentWidth, 24, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('JUNIOR & DEVIN ESTATE FARMS', margin + 6, y + 10);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(167, 243, 208); // emerald-200
+    doc.text(
+      `MONTHLY WORKFORCE, ATTENDANCE & LEAVE AUDIT • PERIOD: ${reportMonth}`,
+      margin + 6,
+      y + 18
+    );
+
+    y += 30;
+
+    // SECTION 1: ATTENDANCE & JOB PERFORMANCE SUMMARY
+    doc.setTextColor(6, 78, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('1. WORKFORCE ATTENDANCE & SHIFT ALLOCATION SUMMARY', margin, y);
+    y += 5;
+
+    // Table Header
+    doc.setFillColor(243, 244, 246);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setTextColor(55, 65, 81);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+
+    doc.text('EMPLOYEE', margin + 3, y + 5.5);
+    doc.text('UNIT & ROLE', margin + 45, y + 5.5);
+    doc.text('STATION', margin + 90, y + 5.5);
+    doc.text('AM SHIFT TASK', margin + 125, y + 5.5);
+    doc.text('STATUS', margin + 165, y + 5.5);
+    y += 9;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+
+    staffList.forEach((st) => {
+      checkPageBreak(8);
+      doc.setTextColor(17, 24, 39);
+      doc.text(st.name.substring(0, 22), margin + 3, y + 4.5);
+      doc.text(`${st.role} (${st.unit})`.substring(0, 25), margin + 45, y + 4.5);
+      doc.text((st.assignedStation || 'General').substring(0, 18), margin + 90, y + 4.5);
+      doc.text((st.shiftMorning || 'Standard duty').substring(0, 22), margin + 125, y + 4.5);
+
+      // Status pill text
+      doc.setTextColor(st.status === 'Present' ? 16 : 185, st.status === 'Present' ? 120 : 28, 28);
+      doc.text(st.status, margin + 165, y + 4.5);
+
+      // Divider line
+      doc.setDrawColor(229, 231, 235);
+      doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
+      y += 7.5;
+    });
+
+    y += 8;
+    checkPageBreak(20);
+
+    // SECTION 2: OFF & LEAVES OF THE MONTH
+    doc.setTextColor(6, 78, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`2. SCHEDULED OFF & LEAVE LOGS FOR ${reportMonth}`, margin, y);
+    y += 5;
+
+    // Filter leaves falling in reportMonth
+    const monthLeaves = staffOffRecords.filter(
+      (r) => r.startDate.startsWith(reportMonth) || r.endDate.startsWith(reportMonth)
+    );
+
+    doc.setFillColor(243, 244, 246);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setTextColor(55, 65, 81);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+
+    doc.text('STAFF NAME', margin + 3, y + 5.5);
+    doc.text('TYPE', margin + 45, y + 5.5);
+    doc.text('DEPARTURE -> RETURN', margin + 80, y + 5.5);
+    doc.text('HANDOVER / COVER', margin + 130, y + 5.5);
+    doc.text('NEXT OFF', margin + 165, y + 5.5);
+    y += 9;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+
+    if (monthLeaves.length === 0) {
+      doc.setTextColor(156, 163, 175);
+      doc.text('No off-duty or leave cycles scheduled during this calendar month.', margin + 3, y + 5);
+      y += 10;
+    } else {
+      monthLeaves.forEach((lv) => {
+        checkPageBreak(8);
+        doc.setTextColor(17, 24, 39);
+        doc.text(lv.staffName.substring(0, 20), margin + 3, y + 4.5);
+        doc.text(lv.type.substring(0, 18), margin + 45, y + 4.5);
+        doc.text(`${lv.startDate} to ${lv.endDate}`, margin + 80, y + 4.5);
+        doc.text((lv.handoverStaffName || 'Team Cover').substring(0, 18), margin + 130, y + 4.5);
+        doc.text(lv.nextScheduledOffDate || '-', margin + 165, y + 4.5);
+
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
+        y += 7.5;
+      });
+    }
+
+    y += 8;
+    checkPageBreak(35);
+
+    // SECTION 3: WAGES & LABOR PAYOUTS AUDIT
+    doc.setTextColor(6, 78, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`3. WAGES & ADVANCES SETTLED IN ${reportMonth}`, margin, y);
+    y += 5;
+
+    const monthWages = financials.filter(
+      (f: any) =>
+        f.date?.startsWith(reportMonth) &&
+        (f.category === 'Wages' || f.description?.toLowerCase()?.includes('wage') || f.description?.toLowerCase()?.includes('paid to'))
+    );
+
+    const totalMonthWages = monthWages.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+
+    doc.setFillColor(243, 244, 246);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setTextColor(55, 65, 81);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+
+    doc.text('DATE', margin + 3, y + 5.5);
+    doc.text('VOUCHER REF', margin + 28, y + 5.5);
+    doc.text('PARTICULARS / RECIPIENT', margin + 65, y + 5.5);
+    doc.text('AMOUNT (KES)', margin + 155, y + 5.5);
+    y += 9;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+
+    if (monthWages.length === 0) {
+      doc.setTextColor(156, 163, 175);
+      doc.text('No wage disbursements logged for this month.', margin + 3, y + 5);
+      y += 10;
+    } else {
+      monthWages.slice(0, 15).forEach((w: any) => {
+        checkPageBreak(8);
+        doc.setTextColor(17, 24, 39);
+        doc.text(w.date || '-', margin + 3, y + 4.5);
+        doc.text(String(w.id || '-').substring(0, 16), margin + 28, y + 4.5);
+        doc.text(String(w.description || '-').substring(0, 48), margin + 65, y + 4.5);
+        doc.text(`KES ${Number(w.amount).toLocaleString()}`, margin + 155, y + 4.5);
+
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, y + 6.5, margin + contentWidth, y + 6.5);
+        y += 7.5;
+      });
+
+      // Total row
+      checkPageBreak(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(6, 78, 59);
+      doc.text('TOTAL WAGE EXPENDITURE FOR PERIOD:', margin + 65, y + 5);
+      doc.text(`KES ${totalMonthWages.toLocaleString()}`, margin + 155, y + 5);
+      y += 10;
+    }
+
+    // Footer Signatures
+    checkPageBreak(25);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(107, 114, 128);
+    doc.text('Prepared by Farm HRM: ____________________', margin, y);
+    doc.text('Approved by General Manager: ____________________', margin + 100, y);
+
+    if (action === 'print') {
+      doc.autoPrint();
+      window.open(doc.output('bloburl'), '_blank');
+    } else {
+      doc.save(`workforce_monthly_report_${reportMonth}.pdf`);
+    }
+  };
+
+  // Share Summary via WhatsApp or Web Share
+  const handleShareSummary = async () => {
+    const monthLeaves = staffOffRecords.filter(
+      (r) => r.startDate.startsWith(reportMonth) || r.endDate.startsWith(reportMonth)
+    );
+    const summaryText = `📋 *Junior & Devin Estate Farms - Workforce Report (${reportMonth})*\n` +
+      `👥 Total Personnel: ${totalStaffCount}\n` +
+      `✅ Currently on Duty: ${activeStaffCount}\n` +
+      `🌴 Off / On Leave: ${offTodayCount + leaveTodayCount}\n` +
+      `📅 Scheduled Leaves This Month: ${monthLeaves.length}\n` +
+      `💰 Wages Disbursed: KES ${monthlyLaborExpense.toLocaleString()}\n\n` +
+      `Generated from Sovereign Farm HRM System.`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Workforce & Leave Report - ${reportMonth}`,
+          text: summaryText
+        });
+        return;
+      } catch {
+        // Fallback to WhatsApp
+      }
+    }
+
+    const encoded = encodeURIComponent(summaryText);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  };
+
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div className="space-y-8 animate-fadeIn text-gray-900 pb-16">
-      {/* TOP OVERVIEW BANNER */}
+      {/* ========================================================================= */}
+      {/* SMART DEPARTURE & RETURN REMINDER BANNER                                  */}
+      {/* ========================================================================= */}
+      {(departureReminders.length > 0 || returnReminders.length > 0) && (
+        <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-white p-5 rounded-3xl shadow-lg border border-amber-400/40 space-y-3 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-white/20 rounded-xl">
+                <Bell size={18} className="text-white animate-bounce" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-sm tracking-wide">
+                  Workforce Off-Duty &amp; Return Alerts ({departureReminders.length + returnReminders.length} Active)
+                </h4>
+                <p className="text-xs text-amber-100">
+                  Personnel scheduled for departure or expected to resume duties today.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            {/* Departure reminders */}
+            {departureReminders.map((r) => (
+              <div
+                key={`dep-${r.id}`}
+                className="bg-black/20 backdrop-blur-sm p-3.5 rounded-2xl flex items-center justify-between gap-3 border border-white/10"
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-amber-400 text-amber-950 font-extrabold text-[9px] uppercase px-2 py-0.5 rounded-full">
+                      Proceeding on {r.type} Today
+                    </span>
+                  </div>
+                  <strong className="text-sm block mt-1">{r.staffName}</strong>
+                  <span className="text-[11px] text-amber-100">
+                    Departs: {r.departureTime || 'End of day'} • Returns: {r.endDate} ({r.returnTime || '07:00 AM'})
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => openProcessDepartureModal(r)}
+                  className="px-3.5 py-2 bg-white text-orange-950 hover:bg-amber-50 font-bold text-xs rounded-xl shadow transition-all shrink-0 cursor-pointer"
+                >
+                  Process &amp; Set Return
+                </button>
+              </div>
+            ))}
+
+            {/* Return reminders */}
+            {returnReminders.map((r) => (
+              <div
+                key={`ret-${r.id}`}
+                className="bg-emerald-950/40 backdrop-blur-sm p-3.5 rounded-2xl flex items-center justify-between gap-3 border border-emerald-400/20"
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-emerald-400 text-emerald-950 font-extrabold text-[9px] uppercase px-2 py-0.5 rounded-full">
+                      Due Back on Duty
+                    </span>
+                  </div>
+                  <strong className="text-sm block mt-1">{r.staffName}</strong>
+                  <span className="text-[11px] text-emerald-100">
+                    Expected back today at {r.returnTime || '07:00 AM'}
+                    {r.nextScheduledOffDate ? ` • Next off: ${r.nextScheduledOffDate}` : ''}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => handleMarkReturned(r)}
+                  className="px-3.5 py-2 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-bold text-xs rounded-xl shadow transition-all shrink-0 cursor-pointer flex items-center gap-1"
+                >
+                  <Check size={13} />
+                  Mark Returned
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TOP OVERVIEW BANNER                                                       */}
+      {/* ========================================================================= */}
       <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white p-7 rounded-[2rem] shadow-xl border border-emerald-800/40 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
 
@@ -431,24 +886,34 @@ export function Roster({
                 </span>
                 <span className="text-emerald-300/60 text-xs">• Sovereign HRM</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">Staff Roster & Human Resources</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Staff Roster &amp; Human Resources</h1>
               <p className="text-xs text-emerald-100/70 mt-1 max-w-xl">
-                Comprehensive directory, daily shift tracking, leave approvals, wage accounting, and automated employee payslips.
+                Departure reminders, automated return schedules, next-off rotation tracking, permanent editable logs, and monthly PDF exports.
               </p>
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+            <button
+              onClick={() => setShowMonthlyReportModal(true)}
+              type="button"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition-all shadow-md cursor-pointer"
+              title="Download & Share Monthly Attendance & Leave PDF"
+            >
+              <FileText size={15} />
+              Monthly PDF &amp; Share
+            </button>
+
             {onTriggerSectionReport && (
               <button
                 onClick={() => onTriggerSectionReport('staff')}
                 type="button"
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs transition-all border border-white/15 cursor-pointer backdrop-blur-sm"
-                title="Download Staff & Leaves PDF Report"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold text-xs transition-all border border-white/15 cursor-pointer backdrop-blur-sm"
+                title="System Report"
               >
                 <Download size={14} />
-                PDF Report
+                Quick PDF
               </button>
             )}
 
@@ -600,10 +1065,10 @@ export function Roster({
                 </button>
               </div>
 
-              {/* Group 1: Identity & Role */}
+              {/* Identity & Role */}
               <div>
                 <h4 className="text-[11px] uppercase tracking-wider font-bold text-emerald-800 mb-3 flex items-center gap-1.5">
-                  <User size={13} /> 1. Personnel Identity & Role
+                  <User size={13} /> 1. Personnel Identity &amp; Role
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -641,10 +1106,10 @@ export function Roster({
                 </div>
               </div>
 
-              {/* Group 2: Department & Station */}
+              {/* Department & Station */}
               <div>
                 <h4 className="text-[11px] uppercase tracking-wider font-bold text-emerald-800 mb-3 flex items-center gap-1.5">
-                  <Building size={13} /> 2. Assignment & Department
+                  <Building size={13} /> 2. Assignment &amp; Department
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -655,9 +1120,9 @@ export function Roster({
                       className="w-full text-xs border border-gray-200 rounded-xl p-3 bg-white focus:outline-none focus:border-emerald-500 font-semibold"
                     >
                       <option value="Dairy">Dairy Section</option>
-                      <option value="Horti">Horticulture & Crops</option>
-                      <option value="Fields">Fields & Agronomy</option>
-                      <option value="Security">Security & Logistics</option>
+                      <option value="Horti">Horticulture &amp; Crops</option>
+                      <option value="Fields">Fields &amp; Agronomy</option>
+                      <option value="Security">Security &amp; Logistics</option>
                       <option value="General">General Estate Maintenance</option>
                     </select>
                   </div>
@@ -696,10 +1161,10 @@ export function Roster({
                 </div>
               </div>
 
-              {/* Group 3: Contact & Compensation */}
+              {/* Contact & Remuneration */}
               <div>
                 <h4 className="text-[11px] uppercase tracking-wider font-bold text-emerald-800 mb-3 flex items-center gap-1.5">
-                  <CreditCard size={13} /> 3. Contact & Remuneration
+                  <CreditCard size={13} /> 3. Contact &amp; Remuneration
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -750,10 +1215,10 @@ export function Roster({
                 </div>
               </div>
 
-              {/* Group 4: Shift Duties & Emergency Contact */}
+              {/* Shifts & Emergency Contact */}
               <div>
                 <h4 className="text-[11px] uppercase tracking-wider font-bold text-emerald-800 mb-3 flex items-center gap-1.5">
-                  <Clock size={13} /> 4. Shifts & Emergency Contact
+                  <Clock size={13} /> 4. Shifts &amp; Emergency Contact
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -831,7 +1296,6 @@ export function Roster({
             </div>
 
             <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
-              {/* Unit Filter */}
               <div className="flex gap-1 overflow-x-auto">
                 {[
                   { id: 'all', label: 'All Units' },
@@ -855,7 +1319,6 @@ export function Roster({
                 ))}
               </div>
 
-              {/* Status Filter */}
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -896,7 +1359,6 @@ export function Roster({
                         : 'border-gray-200 hover:border-emerald-300'
                     }`}
                   >
-                    {/* Card Top */}
                     <div className="p-5 border-b border-gray-100">
                       <div className="flex justify-between items-start gap-3">
                         <div className="flex items-center gap-3.5">
@@ -1001,7 +1463,7 @@ export function Roster({
                       </div>
                     </div>
 
-                    {/* Card Shifts */}
+                    {/* Shifts */}
                     <div className="bg-gray-50/70 p-4 space-y-2 border-b border-gray-100 text-xs">
                       <div className="flex items-start gap-2">
                         <Clock size={12} className="text-emerald-700 mt-0.5 shrink-0" />
@@ -1019,7 +1481,7 @@ export function Roster({
                       </div>
                     </div>
 
-                    {/* Card Actions Footer */}
+                    {/* Footer Actions */}
                     <div className="p-3 bg-white flex items-center justify-between gap-1 text-xs">
                       <button
                         onClick={() => setSelectedStaffDossier(st)}
@@ -1031,9 +1493,7 @@ export function Roster({
 
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => {
-                            setPayslipStaff(st);
-                          }}
+                          onClick={() => setPayslipStaff(st)}
                           className="p-1.5 text-sky-700 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
                           title="Generate Employee Payslip"
                         >
@@ -1077,7 +1537,7 @@ export function Roster({
                       <th className="p-4">Employee</th>
                       <th className="p-4">Department / Station</th>
                       <th className="p-4">Contact</th>
-                      <th className="p-4">Contract & Pay</th>
+                      <th className="p-4">Contract &amp; Pay</th>
                       <th className="p-4">Shifts (AM / PM)</th>
                       <th className="p-4 text-center">Status</th>
                       <th className="p-4 text-center">Actions</th>
@@ -1192,7 +1652,6 @@ export function Roster({
       {/* ========================================================================= */}
       {rosterSubTab === 'attendance' && (
         <div className="space-y-6">
-          {/* Attendance Controls Bar */}
           <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -1211,7 +1670,7 @@ export function Roster({
                   onChange={(e) => setAttendanceDate(e.target.value)}
                   className="text-xs border border-gray-200 rounded-xl px-3 py-2 font-bold text-gray-800 bg-gray-50 focus:bg-white cursor-pointer"
                 />
-                {attendanceDate === toIsoDate(new Date()) && (
+                {attendanceDate === todayStr && (
                   <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">
                     Today
                   </span>
@@ -1227,14 +1686,13 @@ export function Roster({
               </button>
 
               <button
-                onClick={() => setAttendanceDate(toIsoDate(new Date()))}
+                onClick={() => setAttendanceDate(todayStr)}
                 className="text-xs text-emerald-700 hover:underline font-bold ml-1 cursor-pointer"
               >
                 Jump to Today
               </button>
             </div>
 
-            {/* Quick Bulk Action */}
             <div className="flex items-center gap-3">
               <button
                 onClick={markAllPresentToday}
@@ -1246,7 +1704,6 @@ export function Roster({
             </div>
           </div>
 
-          {/* Attendance Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
               <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Present on Duty</span>
@@ -1270,7 +1727,6 @@ export function Roster({
             </div>
           </div>
 
-          {/* Interactive Daily Attendance Table */}
           <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center">
               <div>
@@ -1286,7 +1742,7 @@ export function Roster({
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
                     <th className="p-4">Personnel</th>
-                    <th className="p-4">Department & Station</th>
+                    <th className="p-4">Department &amp; Station</th>
                     <th className="p-4">Check-in Time</th>
                     <th className="p-4 text-center">Status Toggle</th>
                     <th className="p-4">Work / Shift Notes</th>
@@ -1372,31 +1828,43 @@ export function Roster({
       {/* ========================================================================= */}
       {rosterSubTab === 'leaves' && (
         <div className="space-y-6">
-          {/* Header & Book Button */}
+          {/* Header & Controls */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
             <div>
               <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
                 <CalendarDays size={18} className="text-indigo-600" />
-                Staff Off-Duty & Leave Scheduling
+                Staff Off-Duty &amp; Leave Scheduling
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                Manage statutory annual leaves, weekly rest cycles, and sick leave approvals with labor conflict detection.
+                Schedule rest periods, set return dates &amp; times, configure next rotation dates, and access permanent editable logs.
               </p>
             </div>
-            <button
-              onClick={() => setShowOffForm(!showOffForm)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
-            >
-              <Plus size={14} />
-              {showOffForm ? 'Close Form' : 'Book Leave / Off-Duty'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowMonthlyReportModal(true)}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-xl text-xs font-bold border border-indigo-200 cursor-pointer"
+              >
+                <Printer size={14} />
+                Monthly Leaves PDF
+              </button>
+              <button
+                onClick={() => setShowOffForm(!showOffForm)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              >
+                <Plus size={14} />
+                {showOffForm ? 'Close Form' : 'Schedule Off / Leave'}
+              </button>
+            </div>
           </div>
 
-          {/* Form */}
+          {/* Schedule Form */}
           {showOffForm && (
             <form onSubmit={handleOffSubmit} className="bg-white p-7 rounded-3xl border border-indigo-100 shadow-xl space-y-6 animate-fadeIn">
               <div className="border-b border-indigo-50 pb-3">
-                <h4 className="text-sm font-bold text-indigo-950">Schedule Staff Leave / Rest Period</h4>
+                <h4 className="text-sm font-bold text-indigo-950">Book Staff Off-Duty / Leave Rotation</h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Set departure details, return time, handover colleague, and next scheduled off rotation.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -1440,12 +1908,13 @@ export function Roster({
                   >
                     <option value="Approved">Approved</option>
                     <option value="Pending">Pending Management Review</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Completed">Completed Cycle</option>
                   </select>
                 </div>
 
+                {/* Departure Date & Time */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Start Date *</label>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Departure Date *</label>
                   <input
                     type="date"
                     required
@@ -1456,7 +1925,36 @@ export function Roster({
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">End Date *</label>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Departure Time</label>
+                  <input
+                    type="text"
+                    value={offDepartureTime}
+                    onChange={(e) => setOffDepartureTime(e.target.value)}
+                    placeholder="e.g. 05:00 PM"
+                    className="w-full text-xs border border-gray-200 rounded-xl p-3 font-mono"
+                  />
+                </div>
+
+                {/* Handover staff */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Handover / Relief Colleague</label>
+                  <select
+                    value={offHandoverStaffId}
+                    onChange={(e) => setOffHandoverStaffId(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-3 bg-white"
+                  >
+                    <option value="">-- None (Team Rotation) --</option>
+                    {staffList.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.unit})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Return Date & Time */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Return Date *</label>
                   <input
                     type="date"
                     required
@@ -1467,12 +1965,34 @@ export function Roster({
                 </div>
 
                 <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Return / Resumption Time</label>
+                  <input
+                    type="text"
+                    value={offReturnTime}
+                    onChange={(e) => setOffReturnTime(e.target.value)}
+                    placeholder="e.g. 07:00 AM"
+                    className="w-full text-xs border border-gray-200 rounded-xl p-3 font-mono"
+                  />
+                </div>
+
+                {/* Next Scheduled Off */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">Next Scheduled Off Date</label>
+                  <input
+                    type="date"
+                    value={offNextScheduledDate}
+                    onChange={(e) => setOffNextScheduledDate(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-3 font-semibold text-indigo-900"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
                   <label className="text-xs font-semibold text-gray-700 block mb-1.5">Coverage / Reason Notes</label>
                   <input
                     type="text"
                     value={offNotes}
                     onChange={(e) => setOffNotes(e.target.value)}
-                    placeholder="e.g. Standard weekly rest day; duties covered by Mosoti"
+                    placeholder="e.g. Approved standard weekly rest cycle; duties covered by Mosoti."
                     className="w-full text-xs border border-gray-200 rounded-xl p-3"
                   />
                 </div>
@@ -1490,7 +2010,7 @@ export function Roster({
                   type="submit"
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
                 >
-                  Confirm & Save Leave Schedule
+                  Confirm &amp; Save Leave Schedule
                 </button>
               </div>
             </form>
@@ -1511,21 +2031,48 @@ export function Roster({
             </div>
           )}
 
-          {/* Leave Records Ledger Table */}
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+          {/* Leave Records Filter & Table */}
+          <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden space-y-4">
+            <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-900">Scheduled Leaves & Rest Cycles</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Audit log of all registered off-duty allocations.</p>
+                <h3 className="text-sm font-bold text-gray-900">Permanent Leave &amp; Off-Duty Audit Ledger</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  All past, active, and completed cycles are permanently recorded and remain fully editable anytime.
+                </p>
               </div>
-              <span className="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
-                {staffOffRecords.length} Total Records
-              </span>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-xl border border-gray-200 text-xs">
+                <button
+                  onClick={() => setLeaveStatusFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    leaveStatusFilter === 'all' ? 'bg-white shadow text-indigo-900' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  All Logs ({staffOffRecords.length})
+                </button>
+                <button
+                  onClick={() => setLeaveStatusFilter('active')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    leaveStatusFilter === 'active' ? 'bg-white shadow text-emerald-800' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  Active / Pending ({staffOffRecords.filter((r) => r.status !== 'Completed').length})
+                </button>
+                <button
+                  onClick={() => setLeaveStatusFilter('Completed')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    leaveStatusFilter === 'Completed' ? 'bg-white shadow text-slate-800' : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  Completed Archive ({staffOffRecords.filter((r) => r.status === 'Completed').length})
+                </button>
+              </div>
             </div>
 
-            {staffOffRecords.length === 0 ? (
+            {filteredLeaveRecords.length === 0 ? (
               <div className="p-12 text-center text-gray-400 text-xs italic">
-                No leave or off-duty entries recorded. Click &quot;Book Leave / Off-Duty&quot; to begin.
+                No leave or off-duty entries match the selected filter.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -1533,69 +2080,106 @@ export function Roster({
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
                       <th className="p-4">Personnel</th>
-                      <th className="p-4">Leave Type</th>
-                      <th className="p-4">Date Interval</th>
-                      <th className="p-4">Remarks / Coverage</th>
+                      <th className="p-4">Type</th>
+                      <th className="p-4">Departure &amp; Return</th>
+                      <th className="p-4">Handover Relief</th>
+                      <th className="p-4">Next Off Rotation</th>
                       <th className="p-4 text-center">Status</th>
                       <th className="p-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 font-medium">
-                    {staffOffRecords.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="p-4 font-bold text-gray-900">{r.staffName}</td>
-                        <td className="p-4">
-                          <span className="font-semibold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-200">
-                            {r.type}
-                          </span>
-                        </td>
-                        <td className="p-4 font-mono text-[11px]">
-                          {r.startDate} <span className="text-gray-400">to</span> {r.endDate}
-                        </td>
-                        <td className="p-4 text-gray-600 max-w-xs truncate">{r.notes}</td>
-                        <td className="p-4 text-center">
-                          <select
-                            value={r.status}
-                            onChange={(e) => onUpdateOffRecordStatus(r.id, e.target.value as any)}
-                            className={`text-[10px] font-bold px-2 py-1 rounded-full border cursor-pointer ${
-                              r.status === 'Approved'
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                : r.status === 'Pending'
-                                ? 'bg-amber-50 text-amber-800 border-amber-300'
-                                : 'bg-gray-100 text-gray-700 border-gray-300'
-                            }`}
-                          >
-                            <option value="Approved">Approved</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                          </select>
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            {onEditStaffOffRecord && (
-                              <button
-                                onClick={() => setEditingStaffOffRecord(r)}
-                                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg cursor-pointer"
-                                title="Edit"
-                              >
-                                <Edit2 size={14} />
-                              </button>
+                    {filteredLeaveRecords.map((r) => {
+                      const isCompleted = r.status === 'Completed';
+
+                      return (
+                        <tr key={r.id} className={`hover:bg-gray-50/80 transition-colors ${isCompleted ? 'bg-gray-50/40 opacity-90' : ''}`}>
+                          <td className="p-4">
+                            <div className="font-bold text-gray-900">{r.staffName}</div>
+                            {r.notes && <div className="text-[10px] text-gray-400 max-w-xs truncate">{r.notes}</div>}
+                          </td>
+                          <td className="p-4">
+                            <span className="font-semibold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-200">
+                              {r.type}
+                            </span>
+                          </td>
+                          <td className="p-4 font-mono text-[11px]">
+                            <div>
+                              <span className="text-gray-400 text-[10px]">Departs:</span> {r.startDate}{' '}
+                              {r.departureTime ? `(${r.departureTime})` : ''}
+                            </div>
+                            <div className="text-emerald-800 font-semibold mt-0.5">
+                              <span className="text-gray-400 text-[10px]">Returns:</span> {r.endDate}{' '}
+                              {r.returnTime ? `(${r.returnTime})` : ''}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            {r.handoverStaffName ? (
+                              <span className="text-gray-800 font-semibold">{r.handoverStaffName}</span>
+                            ) : (
+                              <span className="text-gray-400 italic">Department Team</span>
                             )}
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Delete this leave record for ${r.staffName}?`)) {
-                                  onDeleteOffRecord(r.id);
-                                }
-                              }}
-                              className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg cursor-pointer"
-                              title="Delete"
+                          </td>
+                          <td className="p-4 font-mono text-[11px]">
+                            {r.nextScheduledOffDate ? (
+                              <span className="text-indigo-900 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                                {r.nextScheduledOffDate}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="p-4 text-center">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                r.status === 'Approved'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : r.status === 'Pending'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  : 'bg-gray-100 text-gray-700 border border-gray-300'
+                              }`}
                             >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              {r.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {!isCompleted && (
+                                <button
+                                  onClick={() => handleMarkReturned(r)}
+                                  className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded font-bold text-[10px] border border-emerald-200 cursor-pointer"
+                                  title="Mark Returned & Completed"
+                                >
+                                  Mark Returned
+                                </button>
+                              )}
+
+                              {onEditStaffOffRecord && (
+                                <button
+                                  onClick={() => setEditingStaffOffRecord(r)}
+                                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg cursor-pointer"
+                                  title="Edit Record (Always Editable)"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`Delete this leave record for ${r.staffName}?`)) {
+                                    onDeleteOffRecord(r.id);
+                                  }
+                                }}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                title="Delete"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1624,8 +2208,7 @@ export function Roster({
                 const initialized: Record<string, Record<string, { morning: string; afternoon: string; isOff: boolean }>> = {};
                 staffList.forEach((s) => {
                   initialized[s.id] = {};
-                  daysOfWeek.forEach((day, idx) => {
-                    // Default Sunday off for general, Saturday/Sunday rotation
+                  daysOfWeek.forEach((day) => {
                     const isDefaultOff = day === 'Sunday' && s.unit !== 'Security';
                     initialized[s.id][day] = {
                       morning: isDefaultOff ? 'OFF' : s.shiftMorning || 'Morning Duty',
@@ -1649,7 +2232,7 @@ export function Roster({
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-700 font-bold uppercase text-[10px] tracking-wider">
-                    <th className="p-4 w-52">Personnel & Unit</th>
+                    <th className="p-4 w-52">Personnel &amp; Unit</th>
                     {daysOfWeek.map((day) => (
                       <th key={day} className="p-4 text-center min-w-[120px]">
                         {day}
@@ -1734,7 +2317,6 @@ export function Roster({
       {rosterSubTab === 'wages' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Record Wage Payment Form */}
             <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-5">
               <div>
                 <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -1772,7 +2354,7 @@ export function Roster({
                       amount: amt,
                       category: 'Wages',
                       description: `${payType}: Paid to ${s.name} (${s.role}) - ${desc}`,
-                      date: dateVal || toIsoDate(new Date())
+                      date: dateVal || todayStr
                     });
                     alert(`✓ Registered wage payout of KES ${amt.toLocaleString()} to financials database!`);
                     form.reset();
@@ -1831,7 +2413,7 @@ export function Roster({
                   <input
                     type="date"
                     name="payDate"
-                    defaultValue={toIsoDate(new Date())}
+                    defaultValue={todayStr}
                     className="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs font-semibold"
                     required
                   />
@@ -1846,7 +2428,6 @@ export function Roster({
               </form>
             </div>
 
-            {/* Wage Ledger Review */}
             <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -1972,7 +2553,205 @@ export function Roster({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 1: EMPLOYEE PROFILE DOSSIER                                         */}
+      {/* MODAL: PROCESS DEPARTURE & SET NEXT ROTATION                              */}
+      {/* ========================================================================= */}
+      {processingDepartureRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-7 border border-amber-200 space-y-5">
+            <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-100 text-amber-800 rounded-xl">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Process Departure &amp; Schedule Rotation</h3>
+                  <p className="text-xs text-gray-500">
+                    Personnel: <strong className="text-gray-900">{processingDepartureRecord.staffName}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setProcessingDepartureRecord(null)}
+                className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 text-amber-900">
+                <span className="font-bold block text-[11px]">Departure Cycle:</span>
+                <p className="mt-0.5">
+                  Scheduled {processingDepartureRecord.type} starting today ({processingDepartureRecord.startDate}).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Departure Time Today</label>
+                  <input
+                    type="text"
+                    value={modalDepartureTime}
+                    onChange={(e) => setModalDepartureTime(e.target.value)}
+                    placeholder="e.g. 05:00 PM"
+                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Relief / Handover Person</label>
+                  <select
+                    value={modalHandoverId}
+                    onChange={(e) => setModalHandoverId(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl p-2.5 bg-white font-semibold"
+                  >
+                    <option value="">-- Team Cover --</option>
+                    {staffList
+                      .filter((s) => s.id !== processingDepartureRecord.staffId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.unit})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Confirmed Return Date</label>
+                  <input
+                    type="date"
+                    value={modalReturnDate}
+                    onChange={(e) => setModalReturnDate(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl p-2.5 font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Return Time</label>
+                  <input
+                    type="text"
+                    value={modalReturnTime}
+                    onChange={(e) => setModalReturnTime(e.target.value)}
+                    placeholder="e.g. 07:00 AM"
+                    className="w-full border border-gray-200 rounded-xl p-2.5 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <label className="font-bold text-indigo-950 block">Next Scheduled Off Rotation Date</label>
+                <input
+                  type="date"
+                  value={modalNextOffDate}
+                  onChange={(e) => setModalNextOffDate(e.target.value)}
+                  className="w-full border border-indigo-200 rounded-xl p-2.5 font-bold text-indigo-900 bg-indigo-50/50"
+                />
+                <label className="flex items-center gap-2 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={autoQueueNextOff}
+                    onChange={(e) => setAutoQueueNextOff(e.target.checked)}
+                    className="rounded text-indigo-600"
+                  />
+                  <span className="text-gray-700 text-[11px] font-medium">
+                    Automatically queue next off schedule on the roster ledger
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+              <button
+                onClick={() => setProcessingDepartureRecord(null)}
+                className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeparture}
+                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              >
+                Confirm Departure &amp; Save Rotation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: MONTHLY PDF REPORT & SHARE                                         */}
+      {/* ========================================================================= */}
+      {showMonthlyReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-7 border border-gray-200 space-y-5">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <FileText size={18} className="text-emerald-600" />
+                <h3 className="text-base font-bold text-gray-900">Monthly Workforce &amp; Leave Audit</h3>
+              </div>
+              <button onClick={() => setShowMonthlyReportModal(false)} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="font-semibold text-gray-700 block mb-1">Select Audit Month</label>
+                <input
+                  type="month"
+                  value={reportMonth}
+                  onChange={(e) => setReportMonth(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 font-bold bg-gray-50 cursor-pointer"
+                />
+              </div>
+
+              <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-emerald-950 space-y-1.5">
+                <span className="font-bold text-[11px] block">Report Package Contents:</span>
+                <ul className="list-disc pl-4 space-y-1 text-[11px]">
+                  <li>Workforce headcount &amp; attendance breakdown</li>
+                  <li>Monthly jobs done, stations &amp; shift duties</li>
+                  <li>All off-duty &amp; leave logs of the month</li>
+                  <li>Wage &amp; advance disbursements ledger</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                onClick={() => {
+                  generateMonthlyPdf('download');
+                  setShowMonthlyReportModal(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+              >
+                <Download size={14} />
+                Download PDF Report
+              </button>
+
+              <button
+                onClick={() => {
+                  generateMonthlyPdf('print');
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                <Printer size={14} />
+                Print Directly
+              </button>
+
+              <button
+                onClick={handleShareSummary}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold border border-emerald-200 cursor-pointer"
+              >
+                <Share2 size={14} />
+                Share Summary via WhatsApp / Mobile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: EMPLOYEE PROFILE DOSSIER                                           */}
       {/* ========================================================================= */}
       {selectedStaffDossier && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
@@ -2011,7 +2790,6 @@ export function Roster({
               </button>
             </div>
 
-            {/* Quick Contact Bar */}
             <div className="flex flex-wrap gap-2">
               <a
                 href={`tel:${selectedStaffDossier.phone}`}
@@ -2041,7 +2819,6 @@ export function Roster({
               </button>
             </div>
 
-            {/* Dossier Information Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2">
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">
@@ -2069,7 +2846,7 @@ export function Roster({
 
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2">
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">
-                  Remuneration & Emergency
+                  Remuneration &amp; Emergency
                 </span>
                 <div className="text-xs space-y-1">
                   <div>
@@ -2097,7 +2874,6 @@ export function Roster({
               </div>
             </div>
 
-            {/* Shift Duties */}
             <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 space-y-2">
               <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">Daily Shift Allocation</span>
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -2112,22 +2888,28 @@ export function Roster({
               </div>
             </div>
 
-            {/* Recent Payouts */}
             <div>
-              <h4 className="text-xs font-bold text-gray-900 mb-2">Recent Wage Advances & Settlements</h4>
+              <h4 className="text-xs font-bold text-gray-900 mb-2">Leave History for {selectedStaffDossier.name}</h4>
               <div className="border border-gray-100 rounded-xl overflow-hidden text-xs">
-                {financials
-                  .filter((f: any) => f.description?.toLowerCase().includes(selectedStaffDossier.name.toLowerCase()))
-                  .slice(0, 4)
-                  .map((tx: any) => (
-                    <div key={tx.id} className="p-2.5 flex justify-between items-center border-b border-gray-100 last:border-none">
-                      <div>
-                        <span className="font-mono text-gray-500 text-[10px] mr-2">{tx.date}</span>
-                        <span className="text-gray-800">{tx.description}</span>
+                {staffOffRecords.filter((r) => r.staffId === selectedStaffDossier.id).length === 0 ? (
+                  <div className="p-3 text-gray-400 italic text-center">No leave records registered for this member.</div>
+                ) : (
+                  staffOffRecords
+                    .filter((r) => r.staffId === selectedStaffDossier.id)
+                    .map((r) => (
+                      <div key={r.id} className="p-2.5 flex justify-between items-center border-b border-gray-100 last:border-none">
+                        <div>
+                          <strong className="text-gray-900 mr-2">{r.type}</strong>
+                          <span className="text-gray-500 font-mono text-[10px]">
+                            {r.startDate} to {r.endDate}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                          {r.status}
+                        </span>
                       </div>
-                      <span className="font-bold text-rose-700 font-mono">KES {Number(tx.amount).toLocaleString()}</span>
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </div>
           </div>
@@ -2135,7 +2917,7 @@ export function Roster({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: PAYSLIP GENERATOR & PREVIEW                                      */}
+      {/* MODAL: PAYSLIP GENERATOR & PREVIEW                                        */}
       {/* ========================================================================= */}
       {payslipStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
@@ -2150,7 +2932,6 @@ export function Roster({
               </button>
             </div>
 
-            {/* Month Picker */}
             <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl">
               <span className="text-xs font-semibold text-gray-600">Pay Period:</span>
               <input
@@ -2161,7 +2942,6 @@ export function Roster({
               />
             </div>
 
-            {/* Printable Payslip Card */}
             {(() => {
               const basePay = payslipStaff.baseSalary || (payslipStaff.dailyRate ? payslipStaff.dailyRate * 26 : 18000);
               const advances = financials
@@ -2239,7 +3019,7 @@ export function Roster({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: EDIT PERSONNEL DETAILS                                           */}
+      {/* MODAL: EDIT PERSONNEL DETAILS                                             */}
       {/* ========================================================================= */}
       {editingStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
@@ -2295,7 +3075,7 @@ export function Roster({
                   >
                     <option value="Dairy">Dairy</option>
                     <option value="Horti">Horticulture</option>
-                    <option value="Fields">Fields & Agronomy</option>
+                    <option value="Fields">Fields &amp; Agronomy</option>
                     <option value="Security">Security</option>
                     <option value="General">General Maintenance</option>
                   </select>
@@ -2420,13 +3200,16 @@ export function Roster({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 4: EDIT LEAVE RECORD                                                */}
+      {/* MODAL: EDIT LEAVE SCHEDULE RECORD (ALWAYS EDITABLE)                       */}
       {/* ========================================================================= */}
       {editingStaffOffRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-gray-100 space-y-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-gray-100 space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900">Edit Leave Schedule Record</h3>
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <Edit2 size={15} className="text-indigo-600" />
+                Edit Leave / Off Schedule Record
+              </h3>
               <button onClick={() => setEditingStaffOffRecord(null)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                 ✕
               </button>
@@ -2453,6 +3236,7 @@ export function Roster({
                   ))}
                 </select>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="font-semibold text-gray-700 block mb-1">Type</label>
@@ -2476,10 +3260,11 @@ export function Roster({
                   >
                     <option value="Pending">Pending</option>
                     <option value="Approved">Approved</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Completed">Completed Cycle</option>
                   </select>
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="font-semibold text-gray-700 block mb-1">Start Date</label>
@@ -2491,7 +3276,20 @@ export function Roster({
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-gray-700 block mb-1">End Date</label>
+                  <label className="font-semibold text-gray-700 block mb-1">Departure Time</label>
+                  <input
+                    type="text"
+                    value={editingStaffOffRecord.departureTime || ''}
+                    onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, departureTime: e.target.value })}
+                    placeholder="e.g. 05:00 PM"
+                    className="border border-gray-200 rounded-xl p-2.5 w-full font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">End / Return Date</label>
                   <input
                     type="date"
                     value={editingStaffOffRecord.endDate}
@@ -2499,7 +3297,54 @@ export function Roster({
                     className="border border-gray-200 rounded-xl p-2.5 w-full font-mono"
                   />
                 </div>
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Return Time</label>
+                  <input
+                    type="text"
+                    value={editingStaffOffRecord.returnTime || ''}
+                    onChange={(e) => setEditingStaffOffRecord({ ...editingStaffOffRecord, returnTime: e.target.value })}
+                    placeholder="e.g. 07:00 AM"
+                    className="border border-gray-200 rounded-xl p-2.5 w-full font-mono"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Next Scheduled Off Date</label>
+                  <input
+                    type="date"
+                    value={editingStaffOffRecord.nextScheduledOffDate || ''}
+                    onChange={(e) =>
+                      setEditingStaffOffRecord({ ...editingStaffOffRecord, nextScheduledOffDate: e.target.value })
+                    }
+                    className="border border-gray-200 rounded-xl p-2.5 w-full font-mono text-indigo-900 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-gray-700 block mb-1">Handover Relief Staff</label>
+                  <select
+                    value={editingStaffOffRecord.handoverStaffId || ''}
+                    onChange={(e) => {
+                      const sel = staffList.find((s) => s.id === e.target.value);
+                      setEditingStaffOffRecord({
+                        ...editingStaffOffRecord,
+                        handoverStaffId: e.target.value,
+                        handoverStaffName: sel ? sel.name : undefined
+                      });
+                    }}
+                    className="border border-gray-200 rounded-xl p-2.5 w-full bg-white"
+                  >
+                    <option value="">-- None --</option>
+                    {staffList.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="font-semibold text-gray-700 block mb-1">Internal Reference Notes</label>
                 <textarea
