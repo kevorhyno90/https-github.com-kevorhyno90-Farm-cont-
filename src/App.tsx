@@ -216,7 +216,7 @@ class ErrorBoundary extends (Component as any) {
 export default function App() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [hasEnteredApp, setHasEnteredApp] = useState(() => {
-    return sessionStorage.getItem('jr_farm_entered') === 'true';
+    return sessionStorage.getItem('jr_farm_entered') === 'true' || (typeof window !== 'undefined' && window.location.search.includes('offline=true'));
   });
 
   useEffect(() => {
