@@ -11,20 +11,52 @@ export interface ConflictConfig {
   }>;
 }
 
+export const getItemKey = (item: any, collectionKey?: string): string => {
+  if (!item || typeof item !== 'object') return String(item);
+  if (item.id) return String(item.id);
+  if (item.ref) return String(item.ref);
+  if (item.code) return String(item.code);
+  // Specifically for breeding/AI records (cowId + date)
+  if ((collectionKey === 'jr_farm_ai' || item.bull !== undefined) && item.cowId && item.date) {
+    return `ai_${item.cowId}_${item.date}`;
+  }
+  if (item.cowId && item.date) {
+    return `${item.cowId}_${item.date}`;
+  }
+  if (item.date && item.time) {
+    return `${item.date}_${item.time}`;
+  }
+  if (collectionKey === 'jr_farm_milk' && item.date) {
+    return `milk_${item.date}`;
+  }
+  if (item.name) return String(item.name);
+  return JSON.stringify(item);
+};
+
 export const executeSmartMerge = (
   cloudPayload: Record<string, any>,
   strategy: 'merge' | 'cloud' | 'local',
   conflicts: ConflictConfig[] = []
 ): Record<string, any> => {
-  const keys = [
+  const BASE_KEYS = [
     'jr_farm_staff', 'jr_farm_ingredients', 'jr_farm_milk', 'jr_farm_ai',
     'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
     'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
     'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
     'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+    'jr_farm_animal_sales', 'jr_farm_mortalities', 'jr_farm_activity_logs',
+    'jr_farm_silages', 'jr_farm_heifers', 'jr_farm_poultries', 'jr_farm_quarantines',
+    'jr_farm_semen_inventory', 'jr_farm_azolla', 'jr_farm_machinery', 'jr_farm_machinery_services',
     'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
     'jr_farm_estate_settings'
   ];
+
+  // Dynamically include any jr_farm_* keys from cloudPayload or localStorage
+  const allKeys = Array.from(new Set([
+    ...BASE_KEYS,
+    ...Object.keys(cloudPayload).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at'),
+    ...Object.keys(localStorage).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at')
+  ]));
 
   const mergedPayload: Record<string, any> = {};
 
@@ -54,7 +86,7 @@ export const executeSmartMerge = (
   const globalDeletedSet = new Set(deletedRecords);
   mergedPayload['jr_farm_deleted_records'] = Array.from(globalDeletedSet);
 
-  keys.forEach(k => {
+  allKeys.forEach(k => {
     const localRaw = localStorage.getItem(k);
     const cloudRaw = cloudPayload[k];
 
@@ -95,13 +127,13 @@ export const executeSmartMerge = (
       const mergedArray: any[] = [];
       const localMap = new Map<string, any>();
       localData.forEach(item => {
-        const id = item.id || item.code || item.name || JSON.stringify(item);
+        const id = getItemKey(item, k);
         localMap.set(String(id), item);
       });
 
       const cloudMap = new Map<string, any>();
       cloudData.forEach(item => {
-        const id = item.id || item.code || item.name || JSON.stringify(item);
+        const id = getItemKey(item, k);
         cloudMap.set(String(id), item);
       });
 

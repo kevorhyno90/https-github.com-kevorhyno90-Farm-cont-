@@ -134,7 +134,7 @@ interface FarmContextType {
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
-const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
+export const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
 
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isRemoteHydrationRef = useRef(false);
