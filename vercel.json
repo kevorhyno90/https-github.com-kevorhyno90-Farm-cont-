@@ -1,19 +1,29 @@
 {
   "headers": [
     {
-      "source": "/(sw.js|workbox-(.*).js|registerSW.js|manifest.webmanifest)",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "no-cache, no-store, must-revalidate"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/registerSW.js",
+      "headers": [
         {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "unsafe-none"
-        },
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
         {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "unsafe-none"
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     },
