@@ -273,13 +273,83 @@ export interface VetRecord {
 export interface GoatRecord {
   id: string;
   tagId: string;
-  breed: 'Toggenburg' | 'Alpine' | 'Saanen' | 'Galla' | 'Boer' | 'Cross';
-  purpose: 'Dairy' | 'Meat' | 'Breeding';
+  name?: string;
+  breed: 'Toggenburg' | 'Alpine' | 'Saanen' | 'Galla' | 'Boer' | 'Anglo-Nubian' | 'Cross' | string;
+  purpose: 'Dairy' | 'Meat' | 'Breeding' | 'Dual Purpose' | string;
+  dualPurposeTarget?: 'High Milk & Meat' | 'Standard Dual' | 'Meat Emphasis' | 'Milk Emphasis' | string;
   milkYieldLiters?: number;
+  weightKg?: number;
+  sex?: 'Doe' | 'Buck' | 'Wether' | 'Female' | 'Male' | string;
+  dob?: string;
+  hornStatus?: 'Polled' | 'Disbudded' | 'Horned';
+  parity?: number;
+  damTag?: string;
+  sireTag?: string;
+  housingPen?: string;
+  status?: 'Active Lactating' | 'Dry Doe' | 'Breeding Buck' | 'Maiden Doeling' | 'Growing Buckling' | 'Sold' | 'Culled' | string;
   activity: string; // e.g., "Kidding twins", "Foot rot dressing", "Normal grazing"
   notes: string;
   date: string;
   gender?: 'Female' | 'Male' | 'Wether' | string;
+}
+
+export interface GoatBreedingRecord {
+  id: string;
+  doeTagId: string;
+  doeName?: string;
+  buckTagId: string;
+  buckName?: string;
+  matingDate: string; // YYYY-MM-DD
+  matingType: 'Natural Paddock' | 'Hand Mating' | 'Artificial Insemination';
+  expectedKiddingDate: string; // ~150 days from mating
+  pregnancyStatus: 'Confirmed Pregnant' | 'Open / Not Pregnant' | 'Pending Check';
+  scanOrCheckDate?: string;
+  actualKiddingDate?: string;
+  kidsCountBorn?: number;
+  kiddingEase?: 'Normal Unassisted' | 'Slight Assistance' | 'Difficult (Dystocia)' | 'Cesarean';
+  operatorOrVet?: string;
+  notes?: string;
+}
+
+export interface GoatTreatmentRecord {
+  id: string;
+  treatmentDate: string;
+  goatTagId: string;
+  goatName?: string;
+  diagnosis: string; // e.g. "CCPP (Pleuropneumonia)", "Enterotoxaemia", "Mastitis", "Haemonchus / Worms", "Foot Rot", "Orf / Sore Mouth", "Mange / Lice"
+  medication: string;
+  dosage: string;
+  route: 'Intramuscular (IM)' | 'Subcutaneous (SC)' | 'Oral Drench' | 'Topical / Footbath' | 'Eye Drops';
+  withdrawalMilkDays: number;
+  withdrawalMeatDays: number;
+  costKes: number;
+  administeredBy: string; // Dr. Devin Omwenga / Registered Vet / Staff
+  recoveryStatus: 'Fully Recovered' | 'Under Treatment' | 'Follow-up Required';
+  followUpDate?: string;
+  notes?: string;
+}
+
+export interface GoatKidRecord {
+  id: string;
+  kidTagId: string;
+  kidName?: string;
+  sex: 'Doeling' | 'Buckling';
+  dob: string;
+  birthWeightKg: number;
+  currentWeightKg: number;
+  damTagId: string;
+  damName?: string;
+  sireTagId: string;
+  sireName?: string;
+  birthType: 'Single' | 'Twin' | 'Triplet' | 'Quadruplet';
+  colostrumIntake: 'Adequate (<2 hrs)' | 'Delayed' | 'Assisted Bottle Feed';
+  weaningStatus: 'Nursing' | 'Creep Feeding' | 'Weaned';
+  targetWeaningDate?: string;
+  weanedWeightKg?: number;
+  dailyGainGramsPerDay?: number;
+  vaccinations?: string;
+  housingPen?: string;
+  notes?: string;
 }
 
 export interface CalfRecord {

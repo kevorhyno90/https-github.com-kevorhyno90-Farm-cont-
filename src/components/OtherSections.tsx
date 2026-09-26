@@ -22,6 +22,7 @@ import {
 import { exportToCsv } from '../utils/csvHelper';
 import { CaninesManager } from './CaninesManager';
 import { BsfManager } from './BsfManager';
+import { GoatManager } from './goats/GoatManager';
 import {
  TreePine,
  Shield,
@@ -4451,204 +4452,17 @@ export function OtherSections({
           />
         )}
 
-        {/* SUBTAB 2B: DAIRY GOAT REGISTER & PRODUCTION */}
- {livestockSubTab === 'goats' && (
- <div className="space-y-6">
- <div className="flex justify-between items-center bg-white shadow-sm /20 px-1 font-bold">
- <span className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block">Dairy Goat Registry & Milk yields</span>
- <div className="flex items-center gap-2">
- <button
- onClick={downloadGoatsCSV}
- type="button"
- className="flex items-center gap-1.5 px-4 py-3 bg-amber-900/20 border border-amber-200 text-amber-950 font-bold text-xs  rounded-xl transition-all shadow-xs cursor-pointer m-0"
- title="Export Goat Directory CSV"
- >
- <FileSpreadsheet size={13} />
- Export CSV
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => onTriggerSectionReport('goats')}
- type="button"
- className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-gray-500 rounded-xl font-bold text-xs  transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
- title="Download Goats PDF Report"
- >
- <Download size={13} />
- Download PDF Report
- </button>
- )}
- <button
- onClick={() => setShowAddForm(!showAddForm)}
- className="bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-white flex items-center gap-1.5 m-0 font-sans font-bold cursor-pointer"
- >
- <Plus size={14} /> Register Dairy Goat
- </button>
- </div>
- </div>
-
- {showAddForm && (
- <form onSubmit={handleGoatSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-amber-100 shadow-md space-y-4 font-sans text-left">
- <div className="border-b border-gray-100 pb-2">
- <h5 className="text-xs font-semibold tracking-tight text-amber-900">Add Goats Directory & Wellness Log</h5>
- <p className="text-[10px] text-gray-900 font-medium font-bold  mt-0.5">Integrate backdated indices and yield variables</p>
- </div>
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Tag ID / Collar Code</label>
- <input
- type="text"
- required
- value={gtTag}
- onChange={(e) => setGtTag(e.target.value)}
- placeholder="E.g. Goat-204"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Breed Class</label>
- <select
- value={gtBreed}
- onChange={(e) => setGtBreed(e.target.value as any)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full bg-white shadow-sm font-bold"
- >
- <option value="Toggenburg">Toggenburg (Premium Dairy)</option>
- <option value="Alpine">Alpine (High Yield)</option>
- <option value="Saanen">Saanen (White Dairy)</option>
- <option value="Galla">Galla (Hardy East-African)</option>
- <option value="Boer">Boer (Meat Class)</option>
- <option value="Cross">Crossbreed Utility</option>
- </select>
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Purpose Class</label>
- <select
- value={gtPurpose}
- onChange={(e) => setGtPurpose(e.target.value as any)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full bg-white shadow-sm font-bold"
- >
- <option value="Dairy">Dairy (Squeeze Milk)</option>
- <option value="Meat">Meat / Breeding Sire</option>
- <option value="Breeding">Rebreeding Doe</option>
- </select>
- </div>
- <div>
- <label className="text-[10px] font-semibold text-amber-800  block mb-1">Log Date (Historical)</label>
- <input
- type="date"
- required
- value={gtDate}
- onChange={(e) => setGtDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- {gtPurpose === 'Dairy' && (
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Daily yield (Liters)</label>
- <input
- type="number"
- step="0.1"
- value={gtMilk}
- onChange={(e) => setGtMilk(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Liters per day"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- )}
- <div className="col-span-1 md:col-span-2">
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Primary Activity</label>
- <input
- type="text"
- required
- value={gtActivity}
- onChange={(e) => setGtActivity(e.target.value)}
- placeholder="E.g. Hoof trimming, Albendazole deworming, weathers weight..."
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div className="col-span-1 md:col-span-2">
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Breeding Remarks & Wellness</label>
- <input
- type="text"
- value={gtNotes}
- onChange={(e) => setGtNotes(e.target.value)}
- placeholder="E.g. Twins kidding, high udder confirmation, dewormed on 20th"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-medium"
- />
- </div>
- </div>
- <div className="flex justify-end gap-2 border-t pt-3">
- <button
- type="button"
- onClick={() => setShowAddForm(false)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium m-0"
- >
- Cancel
- </button>
- <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 hover:bg-white shadow">
- Save Record
- </button>
- </div>
- </form>
- )}
-
- {/* Goat Cards list */}
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
- {goatRecords.map((gt) => (
- <div key={gt.id} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:border-gray-200 transition-all">
- <div>
- <div className="flex justify-between items-start">
- <div>
- <span className="font-semibold text-[#5d4037] text-sm  tracking-wide block">{gt.tagId}</span>
- <span className="text-[9px] bg-amber-900/20 text-amber-800 border  px-2 py-0.5 mt-1 inline-block font-semibold rounded-lg">
- {gt.breed} breed
- </span>
- </div>
- {onEditGoatRecord && (
- <button
- onClick={() => setEditingGoat(gt)}
- className="text-gray-900 font-medium hover:text-indigo-650 p-1 rounded-lg transition-all m-0 hover:bg-white border border-gray-200"
- title="Edit Goat record"
- >
- <PenSquare size={13} />
- </button>
- )}
- <button
- onClick={() => onDeleteGoatRecord(gt.id)}
- className="text-gray-900 font-medium hover:text-red-600 p-1 rounded-lg transition-all m-0 hover:bg-white border border-gray-200"
- >
- <Trash2 size={13} />
- </button>
- </div>
-
- <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] leading-snug">
- <div className="bg-white border border-gray-200 p-2 rounded-xl border border-gray-100/50">
- <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Purpose</span>
- <span className="font-bold text-gray-900 font-semibold block mt-0.5">{gt.purpose}</span>
- </div>
- <div className="bg-white border border-gray-200 p-2 rounded-xl border border-gray-100/50">
- <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Yield</span>
- <span className="font-bold text-gray-900 font-semibold block mt-0.5 font-mono">
- {gt.milkYieldLiters ? `${gt.milkYieldLiters} Liters/d` : 'N/A'}
- </span>
- </div>
- </div>
-
- <div className="mt-3.5 space-y-1 bg-white border border-gray-200 p-2.5 border rounded-xl">
- <span className="text-[9px]  font-semibold text-gray-500 block">Current Activity log</span>
- <span className="text-xs text-gray-500 font-semibold block">{gt.activity}</span>
- </div>
- </div>
-
- <div className="border-t pt-3 space-y-1">
- <span className="text-[9px] text-gray-900 font-medium font-semibold ">Observation details:</span>
- <p className="text-xs text-gray-900 font-medium font-medium italic">"{gt.notes}"</p>
- <span className="text-[9px] font-mono text-gray-900 font-medium block text-right">Updated: {gt.date}</span>
- </div>
- </div>
- ))}
- </div>
- </div>
- )}
+        {/* SUBTAB 2B: DUAL-PURPOSE CAPRINE HERD MANAGEMENT (REGISTRY, BREEDING, TREATMENT, KIDS) */}
+        {livestockSubTab === 'goats' && (
+          <GoatManager
+            goatRecords={goatRecords}
+            onAddGoatRecord={onAddGoatRecord}
+            onDeleteGoatRecord={onDeleteGoatRecord}
+            onEditGoatRecord={onEditGoatRecord}
+            staffList={staffList}
+            onTriggerSectionReport={onTriggerSectionReport}
+          />
+        )}
 
  {/* SUBTAB 2C: CALF LIFESPAN FLOW PILES */}
  {livestockSubTab === 'calves' && (
