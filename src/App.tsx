@@ -4425,7 +4425,7 @@ function FarmCoreApp() {
     { id: 'tmr', label: 'TMR Mixing', icon: Truck, category: 'Feed & Factory' },
     { id: 'bsf', label: 'Organic BSF Batches', icon: Leaf, category: 'Feed & Factory' },
 
-    { id: 'dairy_milk', label: 'Dairy Milking', icon: Activity, category: 'Livestock' },
+    { id: 'dairy', label: 'Dairy Cattle & Milk', icon: Activity, category: 'Livestock' },
     { id: 'breeding', label: 'AI & Breeding Cycles', icon: CalendarDays, category: 'Livestock' },
     { id: 'veterinary', label: 'Veterinary Clinic', icon: HeartPulse, category: 'Livestock' },
     { id: 'cows', label: 'Cattle Registry', icon: Award, category: 'Livestock' },

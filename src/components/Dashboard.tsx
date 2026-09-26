@@ -425,7 +425,8 @@ export function Dashboard({
  sub: "Active dairy herd count", 
  icon: Heart, 
  color: "blue",
- delay: 0.1
+ delay: 0.1,
+ actionTab: "cows"
  },
  { 
  label: "Milk Yield (Today)", 
@@ -433,7 +434,8 @@ export function Dashboard({
  sub: "Real-time production", 
  icon: Activity, 
  color: "emerald",
- delay: 0.2
+ delay: 0.2,
+ actionTab: "dairy"
  },
  { 
  label: "Net Financial P&L", 
@@ -441,7 +443,8 @@ export function Dashboard({
  sub: "Overall cash balance", 
  icon: DollarSign, 
  color: netPl >= 0 ? "emerald" : "rose",
- delay: 0.3
+ delay: 0.3,
+ actionTab: "finance"
  },
  { 
  label: "Active Alerts", 
@@ -449,7 +452,8 @@ export function Dashboard({
  sub: upcomingDueAlarm || "All clear", 
  icon: AlertTriangle, 
  color: activeAlarmsCount > 0 ? "rose" : "slate",
- delay: 0.4
+ delay: 0.4,
+ actionTab: "timetable"
  }
  ].map((widget, idx) => {
  const Icon = widget.icon;
@@ -460,7 +464,8 @@ export function Dashboard({
  animate={{ opacity: 1, y: 0 }}
  transition={{ delay: widget.delay, type: "spring" }}
  whileHover={{ y: -5, scale: 1.02 }}
- className="farm-shell-panel p-6 rounded-[1.6rem] border border-gray-200 shadow-[0_10px_30px_rgba(15,23,42,0.08)] relative overflow-hidden group"
+ onClick={() => widget.actionTab && onNavigateToTab && onNavigateToTab(widget.actionTab)}
+ className="farm-shell-panel p-6 rounded-[1.6rem] border border-gray-200 shadow-[0_10px_30px_rgba(15,23,42,0.08)] relative overflow-hidden group cursor-pointer"
  >
  <div className={`absolute -right-4 -top-4 w-32 h-32 bg-${widget.color}-500/10 rounded-full blur-2xl group-hover:bg-${widget.color}-500/20 transition-all duration-500`}></div>
  <div className="flex justify-between items-start z-10 relative">
@@ -1549,8 +1554,9 @@ export function Dashboard({
  <p className="text-sm text-gray-900 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
  {[
+ { id: 'dairy', icon: Activity, label: "Dairy Cattle & Milk", desc: "Lactation, AI straws, calving & withdrawal safeguards.", color: "emerald" },
  { id: 'diagnostics_sub', icon: Activity, label: "Diagnostics Wizard", desc: "Symptoms scanner for crops & livestock.", color: "blue" },
  { id: 'inventory_deduct_sub', icon: Database, label: "Stock Auto-Deduct", desc: "Run feed & chem protocols.", color: "indigo" },
  { id: 'timelines_sub', icon: Calendar, label: "Gestation & PHI", desc: "Countdown trackers & calendars.", color: "purple" },
