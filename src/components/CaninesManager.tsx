@@ -25,6 +25,10 @@ import { jsPDF } from 'jspdf';
 import { useFarmState } from '../context/FarmContext';
 import { toIsoDate, offsetIsoDate } from '../utils/dateHelper';
 import { exportToCsv } from '../utils/csvHelper';
+import { KennelBaysMap } from './canines/KennelBaysMap';
+import { EmergencyMedicalHub } from './canines/EmergencyMedicalHub';
+import { ShiftHandoverChecklist } from './canines/ShiftHandoverChecklist';
+import { generateKennelPlacardPdf } from './canines/KennelPlacardGenerator';
 
 interface CaninesManagerProps {
   staffList?: StaffMember[];
@@ -35,7 +39,12 @@ interface CaninesManagerProps {
 
 type CanineSubTab =
   | 'registry'
+  | 'housing'
   | 'vaccines'
+  | 'treatments'
+  | 'patrols'
+  | 'handover'
+  | 'medkit'
   | 'treatments'
   | 'patrols'
   | 'training'
@@ -1584,6 +1593,18 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
           </button>
 
           <button
+            onClick={() => setSubTab('housing')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'housing'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🏠</span>
+            <span>Kennel Bays & Map</span>
+          </button>
+
+          <button
             onClick={() => setSubTab('vaccines')}
             className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               subTab === 'vaccines'
@@ -1622,6 +1643,30 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
             <span>🛡️</span>
             <span>Patrol & Sentry Logs</span>
             <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{patrols.length}</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('handover')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'handover'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>📋</span>
+            <span>Shift Handovers</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('medkit')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'medkit'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🚨</span>
+            <span>Emergency Meds & Antivenom</span>
           </button>
 
           <button
@@ -1830,6 +1875,13 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                           <Printer size={15} />
                         </button>
                         <button
+                          onClick={() => generateKennelPlacardPdf(dog)}
+                          className="p-1.5 text-gray-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                          title="Print Kennel Gate Door Placard (A5)"
+                        >
+                          <span className="text-xs">🪧</span>
+                        </button>
+                        <button
                           onClick={() => handleEditDog(dog)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                           title="Edit Profile"
@@ -1987,6 +2039,26 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
       )}
 
       {/* ========================================================= */}
+      {/* SUBTAB HOUSING: KENNEL BAYS MAP */}
+      {subTab === 'housing' && (
+        <KennelBaysMap
+          dogs={dogs}
+          onUpdateDogKennel={(dogId, kennelNo) => {
+            setDogs(prev => prev.map(d => d.id === dogId ? { ...d, kennelNo } : d));
+          }}
+        />
+      )}
+
+      {/* SUBTAB HANDOVER: SHIFT HANDOVERS */}
+      {subTab === 'handover' && (
+        <ShiftHandoverChecklist staffList={staffList} dogs={dogs} />
+      )}
+
+      {/* SUBTAB MEDKIT: EMERGENCY MEDS & ANTIVENOM */}
+      {subTab === 'medkit' && (
+        <EmergencyMedicalHub />
+      )}
+
       {/* SUBTAB 2: VACCINES & DEWORMING */}
       {/* ========================================================= */}
       {subTab === 'vaccines' && (
@@ -2881,6 +2953,12 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 >
                   <Printer size={14} />
                   <span>Download Health Passport PDF</span>
+                </button>
+                <button
+                  onClick={() => generateKennelPlacardPdf(dossierDog)}
+                  className="px-4 py-2 bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🪧 Print Door Placard (A5)</span>
                 </button>
                 <button
                   onClick={() => setDossierDog(null)}

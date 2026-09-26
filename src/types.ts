@@ -594,4 +594,46 @@ export interface CanineKennelBiosecurityRecord {
   notes?: string;
 }
 
+export interface CanineKennelBay {
+  id: string; // e.g. 'A-01'
+  name: string; // e.g. 'Kennel A-01 (Patrol Alpha)'
+  block: 'Block A (Patrol)' | 'Block B (Heavy Guard)' | 'Maternity Bay' | 'Quarantine Unit';
+  status: 'Occupied' | 'Vacant & Clean' | 'Cleaning in Progress' | 'Quarantine Locked';
+  currentDogId?: string;
+  currentDogName?: string;
+  lastSanitizedDate?: string;
+  dimensions?: string;
+  notes?: string;
+}
+
+export interface CanineEmergencyMedicalItem {
+  id: string;
+  itemName: string;
+  category: 'Antivenom & Toxins' | 'Trauma & Wound Care' | 'Preventatives & Antibiotics' | 'Sanitation & Disinfection';
+  quantityOnHand: number;
+  unit: 'Vials' | 'Boxes' | 'Tubs' | 'Tablets' | 'Kits';
+  minimumThreshold: number;
+  expiryDate: string; // YYYY-MM-DD
+  storageLocation: string; // e.g. 'Estate Vet Refrigerator (2-8°C)', 'Patrol Trauma Pack'
+  emergencyInstructions?: string;
+  lastRestockedDate?: string;
+}
+
+export interface CanineShiftHandoverRecord {
+  id: string;
+  date: string;
+  shift: 'Night to Day Handover' | 'Day to Night Handover' | 'Midday Sweep Handover';
+  outgoingHandler: string;
+  incomingHandler: string;
+  dogsInspected: string[];
+  pawPadsClearOfThorns: boolean;
+  coatTickSweepDone: boolean;
+  waterRefreshed: boolean;
+  kennelLocksInspected: boolean;
+  gearInspected: boolean;
+  perimeterFenceIntact: boolean;
+  handoverNotes?: string;
+}
+
+
 
