@@ -7,6 +7,7 @@ import {
   MilkingRecord,
   AIRecord,
   TeaRecord,
+  TeaPracticeRecord,
   AvocadoRecord,
   FinancialRecord,
   SprayRecord,
@@ -184,11 +185,120 @@ export const INITIAL_AI_RECORDS: AIRecord[] = [
 ];
 
 export const INITIAL_TEA_RECORDS: TeaRecord[] = [
-  { qty: 142, ref: 'KTDA-TX-99827', date: getRelativeDate(-4), pricePerKg: 58, buyer: 'Chinga KTDA Factory', totalSales: 8236 },
-  { qty: 158, ref: 'KTDA-TX-99839', date: getRelativeDate(-3), pricePerKg: 58, buyer: 'Chinga KTDA Factory', totalSales: 9164 },
-  { qty: 139, ref: 'KTDA-TX-99851', date: getRelativeDate(-2), pricePerKg: 60, buyer: 'Chinga KTDA Factory', totalSales: 8340 },
-  { qty: 165, ref: 'KTDA-TX-99863', date: getRelativeDate(-1), pricePerKg: 60, buyer: 'Gathutu Tea Purchasing Ltd', totalSales: 9900 },
-  { qty: 172, ref: 'KTDA-TX-99875', date: getRelativeDate(0), pricePerKg: 62, buyer: 'Gathutu Tea Purchasing Ltd', totalSales: 10664 }
+  {
+    qty: 142,
+    ref: 'KTDA-TX-99827',
+    date: getRelativeDate(-4),
+    pricePerKg: 58,
+    buyer: 'Chinga KTDA Factory',
+    totalSales: 8236,
+    casualPluckedKg: 85,
+    employeePluckedKg: 57,
+    casualRatePerKg: 12,
+    casualPayoutKes: 1020,
+    casualPaymentStatus: 'Paid / Disbursed',
+    blockOrZone: 'Tea Block 1 - Upper Ridge',
+    notes: 'Morning dew plucking. Clean two leaves and a bud leaf quality.'
+  },
+  {
+    qty: 158,
+    ref: 'KTDA-TX-99839',
+    date: getRelativeDate(-3),
+    pricePerKg: 58,
+    buyer: 'Chinga KTDA Factory',
+    totalSales: 9164,
+    casualPluckedKg: 96,
+    employeePluckedKg: 62,
+    casualRatePerKg: 12,
+    casualPayoutKes: 1152,
+    casualPaymentStatus: 'Paid / Disbursed',
+    blockOrZone: 'Tea Block 1 - Upper Ridge',
+    notes: 'High plucking vigor. Leaf delivered to Buying Center 03 by 2 PM.'
+  },
+  {
+    qty: 139,
+    ref: 'KTDA-TX-99851',
+    date: getRelativeDate(-2),
+    pricePerKg: 60,
+    buyer: 'Chinga KTDA Factory',
+    totalSales: 8340,
+    casualPluckedKg: 81,
+    employeePluckedKg: 58,
+    casualRatePerKg: 12,
+    casualPayoutKes: 972,
+    casualPaymentStatus: 'Pending Saturday Payout',
+    blockOrZone: 'Tea Block 2 - Valley Plot',
+    notes: 'Afternoon collection ticket verified with factory weighbridge clerk.'
+  },
+  {
+    qty: 165,
+    ref: 'KTDA-TX-99863',
+    date: getRelativeDate(-1),
+    pricePerKg: 60,
+    buyer: 'Gathutu Tea Purchasing Ltd',
+    totalSales: 9900,
+    casualPluckedKg: 105,
+    employeePluckedKg: 60,
+    casualRatePerKg: 12,
+    casualPayoutKes: 1260,
+    casualPaymentStatus: 'Pending Saturday Payout',
+    blockOrZone: 'Tea Block 2 - Valley Plot',
+    notes: 'Peak vegetative flush. Excellent green leaf tenderness.'
+  },
+  {
+    qty: 172,
+    ref: 'KTDA-TX-99875',
+    date: getRelativeDate(0),
+    pricePerKg: 62,
+    buyer: 'Gathutu Tea Purchasing Ltd',
+    totalSales: 10664,
+    casualPluckedKg: 112,
+    employeePluckedKg: 60,
+    casualRatePerKg: 12,
+    casualPayoutKes: 1344,
+    casualPaymentStatus: 'Pending Saturday Payout',
+    blockOrZone: 'Tea Block 1 - Upper Ridge',
+    notes: 'Today plucking receipt from KTDA scale station.'
+  }
+];
+
+export const INITIAL_TEA_PRACTICE_RECORDS: TeaPracticeRecord[] = [
+  {
+    id: 'prc-01',
+    practiceType: 'Pruning',
+    date: getRelativeDate(-25),
+    who: 'James Odhiambo & 6 Casual Pruners',
+    how: 'Light prune down to 24 inches flat table using sterilized pruning knives; cut surfaces treated with copper hydroxide paste.',
+    reason: 'Maintain optimal ergonomic plucking height and stimulate fresh vigorous vegetative flush branches.',
+    blockOrZone: 'Tea Block 2 - Valley Plot',
+    nextDueDate: getRelativeDate(340),
+    costKes: 4800,
+    notes: '1.2 acres pruned. Healthy wood without wood-rot or termites.'
+  },
+  {
+    id: 'prc-02',
+    practiceType: 'Fertilizer Application',
+    date: getRelativeDate(-12),
+    who: 'Peter Mwangi & Estate Field Team',
+    how: 'Manual hand-broadcast of NPK 26:5:5 at 50g per bush spread under the leaf drip line after moderate rain showers on damp soil.',
+    reason: 'Supply high nitrogen for leaf shoot multiplication and phosphate for root replenishment.',
+    blockOrZone: 'Tea Block 1 - Upper Ridge',
+    nextDueDate: getRelativeDate(110),
+    costKes: 14500,
+    notes: 'Applied 4 bags of 50kg NPK 26:5:5. Soil moisture optimal; no fertilizer scorch observed.'
+  },
+  {
+    id: 'prc-03',
+    practiceType: 'Weeding',
+    date: getRelativeDate(-6),
+    who: 'Casual Weeding Gang (4 Workers)',
+    how: 'Manual shallow forking and hand pulling of creeping grasses and Couch grass along the tea rows; mulched with cut dry vegetative trash.',
+    reason: 'Eliminate root competition for water and soil nutrients prior to October flush.',
+    blockOrZone: 'Tea Block 1 - Upper Ridge',
+    nextDueDate: getRelativeDate(35),
+    costKes: 2400,
+    notes: 'Zero chemical herbicide used to prevent leaf residue taint.'
+  }
 ];
 
 export const INITIAL_AVOCADO_RECORDS: AvocadoRecord[] = [

@@ -50,12 +50,33 @@ export interface SemenInventoryItem {
 }
 
 export interface TeaRecord {
-  qty: number; // KG
-  ref: string; // Collection Ref
+  qty: number; // Total Daily Harvest KG (casualPluckedKg + employeePluckedKg)
+  ref: string; // Daily Collection List / Ticket Ref (e.g. KTDA-REC-8921)
   date: string; // YYYY-MM-DD
-  pricePerKg?: number;
-  buyer?: string;
-  totalSales?: number;
+  pricePerKg?: number; // Factory/KTDA base price per KG (e.g. 58)
+  buyer?: string; // e.g. "Chinga KTDA Factory", "Buying Center 03"
+  totalSales?: number; // qty * pricePerKg
+  casualPluckedKg?: number; // KG plucked by casual workers
+  employeePluckedKg?: number; // KG plucked by permanent staff/employees
+  casualRatePerKg?: number; // Rate paid per KG to casuals (default Ksh 12/kg)
+  casualPayoutKes?: number; // Cash payable that week to casuals = casualPluckedKg * casualRatePerKg
+  saturdayPayoutDate?: string; // The Saturday date of that week when casuals are paid
+  casualPaymentStatus?: 'Pending Saturday Payout' | 'Paid / Disbursed' | 'Partial';
+  blockOrZone?: string; // e.g. "Tea Block 1 - Upper Ridge"
+  notes?: string;
+}
+
+export interface TeaPracticeRecord {
+  id: string;
+  practiceType: 'Pruning' | 'Fertilizer Application' | 'Weeding' | 'Pest & Disease Control' | 'Infilling' | 'Plucking Table Maintenance' | 'Drainage & Soil Conservation' | string;
+  date: string; // When the practice was performed (YYYY-MM-DD)
+  who: string; // Who performed it (e.g. "James Odhiambo & 4 Casuals", "Dr. Devin Omwenga")
+  how: string; // How it was done / Method / Dosage (e.g. "Cut-back pruning to 24 inches with sterilized hand shears, sealed with copper paste")
+  reason: string; // Why it was done (e.g. "Rejuvenate plucking table after 4-year cycle")
+  blockOrZone: string; // Which block (e.g. "Tea Block 1 - Upper Ridge")
+  nextDueDate: string; // Next time the practice will be done again (YYYY-MM-DD)
+  costKes?: number; // Direct cash expense if any (e.g. fertilizer cost, casual day wages)
+  notes?: string;
 }
 
 export interface AvocadoRecord {

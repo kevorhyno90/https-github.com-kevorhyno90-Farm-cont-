@@ -78,6 +78,7 @@ const Financials = React.lazy(() => import('./components/Financials').then(m => 
 const OtherSections = React.lazy(() => import('./components/OtherSections').then(m => ({ default: m.OtherSections })));
 const CaninesManager = React.lazy(() => import('./components/CaninesManager').then(m => ({ default: m.CaninesManager })));
 const BsfManager = React.lazy(() => import('./components/BsfManager').then(m => ({ default: m.BsfManager })));
+const TeaManager = React.lazy(() => import('./components/tea/TeaManager').then(m => ({ default: m.TeaManager })));
 const BackupCenter = React.lazy(() => import('./components/BackupCenter').then(m => ({ default: m.BackupCenter })));
 const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
@@ -6717,7 +6718,18 @@ function FarmCoreApp() {
             />
           )}
 
-          {(activeTab === 'horti' || activeTab === 'tea' || activeTab === 'avo') && (
+          {activeTab === 'tea' && (
+            <TeaManager
+              teaRecords={teaRecords}
+              onAddTea={handleAddTea}
+              onDeleteTea={handleDeleteTea}
+              onEditTea={handleEditTea}
+              staffList={staffList}
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
+
+          {(activeTab === 'horti' || activeTab === 'avo') && (
             <Horticulture
               teaRecords={teaRecords}
               avoRecords={avoRecords}
@@ -6729,7 +6741,6 @@ function FarmCoreApp() {
               onEditAvo={handleEditAvo}
               onTriggerSectionReport={handleTriggerSectionReport}
               activeSubModule={
-                activeTab === 'tea' ? 'tea' :
                 activeTab === 'avo' ? 'avo' :
                 undefined
               }

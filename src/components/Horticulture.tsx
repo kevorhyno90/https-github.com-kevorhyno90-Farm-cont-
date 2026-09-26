@@ -21,6 +21,7 @@ interface HorticultureProps {
 }
 
 import { QRGenerator } from './common/QRGenerator';
+import { TeaManager } from './tea/TeaManager';
 
 export function Horticulture({
  teaRecords,
@@ -255,171 +256,17 @@ export function Horticulture({
  
  <div className={activeSubModule ? "space-y-8" : "grid grid-cols-1 lg:grid-cols-2 gap-8"}>
  {/* Tea plucking ledger */}
- {(!activeSubModule || activeSubModule === 'tea') && (
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
- <div className="border-b border-gray-100 pb-3">
- <h5 className="text-[11px] font-semibold tracking-normal text-green-600 ">Tea KTDA Deliveries</h5>
- <p className="text-xs text-gray-900 font-medium mt-1 font-medium">Record daily pluck weight delivered to factory</p>
- </div>
-
- <form onSubmit={handleTeaSubmit} className="grid grid-cols-2 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">KGs Harvested</label>
- <input
- type="number"
- required
- min="0.1"
- step="0.1"
- value={teaQty}
- onChange={(e) => setTeaQty(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="E.g. 145"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Collection Ref</label>
- <input
- type="text"
- required
- value={teaRef}
- onChange={(e) => setTeaRef(e.target.value)}
- placeholder="E.g. KTDA-TX-998"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Price per KG (Ksh)</label>
- <input
- type="number"
- required
- min="1"
- value={teaPrice}
- onChange={(e) => setTeaPrice(e.target.value === '' ? '' : parseInt(e.target.value))}
- placeholder="E.g. 58"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Primary Buyer</label>
- <input
- type="text"
- required
- value={teaBuyer}
- onChange={(e) => setTeaBuyer(e.target.value)}
- placeholder="E.g. Chinga KTDA Factory"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold text-gray-900"
- />
- </div>
- <div className="col-span-2">
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Harvest Logging Date</label>
- <input
- type="date"
- required
- value={teaDate}
- onChange={(e) => setTeaDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer bg-white shadow-sm "
- />
- </div>
- <button
- type="submit"
- className="col-span-2 bg-white hover:bg-emerald-900 text-gray-900 font-semibold text-xs  p-3.5 rounded-xl transition-all shadow-md m-0"
- >
- Save Tea Log & Income
- </button>
- </form>
-
- {/* Past tea logs */}
- <div className="border-t border-gray-100 pt-5 space-y-3">
- <div className="flex justify-between items-center text-xs">
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block font-bold">Collection Receipt Timeline</label>
- <div className="flex items-center gap-2">
- <button
- onClick={downloadTeaCSV}
- type="button"
- className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-green-600 text-green-600 rounded font-semibold text-[9px]  transition-all shadow-xs cursor-pointer m-0"
- title="Export Tea Harvests CSV"
- >
- <FileSpreadsheet size={10} />
- Export CSV
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => onTriggerSectionReport('tea')}
- type="button"
- className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-gray-500 rounded font-semibold text-[9px]  transition-all shadow-xs cursor-pointer m-0 border border-amber-600/10 font-bold"
- title="Download Tea PDF Report"
- >
- <Download size={10} />
- Download PDF Report
- </button>
- )}
- <span className="font-bold text-green-600">Total: {totalTeaAllTime.toLocaleString()} KG</span>
- </div>
- </div>
-
- <div className="max-h-52 overflow-auto pr-1">
- <table className="w-full text-xs">
- <thead>
- <tr className="border-b border-gray-100 bg-white border border-gray-200 text-[9px]  font-semibold text-gray-900 font-medium">
- <td className="p-2 font-bold text-gray-900 font-medium ">Collection Details</td>
- <td className="p-2 font-bold text-gray-900 font-medium  text-right">Yield & Rate</td>
- <td className="p-2 font-bold text-gray-900 font-medium  text-right">Sales Valuation</td>
- <td className="p-2 font-bold text-gray-900 font-medium  text-center">Actions</td>
- </tr>
- </thead>
- <tbody>
- {[...teaRecords].sort((a,b)=> (b.date || '').localeCompare(a.date || '')).map((t, idx) => {
- const price = t.pricePerKg ?? 58;
- const totVal = t.totalSales ?? (t.qty * price);
- const buyer = t.buyer ?? 'Chinga KTDA Factory';
- return (
- <tr key={idx} className="border-b border-gray-200 hover:bg-white border border-gray-200">
- <td className="p-2">
- <span className="font-semibold text-gray-900 font-semibold block text-xs">{t.ref}</span>
- <span className="block text-[9px] text-gray-500  font-mono">
- {new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
- </span>
- <span className="block text-[10px] font-medium text-green-600 italic truncate max-w-[155px]">
- Buyer: {buyer}
- </span>
- </td>
- <td className="p-2 text-right">
- <span className="font-mono font-semibold text-gray-900 block">{t.qty.toFixed(1)} KG</span>
- <span className="font-mono text-[9px] text-gray-900 font-medium block">Ksh {price.toFixed(0)}/KG</span>
- </td>
- <td className="p-2 text-right">
- <span className="font-mono font-semibold text-green-600 block">Ksh {(totVal ?? 0).toLocaleString()}</span>
- <span className="text-[8px] bg-emerald-100 font-semibold text-green-600 px-1 py-0.2 rounded inline-block ">Sold</span>
- </td>
- <td className="p-2 text-center">
- <div className="flex items-center justify-center gap-1.5">
- {onEditTea && (
- <button
- onClick={() => setEditingTea(t)}
- className="text-gray-900 font-medium hover:text-[#0e3a24] p-1 rounded transition-colors cursor-pointer m-0 inline-block"
- title="Edit Receipt"
- >
- <Edit2 size={12} />
- </button>
- )}
- <button
- onClick={() => onDeleteTea(t.ref)}
- className="text-gray-900 font-medium hover:text-red-650 p-1 rounded transition-colors cursor-pointer m-0 inline-block"
- title="Delete Receipt"
- >
- <Trash2 size={12} />
- </button>
- </div>
- </td>
- </tr>
- );
- })}
- </tbody>
- </table>
- </div>
- </div>
- </div>
- )}
+      {(!activeSubModule || activeSubModule === 'tea') && (
+        <div className="col-span-full">
+          <TeaManager
+            teaRecords={teaRecords}
+            onAddTea={onAddTea}
+            onDeleteTea={onDeleteTea}
+            onEditTea={onEditTea}
+            onTriggerSectionReport={onTriggerSectionReport}
+          />
+        </div>
+      )}
 
  {/* Avocado packing graded ledger */}
  {(!activeSubModule || activeSubModule === 'avo') && (
