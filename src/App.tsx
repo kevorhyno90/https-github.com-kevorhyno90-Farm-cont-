@@ -79,6 +79,7 @@ const OtherSections = React.lazy(() => import('./components/OtherSections').then
 const CaninesManager = React.lazy(() => import('./components/CaninesManager').then(m => ({ default: m.CaninesManager })));
 const BsfManager = React.lazy(() => import('./components/BsfManager').then(m => ({ default: m.BsfManager })));
 const TeaManager = React.lazy(() => import('./components/tea/TeaManager').then(m => ({ default: m.TeaManager })));
+const AvocadoManager = React.lazy(() => import('./components/avocado/AvocadoManager').then(m => ({ default: m.AvocadoManager })));
 const BackupCenter = React.lazy(() => import('./components/BackupCenter').then(m => ({ default: m.BackupCenter })));
 const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
@@ -6729,7 +6730,22 @@ function FarmCoreApp() {
             />
           )}
 
-          {(activeTab === 'horti' || activeTab === 'avo') && (
+          {activeTab === 'avo' && (
+            <AvocadoManager
+              avoRecords={avoRecords}
+              onAddAvo={handleAddAvo}
+              onDeleteAvo={handleDeleteAvo}
+              onEditAvo={handleEditAvo}
+              inventory={inventory}
+              onUpdateInventoryStock={(id, newQty) => {
+                setInventory(prev => prev.map(item => item.id === id ? { ...item, quantity: newQty } : item));
+              }}
+              staffList={staffList}
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
+
+          {activeTab === 'horti' && (
             <Horticulture
               teaRecords={teaRecords}
               avoRecords={avoRecords}
@@ -6740,10 +6756,6 @@ function FarmCoreApp() {
               onEditTea={handleEditTea}
               onEditAvo={handleEditAvo}
               onTriggerSectionReport={handleTriggerSectionReport}
-              activeSubModule={
-                activeTab === 'avo' ? 'avo' :
-                undefined
-              }
             />
           )}
 

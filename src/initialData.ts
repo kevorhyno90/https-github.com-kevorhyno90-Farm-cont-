@@ -9,6 +9,8 @@ import {
   TeaRecord,
   TeaPracticeRecord,
   AvocadoRecord,
+  AvocadoPracticeRecord,
+  AvocadoSectionNote,
   FinancialRecord,
   SprayRecord,
   Todo,
@@ -37,6 +39,7 @@ const getRelativeDate = (offsetDays: number): string => {
   d.setDate(d.getDate() + offsetDays);
   return d.toISOString().split('T')[0];
 };
+const getFutureDate = (offsetDays: number): string => getRelativeDate(offsetDays);
 
 export const INITIAL_STAFF: StaffMember[] = [
   {
@@ -310,31 +313,254 @@ export const INITIAL_AVOCADO_RECORDS: AvocadoRecord[] = [
     rejectKg: 45,
     priceForRejects: 35,
     grade1Buyer: 'Kakuzi Agribusiness Exporters',
-    rejectBuyer: 'Local Puree Processor',
-    paymentMode: 'Deferred',
+    rejectBuyer: 'Mt. Kenya Avocado Oil Processors',
+    paymentMode: 'Deferred (Net 14)',
     nextHarvestSeason: 'October - December',
     paymentModeNextHarvestSeason: 'Deferred (Next harvest payouts)',
     debts: 5000,
-    notes: 'Excellent fruit oil level verified by phytosanitary team.',
-    totalSales: 37575
+    notes: 'Excellent fruit oil level (24.2%) verified by KEPHIS phytosanitary team.',
+    totalSales: 37575,
+    sectionOrBlock: 'Block 1: Lower Valley Hass (Prime Export)',
+    buyerContact: '+254 722 000 111 / export@kakuzi.co.ke',
+    rejectReason: 'Thrips russeting & wind rub marks',
+    paymentStatus: 'Partial',
+    rejectionLossKes: 45 * (150 - 35),
+    rejectionRatePct: 15.8
   },
   {
     ref: 'KEPHIS-EXP-202',
     date: getRelativeDate(-1),
     grade1Kg: 300,
     grade1PricePerKg: 160,
-    rejectKg: 50,
+    rejectKg: 35,
     priceForRejects: 38,
     grade1Buyer: 'Sunripe East Africa Export Ltd',
-    rejectBuyer: 'Local Juice Co.',
-    paymentMode: 'M-Pesa / Immediate',
+    rejectBuyer: 'Local Puree Factory',
+    paymentMode: 'Bank Transfer / Immediate',
     nextHarvestSeason: 'March - May (Fly Crop)',
+    paymentModeNextHarvestSeason: 'Bank Transfer / Immediate',
+    debts: 0,
+    notes: 'Grade 1 selection approved under GlobalGAP standard. Zero chemical residue.',
+    totalSales: 49330,
+    sectionOrBlock: 'Block 2: East Ridge Hass (Hillside Terraces)',
+    buyerContact: '+254 733 999 888 / ops@sunripe.co.ke',
+    rejectReason: 'Undersized (< 160g) fruitlets',
+    paymentStatus: 'Paid',
+    rejectionLossKes: 35 * (160 - 38),
+    rejectionRatePct: 10.4
+  },
+  {
+    ref: 'KEPHIS-EXP-203',
+    date: getRelativeDate(0),
+    grade1Kg: 410,
+    grade1PricePerKg: 165,
+    rejectKg: 40,
+    priceForRejects: 40,
+    grade1Buyer: 'Vegpro Kenya Agribusiness',
+    rejectBuyer: 'Olivado EPZ Oil Extraction',
+    paymentMode: 'M-Pesa / Immediate',
+    nextHarvestSeason: 'October - December',
     paymentModeNextHarvestSeason: 'M-Pesa / Immediate',
     debts: 0,
-    notes: 'Grade 1 selection approved under GlobalGAP standard.',
-    totalSales: 49900
+    notes: 'Premium large caliber Hass. Dispatched via refrigerated reefer rig to Mombasa.',
+    totalSales: 69250,
+    sectionOrBlock: 'Block 1: Lower Valley Hass (Prime Export)',
+    buyerContact: '+254 711 222 333 / procurement@vegpro.co.ke',
+    rejectReason: 'Sunburn patches on exposed southern cheek',
+    paymentStatus: 'Paid',
+    rejectionLossKes: 40 * (165 - 40),
+    rejectionRatePct: 8.9
   }
 ];
+
+export const INITIAL_AVOCADO_PRACTICE_RECORDS: AvocadoPracticeRecord[] = [
+  {
+    id: 'avo-prc-1',
+    date: getRelativeDate(-14),
+    sectionOrBlock: 'Block 1: Lower Valley Hass (Prime Export)',
+    practiceType: 'Disease Treatment',
+    targetDiseaseOrPest: 'Anthracnose Fruit & Twig Blight (Colletotrichum)',
+    drugOrChemicalName: 'Copper Oxychloride 50% WP',
+    inventoryItemId: 'inv-3',
+    inventoryQtyDeducted: 3,
+    inventoryUnit: 'liters',
+    dosageAndMethod: '50g per 20L knapsack canopy spray to full foliage run-off',
+    operator: 'Josephine',
+    phiDays: 14,
+    reason: 'Preventive protective copper spray during heavy flowering/fruit-set rains',
+    nextDueDate: getFutureDate(16),
+    costKes: 2400,
+    status: 'Completed',
+    notes: 'Calibrated knapsack nozzle for fine mist. PHI interval active for export.'
+  },
+  {
+    id: 'avo-prc-2',
+    date: getRelativeDate(-10),
+    sectionOrBlock: 'Block 2: East Ridge Hass (Hillside Terraces)',
+    practiceType: 'Painting Copper White Paint',
+    targetDiseaseOrPest: 'Sun Scald, Bark Cracking & Stem Canker',
+    drugOrChemicalName: 'Sun-Shield Copper White Trunk Paint',
+    inventoryItemId: 'inv-6',
+    inventoryQtyDeducted: 4,
+    inventoryUnit: 'liters',
+    dosageAndMethod: '1:1 Copper Oxychloride + White Acrylic Latex painted 1.2m up lower trunk with brush',
+    operator: 'Mosoti',
+    phiDays: 0,
+    reason: 'Trunk whitewash to block thermal radiation, sun scald cracking, and borers',
+    nextDueDate: getFutureDate(170),
+    costKes: 1800,
+    status: 'Completed',
+    notes: 'Covered exposed southern and western bark surfaces up to first main fork.'
+  },
+  {
+    id: 'avo-prc-3',
+    date: getRelativeDate(-7),
+    sectionOrBlock: 'Block 1: Lower Valley Hass (Prime Export)',
+    practiceType: 'Pruning',
+    targetDiseaseOrPest: 'Skirt Clearance (0.5m) & Canopy Opening',
+    drugOrChemicalName: 'Pruning Wound Sealant (Copper-infused)',
+    inventoryItemId: 'inv-7',
+    inventoryQtyDeducted: 1,
+    inventoryUnit: 'units',
+    dosageAndMethod: 'Sanitized bypass pruners; painted branch cuts > 2.5cm with copper seal',
+    operator: 'David',
+    phiDays: 0,
+    reason: 'Elevate lower branches 0.5m off soil to block Phytophthora spore splashing',
+    nextDueDate: getFutureDate(83),
+    costKes: 1500,
+    status: 'Completed',
+    notes: 'Pruners sterilized in 70% alcohol between rows. Trimmings mulched under drip line.'
+  },
+  {
+    id: 'avo-prc-4',
+    date: getRelativeDate(-4),
+    sectionOrBlock: 'Block 3: Fuerte & Cross-Pollinator Orchard',
+    practiceType: 'Weeding',
+    targetDiseaseOrPest: 'Under-canopy weed ring management',
+    drugOrChemicalName: 'Manual Tools & Organic Biomass Mulch',
+    dosageAndMethod: 'Manual hand hoeing 1.5m radius + 15cm coarse organic mulch (15cm collar gap)',
+    operator: 'Casual Crew Lead (David)',
+    phiDays: 0,
+    reason: 'Moisture retention, root temperature stabilization, and zero herbicide weed suppression',
+    nextDueDate: getFutureDate(41),
+    costKes: 2200,
+    status: 'Completed',
+    notes: 'Mulch collar kept 15cm away from trunk base to prevent Phytophthora collar rot.'
+  },
+  {
+    id: 'avo-prc-5',
+    date: getRelativeDate(-2),
+    sectionOrBlock: 'Block 1: Lower Valley Hass (Prime Export)',
+    practiceType: 'Disease Treatment',
+    targetDiseaseOrPest: 'Phytophthora Root Rot (Phytophthora cinnamomi)',
+    drugOrChemicalName: 'Potassium Phosphonate / Foli-R-Fos 400',
+    inventoryItemId: 'inv-8',
+    inventoryQtyDeducted: 2,
+    inventoryUnit: 'liters',
+    dosageAndMethod: 'Trunk injection 20ml per 1m canopy diameter into sapwood xylem',
+    operator: 'Dr. Devin Omwenga',
+    phiDays: 0,
+    reason: 'Systemic phosphonate booster during autumn root flush to stimulate phytoalexins',
+    nextDueDate: getFutureDate(88),
+    costKes: 3500,
+    status: 'Completed',
+    notes: 'Trunk injection completed on 45 sentinel trees. Tree vigor index optimal.'
+  }
+];
+
+export const INITIAL_AVOCADO_SECTION_NOTES: AvocadoSectionNote[] = [
+  {
+    id: 'sec-1',
+    sectionName: 'Block 1: Lower Valley Hass (Prime Export)',
+    treeCount: 450,
+    variety: 'Hass (Export Grade A) on Duke 7 rootstock',
+    spacingMeters: '5m x 5m (High Density)',
+    phenologicalStage: 'Fruit Growth / Enlargement',
+    soilHealthStatus: 'Optimal',
+    scoutingStatus: 'Clean / Certified',
+    assignedSupervisor: 'Josephine (Lead Agronomist)',
+    lastInspectionDate: getRelativeDate(-1),
+    notes: 'Excellent fruitlet retention across all 450 trees. Average fruit caliber 18-22 (200-240g). Dual drip lines checked; flow rate uniform at 2.2L/hr. Zero sign of Phytophthora root rot bleeding.',
+    actionPlan: 'Maintain bi-weekly copper spray rotation against anthracnose and monitor fruit sizing against export contracts.',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'sec-2',
+    sectionName: 'Block 2: East Ridge Hass (Hillside Terraces)',
+    treeCount: 380,
+    variety: 'Hass on Mexican Native Grafts',
+    spacingMeters: '6m x 5m (Contour Spacing)',
+    phenologicalStage: 'Fruit Growth / Enlargement',
+    soilHealthStatus: 'Optimal',
+    scoutingStatus: 'Clean / Certified',
+    assignedSupervisor: 'Mosoti (Field Supervisor)',
+    lastInspectionDate: getRelativeDate(-3),
+    notes: 'Terrace bunds intact after last heavy downpour. Trunk whitewashing with copper white paint intact on southern trunks with zero sun scald peeling. Grevillea windbreaks effectively mitigating branch rub.',
+    actionPlan: 'Inspect pheromone fruit fly traps on Friday; re-apply sticky lure sheets if dust accumulation exceeds 30%.',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'sec-3',
+    sectionName: 'Block 3: Fuerte & Cross-Pollinator Orchard',
+    treeCount: 210,
+    variety: 'Fuerte (Type B) & Bacon / Zutano',
+    spacingMeters: '7m x 6m (Spreading Canopy)',
+    phenologicalStage: 'Harvesting',
+    soilHealthStatus: 'Optimal',
+    scoutingStatus: 'Clean / Certified',
+    assignedSupervisor: 'David (Harvest Lead)',
+    lastInspectionDate: getRelativeDate(-2),
+    notes: 'Green-skin Fuerte harvesting in progress. Early season domestic market prices strong at KES 120/kg for local supermarket contracts. Synchronous flowering successfully pollinated Block 1 & 2.',
+    actionPlan: 'Complete final pick of remaining Fuerte canopy fruitlets by month-end, then initiate post-harvest window pruning.',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'sec-4',
+    sectionName: 'Block 4: Young Grafted Orchard (Year 2 Saplings)',
+    treeCount: 320,
+    variety: 'Hass & Pinkerton on Dusa Clonal Rootstock',
+    spacingMeters: '5m x 4m',
+    phenologicalStage: 'Fruit Set',
+    soilHealthStatus: 'Needs Zinc & Boron',
+    scoutingStatus: 'Minor Thrips Spotted',
+    assignedSupervisor: 'Josephine',
+    lastInspectionDate: getRelativeDate(-4),
+    notes: 'Young saplings showing vigorous spring vegetative flush. Low level thrips nymph activity observed on upper tender shoots. Formative branch pinching completed on 95% of saplings.',
+    actionPlan: 'Schedule organic Neem + Abamectin spot foliar spray to knock down thrips before flower buds set next week.',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'sec-5',
+    sectionName: 'Block 5: Certified Mother Trees & Grafting Nursery',
+    treeCount: 650,
+    variety: 'Certified KEPHIS Mother Scion Trees + Seedlings',
+    spacingMeters: 'Nursery Tables / Shade Net (30%)',
+    phenologicalStage: 'Fruit Set',
+    soilHealthStatus: 'Optimal',
+    scoutingStatus: 'Clean / Certified',
+    assignedSupervisor: 'Dr. Devin Omwenga & David',
+    lastInspectionDate: getRelativeDate(-2),
+    notes: 'Mother trees fully disease-free under KEPHIS audit. 450 rootstock bags ready for top-cleft grafting next week with certified Hass scion budwood. Damping-off prevention drench applied.',
+    actionPlan: 'Initiate cleft grafting batch next Monday using sterilized budding knives and paraffin sealing tape.',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'sec-6',
+    sectionName: 'Packhouse & Cold Storage Bay (4.5°C Pre-Cooling)',
+    treeCount: 0,
+    variety: 'Post-Harvest Sorting, De-Sapping & Reefer Crating',
+    spacingMeters: '400 sq meter Packhouse Facility',
+    phenologicalStage: 'Harvesting',
+    soilHealthStatus: 'Optimal',
+    scoutingStatus: 'Clean / Certified',
+    assignedSupervisor: 'Clerk Charles Mutisya',
+    lastInspectionDate: getRelativeDate(0),
+    notes: 'Container cold room running stably at 4.5°C with 85-90% relative humidity. De-sapping rollers sanitized with 150ppm food-grade sodium hypochlorite solution. 4kg carton export flats in stock.',
+    actionPlan: 'Conduct calibration on Mettler Toledo digital bench scales prior to Kakuzi 10-ton container intake.',
+    updatedAt: new Date().toISOString()
+  }
+];
+
 
 export const INITIAL_FINICAL_RECORDS: FinancialRecord[] = [
   {
@@ -479,9 +705,18 @@ export const INITIAL_FIELDS: FieldRecord[] = [
 export const INITIAL_INVENTORY: InventoryItem[] = [
   { id: 'inv-1', name: 'Premium Dairy Meal', category: 'Feed', quantity: 24, unit: 'bags (50kg)', minStock: 10 },
   { id: 'inv-2', name: 'Super Napier Silage', category: 'Feed', quantity: 6.5, unit: 'tons', minStock: 2.0 },
-  { id: 'inv-3', name: 'Copper Oxychloride Spray', category: 'Chemical', quantity: 8, unit: 'liters', minStock: 3 },
+  { id: 'inv-3', name: 'Copper Oxychloride 50% WP', category: 'Chemical', quantity: 18, unit: 'kg', minStock: 5 },
   { id: 'inv-4', name: 'NPK 26:0:0 Fertilizer', category: 'Fertilizer', quantity: 15, unit: 'bags (50kg)', minStock: 5 },
-  { id: 'inv-5', name: 'Tea Pruning Knives', category: 'Tools', quantity: 12, unit: 'units', minStock: 4 }
+  { id: 'inv-5', name: 'Tea Pruning Knives', category: 'Tools', quantity: 12, unit: 'units', minStock: 4 },
+  { id: 'inv-6', name: 'Sun-Shield Copper White Trunk Paint', category: 'Chemical', quantity: 25, unit: 'liters', minStock: 8 },
+  { id: 'inv-7', name: 'Pruning Wound Sealant (Copper-infused)', category: 'Tools', quantity: 10, unit: 'units', minStock: 3 },
+  { id: 'inv-8', name: 'Potassium Phosphonate / Foli-R-Fos 400', category: 'Chemical', quantity: 12, unit: 'liters', minStock: 4 },
+  { id: 'inv-9', name: 'Ridomil Gold MZ 68WG (Metalaxyl)', category: 'Chemical', quantity: 8, unit: 'kg', minStock: 2 },
+  { id: 'inv-10', name: 'Kocide 2000 (Copper Hydroxide)', category: 'Chemical', quantity: 10, unit: 'kg', minStock: 3 },
+  { id: 'inv-11', name: 'Abamectin 1.8% EC (Thrips & Mites)', category: 'Chemical', quantity: 6, unit: 'liters', minStock: 2 },
+  { id: 'inv-12', name: 'Spinosad Bait GF-120 (Fruit Fly)', category: 'Chemical', quantity: 5, unit: 'liters', minStock: 2 },
+  { id: 'inv-13', name: 'Agricultural Hydrated Lime (Trunk Wash)', category: 'Fertilizer', quantity: 20, unit: 'bags (25kg)', minStock: 5 },
+  { id: 'inv-14', name: 'Zinc & Boron Chelated Foliar Feed', category: 'Fertilizer', quantity: 15, unit: 'liters', minStock: 4 }
 ];
 
 export const INITIAL_STAFF_OFF_RECORDS: StaffOffRecord[] = [

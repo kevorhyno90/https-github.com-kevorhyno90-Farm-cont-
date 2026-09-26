@@ -94,7 +94,50 @@ export interface AvocadoRecord {
   debts: number; // Debts on this lot
   notes: string; // General notes/remarks
   totalSales: number; // Autocalculated total money got
+  sectionOrBlock?: string; // E.g. "Block 1 - Lower Valley Hass"
+  buyerContact?: string; // E.g. "+254 712 345 678 / logistics@kakuzi.co.ke"
+  rejectReason?: string; // E.g. "Scab & Thrips marking", "Sunburn", "Undersized < 150g"
+  paymentStatus?: 'Paid' | 'Pending' | 'Partial';
+  rejectionLossKes?: number; // Cost of rejects: rejectKg * (grade1PricePerKg - priceForRejects)
+  rejectionRatePct?: number; // (rejectKg / (grade1Kg + rejectKg)) * 100
 }
+
+export interface AvocadoPracticeRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  sectionOrBlock: string; // E.g. "Block 1 - Lower Valley Hass", "Block 2 - East Ridge Hass", "Block 3 - Fuerte", "Nursery", "All Blocks"
+  practiceType: 'Disease Treatment' | 'Pruning' | 'Weeding' | 'Painting Copper White Paint' | 'Foliar Nutrition' | 'Irrigation & Mulching';
+  targetDiseaseOrPest?: string; // E.g. "Anthracnose", "Phytophthora Root Rot", "Cercospora", "Scab", "Sun Scald Protection", "Skirt Clearance 0.5m", "Ring Mulching"
+  drugOrChemicalName?: string; // E.g. "Copper Oxychloride 50% WP", "Ridomil Gold MZ", "Potassium Phosphonate", "Sun-Shield Copper White Paint"
+  inventoryItemId?: string; // ID of item in inventory
+  inventoryQtyDeducted?: number; // Amount deducted from inventory
+  inventoryUnit?: string; // E.g. "kg", "liters", "units"
+  dosageAndMethod: string; // E.g. "50g/20L knapsack canopy spray", "1:1 Copper paint 1m up lower trunk with brush", "Soil drench 15L per tree"
+  operator: string; // Person who performed it (e.g. "Josephine", "David", "Mosoti")
+  phiDays?: number; // Pre-Harvest Interval (days)
+  reason: string; // Why it was done
+  nextDueDate: string; // Next time the practice will be done again (YYYY-MM-DD)
+  costKes?: number; // Direct cash expense if any
+  notes?: string;
+  status?: 'Completed' | 'Scheduled' | 'Overdue';
+}
+
+export interface AvocadoSectionNote {
+  id: string;
+  sectionName: string; // E.g. "Block 1: Lower Valley Hass", "Block 2: East Ridge Hass", "Block 3: Fuerte Orchard", "Block 4: Young Grafted Orchard", "Nursery & Mother Trees", "Packhouse & Cold Storage"
+  treeCount: number;
+  variety: string; // E.g. "Hass on Duke 7", "Fuerte & Bacon", "Hass Grafted Saplings"
+  spacingMeters?: string; // E.g. "5m x 5m (High Density)"
+  phenologicalStage: 'Flowering' | 'Fruit Set' | 'Fruit Growth / Enlargement' | 'Maturity & Dry Matter Testing' | 'Harvesting' | 'Post-Harvest Dormancy';
+  soilHealthStatus: 'Optimal' | 'Low Nitrogen' | 'Needs Zinc & Boron' | 'High Moisture / Waterlogging Risk';
+  scoutingStatus: 'Clean / Certified' | 'Minor Thrips Spotted' | 'Pheromone Trap Warning' | 'Phytophthora Monitored';
+  assignedSupervisor: string; // E.g. "Josephine (Lead Agronomist)", "David"
+  lastInspectionDate: string; // YYYY-MM-DD
+  notes: string; // Rich field observation note
+  actionPlan: string; // Next scheduled remedial action
+  updatedAt: string;
+}
+
 
 export interface FinancialRecord {
   id: string;

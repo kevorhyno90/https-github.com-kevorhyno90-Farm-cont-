@@ -22,6 +22,8 @@ interface HorticultureProps {
 
 import { QRGenerator } from './common/QRGenerator';
 import { TeaManager } from './tea/TeaManager';
+import { AvocadoManager } from './avocado/AvocadoManager';
+import { useFarmState } from '../context/FarmContext';
 
 export function Horticulture({
  teaRecords,
@@ -35,6 +37,11 @@ export function Horticulture({
  onTriggerSectionReport,
  activeSubModule
 }: HorticultureProps) {
+  const { inventory, setInventory, staffList } = useFarmState();
+  const handleUpdateInventoryStock = (id: string, newQty: number) => {
+    setInventory(prev => prev.map(item => item.id === id ? { ...item, quantity: newQty } : item));
+  };
+
  // Tea state
  const [teaQty, setTeaQty] = useState<number | ''>('');
  const [teaRef, setTeaRef] = useState('');
@@ -267,276 +274,23 @@ export function Horticulture({
           />
         </div>
       )}
+  </div>
 
- {/* Avocado packing graded ledger */}
- {(!activeSubModule || activeSubModule === 'avo') && (
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
- <div className="border-b border-gray-100 pb-3">
- <h5 className="text-[11px] font-semibold tracking-normal text-green-600 ">Avocado Export & Graded Ledger</h5>
- <p className="text-xs text-gray-900 font-medium mt-1 font-medium">Record and track Grade 1 shipments, rejects, buyers, payment terms, and debts</p>
- </div>
-
- <form onSubmit={handleAvoSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Grade 1 Quantity (KG)</label>
- <input
- type="number"
- required
- min="0"
- value={grade1Kg}
- onChange={(e) => setGrade1Kg(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Grade 1 KG"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Grade 1 Price per KG (Ksh)</label>
- <input
- type="number"
- required
- min="0.1"
- step="0.1"
- value={grade1PricePerKg}
- onChange={(e) => setGrade1PricePerKg(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Price per KG"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Reject Weight (KG)</label>
- <input
- type="number"
- required
- min="0"
- value={rejectKg}
- onChange={(e) => setRejectKg(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Rejects KG"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Price for Rejects (per KG)</label>
- <input
- type="number"
- required
- min="0"
- step="0.1"
- value={priceForRejects}
- onChange={(e) => setPriceForRejects(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Reject price per KG"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Grade 1 Buyer</label>
- <input
- type="text"
- required
- value={grade1Buyer}
- onChange={(e) => setGrade1Buyer(e.target.value)}
- placeholder="E.g. Kakuzi Agribusiness Exporters"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Reject Buyer</label>
- <input
- type="text"
- required
- value={rejectBuyer}
- onChange={(e) => setRejectBuyer(e.target.value)}
- placeholder="E.g. Local Puree Processor"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Payment Mode / Term</label>
- <input
- type="text"
- required
- value={paymentMode}
- onChange={(e) => setPaymentMode(e.target.value)}
- placeholder="E.g. Deferred, Cash, Bank Transfer"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Next Harvest Season</label>
- <input
- type="text"
- required
- value={nextHarvestSeason}
- onChange={(e) => setNextHarvestSeason(e.target.value)}
- placeholder="E.g. October - December"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Debts (Ksh)</label>
- <input
- type="number"
- required
- min="0"
- value={debts}
- onChange={(e) => setDebts(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Outstanding debts"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono text-rose-700 bg-rose-900/20"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Shipping / Batch Ref</label>
- <input
- type="text"
- required
- value={avoRef}
- onChange={(e) => setAvoRef(e.target.value)}
- placeholder="E.g. KEPHIS-EXP-205"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Export Logging Date</label>
- <input
- type="date"
- required
- value={avoDate}
- onChange={(e) => setAvoDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono cursor-pointer bg-white shadow-sm "
- />
- </div>
- <div className="col-span-1 md:col-span-2">
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Debts and Notes</label>
- <textarea
- value={notes}
- onChange={(e) => setNotes(e.target.value)}
- placeholder="Enter debts details, quality notes, or transport details..."
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-medium h-20"
- />
- </div>
-
- <div className="col-span-1 md:col-span-2 bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 flex justify-between items-center">
- <div>
- <span className="text-[9px] font-semibold text-green-600  block">Dynamic Auto-Calculations</span>
- <span className="text-[11px] font-sans text-gray-900 font-medium">
- Grade 1 subtotal: <strong className="text-gray-900 font-mono">Ksh {((Number(grade1Kg) || 0) * (Number(grade1PricePerKg) || 0)).toLocaleString()}</strong>
- {" "}|{" "}Rejects subtotal: <strong className="text-gray-900 font-mono">Ksh {((Number(rejectKg) || 0) * (Number(priceForRejects) || 0)).toLocaleString()}</strong>
- </span>
- </div>
- <div className="text-right">
- <span className="text-[9px] font-semibold text-green-600  block">Total Money Got (Gross)</span>
- <span className="text-sm font-semibold text-green-600 font-mono">
- Ksh {(((Number(grade1Kg) || 0) * (Number(grade1PricePerKg) || 0)) + ((Number(rejectKg) || 0) * (Number(priceForRejects) || 0))).toLocaleString()}
- </span>
- </div>
- </div>
-
- <button
- type="submit"
- className="col-span-1 md:col-span-2 bg-emerald-900 hover:bg-white text-gray-900 font-semibold text-xs  p-3.5 rounded-xl transition-all shadow-md m-0 cursor-pointer"
- >
- Log Avocado Harvest & Export Income
- </button>
- </form>
-
- {/* Past avocado grading */}
- <div className="border-t border-gray-100 pt-5 space-y-3">
- <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs">
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block font-bold">Export Shipping Ledger</label>
- <div className="flex flex-wrap items-center gap-2">
- <button
- onClick={downloadAvoCSV}
- type="button"
- className="flex items-center gap-1 px-2 py-1 bg-indigo-900/20 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 rounded font-semibold text-[9px]  transition-all shadow-xs cursor-pointer m-0"
- title="Export Avocado Logistics CSV"
- >
- <FileSpreadsheet size={10} />
- Export CSV
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => onTriggerSectionReport('avo')}
- type="button"
- className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-gray-500 rounded font-semibold text-[9px]  transition-all shadow-xs cursor-pointer m-0 border border-amber-600/10 font-bold"
- title="Download Avocado PDF Report"
- >
- <Download size={10} />
- Download PDF Report
- </button>
- )}
- <span className="font-semibold text-green-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-150">
- Total Proceeds: Ksh {(totalAvoSalesAllTime || 0).toLocaleString()}
- </span>
- </div>
- </div>
-
- <div className="max-h-[35rem] overflow-y-auto pr-1 space-y-3">
- {avoRecords.map((item, idx) => {
- const totVal = item.totalSales;
- return (
- <div key={idx} className="p-4 border border-gray-200 rounded-2xl bg-white border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs hover:bg-white border border-gray-200 transition-all">
- <div className="space-y-2 w-full">
- <div className="flex items-center gap-2">
- <span className="font-semibold text-sm text-gray-900">{item.ref}</span>
- <span className="text-[9px] bg-white border border-gray-200 font-bold text-gray-900 font-medium px-2 py-0.5 rounded  font-mono">
- {item.date}
- </span>
- {item.debts > 0 && (
- <span className="text-[8px] bg-red-100 text-red-800 font-semibold  px-1.5 py-0.5 rounded">
- Debts Active
- </span>
- )}
- </div>
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[11px] leading-relaxed text-gray-900 font-medium">
- <div>
- <p>⭐ <strong>Grade 1:</strong> {item.grade1Kg} KG @ <span className="text-green-600 font-bold font-mono">Ksh {item.grade1PricePerKg}/KG</span></p>
- <p className="text-[10px] pl-4 text-gray-900 font-medium">Buyer: {item.grade1Buyer}</p>
- </div>
- <div>
- <p>🍂 <strong>Rejects:</strong> {item.rejectKg} KG @ <span className="text-gray-900 font-bold font-mono">Ksh {item.priceForRejects}/KG</span></p>
- <p className="text-[10px] pl-4 text-gray-900 font-medium">Buyer: {item.rejectBuyer}</p>
- </div>
- </div>
- <div className="border-t border-dashed border-gray-200 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-y-1 text-[10px] text-gray-900 font-medium font-medium">
- <p>🤝 <strong>Payment Mode / Term:</strong> {item.paymentMode || item.paymentModeNextHarvestSeason}</p>
- <p>📅 <strong>Next Harvest Season:</strong> {item.nextHarvestSeason || 'N/A'}</p>
- <p className="text-rose-700">🚨 <strong>Lot Debts:</strong> Ksh {(item.debts ?? 0).toLocaleString()}</p>
- {item.notes && <p className="col-span-1 sm:col-span-2 text-[10px] text-gray-500 italic mt-1 font-sans">📝 Notes: {item.notes}</p>}
- </div>
- </div>
- <div className="text-right flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-gray-200">
- <div className="text-left sm:text-right">
- <span className="text-[10px] text-gray-900 font-medium block  font-bold">Total Money Got</span>
- <span className="text-base font-semibold text-green-600 font-mono block">
- Ksh {(totVal ?? 0).toLocaleString()}
- </span>
- </div>
- <div className="flex items-center gap-1.5">
- {onEditAvo && (
- <button
- onClick={() => setEditingAvo(item)}
- className="text-gray-900 font-medium hover:text-indigo-850 p-2 rounded transition-colors cursor-pointer m-0 border hover:border-gray-200 bg-white shadow-sm "
- title="Edit shipment"
- >
- <Edit2 size={13} />
- </button>
- )}
- <button
- onClick={() => onDeleteAvo(item.ref)}
- className="text-gray-900 font-medium hover:text-red-650 p-2 rounded transition-colors cursor-pointer m-0 border hover:border-red-100 bg-white shadow-sm "
- title="Delete shipment"
- >
- <Trash2 size={13} />
- </button>
- </div>
- </div>
- </div>
- );
- })}
- </div>
- </div>
- </div>
- )}
- </div>
+  {/* Avocado Manager Integration */}
+      {(!activeSubModule || activeSubModule === 'avo') && (
+        <div className="col-span-full">
+          <AvocadoManager
+            avoRecords={avoRecords}
+            onAddAvo={onAddAvo}
+            onDeleteAvo={onDeleteAvo}
+            onEditAvo={onEditAvo}
+            inventory={inventory}
+            onUpdateInventoryStock={handleUpdateInventoryStock}
+            staffList={staffList}
+            onTriggerSectionReport={onTriggerSectionReport}
+          />
+        </div>
+      )}
 
  {/* GlobalGAP / KEPHIS Export Phytosanitary Traceability Passport Hub */}
  {(!activeSubModule || activeSubModule === 'avo') && (
