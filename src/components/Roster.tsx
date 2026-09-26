@@ -740,11 +740,13 @@ export function Roster({
     // Footer Signatures
     checkPageBreak(25);
     y += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(31, 41, 55);
+    doc.text('Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)', margin, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
     doc.setTextColor(107, 114, 128);
-    doc.text('Prepared by Farm HRM: ____________________', margin, y);
-    doc.text('Approved by General Manager: ____________________', margin + 100, y);
+    doc.text('Sign / Stamp: ____________________', margin + 120, y);
 
     if (action === 'print') {
       doc.autoPrint();
@@ -765,7 +767,7 @@ export function Roster({
       `🌴 Off / On Leave: ${offTodayCount + leaveTodayCount}\n` +
       `📅 Scheduled Leaves This Month: ${monthLeaves.length}\n` +
       `💰 Wages Disbursed: KES ${monthlyLaborExpense.toLocaleString()}\n\n` +
-      `Generated from Sovereign Farm HRM System.`;
+      `Presented & Approved by: Dr. Devin Omwenga, General Farm Manager`;
 
     if (navigator.share) {
       try {
@@ -3012,9 +3014,9 @@ export function Roster({
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center text-[10px] text-gray-400 pt-1">
-                    <span>Authorized by Management</span>
-                    <span>Stamp / Signature: __________________</span>
+                  <div className="flex justify-between items-center text-[10px] text-gray-600 pt-2 border-t border-gray-100">
+                    <span className="font-bold text-gray-800">Presented &amp; Approved by: Dr. Devin Omwenga (General Farm Manager)</span>
+                    <span className="text-gray-400">Sign / Stamp: __________________</span>
                   </div>
                 </div>
               );
