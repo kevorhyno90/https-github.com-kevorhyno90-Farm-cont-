@@ -269,6 +269,45 @@ export interface InventoryItem {
   expiryDate?: string; // optional YYYY-MM-DD
 }
 
+export interface MachineItem {
+  id: string;
+  name: string; // e.g. "Truck V8", "New Model Harrier", "Tractor", "Chaffcutter", etc.
+  regNoOrSerial: string; // e.g. "KDL 450V", "KDA 980H", "TRAC-MF-375"
+  category: 'Heavy Fleet & Vehicles' | 'Tractors & Field Implements' | 'Fodder & Feed Processing' | 'Workshop & Power Tools' | 'Spraying & Water Utilities' | 'Dairy & Processing Equipment';
+  modelOrSpecs: string; // e.g. "Toyota Land Cruiser V8 4.5L Twin Turbo", "Massey Ferguson 375 75HP"
+  condition: 'Brand New' | 'Excellent' | 'Good Working Condition' | 'Fair / Needs Attention' | 'Critical Repair / Breakdown';
+  status: 'Operational' | 'In Use' | 'Under Maintenance' | 'Awaiting Spares' | 'Standby';
+  assignedOperator: string; // e.g. "David (Lead Driver)", "Mosoti", "Josephine"
+  currentUsageMetric: string; // e.g. "124,500 KM", "3,420 Hours", "850 Operating Hours"
+  fuelOrPowerType: 'Diesel' | 'Petrol' | 'Electric (3-Phase)' | 'Electric (Single Phase)' | 'Battery / Solar' | 'PTO-driven' | 'Manual';
+  purchaseDate?: string; // YYYY-MM-DD
+  purchaseCostKes?: number;
+  lastServiceDate?: string; // YYYY-MM-DD
+  nextServiceDueDate?: string; // YYYY-MM-DD
+  notes?: string;
+}
+
+export interface MachineServiceRecord {
+  id: string;
+  machineId: string; // Links to MachineItem.id
+  machineName: string;
+  regNoOrSerial: string;
+  serviceDate: string; // YYYY-MM-DD
+  serviceTicketRef: string; // e.g. "SRV-2026-081"
+  serviceType: 'Routine Scheduled Service' | 'Major Engine Overhaul' | 'Oil & Filter Change' | 'Hydraulic & Transmission' | 'Blade / Tool Sharpening & Replacement' | 'Electrical & Battery' | 'Emergency Breakdown Repair';
+  whatWasServiced: string; // Details of service work done
+  servicedBy: string; // Mechanic / Garage / Operator
+  cost: number; // Cost in KES
+  sparePartsUsed?: string; // Spare parts / lubricants used
+  conditionAfterService: 'Brand New' | 'Excellent' | 'Good Working Condition' | 'Fair / Needs Attention' | 'Critical Repair / Breakdown';
+  nextServiceDate: string; // YYYY-MM-DD
+  nextServiceKmOrHours?: string; // e.g. "135,000 KM" or "3,650 Hours"
+  remarksOrNotes: string; // Notes / remarks on service outcome
+  postToFinances?: boolean; // Synced to financials
+  status?: 'Completed' | 'In Progress' | 'Scheduled';
+}
+
+
 export interface StaffOffRecord {
   id: string;
   staffId: string;

@@ -38,7 +38,7 @@ const CLOUD_SYNC_KEYS = [
  'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
  'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
  'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
- 'jr_farm_estate_settings'
+ 'jr_farm_estate_settings', 'jr_farm_machinery', 'jr_farm_machinery_services'
 ];
 
 const CLOUD_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';

@@ -27,7 +27,8 @@ import {
  Sparkles,
  ArrowRight,
  Database,
- DollarSign
+ DollarSign,
+ Truck
 } from 'lucide-react';
 import {
  LineChart,
@@ -1548,12 +1549,13 @@ export function Dashboard({
  <p className="text-sm text-gray-900 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
  </div>
 
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
  {[
  { id: 'diagnostics_sub', icon: Activity, label: "Diagnostics Wizard", desc: "Symptoms scanner for crops & livestock.", color: "blue" },
  { id: 'inventory_deduct_sub', icon: Database, label: "Stock Auto-Deduct", desc: "Run feed & chem protocols.", color: "indigo" },
  { id: 'timelines_sub', icon: Calendar, label: "Gestation & PHI", desc: "Countdown trackers & calendars.", color: "purple" },
- { id: 'analyzer_sub', icon: DollarSign, label: "Margin Analyser", desc: "Feed-to-milk yield ratios.", color: "emerald" }
+ { id: 'analyzer_sub', icon: DollarSign, label: "Margin Analyser", desc: "Feed-to-milk yield ratios.", color: "emerald" },
+ { id: 'machinery', icon: Truck, label: "Fleet & Machinery", desc: "16 tractors, vehicles, tools & service ledger.", color: "amber" }
  ].map((tool, i) => {
  const ToolIcon = tool.icon;
  return (

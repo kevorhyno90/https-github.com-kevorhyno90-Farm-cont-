@@ -84,6 +84,7 @@ const BackupCenter = React.lazy(() => import('./components/BackupCenter').then(m
 const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
 const SettingsCenter = React.lazy(() => import('./components/SettingsCenter').then(m => ({ default: m.SettingsCenter })));
+const MachineryManager = React.lazy(() => import('./components/machinery/MachineryManager').then(m => ({ default: m.MachineryManager })));
 
 // Master Types
 import {
@@ -115,7 +116,9 @@ import {
   HeiferRecord,
   PoultryRecord,
   QuarantineRecord,
-  ActivityLogEntry
+  ActivityLogEntry,
+  MachineItem,
+  MachineServiceRecord
 } from './types';
 
 
@@ -800,7 +803,9 @@ function FarmCoreApp() {
     poultryRecords, setPoultryRecords,
     quarantineRecords, setQuarantineRecords,
     semenInventory, setSemenInventory,
-    azollaRecords, setAzollaRecords
+    azollaRecords, setAzollaRecords,
+    machines, setMachines,
+    machineServices, setMachineServices
   } = useFarmState();
 
   // Alarm / Reminder resolutions persistence
@@ -1460,6 +1465,46 @@ function FarmCoreApp() {
             <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${azollaRecords.length} harvests)</span>
           </h3>
           ${buildTableHtml(['Harvest Date', 'Pond ID', 'Yield (KG)', 'Distributed To', 'Notes'], rows)}
+        </div>
+      `;
+    }
+
+    // 13.8 Fleet & Machinery Workshop
+    if (sections.machinery) {
+      const rows = machines.map(m => [
+        `<strong>${m.name}</strong>`,
+        `<span style="font-family: monospace; font-weight: bold;">${m.regNoOrSerial}</span>`,
+        `<em>${m.category}</em>`,
+        `<strong>${m.status}</strong> (${m.condition})`,
+        m.assignedOperator,
+        `<span style="font-family: monospace; font-weight: bold;">${m.nextServiceDueDate || 'N/A'}</span>`
+      ]);
+
+      let srvHtml = '';
+      if (machineServices && machineServices.length > 0) {
+        const srvRows = machineServices.slice(0, 10).map(s => [
+          `<span style="font-family: monospace;">${s.serviceDate} (${s.serviceTicketRef})</span>`,
+          `<strong>${s.machineName}</strong>`,
+          s.whatWasServiced.slice(0, 50) + '...',
+          `<strong style="color: #047857; font-family: monospace;">KES ${s.cost.toLocaleString()}</strong>`,
+          s.servicedBy
+        ]);
+        srvHtml = `
+          <h4 style="font-size: 12px; margin-top: 15px; margin-bottom: 8px; font-weight: 700; color: #334155; text-transform: uppercase;">
+            Recent Service & Maintenance Tickets
+          </h4>
+          ${buildTableHtml(['Date / Ticket', 'Machine', 'What Was Serviced', 'Cost (KES)', 'Serviced By'], srvRows)}
+        `;
+      }
+
+      sectionsHtml += `
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
+          <h3 style="font-size: 15px; font-family: sans-serif; text-transform: uppercase; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; color: #0f172a; font-weight: 800;">
+            <span>Fleet, Machinery & Workshop Equipment Directory</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${machines.length} assets • ${machineServices.length} services)</span>
+          </h3>
+          ${buildTableHtml(['Equipment Name', 'Reg / Serial', 'Category', 'Status & Condition', 'Custodian / Driver', 'Next Service Due'], rows)}
+          ${srvHtml}
         </div>
       `;
     }
@@ -2724,6 +2769,7 @@ function FarmCoreApp() {
       if (activeTab === 'inventory') withRecs.inventory = true;
       if (activeTab === 'education' || activeTab === 'diagnostics_sub' || activeTab === 'inventory_deduct_sub' || activeTab === 'timelines_sub' || activeTab === 'analyzer_sub') withRecs.academy = true;
       if (activeTab === 'timetable') withRecs.timetable = true;
+      if (activeTab === 'machinery') withRecs.machinery = true;
  
       setSelectedSections({
         staff: withRecs.staff, staff_shifts: withRecs.staff, staff_offs: withRecs.staff,
@@ -2749,10 +2795,11 @@ function FarmCoreApp() {
         timetable: withRecs.timetable, timetable_schedule: withRecs.timetable, timetable_protocols: withRecs.timetable,
         quarantine: withRecs.quarantine, quarantine_logs: withRecs.quarantine, quarantine_active: withRecs.quarantine,
         todos: withRecs.todos,
-        azolla: withRecs.azolla
+        azolla: withRecs.azolla,
+        machinery: withRecs.machinery
       });
     }
-  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords, quarantineRecords, todos]);
+  }, [showReportModal, activeTab, staffList, milkRecords, aiRecords, teaRecords, avoRecords, cropSales, financials, sprayRecords, fields, livestock, poultryRecords, goatRecords, calfRecords, bsfRecords, inventory, vetRecords, quarantineRecords, todos, machines, machineServices]);
 
 
 
@@ -3522,7 +3569,8 @@ function FarmCoreApp() {
       'jr_farm_tea', 'jr_farm_avo', 'jr_farm_financials', 'jr_farm_sprays',
       'jr_farm_todos', 'jr_farm_fields', 'jr_farm_livestock', 'jr_farm_inventory',
       'jr_farm_staff_off', 'jr_farm_cows', 'jr_farm_vets', 'jr_farm_goats',
-      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales'
+      'jr_farm_calves', 'jr_farm_bsfs', 'jr_farm_crop_ops', 'jr_farm_crop_sales',
+      'jr_farm_machinery', 'jr_farm_machinery_services'
     ];
     keys.forEach(k => {
       localStorage.removeItem(k);
@@ -4394,6 +4442,7 @@ function FarmCoreApp() {
     { id: 'spray', label: 'GlobalGAP Spray', icon: FlaskConical, category: 'Crop Exports' },
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
+    { id: 'machinery', label: 'Fleet & Machinery', icon: Truck, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
     { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
@@ -5256,6 +5305,79 @@ function FarmCoreApp() {
             </div>
           )}
 
+          {/* Machinery & Fleet Asset Registry */}
+          {sections.machinery && (
+            <div className="space-y-3">
+              <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-300 pb-1 flex justify-between">
+                <span>Fleet, Machinery & Workshop Equipment Directory</span>
+                <span className="text-[9px] font-mono text-slate-400 font-bold">({machines.length} assets • {machineServices.length} services)</span>
+              </h5>
+              <table className="w-full text-[11px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
+                    <th className="p-1">Asset Name</th>
+                    <th className="p-1 font-mono">Reg / Tag</th>
+                    <th className="p-1">Category</th>
+                    <th className="p-1">Status / Condition</th>
+                    <th className="p-1">Custodian</th>
+                    <th className="p-1 text-right font-mono">Next Due</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {machines.map((m) => {
+                    const isOverdue = m.nextServiceDueDate && m.nextServiceDueDate < toIsoDate(new Date());
+                    return (
+                      <tr key={m.id} className="border-b border-slate-100">
+                        <td className="p-1.5 font-bold text-slate-900">{m.name}</td>
+                        <td className="p-1.5 font-mono text-slate-700 font-bold">{m.regNoOrSerial}</td>
+                        <td className="p-1.5 italic text-slate-600">{m.category}</td>
+                        <td className="p-1.5">
+                          <span className="font-semibold">{m.status}</span> • <span className="text-slate-500">{m.condition}</span>
+                        </td>
+                        <td className="p-1.5 text-slate-700">{m.assignedOperator}</td>
+                        <td className="p-1.5 text-right font-mono font-bold">
+                          <span className={isOverdue ? 'text-rose-600' : 'text-slate-700'}>
+                            {m.nextServiceDueDate || 'N/A'} {isOverdue ? '(!)' : ''}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {machineServices.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-100">
+                  <h6 className="text-[10px] font-black uppercase text-slate-700 tracking-wider mb-1">
+                    Recent Service & Maintenance Actions ({machineServices.length} Records)
+                  </h6>
+                  <table className="w-full text-[10px] text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                        <th className="p-1 font-mono">Ticket</th>
+                        <th className="p-1">Equipment</th>
+                        <th className="p-1">Service Work Done</th>
+                        <th className="p-1 text-right">Cost (KES)</th>
+                        <th className="p-1">Serviced By</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {machineServices.slice(0, 8).map((s) => (
+                        <tr key={s.id} className="border-b border-slate-100">
+                          <td className="p-1 font-mono text-slate-600 font-bold">{s.serviceTicketRef}</td>
+                          <td className="p-1 font-bold text-slate-800">{s.machineName} ({s.regNoOrSerial})</td>
+                          <td className="p-1 text-slate-700">{s.whatWasServiced.slice(0, 60)}...</td>
+                          <td className="p-1 text-right font-mono font-bold text-emerald-800">KES {s.cost.toLocaleString()}</td>
+                          <td className="p-1 text-slate-600">{s.servicedBy}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 15. vet clinicals */}
           {sections.vet && (
             <div className="space-y-2">
@@ -5833,6 +5955,10 @@ function FarmCoreApp() {
                     } else if (link.id === 'roster') {
                       const onLeave = staffList.filter(s => s.status === 'On Leave').length;
                       if (onLeave > 0) { hasDot = true; dotColor = 'bg-emerald-500'; }
+                    } else if (link.id === 'machinery') {
+                      const today = toIsoDate(new Date());
+                      const overdueCount = machines.filter(m => m.nextServiceDueDate && m.nextServiceDueDate < today).length;
+                      if (overdueCount > 0) { hasDot = true; dotColor = 'bg-rose-500 animate-pulse'; }
                     }
  
                     return (
@@ -5905,6 +6031,13 @@ function FarmCoreApp() {
                             if (onLeaveCount > 0) {
                               badgeText = `${onLeaveCount}`;
                               badgeColor = 'bg-emerald-600 text-white';
+                            }
+                          } else if (link.id === 'machinery') {
+                            const today = toIsoDate(new Date());
+                            const overdueCount = machines.filter(m => m.nextServiceDueDate && m.nextServiceDueDate < today).length;
+                            if (overdueCount > 0) {
+                              badgeText = `${overdueCount} DUE`;
+                              badgeColor = 'bg-rose-500 text-white animate-pulse';
                             }
                           }
  
@@ -6503,6 +6636,13 @@ function FarmCoreApp() {
                                 badgeText = `${onLeaveCount}`;
                                 badgeColor = 'bg-emerald-600 text-white';
                               }
+                            } else if (link.id === 'machinery') {
+                              const today = toIsoDate(new Date());
+                              const overdueCount = machines.filter(m => m.nextServiceDueDate && m.nextServiceDueDate < today).length;
+                              if (overdueCount > 0) {
+                                badgeText = `${overdueCount} DUE`;
+                                badgeColor = 'bg-rose-500 text-white animate-pulse';
+                              }
                             }
  
                             return (
@@ -6584,6 +6724,7 @@ function FarmCoreApp() {
                     else if (activeTab === 'horti') keys = ['tea', 'avo', 'cropSales'];
                     else if (activeTab === 'spray') keys = ['spray'];
                     else if (activeTab === 'finance') keys = ['financials'];
+                    else if (activeTab === 'machinery') keys = ['machinery'];
                     else if (activeTab === 'fields') keys = ['fields'];
                     else if (activeTab === 'livestock') keys = ['livestock', 'goats'];
                     else if (activeTab === 'inventory') keys = ['inventory'];
@@ -6605,6 +6746,7 @@ function FarmCoreApp() {
                     activeTab === 'horti' ? 'Horticulture Harvest' :
                     activeTab === 'spray' ? 'Spray & Quarantine' :
                     activeTab === 'finance' ? 'Ledger & Financials' :
+                    activeTab === 'machinery' ? 'Fleet & Machinery Workshop' :
                     activeTab === 'fields' ? 'Agronomy Fields' :
                     activeTab === 'livestock' ? 'Livestock & Canines' :
                     activeTab === 'inventory' ? 'Warehouse Stock' :
@@ -6883,6 +7025,13 @@ function FarmCoreApp() {
               onAddBsfRecord={handleAddBsfRecord}
               onDeleteBsfRecord={handleDeleteBsfRecord}
               onEditBsfRecord={handleEditBsfRecord}
+              staffList={staffList}
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
+
+          {activeTab === 'machinery' && (
+            <MachineryManager
               staffList={staffList}
               onTriggerSectionReport={handleTriggerSectionReport}
             />

@@ -29,7 +29,9 @@ import {
   PoultryRecord,
   QuarantineRecord,
   SemenInventoryItem,
-  AzollaRecord
+  AzollaRecord,
+  MachineItem,
+  MachineServiceRecord
 } from '../types';
 
 import {
@@ -56,7 +58,9 @@ import {
   INITIAL_ANIMAL_SALES,
   INITIAL_MORTALITY_RECORDS,
   INITIAL_MILK_OUTFLOW_RECORDS,
-  INITIAL_SEMEN_INVENTORY
+  INITIAL_SEMEN_INVENTORY,
+  INITIAL_MACHINES,
+  INITIAL_MACHINE_SERVICES
 } from '../initialData';
 import { offsetIsoDate, toIsoDate } from '../utils/dateHelper';
 import { nativeSetItem } from '../utils/nativeStorage';
@@ -122,6 +126,10 @@ interface FarmContextType {
   setSemenInventory: React.Dispatch<React.SetStateAction<SemenInventoryItem[]>>;
   azollaRecords: AzollaRecord[];
   setAzollaRecords: React.Dispatch<React.SetStateAction<AzollaRecord[]>>;
+  machines: MachineItem[];
+  setMachines: React.Dispatch<React.SetStateAction<MachineItem[]>>;
+  machineServices: MachineServiceRecord[];
+  setMachineServices: React.Dispatch<React.SetStateAction<MachineServiceRecord[]>>;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -186,6 +194,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setQuarantineRecords(loadJson('jr_farm_quarantines', []));
       setSemenInventory(loadJson('jr_farm_semen_inventory', INITIAL_SEMEN_INVENTORY));
       setAzollaRecords(loadJson('jr_farm_azolla', []));
+      setMachines(loadJson('jr_farm_machinery', INITIAL_MACHINES));
+      setMachineServices(loadJson('jr_farm_machinery_services', INITIAL_MACHINE_SERVICES));
     } finally {
       window.setTimeout(() => {
         isRemoteHydrationRef.current = false;
@@ -507,6 +517,16 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [machines, setMachines] = useState<MachineItem[]>(() => {
+    const saved = localStorage.getItem('jr_farm_machinery');
+    return saved ? JSON.parse(saved) : INITIAL_MACHINES;
+  });
+
+  const [machineServices, setMachineServices] = useState<MachineServiceRecord[]>(() => {
+    const saved = localStorage.getItem('jr_farm_machinery_services');
+    return saved ? JSON.parse(saved) : INITIAL_MACHINE_SERVICES;
+  });
+
   // LocalStorage synchronizations
   useEffect(() => { persistJson('jr_farm_staff', staffList); }, [staffList]);
   useEffect(() => { persistJson('jr_farm_ingredients', ingredients); }, [ingredients]);
@@ -538,6 +558,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { persistJson('jr_farm_quarantines', quarantineRecords); }, [quarantineRecords]);
   useEffect(() => { persistJson('jr_farm_semen_inventory', semenInventory); }, [semenInventory]);
   useEffect(() => { persistJson('jr_farm_azolla', azollaRecords); }, [azollaRecords]);
+  useEffect(() => { persistJson('jr_farm_machinery', machines); }, [machines]);
+  useEffect(() => { persistJson('jr_farm_machinery_services', machineServices); }, [machineServices]);
 
   return (
     <FarmContext.Provider
@@ -571,7 +593,9 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         poultryRecords, setPoultryRecords,
         quarantineRecords, setQuarantineRecords,
         semenInventory, setSemenInventory,
-        azollaRecords, setAzollaRecords
+        azollaRecords, setAzollaRecords,
+        machines, setMachines,
+        machineServices, setMachineServices
       }}
     >
       {children}
