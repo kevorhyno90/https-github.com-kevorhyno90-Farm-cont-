@@ -21,10 +21,37 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('📱 ServiceWorker registration successful with scope: ', registration.scope);
+        // Actively check for updates immediately upon load
+        registration.update().catch(() => {});
+
+        // Re-check for new updates whenever the app is reopened, tab is focused, or screen wakes up
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            registration.update().catch(() => {});
+          }
+        });
+        window.addEventListener('focus', () => {
+          registration.update().catch(() => {});
+        });
+
+        // Periodic update check every 15 minutes
+        setInterval(() => {
+          registration.update().catch(() => {});
+        }, 15 * 60 * 1000);
       })
       .catch((err) => {
         console.error('❌ ServiceWorker registration failed: ', err);
       });
+  });
+
+  // Automatically refresh clients when a new service worker takes control
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      console.log('⚡ New ServiceWorker activated! Refreshing application to latest build...');
+      window.location.reload();
+    }
   });
 } else if ('serviceWorker' in navigator && import.meta.env.DEV) {
   // Unregister any existing service workers in development mode to prevent caching conflicts

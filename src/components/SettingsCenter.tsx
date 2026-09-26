@@ -767,6 +767,44 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  </div>
  )}
 
+ {/* Live App Updates & Cache Refresh Card */}
+ <div className="bg-slate-900 text-white rounded-2xl p-5 space-y-3 text-left shadow-xs border border-slate-800">
+   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+     <div>
+       <div className="flex items-center gap-2">
+         <RefreshCw size={16} className="text-emerald-400" />
+         <h6 className="text-xs font-bold text-white uppercase tracking-wider">Live App Updates & Cloud Synchronization</h6>
+       </div>
+       <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+         If your installed app on phone or PC isn't displaying the latest features, tap the button below to purge cached static bundles, update the service worker, and load the newest build from Vercel.
+       </p>
+     </div>
+     <button
+       onClick={async () => {
+         try {
+           if ('caches' in window) {
+             const cacheNames = await caches.keys();
+             await Promise.all(cacheNames.map(name => caches.delete(name)));
+           }
+           if ('serviceWorker' in navigator) {
+             const registrations = await navigator.serviceWorker.getRegistrations();
+             for (const reg of registrations) {
+               await reg.update();
+             }
+           }
+         } catch (e) {
+           console.error('Error refreshing cache', e);
+         }
+         window.location.reload();
+       }}
+       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 shrink-0 shadow-sm"
+     >
+       <RefreshCw size={14} />
+       Check & Force Update Now
+     </button>
+   </div>
+ </div>
+
  {/* App PWA Requirements Verification Panel */}
  <div className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 text-left">
  <span className="text-[10px] font-semibold  text-gray-900 font-medium tracking-normal block">App Eligibility & Diagnostics</span>
