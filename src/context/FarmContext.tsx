@@ -199,7 +199,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       window.setTimeout(() => {
         isRemoteHydrationRef.current = false;
-      }, 0);
+      }, 500);
     }
   };
 

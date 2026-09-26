@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { realtimeDb, auth } from '../firebase';
 import { ref, set, get, child, onValue } from 'firebase/database';
-import { Cloud, CloudOff, RefreshCw, Smartphone, Key, Check, X, ArrowUpRight, ArrowDownLeft, ShieldCheck, Copy, CheckCheck } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Smartphone, Key, Check, X, ArrowUpRight, ArrowDownLeft, ShieldCheck, Copy, CheckCheck, Zap } from 'lucide-react';
 import { executeSmartMerge } from '../utils/syncHelper';
 import { nativeSetItem } from '../utils/nativeStorage';
 import { REMOTE_SYNC_APPLIED_EVENT } from '../context/FarmContext';
@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
 const CLOUD_SYNC_KEY_STORAGE = 'jr_farm_cloud_sync_key';
+// Primary default room used by JR Farm
+const MASTER_DEFAULT_ROOM = 'devin';
 
 // Unique device session ID to identify self-updates vs remote updates
 const LOCAL_DEVICE_ID = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
@@ -16,7 +18,15 @@ const LOCAL_DEVICE_ID = 'dev_' + Math.random().toString(36).substring(2, 9) + '_
 export function FirebaseSyncer() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error' | 'success'>('idle');
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [farmId, setFarmId] = useState<string>('default_farm_001');
+  const [farmId, setFarmId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(CLOUD_SYNC_KEY_STORAGE)?.trim().toLowerCase();
+      return (saved && saved !== 'default_farm_001') ? saved : MASTER_DEFAULT_ROOM;
+    } catch {
+      return MASTER_DEFAULT_ROOM;
+    }
+  });
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [cloudSyncKey, setCloudSyncKey] = useState<string>(() => {
     try {
@@ -45,15 +55,16 @@ export function FirebaseSyncer() {
     }
   });
 
-  const isSyncingRef = useRef(false);
+  const isPushingRef = useRef(false);
+  const isPullingRef = useRef(false);
+  const initialSyncDoneRef = useRef(false);
   const lastRemoteUpdatedRef = useRef<string>('');
   const canUseCloud = userCloudSyncEnabled && isDeviceOnline && !!realtimeDb;
 
   const computeEffectiveFarmId = (user: any, key: string) => {
-    const cleanKey = key.trim().toLowerCase();
-    if (cleanKey) return cleanKey;
-    if (user?.uid) return user.uid;
-    return 'default_farm_001';
+    const cleanKey = key?.trim().toLowerCase();
+    if (cleanKey && cleanKey !== 'default_farm_001') return cleanKey;
+    return MASTER_DEFAULT_ROOM;
   };
 
   const buildAllFarmPayload = (): Record<string, any> => {
@@ -74,6 +85,7 @@ export function FirebaseSyncer() {
     return databasePayload;
   };
 
+  // Online / Offline state
   useEffect(() => {
     const handleOnline = () => setIsDeviceOnline(true);
     const handleOffline = () => setIsDeviceOnline(false);
@@ -86,6 +98,7 @@ export function FirebaseSyncer() {
     };
   }, []);
 
+  // Sync preference listener
   useEffect(() => {
     const refreshPreference = () => {
       try {
@@ -127,92 +140,199 @@ export function FirebaseSyncer() {
       setCurrentUser(user);
       const savedKey = localStorage.getItem(CLOUD_SYNC_KEY_STORAGE) || '';
       const id = computeEffectiveFarmId(user, savedKey);
-      console.log(`[RTDB Sync] Auth/Room resolved: ${id}`);
       setFarmId(id);
     });
     return () => unsubscribe();
   }, []);
 
-  // Push local changes to cloud
-  const pushToCloud = async (isManual = false) => {
-    if (isSyncingRef.current && !isManual) return;
-    if (!farmId || !canUseCloud || !realtimeDb) return;
+  // Universal Pull & Merge function
+  const pullAndMergeFromCloud = async (isManual = false) => {
+    if (!canUseCloud || !realtimeDb || isPullingRef.current) return;
     try {
-      isSyncingRef.current = true;
-      setSyncStatus('syncing');
-
-      const databasePayload = buildAllFarmPayload();
-      const nowIso = new Date().toISOString();
-      lastRemoteUpdatedRef.current = nowIso;
-
-      const roomRef = ref(realtimeDb, `cloudSyncRooms/${farmId}`);
-      await set(roomRef, {
-        database: databasePayload,
-        updatedAt: nowIso,
-        senderDeviceId: LOCAL_DEVICE_ID
-      });
-
-      setSyncStatus('success');
-      setLastSync(new Date());
-
-      if (isManual) {
-        setSyncToast('Uploaded all farm records to cloud successfully!');
-        setTimeout(() => setSyncToast(null), 3500);
-      }
-
-      setTimeout(() => setSyncStatus('idle'), 2500);
-    } catch (err) {
-      console.error("[RTDB Sync] Push Error:", err);
-      setSyncStatus('error');
-    } finally {
-      isSyncingRef.current = false;
-    }
-  };
-
-  // Manual pull from cloud
-  const pullFromCloud = async () => {
-    if (!farmId || !canUseCloud || !realtimeDb) return;
-    try {
-      isSyncingRef.current = true;
-      setSyncStatus('syncing');
+      isPullingRef.current = true;
+      if (isManual) setSyncStatus('syncing');
 
       const dbRef = ref(realtimeDb);
-      const snapshot = await get(child(dbRef, `cloudSyncRooms/${farmId}`));
+      // Try active room
+      let snapshot = await get(child(dbRef, `cloudSyncRooms/${farmId}`));
+
+      // If empty and not devin, fallback to devin room
+      if (!snapshot.exists() && farmId !== MASTER_DEFAULT_ROOM) {
+        snapshot = await get(child(dbRef, `cloudSyncRooms/${MASTER_DEFAULT_ROOM}`));
+      }
 
       if (snapshot.exists()) {
         const reply = snapshot.val();
         if (reply && reply.database && typeof reply.database === 'object') {
           const mergedPayload = executeSmartMerge(reply.database, 'merge');
 
+          let didChange = false;
           Object.entries(mergedPayload).forEach(([k, v]) => {
             const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
-            nativeSetItem(k, stringVal);
+            const currentLocal = localStorage.getItem(k);
+            if (currentLocal !== stringVal) {
+              didChange = true;
+              nativeSetItem(k, stringVal);
+            }
           });
 
-          // Trigger immediate React state re-hydration
-          window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+          if (didChange) {
+            window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+            setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
+            setTimeout(() => setSyncToast(null), 3500);
+          }
+
           setLastSync(new Date());
           setSyncStatus('success');
-          setSyncToast('Fetched latest breeding and farm data from cloud!');
-          setTimeout(() => setSyncToast(null), 3500);
+          if (isManual) {
+            setSyncToast('Fetched latest breeding and farm data from cloud!');
+            setTimeout(() => setSyncToast(null), 3000);
+          }
         }
-      } else {
+      } else if (isManual) {
         setSyncToast(`Cloud room "${farmId}" is empty. Push from your phone first.`);
-        setTimeout(() => setSyncToast(null), 3500);
+        setTimeout(() => setSyncToast(null), 3000);
       }
-      setTimeout(() => setSyncStatus('idle'), 2500);
+      setTimeout(() => setSyncStatus('idle'), 2000);
     } catch (err) {
-      console.error("[RTDB Sync] Pull Error:", err);
-      setSyncStatus('error');
+      console.error("[Autosync] Pull Error:", err);
+      if (isManual) setSyncStatus('error');
     } finally {
-      isSyncingRef.current = false;
+      isPullingRef.current = false;
     }
   };
 
-  // Debounced push listener whenever local state changes
+  // Push local changes to cloud (mirrors to active room and default rooms)
+  const pushToCloud = async (isManual = false) => {
+    if (isPushingRef.current && !isManual) return;
+    if (!farmId || !canUseCloud || !realtimeDb) return;
+    try {
+      isPushingRef.current = true;
+      setSyncStatus('syncing');
+
+      const databasePayload = buildAllFarmPayload();
+      const nowIso = new Date().toISOString();
+      lastRemoteUpdatedRef.current = nowIso;
+
+      const payload = {
+        database: databasePayload,
+        updatedAt: nowIso,
+        senderDeviceId: LOCAL_DEVICE_ID
+      };
+
+      // Push to current active room
+      await set(ref(realtimeDb, `cloudSyncRooms/${farmId}`), payload);
+
+      // Mirror to master room and default room so any device finds it immediately
+      if (farmId !== MASTER_DEFAULT_ROOM) {
+        set(ref(realtimeDb, `cloudSyncRooms/${MASTER_DEFAULT_ROOM}`), payload).catch(() => {});
+      }
+      if (farmId !== 'default_farm_001') {
+        set(ref(realtimeDb, 'cloudSyncRooms/default_farm_001'), payload).catch(() => {});
+      }
+
+      setSyncStatus('success');
+      setLastSync(new Date());
+
+      if (isManual) {
+        setSyncToast('Uploaded all farm records to cloud successfully!');
+        setTimeout(() => setSyncToast(null), 3000);
+      }
+
+      setTimeout(() => setSyncStatus('idle'), 2000);
+    } catch (err) {
+      console.error("[Autosync] Push Error:", err);
+      setSyncStatus('error');
+    } finally {
+      isPushingRef.current = false;
+    }
+  };
+
+  // CRITICAL: Pull immediately on initial app mount so PC gets phone data right away!
+  useEffect(() => {
+    if (!canUseCloud || initialSyncDoneRef.current) return;
+    initialSyncDoneRef.current = true;
+    console.log(`[Autosync] Initial startup pull from cloud room: ${farmId}`);
+    pullAndMergeFromCloud(false);
+  }, [farmId, canUseCloud]);
+
+  // Window Focus & Visibility Change: Auto-pull whenever user switches to this window!
+  useEffect(() => {
+    if (!canUseCloud) return;
+
+    const handleFocus = () => {
+      console.log("[Autosync] Window focused - checking for updates from phone...");
+      pullAndMergeFromCloud(false);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [farmId, canUseCloud]);
+
+  // Continuous Heartbeat: Check cloud every 8 seconds in the background
+  useEffect(() => {
+    if (!canUseCloud) return;
+    const interval = setInterval(() => {
+      pullAndMergeFromCloud(false);
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [farmId, canUseCloud]);
+
+  // Real-time WebSocket listener via onValue
+  useEffect(() => {
+    if (!farmId || !canUseCloud || !realtimeDb) return;
+    const roomRef = ref(realtimeDb, `cloudSyncRooms/${farmId}`);
+
+    const unsubscribe = onValue(roomRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+      const reply = snapshot.val();
+      if (!reply || !reply.database || typeof reply.database !== 'object') return;
+
+      // Ignore echoes from this same device
+      if (reply.senderDeviceId === LOCAL_DEVICE_ID) return;
+      if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) return;
+
+      lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
+
+      try {
+        const mergedPayload = executeSmartMerge(reply.database, 'merge');
+
+        let didChange = false;
+        Object.entries(mergedPayload).forEach(([k, v]) => {
+          const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
+          if (localStorage.getItem(k) !== stringVal) {
+            didChange = true;
+            nativeSetItem(k, stringVal);
+          }
+        });
+
+        if (didChange) {
+          window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+          setSyncToast('⚡ New record auto-synced from phone!');
+          setTimeout(() => setSyncToast(null), 4000);
+        }
+
+        setSyncStatus('success');
+        setLastSync(new Date());
+        setTimeout(() => setSyncStatus('idle'), 2000);
+      } catch (e) {
+        console.error("[Autosync] Merge error from snapshot", e);
+      }
+    }, (err) => {
+      console.error("[Autosync] onValue error:", err);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [farmId, canUseCloud, realtimeDb]);
+
+  // Debounced push listener whenever local storage updates
   useEffect(() => {
     if (!farmId || !canUseCloud) return;
-    console.log(`[RTDB Sync] Syncer Active on Room: ${farmId}`);
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const handleLocalUpdate = () => {
@@ -242,60 +362,6 @@ export function FirebaseSyncer() {
     };
   }, [farmId, canUseCloud]);
 
-  // Real-time listener: receives updates from other device automatically
-  useEffect(() => {
-    if (!farmId || !canUseCloud || !realtimeDb) return;
-    const roomRef = ref(realtimeDb, `cloudSyncRooms/${farmId}`);
-
-    const unsubscribe = onValue(roomRef, (snapshot) => {
-      if (isSyncingRef.current) return;
-      if (!snapshot.exists()) return;
-
-      const reply = snapshot.val();
-      if (!reply || !reply.database || typeof reply.database !== 'object') return;
-
-      // Ignore echoes from this same device
-      if (reply.senderDeviceId === LOCAL_DEVICE_ID) return;
-      if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) return;
-
-      lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
-
-      try {
-        isSyncingRef.current = true;
-        setSyncStatus('syncing');
-
-        const mergedPayload = executeSmartMerge(reply.database, 'merge');
-
-        // Apply merged records to local storage using nativeSetItem
-        Object.entries(mergedPayload).forEach(([k, v]) => {
-          const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
-          nativeSetItem(k, stringVal);
-        });
-
-        // CRITICAL FIX: Instantly notify FarmContext to reload state into React memory!
-        window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
-
-        setSyncStatus('success');
-        setLastSync(new Date());
-        setSyncToast('⚡ New record auto-synced from phone!');
-        setTimeout(() => setSyncToast(null), 4000);
-        setTimeout(() => setSyncStatus('idle'), 2500);
-      } catch (e) {
-        console.error("[RTDB Sync] Merge error from snapshot", e);
-        setSyncStatus('error');
-      } finally {
-        isSyncingRef.current = false;
-      }
-    }, (err) => {
-      console.error("[RTDB Sync] Listener error:", err);
-      setSyncStatus('error');
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [farmId, canUseCloud, realtimeDb]);
-
   const handleSaveRoomKey = () => {
     const clean = tempKeyInput.trim().toLowerCase();
     localStorage.setItem(CLOUD_SYNC_KEY_STORAGE, clean);
@@ -303,15 +369,15 @@ export function FirebaseSyncer() {
     const newId = computeEffectiveFarmId(currentUser, clean);
     setFarmId(newId);
     window.dispatchEvent(new Event('jr-farm-room-sync-state-updated'));
-    setSyncToast(`Connected to room: "${clean || 'default_farm_001'}"`);
+    setSyncToast(`Connected to room: "${newId}"`);
     setTimeout(() => setSyncToast(null), 3500);
+    pullAndMergeFromCloud(false);
   };
 
   const handleGenerateP2pCode = () => {
     try {
       const payload = buildAllFarmPayload();
       const jsonStr = JSON.stringify(payload);
-      // Simple base64 encoding for instant copy-paste transfer
       const code = btoa(unescape(encodeURIComponent(jsonStr)));
       setP2pExportCode(code);
       setShowP2pCode(true);
@@ -342,9 +408,7 @@ export function FirebaseSyncer() {
 
   const currentRoomDisplay = cloudSyncKey
     ? `Room Key: ${cloudSyncKey}`
-    : currentUser?.email
-    ? `Google: ${currentUser.email}`
-    : 'Default Farm Room (default_farm_001)';
+    : `Master Farm Room (${MASTER_DEFAULT_ROOM})`;
 
   return (
     <>
@@ -385,7 +449,7 @@ export function FirebaseSyncer() {
             ? 'bg-emerald-600 text-white border-emerald-400'
             : 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-500'
         } group`}
-        title="Cross-Device Cloud Sync Center"
+        title="Cross-Device Auto-Sync Center"
       >
         {!canUseCloud ? (
           <CloudOff size={22} />
@@ -405,10 +469,10 @@ export function FirebaseSyncer() {
             : syncStatus === 'error'
             ? 'Sync Error'
             : syncStatus === 'success'
-            ? 'Synced!'
+            ? 'Auto-Synced!'
             : lastSync
             ? `Synced ${lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : 'Cloud Sync'}
+            : 'Auto-Sync Active'}
         </span>
       </motion.button>
 
@@ -429,8 +493,8 @@ export function FirebaseSyncer() {
                     <Cloud size={20} className="text-emerald-200" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base">Cross-Device Sync Center</h3>
-                    <p className="text-emerald-100 text-xs">Phone ↔ PC Live Auto-Sync</p>
+                    <h3 className="font-bold text-base">Automatic Cloud Sync</h3>
+                    <p className="text-emerald-100 text-xs">Real-Time Phone ↔ PC Live Sync</p>
                   </div>
                 </div>
                 <button
@@ -446,7 +510,7 @@ export function FirebaseSyncer() {
                 {/* Active Status Card */}
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600 font-medium">Connection Status:</span>
+                    <span className="text-gray-600 font-medium">Auto-Sync Status:</span>
                     <span className="flex items-center font-bold text-emerald-700">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
                       {canUseCloud ? 'Active & Auto-Syncing' : 'Device Offline'}
@@ -454,7 +518,7 @@ export function FirebaseSyncer() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600 font-medium">Current Sync Room:</span>
+                    <span className="text-gray-600 font-medium">Sync Room:</span>
                     <span className="font-bold text-gray-800 bg-white px-2 py-0.5 rounded border border-emerald-200">
                       {currentRoomDisplay}
                     </span>
@@ -468,29 +532,47 @@ export function FirebaseSyncer() {
                   )}
                 </div>
 
-                {/* Instructions */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
-                  <div className="flex items-center space-x-1.5 font-bold text-amber-800">
-                    <Smartphone size={14} />
-                    <span>How to connect Phone & PC:</span>
-                  </div>
-                  <p className="text-amber-800/90 leading-relaxed">
-                    Enter the <strong>same Room Key</strong> (e.g. <code className="bg-amber-100 px-1 rounded font-bold">myfarm</code>) below on both Phone and PC.
+                {/* Instant Sync Notice */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-900 flex items-start space-x-2">
+                  <Zap size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    Auto-sync is <strong>fully automatic</strong>. Whenever you save a breeding record or milk log on your phone, it appears on your PC automatically without having to do anything!
                   </p>
                 </div>
 
-                {/* Room Key Input */}
-                <div className="space-y-1.5">
+                {/* Manual Force Buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    onClick={() => pushToCloud(true)}
+                    disabled={!canUseCloud || syncStatus === 'syncing'}
+                    className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 font-semibold text-xs rounded-xl border border-gray-200 transition-colors disabled:opacity-50"
+                  >
+                    <ArrowUpRight size={15} />
+                    <span>Force Push Now</span>
+                  </button>
+
+                  <button
+                    onClick={() => pullAndMergeFromCloud(true)}
+                    disabled={!canUseCloud || syncStatus === 'syncing'}
+                    className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                  >
+                    <ArrowDownLeft size={15} />
+                    <span>Force Pull Now</span>
+                  </button>
+                </div>
+
+                {/* Optional Custom Room Key */}
+                <div className="border-t border-gray-100 pt-3 space-y-1.5">
                   <label className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
                     <Key size={14} className="text-emerald-600" />
-                    <span>Sync Room Key:</span>
+                    <span>Custom Room Key (Optional):</span>
                   </label>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       value={tempKeyInput}
                       onChange={(e) => setTempKeyInput(e.target.value)}
-                      placeholder="e.g. myfarm"
+                      placeholder={`Default: ${MASTER_DEFAULT_ROOM}`}
                       className="flex-1 text-sm border border-gray-300 rounded-xl px-3.5 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                     <button
@@ -501,27 +583,9 @@ export function FirebaseSyncer() {
                       <span>Save</span>
                     </button>
                   </div>
-                </div>
-
-                {/* Manual Push / Fetch Buttons */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <button
-                    onClick={() => pushToCloud(true)}
-                    disabled={!canUseCloud || syncStatus === 'syncing'}
-                    className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-gray-700 font-semibold text-xs rounded-xl border border-gray-200 transition-colors disabled:opacity-50"
-                  >
-                    <ArrowUpRight size={15} />
-                    <span>Push to Cloud</span>
-                  </button>
-
-                  <button
-                    onClick={pullFromCloud}
-                    disabled={!canUseCloud || syncStatus === 'syncing'}
-                    className="flex items-center justify-center space-x-1.5 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-colors shadow-sm disabled:opacity-50"
-                  >
-                    <ArrowDownLeft size={15} />
-                    <span>Fetch from Cloud</span>
-                  </button>
+                  <p className="text-[11px] text-gray-500">
+                    Both devices automatically connect to <strong>{MASTER_DEFAULT_ROOM}</strong> by default.
+                  </p>
                 </div>
 
                 {/* Direct Instant Transfer Code (Fail-safe) */}
@@ -599,7 +663,7 @@ export function FirebaseSyncer() {
               <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
                 <span className="flex items-center space-x-1 text-gray-600">
                   <ShieldCheck size={14} className="text-emerald-600" />
-                  <span>Realtime Database active</span>
+                  <span>Realtime Database continuous sync active</span>
                 </span>
                 <button
                   onClick={() => setIsModalOpen(false)}
