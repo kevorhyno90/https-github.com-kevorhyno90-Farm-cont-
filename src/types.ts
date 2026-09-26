@@ -133,6 +133,32 @@ export interface StaffMember {
   shiftMorning: string;
   shiftAfternoon: string;
   status: 'Present' | 'Off' | 'On Leave';
+
+  // Enhanced fields (all optional to ensure 100% backward compatibility with existing data)
+  nationalId?: string;
+  joiningDate?: string;
+  contractType?: 'Permanent' | 'Contract' | 'Casual' | 'Intern';
+  wageType?: 'Monthly' | 'Daily' | 'Piece-rate';
+  baseSalary?: number; // Base monthly salary or daily rate (KES)
+  dailyRate?: number;
+  mpesaNumber?: string;
+  bankDetails?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  assignedStation?: string;
+  notes?: string;
+  gender?: 'Male' | 'Female' | 'Other';
+}
+
+export interface DailyAttendanceRecord {
+  date: string; // YYYY-MM-DD
+  records: {
+    [staffId: string]: {
+      status: 'Present' | 'Off' | 'On Leave' | 'Half Day';
+      checkInTime?: string;
+      notes?: string;
+    };
+  };
 }
 
 export interface LivestockRecord {
