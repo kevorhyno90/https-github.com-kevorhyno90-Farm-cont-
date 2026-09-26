@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { MilkingRecord, MilkOutflowRecord, Cow } from '../../types';
+import { MilkingRecord, MilkOutflowRecord, Cow, VetRecord } from '../../types';
 
 import { exportToCsv } from '../../utils/csvHelper';
 import { jsPDF } from 'jspdf';
 import { toIsoDate } from '../../utils/dateHelper';
 import { DairyDashboard } from './DairyDashboard';
-import { Plus, Download, FileSpreadsheet, FileDown, Edit, Trash2, TrendingUp, Truck, X, Database, PenSquare } from 'lucide-react';
+import { Plus, Download, FileSpreadsheet, FileDown, Edit, Trash2, TrendingUp, Truck, X, Database, PenSquare, AlertTriangle } from 'lucide-react';
 
 interface LactationLedgerProps {
   staffList: any[];
@@ -21,6 +21,7 @@ interface LactationLedgerProps {
   onAddOutflowRecord: (record: MilkOutflowRecord) => void;
   onEditMilkOutflow: (id: string, record: MilkOutflowRecord) => void;
   onDeleteMilkOutflow: (id: string) => void;
+  vetRecords?: VetRecord[];
 }
 
 
@@ -42,14 +43,41 @@ export default function LactationLedger({
   onDeleteMilkRecord,
   onAddOutflowRecord,
   onEditMilkOutflow,
-  onDeleteMilkOutflow
+  onDeleteMilkOutflow,
+  vetRecords = []
 }: LactationLedgerProps) {
 
- const [editingMilk, setEditingMilk] = useState<MilkingRecord | null>(null);
- const [editingOutflow, setEditingOutflow] = useState<MilkOutflowRecord | null>(null);
- const [editNewDebtorName, setEditNewDebtorName] = useState('');
- const [editNewDebtorAmount, setEditNewDebtorAmount] = useState<number | ''>('');
- const [cowTag, setCowTag] = useState('');
+  const [editingMilk, setEditingMilk] = useState<MilkingRecord | null>(null);
+  const [editingOutflow, setEditingOutflow] = useState<MilkOutflowRecord | null>(null);
+  const [editNewDebtorName, setEditNewDebtorName] = useState('');
+  const [editNewDebtorAmount, setEditNewDebtorAmount] = useState<number | ''>('');
+  const [cowTag, setCowTag] = useState('');
+
+  // Check if selected cow has an active antibiotic milk withdrawal period
+  const activeCowWithdrawal = React.useMemo(() => {
+    if (!cowTag || !vetRecords || vetRecords.length === 0) return null;
+    const cowLower = cowTag.toLowerCase();
+    const today = new Date().toISOString().split('T')[0];
+
+    for (const v of vetRecords) {
+      if (!v.withdrawalMilkDays || v.withdrawalMilkDays <= 0) continue;
+      const vCow = (v.cowId || '').toLowerCase();
+      if (vCow === cowLower || vCow.includes(cowLower) || cowLower.includes(vCow)) {
+        const treatDate = new Date(v.date);
+        const safeDate = new Date(treatDate);
+        safeDate.setDate(safeDate.getDate() + v.withdrawalMilkDays);
+        if (safeDate >= new Date(today)) {
+          const daysLeft = Math.ceil((safeDate.getTime() - new Date(today).getTime()) / (1000 * 60 * 60 * 24));
+          return {
+            ...v,
+            safeDateStr: safeDate.toISOString().split('T')[0],
+            daysLeft: Math.max(0, daysLeft)
+          };
+        }
+      }
+    }
+    return null;
+  }, [cowTag, vetRecords]);
  const [amLiters, setAmLiters] = useState<number | ''>('');
  const [pmLiters, setPmLiters] = useState<number | ''>('');
  const [staffName, setStaffName] = useState(staffList[0]?.name || 'Mosoti');
@@ -497,6 +525,17 @@ export default function LactationLedger({
  placeholder="E.g. Cow-104 (Blossom)"
  className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold outline-none"
  />
+ )}
+ {activeCowWithdrawal && (
+   <div className="mt-2.5 p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-950 flex items-start gap-2 animate-fadeIn">
+     <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+     <div>
+       <span className="font-bold block text-rose-700">⛔ Active Veterinary Milk Withdrawal</span>
+       <span className="leading-relaxed block mt-0.5">
+         This cow received <strong>{activeCowWithdrawal.drugAdministered || activeCowWithdrawal.treatment}</strong> on {activeCowWithdrawal.date}. Milk contains drug residues and CANNOT be put into the bulk cooler until <strong>{activeCowWithdrawal.safeDateStr}</strong> ({activeCowWithdrawal.daysLeft} days left). Feed to calves or discard.
+       </span>
+     </div>
+   </div>
  )}
  </div>
 
