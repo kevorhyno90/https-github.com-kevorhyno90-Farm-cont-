@@ -3651,8 +3651,16 @@ function FarmCoreApp() {
   };
 
   const handleAddMilkOutflow = (rec: MilkOutflowRecord) => {
-    setMilkOutflows([rec, ...milkOutflows]);
-    if (rec.debtsKsh > 0) {
+    setMilkOutflows(prev => {
+      const idx = prev.findIndex(m => m.id === rec.id || m.date === rec.date);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...rec };
+        return copy;
+      }
+      return [rec, ...prev];
+    });
+    if (rec.debtsKsh && rec.debtsKsh > 0) {
       const debtor = rec.debtCustomer || 'Informal Debtor';
       const autoDebtIncome: FinancialRecord = {
         id: `f-debt-${Date.now()}`,

@@ -81,10 +81,44 @@ export default function LactationLedger({
   const [milkerStaff, setMilkerStaff] = useState<string>(staffList[0]?.name || 'Dr. Devin Omwenga');
 
   // Morning Milk Distribution Inputs
-  const [morningBuyerName, setMorningBuyerName] = useState<string>('Mama Mary (Morning Buyer)');
+  const [morningBuyerName, setMorningBuyerName] = useState<string>(() => {
+    try {
+      return localStorage.getItem('jr_farm_morning_buyer_name') || 'Mama Mary (Contract Buyer)';
+    } catch {
+      return 'Mama Mary (Contract Buyer)';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_morning_buyer_name', morningBuyerName);
+    } catch {}
+  }, [morningBuyerName]);
+
   const [morningBuyerLiters, setMorningBuyerLiters] = useState<number | ''>('');
-  const [morningBuyerRate, setMorningBuyerRate] = useState<number>(55);
-  const [overrideSaturdayBuyer, setOverrideSaturdayBuyer] = useState<boolean>(false);
+  const [morningBuyerRate, setMorningBuyerRate] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_morning_buyer_rate');
+      if (stored) return Number(stored) || 55;
+    } catch {}
+    return 55;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_morning_buyer_rate', String(morningBuyerRate));
+    } catch {}
+  }, [morningBuyerRate]);
+
+  // Quick Buyer Modal state for Friday Tracker
+  const [showQuickBuyerModal, setShowQuickBuyerModal] = useState<boolean>(false);
+  const [quickBuyerDate, setQuickBuyerDate] = useState<string>(todayStr);
+  const [quickBuyerLiters, setQuickBuyerLiters] = useState<number | ''>('');
+  const [quickBuyerRate, setQuickBuyerRate] = useState<number>(55);
+  const [quickBuyerNotes, setQuickBuyerNotes] = useState<string>('');
+
+  // Week offset for historical / future Friday reconciliations
+  const [weekOffset, setWeekOffset] = useState<number>(0);
 
   const [homeLiters, setHomeLiters] = useState<number | ''>('');
   const [workerLiters, setWorkerLiters] = useState<number | ''>('');
@@ -107,6 +141,42 @@ export default function LactationLedger({
   const [remittanceChannel, setRemittanceChannel] = useState<'M-PESA' | 'Cash' | 'Bank'>('M-PESA');
   const [remittanceMpesaCode, setRemittanceMpesaCode] = useState<string>('');
   const [flowNotes, setFlowNotes] = useState<string>('');
+
+  // Auto-load existing outflow data when selected date changes
+  useEffect(() => {
+    const existing = milkOutflows.find(o => o.date === date);
+    if (existing) {
+      setMorningBuyerLiters(existing.morningBuyerLiters !== undefined ? existing.morningBuyerLiters : '');
+      if (existing.morningBuyerName) setMorningBuyerName(existing.morningBuyerName);
+      if (existing.morningBuyerPricePerLiter) setMorningBuyerRate(existing.morningBuyerPricePerLiter);
+      setHomeLiters(existing.milkUsedAtHome !== undefined ? existing.milkUsedAtHome : '');
+      setWorkerLiters(existing.milkUsedByWorkers !== undefined ? existing.milkUsedByWorkers : '');
+      setCalfLiters(existing.milkUsedByCalf !== undefined ? existing.milkUsedByCalf : '');
+      setEveningCashLiters(existing.eveningLocalCashLiters !== undefined ? existing.eveningLocalCashLiters : '');
+      if (existing.eveningCashPricePerLiter) setEveningCashRate(existing.eveningCashPricePerLiter);
+      setEveningDebtLiters(existing.eveningLocalDebtLiters !== undefined ? existing.eveningLocalDebtLiters : '');
+      if (existing.eveningDebtPricePerLiter) setEveningDebtRate(existing.eveningDebtPricePerLiter);
+      setDebtCustomerName(existing.debtCustomer || '');
+      setSpoiledLiters(existing.milkSpoiled !== undefined ? existing.milkSpoiled : '');
+      if (existing.spoilageReason) setSpoilageReason(existing.spoilageReason);
+      setRemittedAmount(existing.remittedToOwnerKsh !== undefined ? existing.remittedToOwnerKsh : '');
+      if (existing.remittanceMethod) setRemittanceChannel(existing.remittanceMethod);
+      setRemittanceMpesaCode(existing.remittanceRef || '');
+      setFlowNotes(existing.notes || '');
+    } else {
+      setMorningBuyerLiters('');
+      setHomeLiters('');
+      setWorkerLiters('');
+      setCalfLiters('');
+      setEveningCashLiters('');
+      setEveningDebtLiters('');
+      setDebtCustomerName('');
+      setSpoiledLiters('');
+      setRemittedAmount('');
+      setRemittanceMpesaCode('');
+      setFlowNotes('');
+    }
+  }, [date, milkOutflows]);
 
   // ──────────────────────────────────────────────────────────────────────────
   // 2. PERSISTENT REGISTRIES (FRIDAY BUYER, MONTHLY DEBTORS, OWNER REMITTANCES)
@@ -262,7 +332,7 @@ export default function LactationLedger({
   }, [dayMilkRecords]);
 
   // Current Form Distributed Volumes
-  const allocatedMorningBuyer = isSelectedSaturday && !overrideSaturdayBuyer ? 0 : Number(morningBuyerLiters || 0);
+  const allocatedMorningBuyer = Number(morningBuyerLiters || 0);
   const allocatedHome = Number(homeLiters || 0);
   const allocatedWorkers = Number(workerLiters || 0);
   const allocatedCalf = Number(calfLiters || 0);
@@ -305,9 +375,10 @@ export default function LactationLedger({
   const startOfWeek = useMemo(() => {
     const d = new Date(todayStr);
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return toIsoDate(new Date(d.setDate(diff)));
-  }, [todayStr]);
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) + (weekOffset * 7);
+    const base = new Date(d.setDate(diff));
+    return toIsoDate(base);
+  }, [todayStr, weekOffset]);
 
   const startOfMonth = todayStr.substring(0, 8) + '01';
 
@@ -390,14 +461,15 @@ export default function LactationLedger({
       const isFri = d.getDay() === 5;
 
       const outflow = milkOutflows.find(o => o.date === dateStr);
-      const liters = isSat ? 0 : (outflow?.morningBuyerLiters || 0);
-      const rate = outflow?.morningBuyerPricePerLiter || 55;
+      // Actual liters recorded for morning buyer
+      const liters = outflow?.morningBuyerLiters !== undefined ? outflow.morningBuyerLiters : 0;
+      const rate = outflow?.morningBuyerPricePerLiter || morningBuyerRate || 55;
       const value = liters * rate;
 
       days.push({ dateStr, dayName, isSat, isFri, liters, value });
     }
     return days;
-  }, [startOfWeek, milkOutflows]);
+  }, [startOfWeek, milkOutflows, morningBuyerRate]);
 
   const currentWeekBuyerLiters = currentWeekDays.reduce((sum, d) => sum + d.liters, 0);
   const currentWeekBuyerTotalDue = currentWeekDays.reduce((sum, d) => sum + d.value, 0);
@@ -484,7 +556,7 @@ export default function LactationLedger({
   const handleOutflowSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const mBuyerLiters = isSelectedSaturday && !overrideSaturdayBuyer ? 0 : Number(morningBuyerLiters || 0);
+    const mBuyerLiters = Number(morningBuyerLiters || 0);
     const evCashLiters = Number(eveningCashLiters || 0);
     const evDebtLiters = Number(eveningDebtLiters || 0);
     const hLiters = Number(homeLiters || 0);
@@ -502,16 +574,18 @@ export default function LactationLedger({
       });
     }
 
+    const existing = milkOutflows.find(o => o.date === date);
+
     const newOutflow: MilkOutflowRecord = {
-      id: `mo-${Date.now()}`,
+      id: existing ? existing.id : `mo-${Date.now()}`,
       date,
       totalMilkedOverride: totalDayHarvestLiters > 0 ? totalDayHarvestLiters : undefined,
 
       // Morning flow
       morningBuyerLiters: mBuyerLiters,
-      morningBuyerName: isSelectedSaturday && !overrideSaturdayBuyer ? 'Saturday Off (Local Sales)' : morningBuyerName,
+      morningBuyerName: morningBuyerName,
       morningBuyerPricePerLiter: morningBuyerRate,
-      isSaturdayMorningNoBuyer: isSelectedSaturday && !overrideSaturdayBuyer,
+      isSaturdayMorningNoBuyer: isSelectedSaturday && mBuyerLiters === 0,
 
       // Internal consumption
       milkUsedAtHome: hLiters,
@@ -543,7 +617,11 @@ export default function LactationLedger({
       notes: flowNotes.trim() || undefined
     };
 
-    onAddOutflowRecord(newOutflow);
+    if (existing && onEditMilkOutflow) {
+      onEditMilkOutflow(existing.id, newOutflow);
+    } else {
+      onAddOutflowRecord(newOutflow);
+    }
 
     // If money was remitted to owner, record directly into the persistent owner remittances ledger
     if (remittedAmount !== '' && Number(remittedAmount) > 0) {
@@ -555,23 +633,55 @@ export default function LactationLedger({
         channel: remittanceChannel,
         referenceCode: remittanceMpesaCode.trim() || undefined,
         recipientName: 'Farm Owner',
-        notes: `Daily dairy flow remittance. Notes: ${flowNotes || 'All clear'}`
+        notes: `Daily dairy flow remittance for ${date}. Notes: ${flowNotes || 'All clear'}`
       };
       setOwnerRemittances(prev => [newRemittance, ...prev]);
     }
+  };
 
-    // Reset daily flow inputs
-    setMorningBuyerLiters('');
-    setHomeLiters('');
-    setWorkerLiters('');
-    setCalfLiters('');
-    setEveningCashLiters('');
-    setEveningDebtLiters('');
-    setDebtCustomerName('');
-    setSpoiledLiters('');
-    setRemittedAmount('');
-    setRemittanceMpesaCode('');
-    setFlowNotes('');
+  // Quick Buyer Delivery Handler from Friday Tracker
+  const handleSaveQuickBuyerDelivery = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickBuyerDate || quickBuyerLiters === '') return;
+
+    const lit = Number(quickBuyerLiters);
+    const existing = milkOutflows.find(o => o.date === quickBuyerDate);
+
+    if (existing) {
+      const updated: MilkOutflowRecord = {
+        ...existing,
+        morningBuyerLiters: lit,
+        morningBuyerName: morningBuyerName,
+        morningBuyerPricePerLiter: quickBuyerRate,
+        isSaturdayMorningNoBuyer: false,
+        notes: quickBuyerNotes ? `${existing.notes ? existing.notes + ' | ' : ''}${quickBuyerNotes}` : existing.notes
+      };
+      if (onEditMilkOutflow) {
+        onEditMilkOutflow(existing.id, updated);
+      } else {
+        onAddOutflowRecord(updated);
+      }
+    } else {
+      const newRec: MilkOutflowRecord = {
+        id: `mo-${Date.now()}`,
+        date: quickBuyerDate,
+        morningBuyerLiters: lit,
+        morningBuyerName: morningBuyerName,
+        morningBuyerPricePerLiter: quickBuyerRate,
+        isSaturdayMorningNoBuyer: false,
+        milkUsedAtHome: 0,
+        milkUsedByWorkers: 0,
+        milkSpoiled: 0,
+        salesPricePerLiter: quickBuyerRate,
+        debtsKsh: 0,
+        notes: quickBuyerNotes || 'Quick delivery entry from Friday tracker'
+      };
+      onAddOutflowRecord(newRec);
+    }
+
+    setShowQuickBuyerModal(false);
+    setQuickBuyerLiters('');
+    setQuickBuyerNotes('');
   };
 
   // Confirm Friday Morning Buyer Payment
@@ -1200,44 +1310,85 @@ export default function LactationLedger({
 
                 {/* Section A: Morning Distribution */}
                 <div className="p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                  <div className="flex flex-wrap justify-between items-center gap-2">
+                    <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
                       ☀️ Morning Milk Allocation (Expected AM: {amHarvestTotal.toFixed(1)} L)
                     </span>
-                    {isSelectedSaturday && (
-                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
-                        Saturday: Buyer Off
+                    {isSelectedSaturday ? (
+                      <span className="text-[10px] font-bold bg-amber-100 border border-amber-300 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        🗓️ Saturday: Routine Break (Divert to local sales or log if supplied)
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">
+                        Regular Supply Day (Pays Friday)
                       </span>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2">
-                      <label className="text-[10px] font-bold text-gray-700 block mb-1">
-                        Regular Morning Buyer (Pays Friday)
-                      </label>
-                      <div className="flex gap-2">
+                  {/* Regular Morning Buyer Details Card */}
+                  <div className="bg-white p-3 rounded-xl border border-indigo-200 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase shrink-0">Buyer Name:</span>
                         <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          disabled={isSelectedSaturday && !overrideSaturdayBuyer}
-                          placeholder={isSelectedSaturday ? "0.0 (Saturday Off)" : "Liters taken"}
-                          value={morningBuyerLiters}
-                          onChange={(e) => setMorningBuyerLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                          className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500 disabled:bg-gray-100"
+                          type="text"
+                          value={morningBuyerName}
+                          onChange={(e) => setMorningBuyerName(e.target.value)}
+                          placeholder="Morning Buyer Name (e.g. Mama Mary)"
+                          className="text-xs font-bold text-indigo-950 border-b border-transparent hover:border-indigo-300 focus:border-indigo-600 focus:outline-hidden px-1 py-0.5 w-full max-w-xs"
+                          title="Click to rename regular morning buyer"
                         />
-                        <div className="w-28 flex items-center gap-1 px-2 border border-gray-200 rounded-xl bg-white text-xs font-mono text-gray-600">
-                          <span>@Ksh</span>
-                          <input
-                            type="number"
-                            value={morningBuyerRate}
-                            onChange={(e) => setMorningBuyerRate(Number(e.target.value))}
-                            className="w-full font-bold outline-none"
-                          />
-                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isSelectedSaturday && (
+                          <button
+                            type="button"
+                            onClick={() => setMorningBuyerLiters(morningBuyerLiters === 0 ? '' : 0)}
+                            className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${
+                              morningBuyerLiters === 0
+                                ? 'bg-amber-100 border-amber-300 text-amber-900'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {morningBuyerLiters === 0 ? '✓ Saturday Off (0 L)' : 'Set Saturday Off (0 L)'}
+                          </button>
+                        )}
+                        <span className="text-[10px] text-gray-400 font-medium">Weekly Pay: Friday</span>
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] font-bold text-gray-700 block mb-1">
+                          Liters Taken by {morningBuyerName || 'Morning Buyer'}
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            placeholder="e.g. 30.0 Liters"
+                            value={morningBuyerLiters}
+                            onChange={(e) => setMorningBuyerLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500"
+                          />
+                          <div className="w-32 flex items-center gap-1 px-2 border border-gray-200 rounded-xl bg-white text-xs font-mono text-gray-600 shrink-0">
+                            <span>@ Ksh</span>
+                            <input
+                              type="number"
+                              value={morningBuyerRate}
+                              onChange={(e) => setMorningBuyerRate(Number(e.target.value))}
+                              className="w-full font-bold outline-none"
+                            />
+                            <span>/L</span>
+                          </div>
+                        </div>
+                        {morningBuyerLiters !== '' && Number(morningBuyerLiters) > 0 && (
+                          <span className="text-[10px] text-indigo-700 font-mono font-bold mt-1 block">
+                            Due this Friday: Ksh {((Number(morningBuyerLiters) || 0) * morningBuyerRate).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
 
                     <div>
                       <label className="text-[10px] font-bold text-gray-700 block mb-1">Owner House (L)</label>
@@ -1252,8 +1403,9 @@ export default function LactationLedger({
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-2 gap-3 pt-1">
                     <div>
                       <label className="text-[10px] font-bold text-gray-700 block mb-1">Employee / Worker Ration (L)</label>
                       <input
@@ -1435,64 +1587,136 @@ export default function LactationLedger({
           <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
               <div>
-                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
-                  Weekly Friday Payer Account
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                    Weekly Friday Payer Account
+                  </span>
+                  <div className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-lg text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset(prev => prev - 1)}
+                      className="px-1.5 py-0.5 hover:bg-white rounded font-bold text-gray-700 cursor-pointer"
+                      title="Previous Week"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset(0)}
+                      className="px-2 py-0.5 hover:bg-white rounded font-bold text-gray-900 cursor-pointer text-[11px]"
+                    >
+                      {weekOffset === 0 ? 'Current Week' : `Week (${startOfWeek})`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset(prev => prev + 1)}
+                      className="px-1.5 py-0.5 hover:bg-white rounded font-bold text-gray-700 cursor-pointer"
+                      title="Next Week"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                </div>
+
                 <h3 className="text-xl font-black text-gray-900 mt-2">
                   🗓️ {morningBuyerName} — Weekly Reconciliation
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Takes morning milk Sunday through Friday. Saturday is strictly OFF. Payment is due every Friday.
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Takes morning milk Sunday through Friday @ Ksh {morningBuyerRate}/L. Saturday rests (diverted to local). Clears payment every Friday.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <div className="text-right bg-indigo-50 px-4 py-2.5 rounded-2xl border border-indigo-200">
-                  <span className="text-[10px] font-bold text-indigo-700 block uppercase">This Week Due (Friday)</span>
+                  <span className="text-[10px] font-bold text-indigo-700 block uppercase">Week Total Due (Friday)</span>
                   <span className="text-xl font-black text-indigo-950 font-mono">
                     Ksh {currentWeekBuyerTotalDue.toLocaleString()}
                   </span>
                   <span className="text-[10px] text-indigo-600 block">{currentWeekBuyerLiters.toFixed(1)} Liters billed</span>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setFridayPayAmount(currentWeekBuyerTotalDue);
-                    setShowFridayModal(true);
-                  }}
-                  className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
-                >
-                  <CreditCard size={15} />
-                  Record Friday Payment
-                </button>
+                <div className="flex flex-col gap-1.5">
+                  <button
+                    onClick={() => {
+                      setQuickBuyerDate(todayStr);
+                      setQuickBuyerLiters('');
+                      setQuickBuyerRate(morningBuyerRate);
+                      setShowQuickBuyerModal(true);
+                    }}
+                    className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Plus size={14} />
+                    Quick Log Day Delivery
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFridayPayAmount(currentWeekBuyerTotalDue);
+                      setShowFridayModal(true);
+                    }}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <CreditCard size={14} />
+                    Record Friday Payment
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Current Week Day-by-Day Table */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-gray-800">Current Week Day-by-Day Harvest Intake (Mon–Sun)</h4>
+              <div className="flex justify-between items-center">
+                <h4 className="text-xs font-bold text-gray-800">
+                  Week Harvest Deliveries ({startOfWeek} to {currentWeekDays[6]?.dateStr})
+                </h4>
+                <span className="text-[11px] text-gray-500">Click any day to edit or log liters</span>
+              </div>
+
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
                 {currentWeekDays.map(d => (
                   <div
                     key={d.dateStr}
-                    className={`p-3 rounded-2xl border text-center space-y-1 ${
+                    className={`p-3 rounded-2xl border text-center space-y-1 transition-all ${
                       d.isSat
-                        ? 'bg-gray-100 border-gray-200 text-gray-400'
+                        ? d.liters > 0
+                          ? 'bg-amber-50 border-amber-200 text-amber-950'
+                          : 'bg-gray-50 border-gray-200 text-gray-400'
                         : d.isFri
-                        ? 'bg-indigo-50 border-indigo-300 text-indigo-950'
+                        ? 'bg-indigo-50/80 border-indigo-300 text-indigo-950 shadow-xs'
+                        : d.liters > 0
+                        ? 'bg-white border-emerald-200 shadow-xs'
                         : 'bg-white border-gray-200'
                     }`}
                   >
-                    <span className="text-[10px] font-black uppercase block tracking-wider">
-                      {d.dayName} {d.isSat && '(OFF)'}
-                    </span>
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
+                      <span>{d.dayName}</span>
+                      {d.isSat && <span className="text-[9px] text-amber-700 bg-amber-100 px-1 rounded">SAT</span>}
+                      {d.isFri && <span className="text-[9px] text-indigo-700 bg-indigo-100 px-1 rounded">PAY</span>}
+                    </div>
+
                     <span className="text-[9px] font-mono text-gray-400 block">{d.dateStr}</span>
-                    <span className="text-lg font-black font-mono block">
-                      {d.isSat ? '0 L' : `${d.liters.toFixed(1)} L`}
+
+                    <span className="text-base font-black font-mono block">
+                      {d.liters > 0 ? `${d.liters.toFixed(1)} L` : (d.isSat ? '0 L (Sat Off)' : '0.0 L')}
                     </span>
+
                     <span className="text-[10px] font-bold font-mono text-emerald-700 block">
-                      {d.isSat ? 'Local' : `Ksh ${d.value.toLocaleString()}`}
+                      {d.liters > 0 ? `Ksh ${d.value.toLocaleString()}` : (d.isSat ? 'Local' : '—')}
                     </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickBuyerDate(d.dateStr);
+                        setQuickBuyerLiters(d.liters > 0 ? d.liters : '');
+                        setQuickBuyerRate(morningBuyerRate);
+                        setShowQuickBuyerModal(true);
+                      }}
+                      className="w-full mt-1.5 py-1 text-[10px] font-bold rounded-lg border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-50 transition-all cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                    >
+                      <PenSquare size={10} />
+                      {d.liters > 0 ? 'Edit' : '+ Log'}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1931,6 +2155,102 @@ export default function LactationLedger({
                   className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
                 >
                   Confirm Friday Settlement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          MODAL: QUICK LOG / EDIT MORNING BUYER DELIVERY
+      ────────────────────────────────────────────────────────────────────────── */}
+      {showQuickBuyerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-gray-100 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <PenSquare size={16} className="text-indigo-600" />
+                Log Morning Delivery for {morningBuyerName}
+              </h3>
+              <button onClick={() => setShowQuickBuyerModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuickBuyerDelivery} className="space-y-3.5 text-xs">
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Delivery Date</label>
+                <input
+                  type="date"
+                  required
+                  value={quickBuyerDate}
+                  onChange={(e) => setQuickBuyerDate(e.target.value)}
+                  className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5 bg-gray-50 focus:bg-white focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Liters Taken (L)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    required
+                    placeholder="e.g. 34.0"
+                    value={quickBuyerLiters}
+                    onChange={(e) => setQuickBuyerLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                    className="w-full text-sm font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Price / Liter (Ksh)</label>
+                  <input
+                    type="number"
+                    required
+                    value={quickBuyerRate}
+                    onChange={(e) => setQuickBuyerRate(Number(e.target.value))}
+                    className="w-full text-sm font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {quickBuyerLiters !== '' && (
+                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-200 flex justify-between items-center text-xs">
+                  <span className="font-bold text-indigo-900">Total Billed for this Day:</span>
+                  <span className="font-mono font-black text-indigo-950 text-sm">
+                    Ksh {((Number(quickBuyerLiters) || 0) * quickBuyerRate).toLocaleString()}
+                  </span>
+                </div>
+              )}
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Delivery Note</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Collected 7:30 AM by buyer"
+                  value={quickBuyerNotes}
+                  onChange={(e) => setQuickBuyerNotes(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickBuyerModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <CheckCircle2 size={14} />
+                  Save Delivery Log
                 </button>
               </div>
             </form>
