@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AIRecord, Cow, SemenInventoryItem, CalfRecord, StaffMember } from '../../types';
 import { toIsoDate } from '../../utils/dateHelper';
 import { exportToCsv } from '../../utils/csvHelper';
 import { jsPDF } from 'jspdf';
 import {
-  Plus, Search, FileSpreadsheet, Download, FileDown, Shield, TrendingUp, CheckCircle2, FlaskConical, AlertTriangle, PenSquare, Trash2, Calendar
+  Plus, Search, FileSpreadsheet, Download, FileDown, Shield, TrendingUp, CheckCircle2, FlaskConical, AlertTriangle, PenSquare, Trash2, Calendar, RefreshCw
 } from 'lucide-react';
 
 interface BreedingLedgerProps {
@@ -47,6 +47,34 @@ export function BreedingLedger({
  const [aiStatus, setAiStatus] = useState<AIRecord['status']>('Pending');
  const [aiCalfName, setAiCalfName] = useState('');
  const [aiCalfSex, setAiCalfSex] = useState<'Male' | 'Female'>('Female');
+ const [searchFilter, setSearchFilter] = useState('');
+ const [isManualSyncing, setIsManualSyncing] = useState(false);
+ const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+ const sortedAiRecords = useMemo(() => {
+   let list = [...aiRecords].sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
+   if (searchFilter.trim()) {
+     const q = searchFilter.toLowerCase();
+     list = list.filter(r =>
+       (r.cowId || '').toLowerCase().includes(q) ||
+       (r.bull || '').toLowerCase().includes(q) ||
+       (r.status || '').toLowerCase().includes(q) ||
+       (r.date || '').includes(q)
+     );
+   }
+   return list;
+ }, [aiRecords, searchFilter]);
+
+ const handleTriggerQuickSync = () => {
+   setIsManualSyncing(true);
+   setSyncFeedback('Checking cloud for phone updates...');
+   window.dispatchEvent(new Event('jr-farm-trigger-cloud-pull'));
+   setTimeout(() => {
+     setIsManualSyncing(false);
+     setSyncFeedback('✅ Sync complete!');
+     setTimeout(() => setSyncFeedback(null), 3000);
+   }, 1800);
+ };
 
  const handleDownloadAIPdf = () => {
  const doc = new jsPDF();
@@ -641,11 +669,50 @@ export function BreedingLedger({
  </button>
  </form>
 
- {/* Dynamic breeding registry table list */}
- <div className="border-t border-gray-100 pt-5 space-y-2">
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-2 font-bold">Registered Breeding Gestations</label>
- <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
- {aiRecords.map((cycle, idx) => {
+  {/* Dynamic breeding registry table list */}
+  <div className="border-t border-gray-100 pt-5 space-y-3">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div>
+        <label className="text-xs font-bold text-gray-900 tracking-tight block">
+          Registered Breeding Gestations
+          <span className="ml-2 text-[11px] font-normal text-gray-500">
+            ({sortedAiRecords.length} {sortedAiRecords.length === 1 ? 'record' : 'records'} • Newest First)
+          </span>
+        </label>
+        {syncFeedback && (
+          <span className="text-[11px] font-bold text-emerald-600 block animate-pulse">
+            {syncFeedback}
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <div className="relative">
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            placeholder="Search cow, bull, date..."
+            className="text-xs pl-7 pr-3 py-1.5 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleTriggerQuickSync}
+          disabled={isManualSyncing}
+          className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+          title="Force refresh records from cloud"
+        >
+          <RefreshCw size={12} className={isManualSyncing ? "animate-spin" : ""} />
+          <span>{isManualSyncing ? "Syncing..." : "Sync From Phone"}</span>
+        </button>
+      </div>
+    </div>
+
+    <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
+      {sortedAiRecords.map((cycle, idx) => {
  // Determine gestation safety alerts
  const daysLeft = Math.ceil(
  (new Date(cycle.due).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)

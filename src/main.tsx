@@ -34,10 +34,22 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
           registration.update().catch(() => {});
         });
 
-        // Periodic update check every 15 minutes
+        // Fast update check every 20 seconds
         setInterval(() => {
           registration.update().catch(() => {});
-        }, 15 * 60 * 1000);
+        }, 20 * 1000);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('⚡ New update ready, requesting activation...');
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          }
+        });
       })
       .catch((err) => {
         console.error('❌ ServiceWorker registration failed: ', err);

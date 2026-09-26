@@ -145,7 +145,7 @@ export function FirebaseSyncer() {
     return () => unsubscribe();
   }, []);
 
-  // Universal Pull & Merge function
+  // Universal Pull & Merge function across all known rooms
   const pullAndMergeFromCloud = async (isManual = false) => {
     if (!canUseCloud || !realtimeDb || isPullingRef.current) return;
     try {
@@ -153,44 +153,42 @@ export function FirebaseSyncer() {
       if (isManual) setSyncStatus('syncing');
 
       const dbRef = ref(realtimeDb);
-      // Try active room
-      let snapshot = await get(child(dbRef, `cloudSyncRooms/${farmId}`));
+      const targetRooms = Array.from(new Set([farmId, MASTER_DEFAULT_ROOM, 'default_farm_001']));
+      let didChange = false;
 
-      // If empty and not devin, fallback to devin room
-      if (!snapshot.exists() && farmId !== MASTER_DEFAULT_ROOM) {
-        snapshot = await get(child(dbRef, `cloudSyncRooms/${MASTER_DEFAULT_ROOM}`));
+      for (const room of targetRooms) {
+        try {
+          const snapshot = await get(child(dbRef, `cloudSyncRooms/${room}`));
+          if (snapshot.exists()) {
+            const reply = snapshot.val();
+            if (reply && reply.database && typeof reply.database === 'object') {
+              const mergedPayload = executeSmartMerge(reply.database, 'merge');
+
+              Object.entries(mergedPayload).forEach(([k, v]) => {
+                const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
+                const currentLocal = localStorage.getItem(k);
+                if (currentLocal !== stringVal) {
+                  didChange = true;
+                  nativeSetItem(k, stringVal);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error(`[Autosync] Error querying room ${room}:`, e);
+        }
       }
 
-      if (snapshot.exists()) {
-        const reply = snapshot.val();
-        if (reply && reply.database && typeof reply.database === 'object') {
-          const mergedPayload = executeSmartMerge(reply.database, 'merge');
+      if (didChange) {
+        window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+        setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
+        setTimeout(() => setSyncToast(null), 3500);
+      }
 
-          let didChange = false;
-          Object.entries(mergedPayload).forEach(([k, v]) => {
-            const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
-            const currentLocal = localStorage.getItem(k);
-            if (currentLocal !== stringVal) {
-              didChange = true;
-              nativeSetItem(k, stringVal);
-            }
-          });
-
-          if (didChange) {
-            window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
-            setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
-            setTimeout(() => setSyncToast(null), 3500);
-          }
-
-          setLastSync(new Date());
-          setSyncStatus('success');
-          if (isManual) {
-            setSyncToast('Fetched latest breeding and farm data from cloud!');
-            setTimeout(() => setSyncToast(null), 3000);
-          }
-        }
-      } else if (isManual) {
-        setSyncToast(`Cloud room "${farmId}" is empty. Push from your phone first.`);
+      setLastSync(new Date());
+      setSyncStatus('success');
+      if (isManual) {
+        setSyncToast('Fetched latest breeding and farm data from cloud!');
         setTimeout(() => setSyncToast(null), 3000);
       }
       setTimeout(() => setSyncStatus('idle'), 2000);
@@ -265,9 +263,16 @@ export function FirebaseSyncer() {
       pullAndMergeFromCloud(false);
     };
 
+    const handleExplicitPull = () => {
+      console.log("[Autosync] Explicit sync triggered...");
+      pullAndMergeFromCloud(true);
+    };
+
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('jr-farm-trigger-cloud-pull', handleExplicitPull);
     return () => {
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('jr-farm-trigger-cloud-pull', handleExplicitPull);
     };
   }, [farmId, canUseCloud]);
 
