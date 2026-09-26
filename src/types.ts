@@ -305,6 +305,69 @@ export interface BsfRecord {
   status: 'Inoculation' | 'Larvae Feeding' | 'Harvested' | 'Love Cage Breeding';
   notes: string;
   date: string;
+  // Enhanced tracking attributes
+  eggWeightGrams?: number;
+  substrateWeightKg?: number;
+  feedConversionRatio?: number;
+  frassHarvestedKg?: number;
+  temperatureC?: number;
+  moisturePercent?: number;
+  destination?: 'Poultry Feed' | 'Dairy Ration' | 'Aquaculture' | 'Commercial Sale' | 'Love Cage Breeding Stock';
+  operator?: string;
+  harvestDate?: string;
+}
+
+export interface BsfSubstrateBatch {
+  id: string;
+  date: string;
+  sourceType: 'Avocado Waste & Pulp' | 'Dairy Cattle Manure' | 'Spent Brewers Grain' | 'Market Vegetable Trimmings' | 'Kitchen & Fruit Peelings' | 'Mixed Organic Biomass';
+  rawWeightKg: number;
+  moistureAdjusted: boolean;
+  allocatedToBatchId: string;
+  wasteDivertedKg: number;
+  operator?: string;
+  notes?: string;
+}
+
+export interface BsfHarvestDistribution {
+  id: string;
+  batchId: string;
+  date: string;
+  harvestType: 'Fresh Live Larvae' | 'Solar-Dried Whole Grubs' | 'Defatted Insect Protein Meal' | 'Pure Organic Frass Fertilizer';
+  quantityKg: number;
+  destinationUnit: 'Kuku Layers & Broilers' | 'Dairy TMR Mix' | 'Canine High-Protein Ration' | 'Farm Orchards & Greenhouses (Frass)' | 'External Buyer';
+  proteinValueEquivKes?: number;
+  operator?: string;
+  notes?: string;
+}
+
+export interface BsfCommercialSale {
+  id: string;
+  date: string;
+  buyerName: string;
+  buyerPhone: string;
+  buyerLocation?: string;
+  productType: 'Live Larvae' | 'Dried Grubs' | 'BSF Seed 5-DOL Neonates' | 'Organic Frass Biofertilizer';
+  quantityKg: number;
+  unitPriceKes: number;
+  totalAmountKes: number;
+  paymentMethod: 'M-Pesa' | 'Cash' | 'Bank Transfer';
+  receiptNumber?: string;
+  notes?: string;
+}
+
+export interface BsfLoveCageBreedingLog {
+  id: string;
+  cageId: string;
+  date: string;
+  pupaeIntroducedKg: number;
+  eggClustersHarvestedGrams: number;
+  hatchRatePercentage: number;
+  attractantUsed: 'Fermented Fruit & Yeast' | 'Decomposing Bran' | 'Manure Extract';
+  lightingConditions: 'Natural Sunlight & UV Led' | 'Full Spectrum Halogen';
+  ambientTempC: number;
+  ambientHumidityPercent: number;
+  notes?: string;
 }
 
 export interface CropOpRecord {

@@ -77,6 +77,7 @@ const SprayLog = React.lazy(() => import('./components/SprayLog').then(m => ({ d
 const Financials = React.lazy(() => import('./components/Financials').then(m => ({ default: m.Financials })));
 const OtherSections = React.lazy(() => import('./components/OtherSections').then(m => ({ default: m.OtherSections })));
 const CaninesManager = React.lazy(() => import('./components/CaninesManager').then(m => ({ default: m.CaninesManager })));
+const BsfManager = React.lazy(() => import('./components/BsfManager').then(m => ({ default: m.BsfManager })));
 const BackupCenter = React.lazy(() => import('./components/BackupCenter').then(m => ({ default: m.BackupCenter })));
 const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
@@ -6770,7 +6771,7 @@ function FarmCoreApp() {
           )}
 
           {/* Sub-view switcher for agronomy / warehouse / general livestock */}
-          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'bsf' || activeTab === 'biogas') && (
+          {(activeTab === 'fields' || activeTab === 'livestock' || activeTab === 'inventory' || activeTab === 'goats' || activeTab === 'calves' || activeTab === 'heifers' || activeTab === 'poultry' || activeTab === 'biogas') && (
             <OtherSections
               viewType={
                 activeTab === 'fields' ? 'fields' :
@@ -6782,7 +6783,6 @@ function FarmCoreApp() {
                 activeTab === 'calves' ? 'calves' :
                 activeTab === 'heifers' ? 'heifers' :
                 activeTab === 'poultry' ? 'poultry' :
-                activeTab === 'bsf' ? 'bsf' :
                 activeTab === 'biogas' ? 'biogas' :
                 undefined
               }
@@ -6850,6 +6850,17 @@ function FarmCoreApp() {
               staffList={staffList}
               livestock={livestock}
               onAddLivestock={handleAddLivestock}
+              onTriggerSectionReport={handleTriggerSectionReport}
+            />
+          )}
+
+          {activeTab === 'bsf' && (
+            <BsfManager
+              bsfRecords={bsfRecords}
+              onAddBsfRecord={handleAddBsfRecord}
+              onDeleteBsfRecord={handleDeleteBsfRecord}
+              onEditBsfRecord={handleEditBsfRecord}
+              staffList={staffList}
               onTriggerSectionReport={handleTriggerSectionReport}
             />
           )}
