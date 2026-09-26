@@ -1,43 +1,48 @@
-import React, { useState } from 'react';
-import { MilkingRecord, MilkOutflowRecord, Cow, VetRecord } from '../../types';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  MilkingRecord, MilkOutflowRecord, Cow, VetRecord,
+  MorningBuyerPaymentRecord, OwnerRemittanceRecord
+} from '../../types';
 import { exportToCsv } from '../../utils/csvHelper';
 import { jsPDF } from 'jspdf';
 import { toIsoDate } from '../../utils/dateHelper';
 import { DairyDashboard } from './DairyDashboard';
-import { Plus, Download, FileSpreadsheet, FileDown, Edit, Trash2, TrendingUp, Truck, X, Database, PenSquare, AlertTriangle } from 'lucide-react';
+import {
+  Plus, Download, FileSpreadsheet, Edit, Trash2, TrendingUp, Truck,
+  X, Database, PenSquare, AlertTriangle, Calendar, DollarSign,
+  Users, UserCheck, Heart, ShieldCheck, CheckCircle2, Clock,
+  ArrowRight, Sparkles, Send, CreditCard, ChevronRight, Filter, AlertCircle
+} from 'lucide-react';
 
 interface LactationLedgerProps {
   staffList: any[];
-  milkOutflows: any[];
+  milkOutflows: MilkOutflowRecord[];
   aiRecords: any[];
-  onTriggerSectionReport: any;
+  onTriggerSectionReport?: any;
   cows: Cow[];
   milkRecords: MilkingRecord[];
-  milkOutflow: MilkOutflowRecord[];
+  milkOutflow?: MilkOutflowRecord[];
   onAddMilkRecord: (record: MilkingRecord) => void;
   onEditMilkRecord?: (id: string, date: string, record: MilkingRecord) => void;
   onDeleteMilkRecord: (id: string, date: string) => void;
   onAddOutflowRecord: (record: MilkOutflowRecord) => void;
-  onEditMilkOutflow: (id: string, record: MilkOutflowRecord) => void;
-  onDeleteMilkOutflow: (id: string) => void;
+  onEditMilkOutflow?: (id: string, record: MilkOutflowRecord) => void;
+  onDeleteMilkOutflow?: (id: string) => void;
   vetRecords?: VetRecord[];
 }
 
-
-function isHighProducer(am: number, pm: number, cowId?: string, cows: any[] = []) {
-  const threshold = cowId ? (cows.find((c: any) => c.id.toLowerCase() === cowId.toLowerCase())?.peakYieldTarget || 30) : 30;
-  return am + pm >= threshold;
-}
-
 export default function LactationLedger({
-  staffList,
-  milkOutflows,
-  aiRecords,
+  staffList = [],
+  milkOutflows = [],
+  aiRecords = [],
   onTriggerSectionReport,
-  cows,
-  milkRecords,
-  milkOutflow,
+  cows = [],
+  milkRecords = [],
   onAddMilkRecord,
   onEditMilkRecord,
   onDeleteMilkRecord,
@@ -47,18 +52,233 @@ export default function LactationLedger({
   vetRecords = []
 }: LactationLedgerProps) {
 
+  // Active Sub-Tab Navigation inside Milk & Lactation section
+  const [activeTab, setActiveTab] = useState<
+    'daily_flow' | 'morning_buyer' | 'local_debts' | 'owner_remittance' | 'master_audit'
+  >('daily_flow');
+
+  const todayStr = toIsoDate();
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1. DAILY HARVEST & ALLOCATION FORM STATE
+  // ──────────────────────────────────────────────────────────────────────────
+  const [date, setDate] = useState<string>(todayStr);
+
+  // Check if selected date is Saturday
+  const isSelectedSaturday = useMemo(() => {
+    try {
+      const d = new Date(date);
+      return d.getDay() === 6; // 6 is Saturday
+    } catch {
+      return false;
+    }
+  }, [date]);
+
+  // Production Inputs
+  const [selectedCowId, setSelectedCowId] = useState<string>('');
+  const [amLiters, setAmLiters] = useState<number | ''>('');
+  const [pmLiters, setPmLiters] = useState<number | ''>('');
+  const [milkerStaff, setMilkerStaff] = useState<string>(staffList[0]?.name || 'Dr. Devin Omwenga');
+
+  // Morning Milk Distribution Inputs
+  const [morningBuyerName, setMorningBuyerName] = useState<string>('Mama Mary (Morning Buyer)');
+  const [morningBuyerLiters, setMorningBuyerLiters] = useState<number | ''>('');
+  const [morningBuyerRate, setMorningBuyerRate] = useState<number>(55);
+  const [overrideSaturdayBuyer, setOverrideSaturdayBuyer] = useState<boolean>(false);
+
+  const [homeLiters, setHomeLiters] = useState<number | ''>('');
+  const [workerLiters, setWorkerLiters] = useState<number | ''>('');
+  const [calfLiters, setCalfLiters] = useState<number | ''>('');
+
+  // Evening Milk Distribution Inputs (and Saturday morning local sales)
+  const [eveningCashLiters, setEveningCashLiters] = useState<number | ''>('');
+  const [eveningCashRate, setEveningCashRate] = useState<number>(60);
+
+  const [eveningDebtLiters, setEveningDebtLiters] = useState<number | ''>('');
+  const [eveningDebtRate, setEveningDebtRate] = useState<number>(60);
+  const [debtCustomerName, setDebtCustomerName] = useState<string>('');
+
+  // Spoilage / Loss
+  const [spoiledLiters, setSpoiledLiters] = useState<number | ''>('');
+  const [spoilageReason, setSpoilageReason] = useState<string>('Mastitis / Flakes');
+
+  // Remittance to Owner from today's sales
+  const [remittedAmount, setRemittedAmount] = useState<number | ''>('');
+  const [remittanceChannel, setRemittanceChannel] = useState<'M-PESA' | 'Cash' | 'Bank'>('M-PESA');
+  const [remittanceMpesaCode, setRemittanceMpesaCode] = useState<string>('');
+  const [flowNotes, setFlowNotes] = useState<string>('');
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 2. PERSISTENT REGISTRIES (FRIDAY BUYER, MONTHLY DEBTORS, OWNER REMITTANCES)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Morning Buyer Friday Settlement Payments
+  const [buyerPayments, setBuyerPayments] = useState<MorningBuyerPaymentRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_morning_buyer_payments');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [
+      {
+        id: 'mbp-01',
+        weekStartDate: '2026-09-15',
+        weekEndDate: '2026-09-20',
+        fridayPaymentDate: '2026-09-19',
+        buyerName: 'Mama Mary (Morning Buyer)',
+        totalLiters: 198,
+        ratePerLiter: 55,
+        totalAmountDue: 10890,
+        amountPaid: 10890,
+        status: 'Paid',
+        paymentMethod: 'M-PESA',
+        referenceCode: 'QKL7892JK1',
+        paidOnDate: '2026-09-19',
+        notes: 'Paid in full via M-PESA on Friday 10:15 AM'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_morning_buyer_payments', JSON.stringify(buyerPayments));
+    } catch {}
+  }, [buyerPayments]);
+
+  // Monthly Debt Settlements
+  const [debtSettlements, setDebtSettlements] = useState<{
+    id: string;
+    customerName: string;
+    date: string;
+    amountPaid: number;
+    channel: 'M-PESA' | 'Cash';
+    receiptRef: string;
+  }[]>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_monthly_debt_settlements');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [
+      {
+        id: 'mds-01',
+        customerName: 'Mama Brian (Teacher)',
+        date: '2026-09-02',
+        amountPaid: 3600,
+        channel: 'M-PESA',
+        receiptRef: 'QKJ9928172'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_monthly_debt_settlements', JSON.stringify(debtSettlements));
+    } catch {}
+  }, [debtSettlements]);
+
+  // Master Owner Remittances Register
+  const [ownerRemittances, setOwnerRemittances] = useState<OwnerRemittanceRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_owner_remittances');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [
+      {
+        id: 'rem-01',
+        date: '2026-09-19',
+        amountKsh: 10890,
+        paymentSource: 'Morning Buyer (Friday Pay)',
+        channel: 'M-PESA',
+        referenceCode: 'QKL7892JK1',
+        recipientName: 'Farm Owner',
+        notes: 'Direct remittance of Mama Mary Friday morning settlement'
+      },
+      {
+        id: 'rem-02',
+        date: '2026-09-22',
+        amountKsh: 4200,
+        paymentSource: 'Evening Local Cash',
+        channel: 'M-PESA',
+        referenceCode: 'QKM338192X',
+        recipientName: 'Farm Owner',
+        notes: 'Evening cash accumulated over 3 days forwarded to owner'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jr_farm_owner_remittances', JSON.stringify(ownerRemittances));
+    } catch {}
+  }, [ownerRemittances]);
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3. EDITING MODALS STATE
+  // ──────────────────────────────────────────────────────────────────────────
   const [editingMilk, setEditingMilk] = useState<MilkingRecord | null>(null);
   const [editingOutflow, setEditingOutflow] = useState<MilkOutflowRecord | null>(null);
-  const [editNewDebtorName, setEditNewDebtorName] = useState('');
-  const [editNewDebtorAmount, setEditNewDebtorAmount] = useState<number | ''>('');
-  const [cowTag, setCowTag] = useState('');
 
-  // Check if selected cow has an active antibiotic milk withdrawal period
-  const activeCowWithdrawal = React.useMemo(() => {
-    if (!cowTag || !vetRecords || vetRecords.length === 0) return null;
-    const cowLower = cowTag.toLowerCase();
-    const today = new Date().toISOString().split('T')[0];
+  // Settlement Modals
+  const [showFridayModal, setShowFridayModal] = useState<boolean>(false);
+  const [fridayPayAmount, setFridayPayAmount] = useState<number | ''>('');
+  const [fridayPayCode, setFridayPayCode] = useState<string>('');
+  const [fridayPayNotes, setFridayPayNotes] = useState<string>('');
 
+  const [showDebtClearModal, setShowDebtClearModal] = useState<boolean>(false);
+  const [clearDebtorName, setClearDebtorName] = useState<string>('');
+  const [clearDebtorAmount, setClearDebtorAmount] = useState<number | ''>('');
+  const [clearDebtorChannel, setClearDebtorChannel] = useState<'M-PESA' | 'Cash'>('M-PESA');
+  const [clearDebtorRef, setClearDebtorRef] = useState<string>('');
+
+  const [showRemitModal, setShowRemitModal] = useState<boolean>(false);
+  const [remitAmountInput, setRemitAmountInput] = useState<number | ''>('');
+  const [remitSourceInput, setRemitSourceInput] = useState<OwnerRemittanceRecord['paymentSource']>('Combined Dairy Sales');
+  const [remitChannelInput, setRemitChannelInput] = useState<'M-PESA' | 'Cash' | 'Bank Transfer'>('M-PESA');
+  const [remitRefInput, setRemitRefInput] = useState<string>('');
+  const [remitNotesInput, setRemitNotesInput] = useState<string>('');
+
+  // Export Period State
+  const [filterPeriod, setFilterPeriod] = useState<'today' | 'week' | 'month' | 'all'>('month');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4. COMPUTED PRODUCTION & DISPATCH BALANCING LOGIC
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Today's milk harvest for selected date
+  const dayMilkRecords = useMemo(() => {
+    return milkRecords.filter(m => m.date === date);
+  }, [milkRecords, date]);
+
+  const totalDayHarvestLiters = useMemo(() => {
+    return dayMilkRecords.reduce((sum, m) => sum + (m.am || 0) + (m.pm || 0), 0);
+  }, [dayMilkRecords]);
+
+  const amHarvestTotal = useMemo(() => {
+    return dayMilkRecords.reduce((sum, m) => sum + (m.am || 0), 0);
+  }, [dayMilkRecords]);
+
+  const pmHarvestTotal = useMemo(() => {
+    return dayMilkRecords.reduce((sum, m) => sum + (m.pm || 0), 0);
+  }, [dayMilkRecords]);
+
+  // Current Form Distributed Volumes
+  const allocatedMorningBuyer = isSelectedSaturday && !overrideSaturdayBuyer ? 0 : Number(morningBuyerLiters || 0);
+  const allocatedHome = Number(homeLiters || 0);
+  const allocatedWorkers = Number(workerLiters || 0);
+  const allocatedCalf = Number(calfLiters || 0);
+  const allocatedEveningCash = Number(eveningCashLiters || 0);
+  const allocatedEveningDebt = Number(eveningDebtLiters || 0);
+  const allocatedSpoiled = Number(spoiledLiters || 0);
+
+  const totalAllocatedLiters = allocatedMorningBuyer + allocatedHome + allocatedWorkers +
+    allocatedCalf + allocatedEveningCash + allocatedEveningDebt + allocatedSpoiled;
+
+  const harvestBalanceDifference = totalDayHarvestLiters - totalAllocatedLiters;
+
+  // Active Veterinary Withdrawal Warning for Cow Selection
+  const activeCowWithdrawal = useMemo(() => {
+    if (!selectedCowId || !vetRecords || vetRecords.length === 0) return null;
+    const cowLower = selectedCowId.toLowerCase();
     for (const v of vetRecords) {
       if (!v.withdrawalMilkDays || v.withdrawalMilkDays <= 0) continue;
       const vCow = (v.cowId || '').toLowerCase();
@@ -66,1202 +286,1842 @@ export default function LactationLedger({
         const treatDate = new Date(v.date);
         const safeDate = new Date(treatDate);
         safeDate.setDate(safeDate.getDate() + v.withdrawalMilkDays);
-        if (safeDate >= new Date(today)) {
-          const daysLeft = Math.ceil((safeDate.getTime() - new Date(today).getTime()) / (1000 * 60 * 60 * 24));
+        if (safeDate >= new Date(todayStr)) {
+          const daysLeft = Math.ceil((safeDate.getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24));
           return {
             ...v,
-            safeDateStr: safeDate.toISOString().split('T')[0],
+            safeDateStr: toIsoDate(safeDate),
             daysLeft: Math.max(0, daysLeft)
           };
         }
       }
     }
     return null;
-  }, [cowTag, vetRecords]);
- const [amLiters, setAmLiters] = useState<number | ''>('');
- const [pmLiters, setPmLiters] = useState<number | ''>('');
- const [staffName, setStaffName] = useState(staffList[0]?.name || 'Mosoti');
- const [isMilkSold, setIsMilkSold] = useState(true);
- const [milkPrice, setMilkPrice] = useState<number | ''>(52);
- const [milkBuyer, setMilkBuyer] = useState('Brookside Dairy Ltd');
- const [outflowCalf, setOutflowCalf] = useState<number | ''>('');
- const [outflowDebtsList, setOutflowDebtsList] = useState<{ debtor: string; amount: number }[]>([]);
- const [outflowDebtorName, setOutflowDebtorName] = useState('');
- const [outflowDebtorAmount, setOutflowDebtorAmount] = useState<number | ''>('');
- const [showDownloadModal, setShowDownloadModal] = useState(false);
- const [downloadType, setDownloadType] = useState<'csv' | 'pdf'>('pdf');
- const [downloadPeriod, setDownloadPeriod] = useState<'today' | 'week' | 'month' | 'all'>('month');
- const [milkingDate, setMilkingDate] = useState(toIsoDate());
- const [filterCow, setFilterCow] = useState('');
- const [outflowDate, setOutflowDate] = useState(toIsoDate());
- const [outflowHome, setOutflowHome] = useState<number | ''>('');
- const [outflowWorkers, setOutflowWorkers] = useState<number | ''>('');
- const [outflowSpoiled, setOutflowSpoiled] = useState<number | ''>('');
- const [outflowDebts, setOutflowDebts] = useState<number | ''>('');
- const [outflowCustomer, setOutflowCustomer] = useState('');
- const [outflowNotes, setOutflowNotes] = useState('');
- const [outflowPrice, setOutflowPrice] = useState<number | ''>(52);
+  }, [selectedCowId, vetRecords, todayStr]);
 
- const handleAddDebtorToList = () => {
- if (!outflowDebtorName.trim() || outflowDebtorAmount === '') return;
- setOutflowDebtsList([
- ...outflowDebtsList,
- { debtor: outflowDebtorName.trim(), amount: Number(outflowDebtorAmount) }
- ]);
- setOutflowDebtorName('');
- setOutflowDebtorAmount('');
- };
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5. AGGREGATED HISTORICAL METRICS (WEEKLY, MONTHLY, ANNUAL)
+  // ──────────────────────────────────────────────────────────────────────────
+  const startOfWeek = useMemo(() => {
+    const d = new Date(todayStr);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return toIsoDate(new Date(d.setDate(diff)));
+  }, [todayStr]);
 
- const handleRemoveDebtorFromList = (index: number) => {
- setOutflowDebtsList(outflowDebtsList.filter((_, idx) => idx !== index));
- };
+  const startOfMonth = todayStr.substring(0, 8) + '01';
 
- const handleMilkingSubmit = (e: React.FormEvent) => {
- e.preventDefault();
- if (!cowTag.trim() || amLiters === '' || pmLiters === '') return;
- const amVal = Number(amLiters);
- const pmVal = Number(pmLiters);
- const totalVol = amVal + pmVal;
+  const filterFn = (recDate: string) => {
+    if (filterPeriod === 'today') return recDate === todayStr;
+    if (filterPeriod === 'week') return recDate >= startOfWeek && recDate <= todayStr;
+    if (filterPeriod === 'month') return recDate >= startOfMonth && recDate <= todayStr;
+    return true;
+  };
 
- const prVal = isMilkSold ? (milkPrice === '' ? 52 : Number(milkPrice)) : 0;
- const buyVal = isMilkSold ? (milkBuyer.trim() || 'Brookside Dairy Ltd') : '';
+  const filteredMilks = useMemo(() => milkRecords.filter(m => filterFn(m.date)), [milkRecords, filterPeriod]);
+  const filteredOutflows = useMemo(() => milkOutflows.filter(o => filterFn(o.date)), [milkOutflows, filterPeriod]);
 
- onAddMilkRecord({
- id: cowTag.trim(),
- am: amVal,
- pm: pmVal,
- staff: staffName,
- date: milkingDate,
- pricePerLiter: prVal,
- buyer: buyVal,
- totalSales: isMilkSold ? (totalVol * prVal) : 0
- });
+  // Grand Totals for Filtered Period
+  const totalLitersProduced = useMemo(() => {
+    return filteredMilks.reduce((sum, m) => sum + (m.am || 0) + (m.pm || 0), 0);
+  }, [filteredMilks]);
 
- setCowTag('');
- setAmLiters('');
- setPmLiters('');
- setMilkingDate(toIsoDate());
- };
+  const totalMorningBuyerLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.morningBuyerLiters || 0), 0);
+  }, [filteredOutflows]);
 
- const downloadMilkCSV = () => {
- // Filter data by selected period
- const today = toIsoDate();
- const getStartOfWeek = (d: string) => {
- const date = new Date(d);
- const day = date.getDay();
- const diff = date.getDate() - day + (day === 0 ? -6 : 1);
- return toIsoDate(new Date(date.setDate(diff)));
- };
- const startOfWeek = getStartOfWeek(today);
- const startOfMonth = today.substring(0, 8) + '01';
+  const totalEveningCashLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.eveningLocalCashLiters || 0), 0);
+  }, [filteredOutflows]);
 
- const filterFn = (r: { date: string }) => {
- if (downloadPeriod === 'today') return r.date === today;
- if (downloadPeriod === 'week') return r.date >= startOfWeek && r.date <= today;
- if (downloadPeriod === 'month') return r.date >= startOfMonth && r.date <= today;
- return true;
- };
+  const totalEveningDebtLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.eveningLocalDebtLiters || 0), 0);
+  }, [filteredOutflows]);
 
- const targetMilk = milkRecords.filter(filterFn);
- const targetOutflow = milkOutflows.filter(filterFn);
+  const totalHomeLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.milkUsedAtHome || 0), 0);
+  }, [filteredOutflows]);
 
- if (targetMilk.length === 0 && targetOutflow.length === 0) {
- alert('No milk or outflow records exist for the selected period. Adjust the period or log records before exporting.');
- return;
- }
+  const totalWorkerLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.milkUsedByWorkers || 0), 0);
+  }, [filteredOutflows]);
 
- let csv = 'data:text/csv;charset=utf-8,';
- csv += 'CONSOLIDATED DAIRY PRODUCTION & DISPATCH LEDGER\n';
- csv += `Generated: ${new Date().toLocaleString()} | Period: ${downloadPeriod.toUpperCase()}\n\n`;
- 
- csv += '--- DAILY SUMMARIES ---\n';
- csv += 'Date,Total Harvest (L),Home Consumed (L),Workers Consumed (L),Calf Consumed (L),Spoiled (L),Unpaid Debts (Ksh),Total Sales Revenue (Ksh)\n';
- 
- const allDatesSet = new Set<string>();
- targetMilk.forEach(r => allDatesSet.add(r.date));
- targetOutflow.forEach(o => allDatesSet.add(o.date));
- const sortedDates = Array.from(allDatesSet).sort((a, b) => b.localeCompare(a));
+  const totalCalfLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0);
+  }, [filteredOutflows]);
 
- sortedDates.forEach((dateKey) => {
- const dayMilks = targetMilk.filter(r => r.date === dateKey);
- const dayOutflow = targetOutflow.find(o => o.date === dateKey);
- 
- const yieldVol = dayMilks.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
- const homeL = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
- const workersL = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
- const calfL = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
- const spoiledL = dayOutflow ? dayOutflow.milkSpoiled : 0;
- const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
- const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
- 
- csv += `${dateKey},${yieldVol},${homeL},${workersL},${calfL},${spoiledL},${debtsKsh},${daySales}\n`;
- });
+  const totalSpoiledLiters = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => sum + (o.milkSpoiled || 0), 0);
+  }, [filteredOutflows]);
 
- csv += '\n--- INDIVIDUAL COW MILKING RECORDS ---\n';
- csv += 'Date,Cow Tag ID,AM Liters,PM Liters,Total Liters,Staff Officer\n';
- targetMilk.sort((a, b) => b.date.localeCompare(a.date)).forEach((m) => {
- csv += `${m.date},"${m.id}",${m.am ?? 0},${m.pm ?? 0},${((m.am ?? 0) + (m.pm ?? 0)).toFixed(2)},"${m.staff}"\n`;
- });
+  const totalCashCollected = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => {
+      const eveningCash = (o.eveningLocalCashLiters || 0) * (o.eveningCashPricePerLiter || 60);
+      return sum + eveningCash;
+    }, 0);
+  }, [filteredOutflows]);
 
- const encodedUri = encodeURI(csv);
- const link = document.createElement('a');
- link.setAttribute('href', encodedUri);
- link.setAttribute('download', `Sovereign_Dairy_Consolidated_${downloadPeriod}_${toIsoDate()}.csv`);
- document.body.appendChild(link);
- link.click();
- document.body.removeChild(link);
- setShowDownloadModal(false);
- };
+  const totalDebtAccumulated = useMemo(() => {
+    return filteredOutflows.reduce((sum, o) => {
+      if (o.debtsKsh) return sum + o.debtsKsh;
+      return sum + (o.eveningLocalDebtLiters || 0) * (o.eveningDebtPricePerLiter || 60);
+    }, 0);
+  }, [filteredOutflows]);
 
- const handleDownloadPdf = () => {
- const doc = new jsPDF();
- const pageWidth = doc.internal.pageSize.getWidth(); // A4: 210mm
- const pageHeight = doc.internal.pageSize.getHeight(); // A4: 297mm
- const margin = 12;
- const contentWidth = pageWidth - (margin * 2); // 186mm
- 
- let pageNumber = 1;
- 
- const drawHeader = (pageNum: number) => {
- // Sleek background brand bar
- doc.setFillColor(15, 23, 42); // slate-900
- doc.rect(margin, 12, contentWidth, 24, 'F');
- 
- // Title
- doc.setTextColor(255, 255, 255);
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(13);
- doc.text('CONSOLIDATED MILK LOG & DISPATCH LEDGER', margin + 6, 21);
- 
- // Subtitle
- doc.setFont('helvetica', 'normal');
- doc.setFontSize(8);
- doc.setTextColor(203, 213, 225); // slate-300
- const generatedDate = new Date().toLocaleString('en-US', { 
- weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
- hour: '2-digit', minute: '2-digit'
- });
- doc.text(`Generated: ${generatedDate} | Combined Yield & Outflow Registry | Page ${pageNum}`, margin + 6, 28);
- };
- 
- const drawFooter = (pageNum: number) => {
- // Simple hairline divider at footer
- doc.setDrawColor(226, 232, 240); // slate-200
- doc.setLineWidth(0.3);
- doc.line(margin, pageHeight - 14, margin + contentWidth, pageHeight - 14);
+  const totalOwnerRemitted = useMemo(() => {
+    return ownerRemittances
+      .filter(r => filterFn(r.date))
+      .reduce((sum, r) => sum + (r.amountKsh || 0), 0);
+  }, [ownerRemittances, filterPeriod]);
 
- doc.setFont('helvetica', 'italic');
- doc.setFontSize(7.5);
- doc.setTextColor(148, 163, 184); // slate-400
- doc.text('Sovereign Dairy Milk Log & Dispatch Ledger System', margin, pageHeight - 9);
- doc.text(`Page ${pageNum}`, pageWidth - margin - 15, pageHeight - 9);
- };
- 
- // Draw initial template
- drawHeader(pageNumber);
- drawFooter(pageNumber);
- 
- let y = 43; // spacing from header
- 
- // Aggregate Summary calculation
- const totalHarvest = milkRecords.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
- const totalHome = milkOutflows.reduce((sum, o) => sum + o.milkUsedAtHome, 0);
- const totalWorkers = milkOutflows.reduce((sum, o) => sum + o.milkUsedByWorkers, 0);
- const totalCalves = milkOutflows.reduce((sum, o) => sum + (o.milkUsedByCalf || 0), 0);
- const totalSpoilt = milkOutflows.reduce((sum, o) => sum + o.milkSpoiled, 0);
- const totalDebts = milkOutflows.reduce((sum, o) => sum + o.debtsKsh, 0);
- const totalSales = milkRecords.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
+  // ──────────────────────────────────────────────────────────────────────────
+  // 6. FRIDAY BUYER WEEKLY RECONCILIATION
+  // ──────────────────────────────────────────────────────────────────────────
+  const currentWeekDays = useMemo(() => {
+    const days: { dateStr: string; dayName: string; isSat: boolean; isFri: boolean; liters: number; value: number }[] = [];
+    const baseDate = new Date(startOfWeek);
 
- // Summary Metrics Banner
- doc.setFillColor(248, 250, 252); // slate-50
- doc.rect(margin, y, contentWidth, 28, 'F');
- doc.setDrawColor(226, 232, 240); // slate-200
- doc.setLineWidth(0.5);
- doc.rect(margin, y, contentWidth, 28, 'S');
- 
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(8.5);
- doc.setTextColor(51, 65, 85); // slate-700
- doc.text('CONSOLIDATED HERD PRODUCTION & DISPATCH YIELD SUMMARY', margin + 6, y + 6);
- 
- doc.setFont('helvetica', 'normal');
- doc.setFontSize(7.5);
- doc.setTextColor(100, 116, 139); // slate-500
- doc.text('Total Harvested', margin + 6, y + 13);
- doc.text('Home Consumed', margin + 36, y + 13);
- doc.text('Staff Portions', margin + 66, y + 13);
- doc.text('Calf Consumed', margin + 96, y + 13);
- doc.text('Total Spoilt', margin + 124, y + 13);
- doc.text('Total Debts', margin + 148, y + 13);
- doc.text('Total Sales', margin + 168, y + 13);
- 
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(9.5);
- doc.setTextColor(30, 41, 59); // slate-800
- doc.text(`${totalHarvest.toFixed(1)} L`, margin + 6, y + 21);
- doc.text(`${totalHome.toFixed(1)} L`, margin + 36, y + 21);
- doc.text(`${totalWorkers.toFixed(1)} L`, margin + 66, y + 21);
- doc.text(`${totalCalves.toFixed(1)} L`, margin + 96, y + 21);
- doc.setTextColor(239, 68, 68); // red for spoiled
- doc.text(`${totalSpoilt.toFixed(1)} L`, margin + 124, y + 21);
- doc.setTextColor(245, 158, 11); // amber for debts
- doc.text(`Ksh ${totalDebts.toLocaleString()}`, margin + 148, y + 21);
- doc.setTextColor(16, 185, 129); // emerald-500 for total sales
- doc.text(`Ksh ${totalSales.toLocaleString()}`, margin + 168, y + 21);
- 
- y += 37; // Advance down
- 
- // Details header
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(10);
- doc.setTextColor(15, 23, 42);
- doc.text('CONSOLIDATED DAILY PRODUCTION YIELDS & DISPATCH ENTRIES', margin, y);
- 
- y += 5;
- 
- // Draw Table Header Box
- doc.setFillColor(15, 23, 42); // slate-900
- doc.rect(margin, y, contentWidth, 8.5, 'F');
- 
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(7.5);
- doc.setTextColor(255, 255, 255);
- doc.text('Date', margin + 3, y + 5.5);
- doc.text('Harvested', margin + 28, y + 5.5);
- doc.text('Home (L)', margin + 49, y + 5.5);
- doc.text('Staff (L)', margin + 67, y + 5.5);
- doc.text('Calf (L)', margin + 85, y + 5.5);
- doc.text('Spoiled (L)', margin + 103, y + 5.5);
- doc.text('Unpaid Debts (Ksh) & Debtor', margin + 121, y + 5.5);
- doc.text('Est. Sales', margin + 160, y + 5.5);
- 
- y += 8.5;
- 
- // Sort items newest first
- const allDatesSet = new Set<string>();
- milkRecords.forEach(r => allDatesSet.add(r.date));
- milkOutflows.forEach(o => allDatesSet.add(o.date));
- const sortedDates = Array.from(allDatesSet).sort((a, b) => b.localeCompare(a));
- 
- sortedDates.forEach((dateKey, index) => {
- // Dynamic page breaks
- if (y > pageHeight - 22) {
- doc.addPage();
- pageNumber++;
- drawHeader(pageNumber);
- drawFooter(pageNumber);
- 
- y = 43;
- 
- // Redraw Table Header on new page
- doc.setFillColor(15, 23, 42);
- doc.rect(margin, y, contentWidth, 8.5, 'F');
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(7.5);
- doc.setTextColor(255, 255, 255);
- doc.text('Date', margin + 3, y + 5.5);
- doc.text('Harvested', margin + 28, y + 5.5);
- doc.text('Home (L)', margin + 49, y + 5.5);
- doc.text('Staff (L)', margin + 67, y + 5.5);
- doc.text('Calf (L)', margin + 85, y + 5.5);
- doc.text('Spoiled (L)', margin + 103, y + 5.5);
- doc.text('Unpaid Debts (Ksh) & Debtor', margin + 121, y + 5.5);
- doc.text('Est. Sales', margin + 160, y + 5.5);
- y += 8.5;
- }
- 
- const dayMilks = milkRecords.filter(r => r.date === dateKey);
- const dayOutflow = milkOutflows.find(o => o.date === dateKey);
- 
- const yieldVol = dayMilks.reduce((sum, r) => sum + ((r.am ?? 0) + (r.pm ?? 0)), 0);
- const homeL = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
- const workersL = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
- const calfL = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
- const spoiledL = dayOutflow ? dayOutflow.milkSpoiled : 0;
- const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
- const debtCustomer = dayOutflow ? dayOutflow.debtCustomer : '';
- const daySales = dayMilks.reduce((sum, r) => sum + (r.totalSales ?? (((r.am ?? 0) + (r.pm ?? 0)) * (r.pricePerLiter ?? 52))), 0);
- 
- // Row alternating color background
- if (index % 2 === 1) {
- doc.setFillColor(248, 250, 252); // slate-50
- doc.rect(margin, y, contentWidth, 7.5, 'F');
- }
- 
- // Row bottom subtle hairline border
- doc.setDrawColor(241, 245, 249); // slate-100
- doc.setLineWidth(0.2);
- doc.line(margin, y + 7.5, margin + contentWidth, y + 7.5);
- 
- // Row text drawing
- doc.setFont('helvetica', 'bold');
- doc.setFontSize(7.5);
- doc.setTextColor(51, 65, 85); // slate-700
- 
- const dateString = new Date(dateKey).toLocaleDateString('en-US', { 
- year: 'numeric', month: 'short', day: 'numeric' 
- });
- doc.text(dateString, margin + 3, y + 4.8);
- 
- doc.setFont('helvetica', 'normal');
- doc.text(yieldVol > 0 ? `${yieldVol.toFixed(1)} L` : '—', margin + 28, y + 4.8);
- doc.text(homeL > 0 ? `${homeL.toFixed(1)} L` : '—', margin + 49, y + 4.8);
- doc.text(workersL > 0 ? `${workersL.toFixed(1)} L` : '—', margin + 67, y + 4.8);
- doc.text(calfL > 0 ? `${calfL.toFixed(1)} L` : '—', margin + 85, y + 4.8);
- 
- if (spoiledL > 0) {
- doc.setTextColor(239, 68, 68);
- doc.text(`${spoiledL.toFixed(1)} L`, margin + 103, y + 4.8);
- doc.setTextColor(51, 65, 85);
- } else {
- doc.text('—', margin + 103, y + 4.8);
- }
- 
- if (debtsKsh > 0) {
- doc.setFont('helvetica', 'bold');
- doc.setTextColor(220, 38, 38); // Crimson red
- const debtText = `Ksh ${debtsKsh.toLocaleString()}` + (debtCustomer ? ` (${debtCustomer})` : '');
- const truncatedDebt = debtText.length > 25 ? debtText.substring(0, 23) + '..' : debtText;
- doc.text(truncatedDebt, margin + 121, y + 4.8);
- doc.setTextColor(51, 65, 85);
- doc.setFont('helvetica', 'normal');
- } else {
- doc.text('—', margin + 121, y + 4.8);
- }
- 
- doc.setFont('helvetica', 'bold');
- doc.setTextColor(16, 185, 129); // emerald
- doc.text(daySales > 0 ? `Ksh ${daySales.toLocaleString()}` : '—', margin + 160, y + 4.8);
- doc.setTextColor(51, 65, 85);
- doc.setFont('helvetica', 'normal');
- 
- y += 7.5;
- });
- 
- // Save generated PDF file with date stamp
- const fileDateStr = toIsoDate();
- doc.save(`milk_production_and_dispatch_ledger_${fileDateStr}.pdf`);
- };
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(baseDate);
+      d.setDate(baseDate.getDate() + i);
+      const dateStr = toIsoDate(d);
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const isSat = d.getDay() === 6;
+      const isFri = d.getDay() === 5;
 
- const handleOutflowSubmit = (e: React.FormEvent) => {
- e.preventDefault();
- if (!outflowDate) return;
+      const outflow = milkOutflows.find(o => o.date === dateStr);
+      const liters = isSat ? 0 : (outflow?.morningBuyerLiters || 0);
+      const rate = outflow?.morningBuyerPricePerLiter || 55;
+      const value = liters * rate;
 
- // Compile multiple debtors
- const finalDebts = [...outflowDebtsList];
- if (outflowCustomer.trim() && outflowDebts !== '') {
- finalDebts.push({
- debtor: outflowCustomer.trim(),
- amount: Number(outflowDebts)
- });
- }
+      days.push({ dateStr, dayName, isSat, isFri, liters, value });
+    }
+    return days;
+  }, [startOfWeek, milkOutflows]);
 
- const totalDebtsVal = finalDebts.reduce((sum, d) => sum + d.amount, 0);
- const combinedDebtorNames = finalDebts.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ');
+  const currentWeekBuyerLiters = currentWeekDays.reduce((sum, d) => sum + d.liters, 0);
+  const currentWeekBuyerTotalDue = currentWeekDays.reduce((sum, d) => sum + d.value, 0);
 
- onAddOutflowRecord({
- id: `mo-${Date.now()}`,
- date: outflowDate,
- milkUsedAtHome: outflowHome === '' ? 0 : Number(outflowHome),
- milkUsedByWorkers: outflowWorkers === '' ? 0 : Number(outflowWorkers),
- milkUsedByCalf: outflowCalf === '' ? 0 : Number(outflowCalf),
- milkSpoiled: outflowSpoiled === '' ? 0 : Number(outflowSpoiled),
- debtsKsh: finalDebts.length > 0 ? totalDebtsVal : 0,
- debtCustomer: finalDebts.length > 0 ? combinedDebtorNames : undefined,
- debtsList: finalDebts.length > 0 ? finalDebts : undefined,
- salesPricePerLiter: outflowPrice === '' ? 52 : Number(outflowPrice),
- notes: outflowNotes.trim() || undefined
- });
+  // Check if current week's Friday was paid
+  const currentFridayDate = currentWeekDays.find(d => d.isFri)?.dateStr || '';
+  const currentFridaySettlement = buyerPayments.find(p => p.fridayPaymentDate === currentFridayDate);
 
- setOutflowHome('');
- setOutflowWorkers('');
- setOutflowCalf('');
- setOutflowSpoiled('');
- setOutflowDebts('');
- setOutflowCustomer('');
- setOutflowDebtsList([]);
- setOutflowNotes('');
- setOutflowPrice(52);
- };
+  // ──────────────────────────────────────────────────────────────────────────
+  // 7. MONTHLY DEBTORS DIRECTORY COMPILATION
+  // ──────────────────────────────────────────────────────────────────────────
+  const debtorsDirectory = useMemo(() => {
+    const map = new Map<string, { totalLiters: number; totalOwed: number; lastDate: string }>();
+
+    milkOutflows.forEach(o => {
+      // Check debtsList or single debtCustomer
+      if (o.debtsList && o.debtsList.length > 0) {
+        o.debtsList.forEach(d => {
+          const name = d.debtor.trim();
+          if (!name) return;
+          const curr = map.get(name) || { totalLiters: 0, totalOwed: 0, lastDate: o.date };
+          curr.totalLiters += d.liters || ((d.amount || 0) / (o.eveningDebtPricePerLiter || 60));
+          curr.totalOwed += d.amount || 0;
+          if (o.date > curr.lastDate) curr.lastDate = o.date;
+          map.set(name, curr);
+        });
+      } else if (o.debtCustomer && o.debtsKsh) {
+        const name = o.debtCustomer.trim();
+        const curr = map.get(name) || { totalLiters: 0, totalOwed: 0, lastDate: o.date };
+        curr.totalLiters += o.eveningLocalDebtLiters || (o.debtsKsh / (o.eveningDebtPricePerLiter || 60));
+        curr.totalOwed += o.debtsKsh;
+        if (o.date > curr.lastDate) curr.lastDate = o.date;
+        map.set(name, curr);
+      }
+    });
+
+    // Subtract payments recorded in debtSettlements
+    debtSettlements.forEach(s => {
+      const curr = map.get(s.customerName.trim());
+      if (curr) {
+        curr.totalOwed = Math.max(0, curr.totalOwed - s.amountPaid);
+      }
+    });
+
+    return Array.from(map.entries()).map(([name, data]) => ({
+      customerName: name,
+      totalLiters: data.totalLiters,
+      balanceDue: data.totalOwed,
+      lastDate: data.lastDate
+    })).sort((a, b) => b.balanceDue - a.balanceDue);
+  }, [milkOutflows, debtSettlements]);
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 8. HANDLERS
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Save Individual Cow Milking Yield
+  const handleMilkingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCowId.trim() || amLiters === '' || pmLiters === '') return;
+
+    const amVal = Number(amLiters);
+    const pmVal = Number(pmLiters);
+    const totalYield = amVal + pmVal;
+
+    onAddMilkRecord({
+      id: selectedCowId.trim(),
+      am: amVal,
+      pm: pmVal,
+      staff: milkerStaff,
+      date: date,
+      pricePerLiter: isSelectedSaturday ? eveningCashRate : morningBuyerRate,
+      buyer: isSelectedSaturday ? 'Local Community Cash' : morningBuyerName,
+      totalSales: totalYield * (isSelectedSaturday ? eveningCashRate : morningBuyerRate)
+    });
+
+    // Clear inputs but keep date
+    setSelectedCowId('');
+    setAmLiters('');
+    setPmLiters('');
+  };
+
+  // Save Comprehensive Daily Milk Allocation & Dispatch
+  const handleOutflowSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const mBuyerLiters = isSelectedSaturday && !overrideSaturdayBuyer ? 0 : Number(morningBuyerLiters || 0);
+    const evCashLiters = Number(eveningCashLiters || 0);
+    const evDebtLiters = Number(eveningDebtLiters || 0);
+    const hLiters = Number(homeLiters || 0);
+    const wLiters = Number(workerLiters || 0);
+    const cLiters = Number(calfLiters || 0);
+    const spLiters = Number(spoiledLiters || 0);
+
+    const debtsListArray = [];
+    if (debtCustomerName.trim() && evDebtLiters > 0) {
+      debtsListArray.push({
+        debtor: debtCustomerName.trim(),
+        amount: evDebtLiters * eveningDebtRate,
+        liters: evDebtLiters,
+        settled: false
+      });
+    }
+
+    const newOutflow: MilkOutflowRecord = {
+      id: `mo-${Date.now()}`,
+      date,
+      totalMilkedOverride: totalDayHarvestLiters > 0 ? totalDayHarvestLiters : undefined,
+
+      // Morning flow
+      morningBuyerLiters: mBuyerLiters,
+      morningBuyerName: isSelectedSaturday && !overrideSaturdayBuyer ? 'Saturday Off (Local Sales)' : morningBuyerName,
+      morningBuyerPricePerLiter: morningBuyerRate,
+      isSaturdayMorningNoBuyer: isSelectedSaturday && !overrideSaturdayBuyer,
+
+      // Internal consumption
+      milkUsedAtHome: hLiters,
+      milkUsedByWorkers: wLiters,
+      milkUsedByCalf: cLiters,
+
+      // Evening / Local sales
+      eveningLocalCashLiters: evCashLiters,
+      eveningCashPricePerLiter: eveningCashRate,
+      eveningLocalDebtLiters: evDebtLiters,
+      eveningDebtPricePerLiter: eveningDebtRate,
+
+      // Spoilage
+      milkSpoiled: spLiters,
+      spoilageReason: spLiters > 0 ? spoilageReason : undefined,
+
+      // Debts
+      debtsKsh: evDebtLiters * eveningDebtRate,
+      debtCustomer: debtCustomerName.trim() || undefined,
+      debtsList: debtsListArray.length > 0 ? debtsListArray : undefined,
+
+      // Remittances to Owner
+      remittedToOwnerKsh: remittedAmount !== '' ? Number(remittedAmount) : undefined,
+      remittanceMethod: remittanceChannel,
+      remittanceRef: remittanceMpesaCode.trim() || undefined,
+      remittanceDate: remittedAmount !== '' ? date : undefined,
+
+      salesPricePerLiter: isSelectedSaturday ? eveningCashRate : morningBuyerRate,
+      notes: flowNotes.trim() || undefined
+    };
+
+    onAddOutflowRecord(newOutflow);
+
+    // If money was remitted to owner, record directly into the persistent owner remittances ledger
+    if (remittedAmount !== '' && Number(remittedAmount) > 0) {
+      const newRemittance: OwnerRemittanceRecord = {
+        id: `rem-${Date.now()}`,
+        date,
+        amountKsh: Number(remittedAmount),
+        paymentSource: 'Combined Dairy Sales',
+        channel: remittanceChannel,
+        referenceCode: remittanceMpesaCode.trim() || undefined,
+        recipientName: 'Farm Owner',
+        notes: `Daily dairy flow remittance. Notes: ${flowNotes || 'All clear'}`
+      };
+      setOwnerRemittances(prev => [newRemittance, ...prev]);
+    }
+
+    // Reset daily flow inputs
+    setMorningBuyerLiters('');
+    setHomeLiters('');
+    setWorkerLiters('');
+    setCalfLiters('');
+    setEveningCashLiters('');
+    setEveningDebtLiters('');
+    setDebtCustomerName('');
+    setSpoiledLiters('');
+    setRemittedAmount('');
+    setRemittanceMpesaCode('');
+    setFlowNotes('');
+  };
+
+  // Confirm Friday Morning Buyer Payment
+  const handleConfirmFridayPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (fridayPayAmount === '') return;
+
+    const newPayment: MorningBuyerPaymentRecord = {
+      id: `mbp-${Date.now()}`,
+      weekStartDate: startOfWeek,
+      weekEndDate: toIsoDate(new Date(new Date(startOfWeek).getTime() + 6 * 86400000)),
+      fridayPaymentDate: currentFridayDate || todayStr,
+      buyerName: morningBuyerName,
+      totalLiters: currentWeekBuyerLiters,
+      ratePerLiter: morningBuyerRate,
+      totalAmountDue: currentWeekBuyerTotalDue,
+      amountPaid: Number(fridayPayAmount),
+      status: Number(fridayPayAmount) >= currentWeekBuyerTotalDue ? 'Paid' : 'Partial',
+      paymentMethod: 'M-PESA',
+      referenceCode: fridayPayCode.trim() || undefined,
+      paidOnDate: todayStr,
+      notes: fridayPayNotes.trim() || 'Friday morning milk settlement payment'
+    };
+
+    setBuyerPayments(prev => [newPayment, ...prev]);
+
+    // Automatically prompt / log owner remittance since buyer money is sent to owner
+    const newRemittance: OwnerRemittanceRecord = {
+      id: `rem-buyer-${Date.now()}`,
+      date: todayStr,
+      amountKsh: Number(fridayPayAmount),
+      paymentSource: 'Morning Buyer (Friday Pay)',
+      channel: 'M-PESA',
+      referenceCode: fridayPayCode.trim() || undefined,
+      recipientName: 'Farm Owner',
+      notes: `Weekly Friday settlement received from ${morningBuyerName} forwarded to owner.`
+    };
+    setOwnerRemittances(prev => [newRemittance, ...prev]);
+
+    setShowFridayModal(false);
+    setFridayPayAmount('');
+    setFridayPayCode('');
+    setFridayPayNotes('');
+  };
+
+  // Record Monthly Customer Debt Clear / Payment
+  const handleSettleCustomerDebt = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clearDebtorName || clearDebtorAmount === '') return;
+
+    const newSettlement = {
+      id: `mds-${Date.now()}`,
+      customerName: clearDebtorName,
+      date: todayStr,
+      amountPaid: Number(clearDebtorAmount),
+      channel: clearDebtorChannel,
+      receiptRef: clearDebtorRef.trim() || 'CASH'
+    };
+
+    setDebtSettlements(prev => [newSettlement, ...prev]);
+
+    // If remitted to owner
+    const newRemittance: OwnerRemittanceRecord = {
+      id: `rem-debt-${Date.now()}`,
+      date: todayStr,
+      amountKsh: Number(clearDebtorAmount),
+      paymentSource: 'Monthly Debt Collection',
+      channel: clearDebtorChannel,
+      referenceCode: clearDebtorRef.trim() || undefined,
+      recipientName: 'Farm Owner',
+      notes: `Monthly debt repayment from ${clearDebtorName} sent to owner.`
+    };
+    setOwnerRemittances(prev => [newRemittance, ...prev]);
+
+    setShowDebtClearModal(false);
+    setClearDebtorName('');
+    setClearDebtorAmount('');
+    setClearDebtorRef('');
+  };
+
+  // Manual Remit to Owner Form
+  const handleManualRemittance = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (remitAmountInput === '') return;
+
+    const newRem: OwnerRemittanceRecord = {
+      id: `rem-manual-${Date.now()}`,
+      date: todayStr,
+      amountKsh: Number(remitAmountInput),
+      paymentSource: remitSourceInput,
+      channel: remitChannelInput,
+      referenceCode: remitRefInput.trim() || undefined,
+      recipientName: 'Farm Owner',
+      notes: remitNotesInput.trim() || 'Dairy revenue remittance'
+    };
+
+    setOwnerRemittances(prev => [newRem, ...prev]);
+    setShowRemitModal(false);
+    setRemitAmountInput('');
+    setRemitRefInput('');
+    setRemitNotesInput('');
+  };
+
+  // Consolidated Master CSV Export
+  const exportMasterCsv = () => {
+    let csv = 'data:text/csv;charset=utf-8,';
+    csv += 'JR FARM — CONSOLIDATED MILK PRODUCTION, DISPATCH & OWNER CASHFLOW LEDGER\n';
+    csv += `Period: ${filterPeriod.toUpperCase()} | Generated: ${new Date().toLocaleString()}\n\n`;
+
+    csv += 'Date,Harvest AM (L),Harvest PM (L),Total Milked (L),Morning Buyer (L),Local Cash (L),Local Debt (L),Home House (L),Workers (L),Calves (L),Spoiled (L),Spoilage Reason,Cash Sales (Ksh),Remitted to Owner (Ksh),Remittance Ref,Status\n';
+
+    const allDates = Array.from(new Set([...filteredMilks.map(m => m.date), ...filteredOutflows.map(o => o.date)])).sort((a, b) => b.localeCompare(a));
+
+    allDates.forEach(dStr => {
+      const dMilks = filteredMilks.filter(m => m.date === dStr);
+      const dOutflow = filteredOutflows.find(o => o.date === dStr);
+
+      const am = dMilks.reduce((s, m) => s + (m.am || 0), 0);
+      const pm = dMilks.reduce((s, m) => s + (m.pm || 0), 0);
+      const totalM = am + pm;
+
+      const mBuyer = dOutflow?.morningBuyerLiters || 0;
+      const lCash = dOutflow?.eveningLocalCashLiters || 0;
+      const lDebt = dOutflow?.eveningLocalDebtLiters || 0;
+      const home = dOutflow?.milkUsedAtHome || 0;
+      const work = dOutflow?.milkUsedByWorkers || 0;
+      const calf = dOutflow?.milkUsedByCalf || 0;
+      const sp = dOutflow?.milkSpoiled || 0;
+      const spReason = dOutflow?.spoilageReason || 'None';
+
+      const cashKsh = (mBuyer * (dOutflow?.morningBuyerPricePerLiter || 55)) + (lCash * (dOutflow?.eveningCashPricePerLiter || 60));
+      const remitted = dOutflow?.remittedToOwnerKsh || 0;
+      const ref = dOutflow?.remittanceRef || 'Pending';
+      const balance = totalM - (mBuyer + lCash + lDebt + home + work + calf + sp);
+
+      csv += `"${dStr}",${am.toFixed(1)},${pm.toFixed(1)},${totalM.toFixed(1)},${mBuyer.toFixed(1)},${lCash.toFixed(1)},${lDebt.toFixed(1)},${home.toFixed(1)},${work.toFixed(1)},${calf.toFixed(1)},${sp.toFixed(1)},"${spReason}",${cashKsh},${remitted},"${ref}","${balance === 0 ? 'Balanced' : balance > 0 ? `Surplus +${balance}L` : `Deficit ${balance}L`}"\n`;
+    });
+
+    const encoded = encodeURI(csv);
+    const a = document.createElement('a');
+    a.href = encoded;
+    a.download = `JR_Farm_Dairy_Milk_Master_${filterPeriod}_${todayStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  // Master Audit PDF Export
+  const exportMasterPdf = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 12;
+    const contentWidth = pageWidth - (margin * 2);
+
+    // Header banner
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(margin, 12, contentWidth, 24, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('JR FARM — MASTER MILK HARVEST, DISPATCH & OWNER CASHFLOW', margin + 6, 21);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(203, 213, 225);
+    doc.text(`Executive Audit Report | Filter Period: ${filterPeriod.toUpperCase()} | Generated: ${new Date().toLocaleString()}`, margin + 6, 28);
+
+    // Summary KPI box
+    doc.setFillColor(248, 250, 252);
+    doc.rect(margin, 40, contentWidth, 24, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, 40, contentWidth, 24, 'S');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Total Milk Produced: ${totalLitersProduced.toFixed(1)} Liters`, margin + 6, 48);
+    doc.text(`Morning Buyer: ${totalMorningBuyerLiters.toFixed(1)} L | Local Cash: ${totalEveningCashLiters.toFixed(1)} L | Debt: ${totalEveningDebtLiters.toFixed(1)} L`, margin + 6, 54);
+    doc.text(`Home: ${totalHomeLiters.toFixed(1)} L | Staff: ${totalWorkerLiters.toFixed(1)} L | Calves: ${totalCalfLiters.toFixed(1)} L | Spoiled: ${totalSpoiledLiters.toFixed(1)} L`, margin + 6, 60);
+
+    let y = 72;
+    doc.setFillColor(15, 23, 42);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text('Date', margin + 3, y + 5.5);
+    doc.text('Milked (L)', margin + 26, y + 5.5);
+    doc.text('Buyer (L)', margin + 50, y + 5.5);
+    doc.text('Local (L)', margin + 72, y + 5.5);
+    doc.text('Internal (L)', margin + 94, y + 5.5);
+    doc.text('Spoiled (L)', margin + 120, y + 5.5);
+    doc.text('Sales (Ksh)', margin + 144, y + 5.5);
+    doc.text('To Owner', margin + 168, y + 5.5);
+
+    y += 8;
+
+    const allDates = Array.from(new Set([...filteredMilks.map(m => m.date), ...filteredOutflows.map(o => o.date)])).sort((a, b) => b.localeCompare(a));
+
+    allDates.slice(0, 24).forEach((dStr, idx) => {
+      const dMilks = filteredMilks.filter(m => m.date === dStr);
+      const dOutflow = filteredOutflows.find(o => o.date === dStr);
+
+      const totalM = dMilks.reduce((s, m) => s + (m.am || 0) + (m.pm || 0), 0);
+      const mBuyer = dOutflow?.morningBuyerLiters || 0;
+      const lCash = (dOutflow?.eveningLocalCashLiters || 0) + (dOutflow?.eveningLocalDebtLiters || 0);
+      const internal = (dOutflow?.milkUsedAtHome || 0) + (dOutflow?.milkUsedByWorkers || 0) + (dOutflow?.milkUsedByCalf || 0);
+      const spoiled = dOutflow?.milkSpoiled || 0;
+      const cashKsh = (mBuyer * (dOutflow?.morningBuyerPricePerLiter || 55)) + ((dOutflow?.eveningLocalCashLiters || 0) * (dOutflow?.eveningCashPricePerLiter || 60));
+      const remitted = dOutflow?.remittedToOwnerKsh || 0;
+
+      if (idx % 2 === 1) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, y, contentWidth, 7, 'F');
+      }
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(51, 65, 85);
+
+      doc.text(dStr, margin + 3, y + 4.8);
+      doc.text(totalM > 0 ? `${totalM.toFixed(1)} L` : '—', margin + 26, y + 4.8);
+      doc.text(mBuyer > 0 ? `${mBuyer.toFixed(1)} L` : '—', margin + 50, y + 4.8);
+      doc.text(lCash > 0 ? `${lCash.toFixed(1)} L` : '—', margin + 72, y + 4.8);
+      doc.text(internal > 0 ? `${internal.toFixed(1)} L` : '—', margin + 94, y + 4.8);
+      doc.text(spoiled > 0 ? `${spoiled.toFixed(1)} L` : '0 L', margin + 120, y + 4.8);
+      doc.text(cashKsh > 0 ? `Ksh ${cashKsh.toLocaleString()}` : '—', margin + 144, y + 4.8);
+      doc.text(remitted > 0 ? `Ksh ${remitted.toLocaleString()}` : 'Pending', margin + 168, y + 4.8);
+
+      y += 7;
+    });
+
+    // Signature footer
+    y += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Verified by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director)', margin + 3, y);
+    doc.text('Approved by: Farm Owner & Commercial Board', margin + 110, y);
+
+    doc.save(`JR_Farm_Master_Milk_Audit_${filterPeriod}_${todayStr}.pdf`);
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 9. RENDER
+  // ──────────────────────────────────────────────────────────────────────────
   return (
-    <>
- <div className="space-y-8">
- {/* Analytics Dashboard */}
- <DairyDashboard milkRecords={milkRecords} milkOutflows={milkOutflows} aiRecords={aiRecords} cows={cows} />
+    <div className="space-y-6 animate-fadeIn text-gray-900">
 
- {/* Forms Section */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
- 
- {/* COLUMN 1: Individual Cow Milking Form */}
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
- <div className="border-b border-gray-100 pb-3">
- <h5 className="text-[11px] font-semibold tracking-normal text-green-600  flex items-center gap-1">
- <TrendingUp size={12} /> Cow Milking Console
- </h5>
- <p className="text-[10px] text-gray-900 font-medium mt-1 font-bold">Record individual morning & afternoon yields</p>
- </div>
+      {/* TOP LIVE EXECUTIVE KPI STRIP */}
+      <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-100 pb-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Dairy Operations Console
+              </span>
+              <span className="text-xs text-gray-500 font-mono">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight mt-1">
+              🥛 Bovine Milk Harvest, Outflows & Owner Remittances
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">
+              Tracks morning contract buyer (pays Fridays, Sat off), evening cash/monthly debts, owner home use, worker rations, calf feeding, and owner remittances.
+            </p>
+          </div>
 
- <form onSubmit={handleMilkingSubmit} className="space-y-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Select / Type Cow Tag ID</label>
- {cows.length > 0 ? (
- <select
- required
- value={cowTag}
- onChange={(e) => setCowTag(e.target.value)}
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold bg-white shadow-sm outline-none"
- >
- <option value="">-- Choose registered cow --</option>
- {cows.map(c => (
- <option key={c.id} value={c.id}>{c.id} ({c.name} - {c.status})</option>
- ))}
- </select>
- ) : (
- <input
- type="text"
- required
- value={cowTag}
- onChange={(e) => setCowTag(e.target.value)}
- placeholder="E.g. Cow-104 (Blossom)"
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold outline-none"
- />
- )}
- {activeCowWithdrawal && (
-   <div className="mt-2.5 p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-950 flex items-start gap-2 animate-fadeIn">
-     <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
-     <div>
-       <span className="font-bold block text-rose-700">⛔ Active Veterinary Milk Withdrawal</span>
-       <span className="leading-relaxed block mt-0.5">
-         This cow received <strong>{activeCowWithdrawal.drugAdministered || activeCowWithdrawal.treatment}</strong> on {activeCowWithdrawal.date}. Milk contains drug residues and CANNOT be put into the bulk cooler until <strong>{activeCowWithdrawal.safeDateStr}</strong> ({activeCowWithdrawal.daysLeft} days left). Feed to calves or discard.
-       </span>
-     </div>
-   </div>
- )}
- </div>
+          {/* Period Filter & Report Triggers */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1 border border-gray-200">
+              {(['today', 'week', 'month', 'all'] as const).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setFilterPeriod(p)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                    filterPeriod === p
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
 
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">AM Liters</label>
- <input
- type="number"
- required
- min="0"
- step="0.1"
- value={amLiters}
- onChange={(e) => setAmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Morning L"
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">PM Liters</label>
- <input
- type="number"
- required
- min="0"
- step="0.1"
- value={pmLiters}
- onChange={(e) => setPmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Afternoon L"
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-mono font-bold outline-none"
- />
- </div>
- </div>
+            <button
+              onClick={exportMasterCsv}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <FileSpreadsheet size={14} />
+              CSV
+            </button>
 
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Milking Date</label>
- <input
- type="date"
- required
- value={milkingDate}
- onChange={(e) => setMilkingDate(e.target.value)}
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Milking Officer</label>
- <select
- value={staffName}
- onChange={(e) => setStaffName(e.target.value)}
- className="text-xs border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full bg-white shadow-sm font-medium text-gray-900 font-semibold outline-none"
- >
- {staffList.map((st) => (
- <option key={st.id} value={st.name}>
- {st.name}
- </option>
- ))}
- </select>
- </div>
- </div>
+            <button
+              onClick={exportMasterPdf}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <Download size={14} />
+              Master PDF Audit
+            </button>
+          </div>
+        </div>
 
- <button
- type="submit"
- className="w-full bg-white hover:bg-emerald-900 text-gray-900 font-semibold text-xs  p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
- >
- Record Cow Yield
- </button>
- </form>
- </div>
+        {/* 6 Key Operational KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Total Harvested</span>
+            <span className="text-xl font-black text-gray-900 font-mono mt-0.5 block">{totalLitersProduced.toFixed(1)} L</span>
+            <span className="text-[10px] text-gray-500 block">AM + PM milking</span>
+          </div>
 
- {/* COLUMN 2: Daily Milk Dispatch Form */}
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-200 shadow-sm space-y-6 text-gray-900">
- <div className="border-b border-gray-200 pb-3">
- <h5 className="text-[11px] font-semibold tracking-normal text-green-600  flex items-center gap-1">
- <Truck size={12} /> Daily Global Dispatch
- </h5>
- <p className="text-[10px] text-gray-900 font-medium mt-1 font-bold">Record consumption, spoils & set today's price</p>
- </div>
+          <div className="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 block">Morning Buyer</span>
+            <span className="text-xl font-black text-indigo-950 font-mono mt-0.5 block">{totalMorningBuyerLiters.toFixed(1)} L</span>
+            <span className="text-[10px] text-indigo-600 block">Settled on Fridays</span>
+          </div>
 
- <form onSubmit={handleOutflowSubmit} className="space-y-4">
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Dispatch Date</label>
- <input
- type="date"
- required
- value={outflowDate}
- onChange={(e) => setOutflowDate(e.target.value)}
- className="text-xs bg-white border border-gray-200 focus:border-emerald-500 rounded-xl p-3 w-full font-bold font-mono outline-none text-gray-900"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-amber-400 tracking-tight block mb-1">Sales Price / Liter (Ksh)</label>
- <input
- type="number"
- required
- min="1"
- value={outflowPrice}
- onChange={(e) => setOutflowPrice(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="e.g. 52"
- className="text-xs bg-white border border-gray-200 focus:border-amber-500 rounded-xl p-3 w-full font-mono font-bold outline-none text-amber-400"
- />
- </div>
- </div>
+          <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Evening Local Cash</span>
+            <span className="text-xl font-black text-emerald-950 font-mono mt-0.5 block">Ksh {totalCashCollected.toLocaleString()}</span>
+            <span className="text-[10px] text-emerald-600 block">{totalEveningCashLiters.toFixed(1)} L sold</span>
+          </div>
 
- <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border border-gray-200 p-3 rounded-xl bg-white">
- <div>
- <label className="text-[9px] font-semibold text-gray-900 font-medium tracking-tight block mb-1" title="Used at Home">Home (L)</label>
- <input
- type="number"
- step="0.1"
- min="0"
- value={outflowHome}
- onChange={(e) => setOutflowHome(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="0.0"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-gray-900"
- />
- </div>
- <div>
- <label className="text-[9px] font-semibold text-gray-900 font-medium tracking-tight block mb-1" title="Used by Workers">Staff (L)</label>
- <input
- type="number"
- step="0.1"
- min="0"
- value={outflowWorkers}
- onChange={(e) => setOutflowWorkers(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="0.0"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-gray-900"
- />
- </div>
- <div>
- <label className="text-[9px] font-semibold text-gray-900 font-medium tracking-tight block mb-1" title="Consumed by Calf">Calf (L)</label>
- <input
- type="number"
- step="0.1"
- min="0"
- value={outflowCalf}
- onChange={(e) => setOutflowCalf(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="0.0"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-emerald-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-gray-900"
- />
- </div>
- <div>
- <label className="text-[9px] font-semibold text-rose-400 tracking-tight block mb-1" title="Spoiled Milk">Spoilt (L)</label>
- <input
- type="number"
- step="0.1"
- min="0"
- value={outflowSpoiled}
- onChange={(e) => setOutflowSpoiled(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="0.0"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-rose-500 rounded-lg p-2 w-full font-mono font-bold outline-none text-rose-300"
- />
- </div>
- </div>
+          <div className="bg-amber-50/70 p-3 rounded-2xl border border-amber-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">Monthly Debts</span>
+            <span className="text-xl font-black text-amber-950 font-mono mt-0.5 block">Ksh {totalDebtAccumulated.toLocaleString()}</span>
+            <span className="text-[10px] text-amber-600 block">{totalEveningDebtLiters.toFixed(1)} L on credit</span>
+          </div>
 
- <div className="grid grid-cols-1 gap-2 border border-gray-200 p-3 rounded-xl bg-white">
- <div className="flex justify-between items-center mb-1">
- <label className="text-[9px] font-semibold text-rose-400 tracking-tight block">🚨 Log Debtors (Optional)</label>
- {outflowDebtsList.length > 0 && (
- <span className="text-[9px] font-mono font-semibold text-rose-400">Total: Ksh {outflowDebtsList.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}</span>
- )}
- </div>
- <div className="flex gap-2">
- <input
- type="text"
- value={outflowCustomer}
- onChange={(e) => setOutflowCustomer(e.target.value)}
- placeholder="Debtor Name"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-emerald-500 rounded-lg p-2 w-full font-bold outline-none text-gray-900"
- />
- <input
- type="number"
- min="0"
- value={outflowDebts}
- onChange={(e) => setOutflowDebts(e.target.value === '' ? '' : Number(e.target.value))}
- placeholder="Ksh"
- className="text-xs bg-white shadow-sm border border-gray-200 focus:border-emerald-500 rounded-lg p-2 w-24 font-mono font-bold outline-none text-gray-900"
- />
- <button
- type="button"
- onClick={handleAddDebtorToList}
- className="bg-rose-950 hover:bg-rose-900 text-rose-300 px-3 rounded-lg font-semibold text-[10px]  transition-colors"
- >
- Add
- </button>
- </div>
- {outflowDebtsList.length > 0 && (
- <div className="mt-2 space-y-1">
- {outflowDebtsList.map((d, idx) => (
- <div key={idx} className="flex justify-between items-center bg-white shadow-sm px-2 py-1.5 rounded-lg border border-gray-200">
- <span className="text-[10px] font-bold text-gray-900 font-medium">👤 {d.debtor}</span>
- <div className="flex items-center gap-3">
- <span className="text-[10px] font-mono font-semibold text-rose-400">Ksh {d.amount.toLocaleString()}</span>
- <button type="button" onClick={() => handleRemoveDebtorFromList(idx)} className="text-gray-900 font-medium hover:text-red-700"><X size={12}/></button>
- </div>
- </div>
- ))}
- </div>
- )}
- </div>
+          <div className="bg-purple-50/70 p-3 rounded-2xl border border-purple-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 block">Internal Farm Use</span>
+            <span className="text-xl font-black text-purple-950 font-mono mt-0.5 block">{(totalHomeLiters + totalWorkerLiters + totalCalfLiters).toFixed(1)} L</span>
+            <span className="text-[10px] text-purple-600 block">Home, staff, calves</span>
+          </div>
 
- <button
- type="submit"
- className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs  p-3 rounded-xl transition-all shadow-md m-0 cursor-pointer"
- >
- Save Daily Dispatch
- </button>
- </form>
- </div>
- </div>
+          <div className="bg-blue-50/70 p-3 rounded-2xl border border-blue-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">Remitted to Owner</span>
+            <span className="text-xl font-black text-blue-950 font-mono mt-0.5 block">Ksh {totalOwnerRemitted.toLocaleString()}</span>
+            <span className="text-[10px] text-blue-600 block">Sent via M-PESA</span>
+          </div>
+        </div>
+      </div>
 
- {/* Unified Ledger Log */}
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
- <div className="flex justify-between items-end border-b border-gray-100 pb-3">
- <div>
- <h5 className="text-[11px] font-semibold tracking-normal text-gray-900  flex items-center gap-1">
- <Database size={12} /> Combined Production & Dispatch Ledger
- </h5>
- <p className="text-[10px] text-gray-900 font-medium mt-1 font-bold">Historical data computed automatically per day</p>
- </div>
- <div className="flex items-center gap-2">
- <button
- onClick={() => { setDownloadType('csv'); setShowDownloadModal(true); }}
- type="button"
- className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-green-600 rounded-lg font-semibold text-[9px]  transition-all shadow-xs cursor-pointer"
- title="Export Yield History as CSV"
- >
- <FileSpreadsheet size={12} />
- CSV
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => { setDownloadType('pdf'); setShowDownloadModal(true); }}
- type="button"
- className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-gray-500 rounded-lg font-semibold text-[9px]  transition-all shadow-xs cursor-pointer"
- >
- <Download size={12} />
- PDF
- </button>
- )}
- </div>
- </div>
+      {/* SUB-SECTION TAB NAVIGATION */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-1.5 shadow-xs overflow-x-auto">
+        <div className="flex gap-1 min-w-max">
+          <button
+            onClick={() => setActiveTab('daily_flow')}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'daily_flow'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <TrendingUp size={14} />
+            🥛 1. Daily Milking & Flow Allocation
+          </button>
 
- <div className="max-h-[600px] overflow-y-auto pr-2 space-y-4">
- {(() => {
- const allDates = Array.from(new Set([...milkRecords.map(r => r.date), ...milkOutflows.map(o => o.date)])).sort((a, b) => b.localeCompare(a));
- 
- if (allDates.length === 0) {
- return (
- <div className="text-center py-8 text-gray-900 font-medium font-bold  text-[10px]">
- No production or dispatch records found
- </div>
- );
- }
+          <button
+            onClick={() => setActiveTab('morning_buyer')}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'morning_buyer'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Calendar size={14} />
+            🗓️ 2. Friday Morning Buyer Settlement
+            {currentFridaySettlement?.status === 'Paid' ? (
+              <span className="px-1.5 py-0.2 bg-emerald-200 text-emerald-800 text-[9px] rounded-full font-bold">Paid</span>
+            ) : (
+              <span className="px-1.5 py-0.2 bg-amber-200 text-amber-900 text-[9px] rounded-full font-bold">Friday Pay</span>
+            )}
+          </button>
 
- return allDates.map(dateStr => {
- const dayMilks = milkRecords.filter(r => r.date === dateStr);
- const dayOutflow = milkOutflows.find(o => o.date === dateStr);
- 
- const yieldTotal = dayMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
- const home = dayOutflow ? dayOutflow.milkUsedAtHome : 0;
- const workers = dayOutflow ? dayOutflow.milkUsedByWorkers : 0;
- const calf = dayOutflow ? (dayOutflow.milkUsedByCalf || 0) : 0;
- const spoiled = dayOutflow ? dayOutflow.milkSpoiled : 0;
- const consumed = home + workers + calf + spoiled;
- 
- const price = dayOutflow?.salesPricePerLiter ?? 52;
- const netSold = Math.max(0, yieldTotal - consumed);
- const revenue = netSold * price;
+          <button
+            onClick={() => setActiveTab('local_debts')}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'local_debts'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Users size={14} />
+            📒 3. Evening Local Sales & Monthly Debtors
+          </button>
 
- const debtsKsh = dayOutflow ? dayOutflow.debtsKsh : 0;
+          <button
+            onClick={() => setActiveTab('owner_remittance')}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'owner_remittance'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Send size={14} />
+            💸 4. Money Sent to Owner (M-PESA / Cash)
+          </button>
 
- return (
- <div key={dateStr} className="bg-white border border-gray-200 border border-gray-100 rounded-2xl overflow-hidden shadow-xs hover:border-gray-200 transition-all">
- {/* Day Header */}
- <div className="bg-white border border-gray-200 p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
- <div className="flex items-center gap-3">
- <div className="bg-white shadow-sm px-3 py-1.5 rounded-lg border border-gray-200 shadow-xs">
- <span className="font-semibold text-gray-900 text-xs tracking-tight block font-mono">
- {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
- </span>
- </div>
- {dayOutflow && (
- <span className="text-[9px] font-semibold  text-amber-600 bg-amber-900/20 px-2 py-1 rounded-md border border-amber-100">
- Price: Ksh {price}/L
- </span>
- )}
- </div>
+          <button
+            onClick={() => setActiveTab('master_audit')}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'master_audit'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Database size={14} />
+            📋 5. Consolidated Records & Audit
+          </button>
+        </div>
+      </div>
 
- <div className="flex flex-wrap gap-2 text-[10px] font-semibold tracking-tight">
- <span className="bg-white shadow-sm text-gray-900 font-semibold border border-gray-200 px-2 py-1 rounded-md shadow-xs">
- Yield: {yieldTotal.toFixed(1)} L
- </span>
- {consumed > 0 && (
- <span className="bg-amber-900/20 text-amber-700 border border-amber-200 px-2 py-1 rounded-md shadow-xs">
- Dispatch: {consumed.toFixed(1)} L
- </span>
- )}
- <span className="bg-emerald-50 text-green-600 border border-emerald-200 px-2 py-1 rounded-md shadow-xs">
- Net: {netSold.toFixed(1)} L
- </span>
- <span className="bg-emerald-600 text-white border border-emerald-700 px-2 py-1 rounded-md shadow-xs">
- Ksh {revenue.toLocaleString()}
- </span>
- </div>
- </div>
+      {/* ──────────────────────────────────────────────────────────────────────────
+          TAB 1: DAILY MILKING & COMPLETE FLOW ALLOCATION
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'daily_flow' && (
+        <div className="space-y-6">
 
- <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
- {/* Left: Milking Detail */}
- <div className="space-y-2">
- <h6 className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal mb-2 border-b border-gray-200 pb-1">Cow Yields ({dayMilks.length})</h6>
- {dayMilks.length === 0 ? (
- <span className="text-[10px] text-gray-900 font-medium font-bold italic">No cow records logged.</span>
- ) : (
- <div className="space-y-1.5">
- {dayMilks.map(m => {
- const mTotal = (m.am ?? 0) + (m.pm ?? 0);
- const isHigh = isHighProducer(m.am ?? 0, m.pm ?? 0, m.id, cows);
- return (
- <div key={m.id} className="flex justify-between items-center bg-white shadow-sm p-2 rounded-lg border border-gray-100 shadow-2xs group">
- <div className="flex items-center gap-2">
- <span className="font-bold text-gray-900 text-xs">{m.id}</span>
- {isHigh && <span className="text-[8px] bg-amber-100 text-amber-700 px-1 rounded font-semibold tracking-tight">Peak</span>}
- </div>
- <div className="flex items-center gap-3">
- <span className="text-[9px] font-mono text-gray-900 font-medium">AM:{m.am} PM:{m.pm}</span>
- <span className="text-[10px] font-mono font-semibold text-green-600 bg-emerald-50 px-1.5 py-0.5 rounded">{mTotal.toFixed(1)} L</span>
- {onEditMilkRecord && (
- <button onClick={() => setEditingMilk(m)} className="text-gray-900 font-medium hover:text-green-600 transition-colors opacity-100"><PenSquare size={12}/></button>
- )}
- <button onClick={() => onDeleteMilkRecord(m.id, m.date)} className="text-gray-900 font-medium hover:text-red-500 transition-colors opacity-100"><Trash2 size={12}/></button>
- </div>
- </div>
- );
- })}
- </div>
- )}
- </div>
+          {/* Date Selector & Saturday Notice */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-bold text-gray-700">Select Operating Date:</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs font-mono font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-hidden focus:border-emerald-500"
+              />
+            </div>
 
- {/* Right: Dispatch Detail */}
- <div className="space-y-2">
- <h6 className="text-[9px] font-semibold  text-gray-900 font-medium tracking-normal mb-2 border-b border-gray-200 pb-1">Dispatch & Debts</h6>
- {!dayOutflow ? (
- <span className="text-[10px] text-gray-900 font-medium font-bold italic">No dispatch logged.</span>
- ) : (
- <div className="space-y-2">
- {consumed > 0 && (
- <div className="flex flex-wrap gap-2 text-[9px] font-bold">
- {home > 0 && <span className="bg-blue-900/20 text-blue-700 px-2 py-1 rounded border border-blue-100">🏠 Home: {home}L</span>}
- {workers > 0 && <span className="bg-amber-900/20 text-amber-700 px-2 py-1 rounded border border-amber-100">👥 Staff: {workers}L</span>}
- {calf > 0 && <span className="bg-purple-900/20 text-purple-700 px-2 py-1 rounded border border-purple-100">🍼 Calf: {calf}L</span>}
- {spoiled > 0 && <span className="bg-rose-900/20 text-rose-700 px-2 py-1 rounded border border-rose-100">⚠️ Spoilt: {spoiled}L</span>}
- </div>
- )}
- 
- {debtsKsh > 0 && (
- <div className="bg-rose-900/20 p-2 rounded-lg border border-rose-100">
- <span className="text-[9px] font-semibold text-rose-600  tracking-wide block mb-1">Unpaid Debts (Ksh {debtsKsh.toLocaleString()})</span>
- <div className="flex flex-wrap gap-1">
- {dayOutflow.debtsList && dayOutflow.debtsList.length > 0 ? (
- dayOutflow.debtsList.map((d, i) => (
- <span key={i} className="text-[9px] font-mono text-rose-800 bg-white shadow-sm px-1.5 py-0.5 rounded shadow-2xs">👤 {d.debtor}: Ksh {d.amount}</span>
- ))
- ) : (
- <span className="text-[9px] font-mono text-rose-800 bg-white shadow-sm px-1.5 py-0.5 rounded shadow-2xs">👤 {dayOutflow.debtCustomer}</span>
- )}
- </div>
- </div>
- )}
+            {isSelectedSaturday ? (
+              <div className="p-2.5 px-4 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-center gap-2">
+                <AlertTriangle size={16} className="text-amber-600 shrink-0" />
+                <span className="font-medium">
+                  <strong>Saturday Rule Active:</strong> Morning buyer does not take milk on Saturdays. Morning milk is redirected to local cash/credit sales!
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs text-gray-500 font-medium">
+                Standard Schedule: Morning buyer takes Sunday–Friday. Evening milk sold locally.
+              </span>
+            )}
+          </div>
 
- <div className="flex justify-end gap-3 mt-2 border-t border-gray-100 pt-2">
- {onEditMilkOutflow && (
- <button onClick={() => setEditingOutflow(dayOutflow)} className="text-[9px] text-gray-900 font-medium hover:text-green-600 font-semibold tracking-tight flex items-center gap-1 transition-colors">
- <PenSquare size={10}/> Edit Dispatch
- </button>
- )}
- <button onClick={() => onDeleteMilkOutflow(dayOutflow.id)} className="text-[9px] text-gray-900 font-medium hover:text-red-500 font-semibold tracking-tight flex items-center gap-1 transition-colors">
- <Trash2 size={10}/> Delete Dispatch Log
- </button>
- </div>
- </div>
- )}
- </div>
- </div>
- </div>
- );
- });
- })()}
- </div>
- </div>
- </div>
- {/* Edit Milking Record Modal */}
- {editingMilk && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm ">
- <div className="bg-white shadow-sm rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-gray-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
- <div className="flex justify-between items-center pb-2 border-b border-gray-100">
- <h3 className="text-sm font-semibold  text-gray-900">Edit Milk Record & Dispatch</h3>
- <button onClick={() => setEditingMilk(null)} className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold m-0 cursor-pointer">✕</button>
- </div>
- <div className="space-y-3 font-sans text-xs">
- 
- {/* Primary details */}
- <div className="bg-white border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
- <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">1. Production Yield</h4>
- <div className="grid grid-cols-2 gap-2">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Cow / Tag ID</label>
- <input
- type="text"
- value={editingMilk.id}
- disabled
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-medium font-mono"
- />
- </div>
- <div>
- <input
- type="text"
- placeholder="YYYY-MM-DD or DD/MM/YYYY"
- value={''}
- onChange={(e) => undefined}
- className="border border-gray-200 rounded-lg p-3 w-full text-xs font-bold font-mono"
- />
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Record Date</label>
- <input
- type="text"
- value={editingMilk.date}
- onChange={(e) => setEditingMilk({ ...editingMilk, date: e.target.value })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-semibold font-mono"
- />
- </div>
- </div>
- <div className="grid grid-cols-2 gap-2">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">AM Yield Details (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingMilk.am}
- onChange={(e) => setEditingMilk({ ...editingMilk, am: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">PM Yield Details (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingMilk.pm}
- onChange={(e) => setEditingMilk({ ...editingMilk, pm: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
- />
- </div>
- </div>
- </div>
+          {/* TWO MAIN INPUT CARDS: PRODUCTION HARVEST & ALLOCATION DISPATCH */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
- {/* Commercial and Staff details */}
- <div className="bg-white border border-gray-200 p-2.5 rounded-2xl space-y-2.5 border border-gray-100">
- <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">2. Commercial & Buyer</h4>
- <div className="grid grid-cols-2 gap-2">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Price per Liter (Ksh)</label>
- <input
- type="number"
- value={editingMilk.pricePerLiter ?? ''}
- placeholder="e.g. 52"
- onChange={(e) => setEditingMilk({ ...editingMilk, pricePerLiter: parseFloat(e.target.value) || undefined })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Buyer / Processor</label>
- <input
- type="text"
- value={editingMilk.buyer ?? ''}
- placeholder="e.g. Brookside Dairy"
- onChange={(e) => setEditingMilk({ ...editingMilk, buyer: e.target.value })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold"
- />
- </div>
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Supervising Operator</label>
- <select
- value={editingMilk.staff}
- onChange={(e) => setEditingMilk({ ...editingMilk, staff: e.target.value })}
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold"
- >
- {staffList.map(s => <option key={s.id} value={s.name}>{s.name} ({s.role})</option>)}
- </select>
- </div>
- </div>
+            {/* LEFT: COW MILKING HARVEST CONSOLE (5 COLS) */}
+            <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <TrendingUp size={16} className="text-emerald-600" />
+                    Milking Harvest (AM & PM)
+                  </h3>
+                  <p className="text-[11px] text-gray-500">Record yields per milking cow or herd batch</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-gray-400 block uppercase">Total Milked</span>
+                  <span className="text-base font-black text-emerald-700 font-mono">{totalDayHarvestLiters.toFixed(1)} L</span>
+                </div>
+              </div>
 
+              <form onSubmit={handleMilkingSubmit} className="space-y-3.5">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Select Registered Cow</label>
+                  <select
+                    required
+                    value={selectedCowId}
+                    onChange={(e) => setSelectedCowId(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 font-bold bg-white focus:outline-hidden focus:border-emerald-500"
+                  >
+                    <option value="">-- Choose Cow --</option>
+                    {cows.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.id} ({c.name} — {c.status})
+                      </option>
+                    ))}
+                  </select>
 
+                  {/* Active Veterinary Milk Withdrawal Alert */}
+                  {activeCowWithdrawal && (
+                    <div className="mt-2.5 p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-950 flex items-start gap-2 animate-fadeIn">
+                      <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold block text-rose-700">⛔ Active Veterinary Milk Withdrawal</span>
+                        <span className="leading-relaxed block mt-0.5 text-[11px]">
+                          This cow received <strong>{activeCowWithdrawal.drugAdministered || activeCowWithdrawal.treatment}</strong>. Milk contains residues and CANNOT be sold until <strong>{activeCowWithdrawal.safeDateStr}</strong> ({activeCowWithdrawal.daysLeft} days left). Divert to calves or discard.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
- </div>
- <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
- <button
- onClick={() => setEditingMilk(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
- >
- Cancel
- </button>
- <button
- onClick={() => {
- if (onEditMilkRecord) {
- const price = editingMilk.pricePerLiter ?? 0;
- const totalVol = (editingMilk.am || 0) + (editingMilk.pm || 0);
- const recalculatedSales = totalVol * price;
- const finalRecord = {
- ...editingMilk,
- totalSales: recalculatedSales
- };
- onEditMilkRecord(editingMilk.id, editingMilk.date, finalRecord);
- }
- setEditingMilk(null);
- }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow cursor-pointer"
- >
- Save Changes
- </button>
- </div>
- </div>
- </div>
- )}
- {/* Edit Milk Outflow & Dispatch Record Modal */}
- {editingOutflow && (
- <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white shadow-sm font-sans">
- <div className="bg-white shadow-sm rounded-3xl w-full max-w-lg shadow-2xl p-6 border border-gray-100 space-y-4 animate-fadeIn max-h-[95vh] overflow-y-auto">
- <div className="flex justify-between items-center pb-2 border-b border-gray-100">
- <h3 className="text-sm font-semibold  text-gray-900">Edit Milk Outflow & Dispatch</h3>
- <button onClick={() => setEditingOutflow(null)} className="text-gray-900 font-medium hover:text-gray-900 font-medium font-bold m-0 cursor-pointer bg-transparent border-none">✕</button>
- </div>
- 
- <div className="space-y-3.5 text-xs">
- {/* Date & Price */}
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Dispatch Date</label>
- <input
- type="date"
- value={editingOutflow.date}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, date: e.target.value })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold bg-white border border-gray-200 text-gray-900 font-semibold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-amber-500  block mb-1">Sales Price / L (Ksh)</label>
- <input
- type="number"
- value={editingOutflow.salesPricePerLiter ?? 52}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, salesPricePerLiter: e.target.value === '' ? undefined : Number(e.target.value) })}
- className="border border-amber-200 rounded-lg p-2.5 w-full text-xs font-bold bg-amber-900/20 text-amber-900 font-mono"
- />
- </div>
- </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">Morning Yield (AM L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      required
+                      placeholder="e.g. 14.5"
+                      value={amLiters}
+                      onChange={(e) => setAmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-emerald-500"
+                    />
+                  </div>
 
- {/* Volumes Section */}
- <div className="bg-white border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
- <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">1. Milk Allocation Volumes (Liters)</h4>
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Home Consumed (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingOutflow.milkUsedAtHome}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedAtHome: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Workers / Staff Portions (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingOutflow.milkUsedByWorkers}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByWorkers: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Calves Intake (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingOutflow.milkUsedByCalf ?? 0}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, milkUsedByCalf: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Spoiled / Spilt (L)</label>
- <input
- type="number"
- step="0.1"
- value={editingOutflow.milkSpoiled}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, milkSpoiled: parseFloat(e.target.value) || 0 })}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-bold font-mono"
- />
- </div>
- </div>
- </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">Evening Yield (PM L)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      required
+                      placeholder="e.g. 11.0"
+                      value={pmLiters}
+                      onChange={(e) => setPmLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
 
- {/* Debtors list and entry */}
- <div className="bg-white border border-gray-200 p-3 rounded-2xl border border-gray-100 space-y-3">
- <div className="flex justify-between items-center">
- <h4 className="font-semibold  text-[9px] text-gray-900 font-medium tracking-normal">2. Unpaid Credit / Debts (Ksh)</h4>
- <span className="text-[9px] font-semibold text-rose-800 bg-rose-900/20 px-2 py-0.5 rounded border border-rose-100">
- Total: Ksh {(editingOutflow.debtsKsh || 0).toLocaleString()}
- </span>
- </div>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Milking Officer / Staff</label>
+                  <select
+                    value={milkerStaff}
+                    onChange={(e) => setMilkerStaff(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 font-medium bg-white focus:outline-hidden focus:border-emerald-500"
+                  >
+                    {staffList.map(s => (
+                      <option key={s.id} value={s.name}>{s.name} ({s.role})</option>
+                    ))}
+                  </select>
+                </div>
 
- {/* Existing Debtors List */}
- <div className="space-y-1.5 max-h-24 overflow-y-auto">
- {(editingOutflow.debtsList || []).length === 0 ? (
- <div className="text-[10px] text-gray-900 font-medium font-bold italic py-1">No debtors recorded for this dispatch date.</div>
- ) : (
- (editingOutflow.debtsList || []).map((debt, dIdx) => (
- <div key={dIdx} className="flex justify-between items-center bg-white shadow-sm border border-gray-200 rounded-lg px-2.5 py-1 text-[11px] font-bold">
- <span className="text-gray-900 font-semibold">{debt.debtor}</span>
- <div className="flex items-center gap-2">
- <span className="text-green-600">Ksh {debt.amount}</span>
- <button
- type="button"
- onClick={() => {
- const updatedList = (editingOutflow.debtsList || []).filter((_, i) => i !== dIdx);
- setEditingOutflow({
- ...editingOutflow,
- debtsList: updatedList,
- debtsKsh: updatedList.reduce((sum, d) => sum + d.amount, 0),
- debtCustomer: updatedList.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ')
- });
- }}
- className="text-red-500 hover:text-red-700 font-semibold text-[10px] m-0 p-0 cursor-pointer bg-transparent border-none"
- >
- ✕
- </button>
- </div>
- </div>
- ))
- )}
- </div>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                >
+                  Record Cow Milking
+                </button>
+              </form>
 
- {/* Add Debt Input Form inside Edit Modal */}
- <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-200">
- <div>
- <label className="text-[8.5px] font-semibold text-gray-900 font-medium  block mb-1">Add Debtor Customer</label>
- <input
- type="text"
- value={editNewDebtorName}
- onChange={(e) => setEditNewDebtorName(e.target.value)}
- placeholder="E.g. Mama Amara"
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold bg-white shadow-sm "
- />
- </div>
- <div className="flex gap-2 items-end">
- <div className="flex-1">
- <label className="text-[8.5px] font-semibold text-gray-900 font-medium  block mb-1">Debt Ksh</label>
- <input
- type="number"
- value={editNewDebtorAmount}
- onChange={(e) => setEditNewDebtorAmount(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
- placeholder="Amount"
- className="border border-gray-200 rounded-lg p-2 w-full text-xs font-bold font-mono bg-white shadow-sm "
- />
- </div>
- <button
- type="button"
- onClick={() => {
- if (!editNewDebtorName.trim() || editNewDebtorAmount === '') return;
- const list = editingOutflow.debtsList || [];
- const updatedList = [...list, { debtor: editNewDebtorName.trim(), amount: Number(editNewDebtorAmount) }];
- setEditingOutflow({
- ...editingOutflow,
- debtsList: updatedList,
- debtsKsh: updatedList.reduce((sum, d) => sum + d.amount, 0),
- debtCustomer: updatedList.map(d => `${d.debtor} (Ksh ${d.amount})`).join(', ')
- });
- setEditNewDebtorName('');
- setEditNewDebtorAmount('');
- }}
- className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[10px]  px-3 py-2 rounded-lg transition-all m-0 cursor-pointer h-[32px] border-none"
- >
- + Add
- </button>
- </div>
- </div>
- </div>
+              {/* Day Milked Cows List */}
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-gray-700">Milked Cows on {date} ({dayMilkRecords.length})</span>
+                  <span className="text-[11px] text-gray-500 font-mono">AM: {amHarvestTotal.toFixed(1)}L | PM: {pmHarvestTotal.toFixed(1)}L</span>
+                </div>
 
- {/* Notes */}
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Remarks / Dispatch Notes</label>
- <textarea
- value={editingOutflow.notes || ''}
- onChange={(e) => setEditingOutflow({ ...editingOutflow, notes: e.target.value })}
- placeholder="Notes or descriptions about the dispatch allocation..."
- rows={2}
- className="border border-gray-200 rounded-lg p-2.5 w-full text-xs font-medium"
- />
- </div>
+                {dayMilkRecords.length === 0 ? (
+                  <p className="text-center py-6 text-gray-400 text-xs italic">No cow milking logged yet for this date.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {dayMilkRecords.map(m => (
+                      <div key={m.id} className="p-2.5 bg-gray-50 rounded-xl border border-gray-200 flex justify-between items-center text-xs">
+                        <div>
+                          <span className="font-bold text-gray-900 block">{m.id}</span>
+                          <span className="text-[10px] text-gray-500">By {m.staff}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-gray-700 text-[11px]">AM: {m.am}L | PM: {m.pm}L</span>
+                          <span className="font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                            {((m.am || 0) + (m.pm || 0)).toFixed(1)} L
+                          </span>
+                          <button
+                            onClick={() => onDeleteMilkRecord(m.id, m.date)}
+                            className="text-gray-400 hover:text-rose-600 cursor-pointer p-1"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
- </div>
+            {/* RIGHT: DAILY FLOW ALLOCATION & OWNER CASH (7 COLS) */}
+            <div className="lg:col-span-7 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+              <div className="border-b border-gray-100 pb-2 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <Truck size={16} className="text-indigo-600" />
+                    Milk Outflow Allocation & Utilization
+                  </h3>
+                  <p className="text-[11px] text-gray-500">Distribute daily milk to buyer, local sales, house, staff, calves, and spoilage</p>
+                </div>
 
- {/* Modal Actions */}
- <div className="flex justify-end gap-2 border-t border-gray-100 pt-3">
- <button
- onClick={() => setEditingOutflow(null)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium hover:bg-white border border-gray-200 m-0 cursor-pointer bg-white shadow-sm "
- >
- Cancel
- </button>
- <button
- onClick={() => {
- if (onEditMilkOutflow) {
- onEditMilkOutflow(editingOutflow.id, editingOutflow);
- }
- setEditingOutflow(null);
- }}
- className="px-5 py-2.5 bg-indigo-950 text-gray-900 rounded-lg text-xs font-semibold  hover:bg-indigo-900 m-0 shadow cursor-pointer border-none"
- >
- Save Changes
- </button>
- </div>
+                {/* Balance Status Badge */}
+                <div className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 ${
+                  harvestBalanceDifference === 0 && totalDayHarvestLiters > 0
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : harvestBalanceDifference > 0
+                    ? 'bg-amber-50 border-amber-300 text-amber-800'
+                    : 'bg-rose-50 border-rose-300 text-rose-800'
+                }`}>
+                  {harvestBalanceDifference === 0 && totalDayHarvestLiters > 0 ? (
+                    <>
+                      <CheckCircle2 size={14} className="text-emerald-600" />
+                      100% Balanced ({totalAllocatedLiters.toFixed(1)}L)
+                    </>
+                  ) : harvestBalanceDifference > 0 ? (
+                    <>
+                      <AlertCircle size={14} className="text-amber-600" />
+                      +{harvestBalanceDifference.toFixed(1)}L Unallocated
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle size={14} className="text-rose-600" />
+                      {harvestBalanceDifference.toFixed(1)}L Over-allocated
+                    </>
+                  )}
+                </div>
+              </div>
 
- </div>
- </div>
- )}
-    </>
+              <form onSubmit={handleOutflowSubmit} className="space-y-4">
+
+                {/* Section A: Morning Distribution */}
+                <div className="p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                      ☀️ Morning Milk Allocation (Expected AM: {amHarvestTotal.toFixed(1)} L)
+                    </span>
+                    {isSelectedSaturday && (
+                      <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded">
+                        Saturday: Buyer Off
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">
+                        Regular Morning Buyer (Pays Friday)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          disabled={isSelectedSaturday && !overrideSaturdayBuyer}
+                          placeholder={isSelectedSaturday ? "0.0 (Saturday Off)" : "Liters taken"}
+                          value={morningBuyerLiters}
+                          onChange={(e) => setMorningBuyerLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500 disabled:bg-gray-100"
+                        />
+                        <div className="w-28 flex items-center gap-1 px-2 border border-gray-200 rounded-xl bg-white text-xs font-mono text-gray-600">
+                          <span>@Ksh</span>
+                          <input
+                            type="number"
+                            value={morningBuyerRate}
+                            onChange={(e) => setMorningBuyerRate(Number(e.target.value))}
+                            className="w-full font-bold outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Owner House (L)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="e.g. 2.0"
+                        value={homeLiters}
+                        onChange={(e) => setHomeLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Employee / Worker Ration (L)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="e.g. 1.5"
+                        value={workerLiters}
+                        onChange={(e) => setWorkerLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Nursery Calves Intake (L)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="e.g. 5.0"
+                        value={calfLiters}
+                        onChange={(e) => setCalfLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white focus:outline-hidden focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section B: Evening & Saturday Local Sales */}
+                <div className="p-3.5 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-2.5">
+                  <span className="text-xs font-bold text-emerald-950 block">
+                    🌙 Evening Sales & Saturday Local Community Dispatch (Expected PM: {pmHarvestTotal.toFixed(1)} L)
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Spot Cash Sales */}
+                    <div className="bg-white p-3 rounded-xl border border-emerald-200 space-y-1.5">
+                      <label className="text-[10px] font-bold text-emerald-900 block">Local Spot Cash Sales</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          placeholder="Cash Liters"
+                          value={eveningCashLiters}
+                          onChange={(e) => setEveningCashLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 focus:outline-hidden focus:border-emerald-500"
+                        />
+                        <div className="w-24 flex items-center gap-1 px-2 border border-gray-200 rounded-xl bg-gray-50 text-xs font-mono">
+                          <span>@</span>
+                          <input
+                            type="number"
+                            value={eveningCashRate}
+                            onChange={(e) => setEveningCashRate(Number(e.target.value))}
+                            className="w-full font-bold outline-none"
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-emerald-700 font-mono font-bold block">
+                        Cash Total: Ksh {((Number(eveningCashLiters) || 0) * eveningCashRate).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Monthly Credit / Debt Sales */}
+                    <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1.5">
+                      <label className="text-[10px] font-bold text-amber-900 block">Monthly Customer Credit / Debt</label>
+                      <input
+                        type="text"
+                        placeholder="Customer Name (e.g. Mama Brian)"
+                        value={debtCustomerName}
+                        onChange={(e) => setDebtCustomerName(e.target.value)}
+                        className="w-full text-xs font-bold border border-gray-200 rounded-xl p-2 mb-1 focus:outline-hidden focus:border-amber-500"
+                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          placeholder="Debt Liters"
+                          value={eveningDebtLiters}
+                          onChange={(e) => setEveningDebtLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                          className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 focus:outline-hidden focus:border-amber-500"
+                        />
+                        <div className="w-24 flex items-center gap-1 px-2 border border-gray-200 rounded-xl bg-gray-50 text-xs font-mono">
+                          <span>@</span>
+                          <input
+                            type="number"
+                            value={eveningDebtRate}
+                            onChange={(e) => setEveningDebtRate(Number(e.target.value))}
+                            className="w-full font-bold outline-none"
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-amber-700 font-mono font-bold block">
+                        Debt Added: Ksh {((Number(eveningDebtLiters) || 0) * eveningDebtRate).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section C: Spoilage & Owner Remittance */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Spoilage Log */}
+                  <div className="p-3 bg-rose-50/50 rounded-2xl border border-rose-100 space-y-2">
+                    <label className="text-[11px] font-bold text-rose-900 block">⚠️ Spoiled / Rejected Milk</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="Spoiled Liters"
+                        value={spoiledLiters}
+                        onChange={(e) => setSpoiledLiters(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        className="w-28 text-xs font-mono font-bold border border-rose-200 rounded-xl p-2 bg-white focus:outline-hidden"
+                      />
+                      <select
+                        value={spoilageReason}
+                        onChange={(e) => setSpoilageReason(e.target.value)}
+                        className="w-full text-xs border border-rose-200 rounded-xl p-2 bg-white font-medium focus:outline-hidden"
+                      >
+                        <option value="Mastitis / Flakes">Mastitis / Flakes</option>
+                        <option value="Antibiotic Drug Residue Discard">Antibiotic Residue Discard</option>
+                        <option value="Sour / Curdled / Temperature">Sour / Curdled</option>
+                        <option value="Physical Spill / Dirt">Physical Spill</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Send Today's Money to Owner */}
+                  <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-2">
+                    <label className="text-[11px] font-bold text-blue-950 block">💸 Money Sent to Owner (Today)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        placeholder="Amount (Ksh)"
+                        value={remittedAmount}
+                        onChange={(e) => setRemittedAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                        className="w-full text-xs font-mono font-bold border border-blue-200 rounded-xl p-2 bg-white focus:outline-hidden"
+                      />
+                      <input
+                        type="text"
+                        placeholder="M-PESA Code"
+                        value={remittanceMpesaCode}
+                        onChange={(e) => setRemittanceMpesaCode(e.target.value)}
+                        className="w-28 text-xs font-mono border border-blue-200 rounded-xl p-2 bg-white focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Optional day notes (e.g. Mama Mary collected 35L at 7:30 AM, cash received by Mosoti)"
+                    value={flowNotes}
+                    onChange={(e) => setFlowNotes(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 bg-gray-50 focus:bg-white focus:outline-hidden"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-indigo-950 hover:bg-indigo-900 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex justify-center items-center gap-2"
+                >
+                  <CheckCircle2 size={16} />
+                  Save Complete Daily Milk Flow & Allocation
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          TAB 2: FRIDAY MORNING BUYER SETTLEMENT TRACKER
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'morning_buyer' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                  Weekly Friday Payer Account
+                </span>
+                <h3 className="text-xl font-black text-gray-900 mt-2">
+                  🗓️ {morningBuyerName} — Weekly Reconciliation
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Takes morning milk Sunday through Friday. Saturday is strictly OFF. Payment is due every Friday.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="text-right bg-indigo-50 px-4 py-2.5 rounded-2xl border border-indigo-200">
+                  <span className="text-[10px] font-bold text-indigo-700 block uppercase">This Week Due (Friday)</span>
+                  <span className="text-xl font-black text-indigo-950 font-mono">
+                    Ksh {currentWeekBuyerTotalDue.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-indigo-600 block">{currentWeekBuyerLiters.toFixed(1)} Liters billed</span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setFridayPayAmount(currentWeekBuyerTotalDue);
+                    setShowFridayModal(true);
+                  }}
+                  className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                >
+                  <CreditCard size={15} />
+                  Record Friday Payment
+                </button>
+              </div>
+            </div>
+
+            {/* Current Week Day-by-Day Table */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-gray-800">Current Week Day-by-Day Harvest Intake (Mon–Sun)</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+                {currentWeekDays.map(d => (
+                  <div
+                    key={d.dateStr}
+                    className={`p-3 rounded-2xl border text-center space-y-1 ${
+                      d.isSat
+                        ? 'bg-gray-100 border-gray-200 text-gray-400'
+                        : d.isFri
+                        ? 'bg-indigo-50 border-indigo-300 text-indigo-950'
+                        : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <span className="text-[10px] font-black uppercase block tracking-wider">
+                      {d.dayName} {d.isSat && '(OFF)'}
+                    </span>
+                    <span className="text-[9px] font-mono text-gray-400 block">{d.dateStr}</span>
+                    <span className="text-lg font-black font-mono block">
+                      {d.isSat ? '0 L' : `${d.liters.toFixed(1)} L`}
+                    </span>
+                    <span className="text-[10px] font-bold font-mono text-emerald-700 block">
+                      {d.isSat ? 'Local' : `Ksh ${d.value.toLocaleString()}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Friday Payments Audit History */}
+            <div className="border-t border-gray-100 pt-4 space-y-3">
+              <h4 className="text-xs font-bold text-gray-900">Historical Friday Settlements & Payments</h4>
+              {buyerPayments.length === 0 ? (
+                <p className="text-gray-400 text-xs text-center py-6">No previous Friday payments recorded.</p>
+              ) : (
+                <div className="space-y-2">
+                  {buyerPayments.map(p => (
+                    <div key={p.id} className="p-3 bg-gray-50 rounded-2xl border border-gray-200 flex justify-between items-center text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-gray-900">Friday: {p.fridayPaymentDate}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            {p.status}
+                          </span>
+                          <span className="font-mono text-gray-500 text-[10px]">{p.paymentMethod}</span>
+                          {p.referenceCode && (
+                            <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                              Ref: {p.referenceCode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-gray-500 block mt-0.5">
+                          {p.totalLiters} L @ Ksh {p.ratePerLiter}/L • Note: "{p.notes}"
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-base font-black text-emerald-700 font-mono">
+                          Ksh {p.amountPaid.toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-gray-400 block font-mono">Paid on {p.paidOnDate}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          TAB 3: EVENING LOCAL SALES & MONTHLY DEBTORS
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'local_debts' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            {/* Monthly Debtors Register (7 cols) */}
+            <div className="lg:col-span-7 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+              <div className="border-b border-gray-100 pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <Users size={16} className="text-amber-600" />
+                    Monthly Customer Debtors Accounts
+                  </h3>
+                  <p className="text-[11px] text-gray-500">Track local customers who take evening milk on credit and settle monthly</p>
+                </div>
+
+                <button
+                  onClick={() => setShowDebtClearModal(true)}
+                  className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  Record Debt Payment
+                </button>
+              </div>
+
+              {debtorsDirectory.length === 0 ? (
+                <p className="text-center py-10 text-gray-400 text-xs">No active customer debts on record. All accounts are settled.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {debtorsDirectory.map(d => (
+                    <div key={d.customerName} className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 flex justify-between items-center text-xs">
+                      <div>
+                        <span className="font-black text-gray-900 block text-sm">👤 {d.customerName}</span>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          Accumulated: {d.totalLiters.toFixed(1)} Liters • Last intake: {d.lastDate}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <span className={`text-base font-black font-mono block ${d.balanceDue > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                            Ksh {d.balanceDue.toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {d.balanceDue > 0 ? 'Monthly balance due' : 'Settled in full'}
+                          </span>
+                        </div>
+
+                        {d.balanceDue > 0 && (
+                          <button
+                            onClick={() => {
+                              setClearDebtorName(d.customerName);
+                              setClearDebtorAmount(d.balanceDue);
+                              setShowDebtClearModal(true);
+                            }}
+                            className="px-2.5 py-1.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-50 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Monthly Debt Repayment Audit Log (5 cols) */}
+            <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+              <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">
+                💳 Monthly Debt Clearances & Collections
+              </h3>
+
+              {debtSettlements.length === 0 ? (
+                <p className="text-center py-10 text-gray-400 text-xs">No monthly debt repayments logged yet.</p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                  {debtSettlements.map(s => (
+                    <div key={s.id} className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200 text-xs flex justify-between items-center">
+                      <div>
+                        <span className="font-bold text-emerald-950 block">{s.customerName}</span>
+                        <span className="text-[10px] text-gray-500 font-mono">
+                          {s.date} via {s.channel} (Ref: {s.receiptRef})
+                        </span>
+                      </div>
+                      <span className="text-sm font-black text-emerald-800 font-mono">
+                        +Ksh {s.amountPaid.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          TAB 4: MONEY SENT TO OWNER (M-PESA / CASH REMITTANCE)
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'owner_remittance' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-5">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <span className="bg-blue-100 text-blue-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                  Owner Revenue Remittances
+                </span>
+                <h3 className="text-xl font-black text-gray-900 mt-2">
+                  💸 Dairy Cash Sent to Farm Owner
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  All money collected from morning contractor, local cash, and monthly debts is forwarded to the owner via M-PESA or bank.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 px-4 py-2.5 rounded-2xl border border-blue-200 text-right">
+                  <span className="text-[10px] font-bold text-blue-700 uppercase block">Total Remitted to Owner</span>
+                  <span className="text-xl font-black text-blue-950 font-mono">
+                    Ksh {totalOwnerRemitted.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-blue-600 block">{ownerRemittances.length} transfers recorded</span>
+                </div>
+
+                <button
+                  onClick={() => setShowRemitModal(true)}
+                  className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                >
+                  <Send size={15} />
+                  Send Money to Owner
+                </button>
+              </div>
+            </div>
+
+            {/* Remittance Ledger Table */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-gray-800">Historical Remittance Log to Owner</h4>
+              {ownerRemittances.length === 0 ? (
+                <p className="text-center py-10 text-gray-400 text-xs">No owner remittances logged yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {ownerRemittances.map(r => (
+                    <div key={r.id} className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 flex justify-between items-center text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-gray-900">{r.date}</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                            {r.channel}
+                          </span>
+                          <span className="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                            {r.paymentSource}
+                          </span>
+                          {r.referenceCode && (
+                            <span className="font-mono text-[10px] bg-white px-2 py-0.5 rounded border border-gray-200">
+                              Ref: {r.referenceCode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-gray-500 block mt-1">
+                          Recipient: {r.recipientName || 'Farm Owner'} • Notes: "{r.notes || 'No remarks'}"
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-lg font-black text-emerald-700 font-mono">
+                          Ksh {r.amountKsh.toLocaleString()}
+                        </span>
+                        <span className="text-[10px] text-gray-400 block font-mono">✅ Confirmed</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          TAB 5: CONSOLIDATED RECORDS & MASTER AUDIT
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeTab === 'master_audit' && (
+        <div className="space-y-6">
+          <div className="bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                  <Database size={16} className="text-gray-700" />
+                  Consolidated Daily Production & Dispatch Records
+                </h3>
+                <p className="text-[11px] text-gray-500">Historical records per day across production, buyers, local sales, farm use & remittances</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by date or cow..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="px-3 py-1.5 text-xs border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-hidden"
+                />
+              </div>
+            </div>
+
+            {/* Daily Consolidated Rows */}
+            <div className="space-y-3">
+              {(() => {
+                const allDates = Array.from(new Set([...filteredMilks.map(m => m.date), ...filteredOutflows.map(o => o.date)]))
+                  .filter(d => searchQuery ? d.includes(searchQuery) : true)
+                  .sort((a, b) => b.localeCompare(a));
+
+                if (allDates.length === 0) {
+                  return <p className="text-center py-10 text-gray-400 text-xs">No records found for the selected period.</p>;
+                }
+
+                return allDates.map(dStr => {
+                  const dMilks = filteredMilks.filter(m => m.date === dStr);
+                  const dOutflow = filteredOutflows.find(o => o.date === dStr);
+
+                  const totalM = dMilks.reduce((s, m) => s + (m.am || 0) + (m.pm || 0), 0);
+                  const mBuyer = dOutflow?.morningBuyerLiters || 0;
+                  const lCash = dOutflow?.eveningLocalCashLiters || 0;
+                  const lDebt = dOutflow?.eveningLocalDebtLiters || 0;
+                  const home = dOutflow?.milkUsedAtHome || 0;
+                  const work = dOutflow?.milkUsedByWorkers || 0;
+                  const calf = dOutflow?.milkUsedByCalf || 0;
+                  const sp = dOutflow?.milkSpoiled || 0;
+
+                  const totalDispatched = mBuyer + lCash + lDebt + home + work + calf + sp;
+                  const diff = totalM - totalDispatched;
+
+                  const cashKsh = (mBuyer * (dOutflow?.morningBuyerPricePerLiter || 55)) + (lCash * (dOutflow?.eveningCashPricePerLiter || 60));
+                  const remitted = dOutflow?.remittedToOwnerKsh || 0;
+
+                  return (
+                    <div key={dStr} className="bg-gray-50/70 border border-gray-200 rounded-2xl p-4 space-y-3 hover:border-emerald-300 transition-all">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-sm text-gray-900 font-mono">{dStr}</span>
+                          <span className="text-[11px] text-gray-500">
+                            ({new Date(dStr).toLocaleDateString('en-US', { weekday: 'short' })})
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                            diff === 0 && totalM > 0
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : diff > 0
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            {diff === 0 && totalM > 0 ? '100% Balanced' : diff > 0 ? `+${diff.toFixed(1)}L Surplus` : `${diff.toFixed(1)}L Deficit`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono font-bold text-gray-700">Harvest: {totalM.toFixed(1)} L</span>
+                          <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            Sales: Ksh {cashKsh.toLocaleString()}
+                          </span>
+                          {remitted > 0 && (
+                            <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                              Remitted: Ksh {remitted.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Distribution Badges Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Morning Buyer</span>
+                          <span className="font-bold text-indigo-900 font-mono">{mBuyer > 0 ? `${mBuyer} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Local Cash</span>
+                          <span className="font-bold text-emerald-900 font-mono">{lCash > 0 ? `${lCash} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Monthly Debt</span>
+                          <span className="font-bold text-amber-900 font-mono">{lDebt > 0 ? `${lDebt} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Owner House</span>
+                          <span className="font-bold text-purple-900 font-mono">{home > 0 ? `${home} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Staff Ration</span>
+                          <span className="font-bold text-gray-800 font-mono">{work > 0 ? `${work} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Calves Fed</span>
+                          <span className="font-bold text-blue-900 font-mono">{calf > 0 ? `${calf} L` : '0 L'}</span>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">Spoiled</span>
+                          <span className="font-bold text-rose-700 font-mono">{sp > 0 ? `${sp} L` : '0 L'}</span>
+                        </div>
+                      </div>
+
+                      {dOutflow?.notes && (
+                        <p className="text-[11px] text-gray-500 italic bg-white p-2 rounded-xl border border-gray-100">
+                          Note: "{dOutflow.notes}"
+                        </p>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          MODAL: RECORD FRIDAY MORNING BUYER PAYMENT
+      ────────────────────────────────────────────────────────────────────────── */}
+      {showFridayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-gray-100 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <CreditCard size={16} className="text-indigo-600" />
+                Record Friday Buyer Payment
+              </h3>
+              <button onClick={() => setShowFridayModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmFridayPayment} className="space-y-3.5 text-xs">
+              <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-200">
+                <span className="text-[10px] uppercase font-bold text-indigo-700 block">Contract Buyer</span>
+                <span className="font-bold text-sm text-indigo-950 block">{morningBuyerName}</span>
+                <span className="text-[11px] text-indigo-600 block mt-0.5">
+                  Week volume: {currentWeekBuyerLiters.toFixed(1)} L • Expected Total: Ksh {currentWeekBuyerTotalDue.toLocaleString()}
+                </span>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Payment Amount Received (Ksh)</label>
+                <input
+                  type="number"
+                  required
+                  value={fridayPayAmount}
+                  onChange={(e) => setFridayPayAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                  className="w-full text-sm font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">M-PESA / Receipt Reference Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g. QKL99382JK1"
+                  value={fridayPayCode}
+                  onChange={(e) => setFridayPayCode(e.target.value)}
+                  className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Settlement Remarks</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Cleared full week in morning M-PESA"
+                  value={fridayPayNotes}
+                  onChange={(e) => setFridayPayNotes(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFridayModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  Confirm Friday Settlement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          MODAL: RECORD MONTHLY DEBT PAYMENT
+      ────────────────────────────────────────────────────────────────────────── */}
+      {showDebtClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-gray-100 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <Users size={16} className="text-amber-600" />
+                Clear Monthly Customer Debt
+              </h3>
+              <button onClick={() => setShowDebtClearModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSettleCustomerDebt} className="space-y-3.5 text-xs">
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Customer / Debtor Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Mama Brian"
+                  value={clearDebtorName}
+                  onChange={(e) => setClearDebtorName(e.target.value)}
+                  className="w-full text-xs font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Payment Amount (Ksh)</label>
+                <input
+                  type="number"
+                  required
+                  value={clearDebtorAmount}
+                  onChange={(e) => setClearDebtorAmount(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                  className="w-full text-sm font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Channel</label>
+                  <select
+                    value={clearDebtorChannel}
+                    onChange={(e) => setClearDebtorChannel(e.target.value as any)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-hidden"
+                  >
+                    <option value="M-PESA">M-PESA</option>
+                    <option value="Cash">Cash Handover</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Receipt / Code</label>
+                  <input
+                    type="text"
+                    placeholder="M-PESA code or Cash receipt"
+                    value={clearDebtorRef}
+                    onChange={(e) => setClearDebtorRef(e.target.value)}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDebtClearModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  Clear Customer Debt
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────────
+          MODAL: SEND MONEY TO OWNER
+      ────────────────────────────────────────────────────────────────────────── */}
+      {showRemitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl p-6 border border-gray-100 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <Send size={16} className="text-blue-600" />
+                Forward Dairy Revenue to Owner
+              </h3>
+              <button onClick={() => setShowRemitModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleManualRemittance} className="space-y-3.5 text-xs">
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Amount Sent (Ksh)</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="e.g. 15000"
+                  value={remitAmountInput}
+                  onChange={(e) => setRemitAmountInput(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                  className="w-full text-base font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:outline-hidden focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Source of Funds</label>
+                <select
+                  value={remitSourceInput}
+                  onChange={(e) => setRemitSourceInput(e.target.value as any)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-hidden"
+                >
+                  <option value="Combined Dairy Sales">Combined Dairy Sales</option>
+                  <option value="Morning Buyer (Friday Pay)">Morning Buyer (Friday Pay)</option>
+                  <option value="Evening Local Cash">Evening Local Cash</option>
+                  <option value="Monthly Debt Collection">Monthly Debt Collection</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">Transfer Method</label>
+                  <select
+                    value={remitChannelInput}
+                    onChange={(e) => setRemitChannelInput(e.target.value as any)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 bg-white font-medium focus:outline-hidden"
+                  >
+                    <option value="M-PESA">M-PESA</option>
+                    <option value="Cash">Cash Handover</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">M-PESA / Tx Reference</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. QKL88192A"
+                    value={remitRefInput}
+                    onChange={(e) => setRemitRefInput(e.target.value)}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-gray-700 block mb-1">Notes / Instructions</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sent to Owner line 0722XXXXXX"
+                  value={remitNotesInput}
+                  onChange={(e) => setRemitNotesInput(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRemitModal(false)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  Record Remittance to Owner
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -645,14 +645,70 @@ export interface MilkOutflowRecord {
   id: string;
   date: string; // YYYY-MM-DD
   totalMilkedOverride?: number; // Total milked per day
-  milkUsedAtHome: number; // Liters used/reserved at home
-  milkUsedByWorkers: number; // Liters given/sold to workers
-  milkUsedByCalf?: number; // Liters consumed by calves
-  milkSpoiled: number; // Liters spoiled or discarded
-  debtsKsh: number; // Value of milk sold on credit (debts) Ksh or Outstanding debt quantity description
+
+  // Morning distribution
+  morningBuyerLiters?: number; // Liters taken by regular morning buyer
+  morningBuyerName?: string; // e.g. "Regular Morning Buyer"
+  morningBuyerPricePerLiter?: number; // Price per liter for morning buyer
+  morningBuyerPaidFriday?: boolean; // Paid on Friday status
+  morningBuyerFridayPaymentDate?: string; // Date Friday payment received
+  isSaturdayMorningNoBuyer?: boolean; // True on Saturdays (she doesn't take milk)
+
+  // Internal Farm Consumption
+  milkUsedAtHome: number; // Liters given to Owner / Home
+  milkUsedByWorkers: number; // Liters given to Employees
+  milkUsedByCalf?: number; // Liters fed to nursery calves
+
+  // Evening / Local Sales
+  eveningLocalCashLiters?: number; // Liters sold locally for instant cash
+  eveningCashPricePerLiter?: number; // Price per liter for local cash
+  eveningLocalDebtLiters?: number; // Liters sold on monthly credit/debt
+  eveningDebtPricePerLiter?: number; // Price per liter for debt
+
+  // Loss / Spoilage
+  milkSpoiled: number; // Liters spoiled, sour, or discarded (antibiotics, mastitis)
+  spoilageReason?: string; // e.g. "Curdled", "Mastitis", "Drug residue withdrawal discard"
+
+  // Debts & Accounts
+  debtsKsh: number; // Value of milk sold on credit (debts) Ksh
   debtCustomer?: string; // Debtor Name / Account
-  debtsList?: { debtor: string; amount: number }[]; // List of multiple debtors
-  salesPricePerLiter?: number; // Price per liter for the day
+  debtsList?: { debtor: string; amount: number; liters?: number; settled?: boolean; dateSettled?: string }[];
+
+  // Owner Remittances
+  remittedToOwnerKsh?: number; // Amount of daily milk money sent to owner
+  remittanceMethod?: 'M-PESA' | 'Cash' | 'Bank' | 'Pending';
+  remittanceRef?: string; // M-PESA code or receipt number
+  remittanceDate?: string;
+
+  salesPricePerLiter?: number; // Price per liter fallback
+  notes?: string;
+}
+
+export interface MorningBuyerPaymentRecord {
+  id: string;
+  weekStartDate: string; // Monday of the billing week
+  weekEndDate: string; // Sunday of the billing week
+  fridayPaymentDate: string; // Expected Friday payment date
+  buyerName: string;
+  totalLiters: number;
+  ratePerLiter: number;
+  totalAmountDue: number;
+  amountPaid: number;
+  status: 'Pending' | 'Paid' | 'Partial';
+  paymentMethod: 'M-PESA' | 'Cash' | 'Bank';
+  referenceCode?: string;
+  paidOnDate?: string;
+  notes?: string;
+}
+
+export interface OwnerRemittanceRecord {
+  id: string;
+  date: string;
+  amountKsh: number;
+  paymentSource: 'Morning Buyer (Friday Pay)' | 'Evening Local Cash' | 'Monthly Debt Collection' | 'Combined Dairy Sales';
+  channel: 'M-PESA' | 'Cash' | 'Bank Transfer';
+  referenceCode?: string;
+  recipientName?: string; // e.g. "Farm Owner"
   notes?: string;
 }
 
