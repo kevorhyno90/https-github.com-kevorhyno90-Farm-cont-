@@ -14,6 +14,9 @@ import { BsfHarvestHub } from './bsf/BsfHarvestHub';
 import { BsfFeedIntegrationHub } from './bsf/BsfFeedIntegrationHub';
 import { BsfBreedingHub } from './bsf/BsfBreedingHub';
 import { BsfSalesHub } from './bsf/BsfSalesHub';
+import { BsfEggCollectionHub } from './bsf/BsfEggCollectionHub';
+import { BsfPupaeHarvestHub } from './bsf/BsfPupaeHarvestHub';
+import { BsfFeedingLogHub } from './bsf/BsfFeedingLogHub';
 
 interface BsfManagerProps {
   bsfRecords: BsfRecord[];
@@ -24,7 +27,7 @@ interface BsfManagerProps {
   onTriggerSectionReport?: (sectionKey: string) => void;
 }
 
-type BsfSubTab = 'batches' | 'substrates' | 'harvests' | 'feed_integration' | 'breeding' | 'sales';
+type BsfSubTab = 'eggs' | 'pupae' | 'feeding' | 'batches' | 'substrates' | 'harvests' | 'feed_integration' | 'breeding' | 'sales';
 type ViewMode = 'cards' | 'table';
 
 export function BsfManager({
@@ -300,6 +303,42 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
       <div className="flex items-center justify-between gap-2 overflow-x-auto bg-white p-1.5 rounded-2xl border border-gray-200 shadow-xs">
         <div className="flex items-center gap-1 overflow-x-auto">
           <button
+            onClick={() => setSubTab('eggs')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'eggs'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🥚</span>
+            <span>Egg Collections</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('pupae')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'pupae'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🌰</span>
+            <span>Pupae Harvested</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('feeding')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'feeding'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🥣</span>
+            <span>Daily Feeding & Trays</span>
+          </button>
+
+          <button
             onClick={() => setSubTab('batches')}
             className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               subTab === 'batches'
@@ -308,7 +347,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
             }`}
           >
             <span>🐛</span>
-            <span>Batches & Lifecycle</span>
+            <span>Rearing Batches</span>
             <span className="ml-1 px-1.5 py-0.2 text-[10px] bg-black/10 rounded-full font-mono">{bsfRecords.length}</span>
           </button>
 
@@ -321,7 +360,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
             }`}
           >
             <span>🥑</span>
-            <span>Substrate & Waste Sourcing</span>
+            <span>Substrate Sourcing</span>
           </button>
 
           <button
@@ -337,6 +376,18 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
           </button>
 
           <button
+            onClick={() => setSubTab('sales')}
+            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              subTab === 'sales'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>💰</span>
+            <span>Commercial Sales</span>
+          </button>
+
+          <button
             onClick={() => setSubTab('feed_integration')}
             className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               subTab === 'feed_integration'
@@ -345,7 +396,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
             }`}
           >
             <span>🐔</span>
-            <span>Feed Integration & Savings</span>
+            <span>Feed Savings</span>
           </button>
 
           <button
@@ -357,19 +408,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
             }`}
           >
             <span>🪰</span>
-            <span>Love Cage Aviary Breeding</span>
-          </button>
-
-          <button
-            onClick={() => setSubTab('sales')}
-            className={`px-3 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-              subTab === 'sales'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <span>💰</span>
-            <span>Commercial Sales</span>
+            <span>Aviary Breeding</span>
           </button>
         </div>
 
@@ -395,6 +434,49 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
           </div>
         )}
       </div>
+
+      {/* ========================================================= */}
+      {/* SUBTAB: EGG COLLECTIONS */}
+      {/* ========================================================= */}
+      {subTab === 'eggs' && (
+        <BsfEggCollectionHub
+          staffList={staffList}
+          onInoculateNewBatch={(eggBatchNumber, eggGrams, date) => {
+            setForm(prev => ({
+              ...prev,
+              batchId: `BSF-${eggBatchNumber.replace('EGG-', '')}`,
+              inoculationDate: date,
+              eggWeightGrams: eggGrams,
+              status: 'Inoculation',
+              notes: `Inoculated from egg collection batch ${eggBatchNumber} (${eggGrams}g).`
+            }));
+            setSubTab('batches');
+            setShowBatchModal(true);
+          }}
+        />
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB: PUPAE HARVESTED */}
+      {/* ========================================================= */}
+      {subTab === 'pupae' && (
+        <BsfPupaeHarvestHub
+          staffList={staffList}
+          onTransferToLoveCage={(pupaeKg, batchId) => {
+            alert(`Transferred ${pupaeKg}kg Dark Pupae from batch ${batchId} to Love Cage for adult emergence!`);
+            setSubTab('breeding');
+          }}
+        />
+      )}
+
+      {/* ========================================================= */}
+      {/* SUBTAB: DAILY FEEDING & BED TRAYS */}
+      {/* ========================================================= */}
+      {subTab === 'feeding' && (
+        <BsfFeedingLogHub
+          staffList={staffList}
+        />
+      )}
 
       {/* ========================================================= */}
       {/* SUBTAB 1: BATCHES & LIFECYCLE */}

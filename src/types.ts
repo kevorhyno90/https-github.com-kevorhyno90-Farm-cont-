@@ -347,7 +347,7 @@ export interface BsfCommercialSale {
   buyerName: string;
   buyerPhone: string;
   buyerLocation?: string;
-  productType: 'Live Larvae' | 'Dried Grubs' | 'BSF Seed 5-DOL Neonates' | 'Organic Frass Biofertilizer';
+  productType: 'Live Larvae' | 'Dried Grubs' | 'Pupae / Seed Pupae' | 'BSF Eggs' | 'BSF Seed 5-DOL Neonates' | 'Organic Frass Biofertilizer';
   quantityKg: number;
   unitPriceKes: number;
   totalAmountKes: number;
@@ -367,6 +367,47 @@ export interface BsfLoveCageBreedingLog {
   lightingConditions: 'Natural Sunlight & UV Led' | 'Full Spectrum Halogen';
   ambientTempC: number;
   ambientHumidityPercent: number;
+  notes?: string;
+}
+
+export interface BsfEggCollectionRecord {
+  id: string;
+  eggBatchNumber: string; // e.g. "EGG-BATCH-2024-042"
+  dayOfCollection: string; // YYYY-MM-DD
+  eggWeightGrams: number; // weight in grams
+  cageOrAviarySource: string; // e.g. "Love Cage 01 - Alpha"
+  incubationDate?: string;
+  expectedHatchDate?: string; // +4 days
+  hatchRatePercent?: number; // e.g. 92%
+  substrateInoculated?: string;
+  destinationBatchId?: string;
+  collectorName?: string;
+  notes?: string;
+}
+
+export interface BsfPupaeHarvestRecord {
+  id: string;
+  harvestDate: string; // YYYY-MM-DD
+  batchId: string; // e.g. "BSF-BATCH-201"
+  pupaeHarvestedKg: number; // kg
+  pupaeGrade: 'Dark Pupae (Breeding Stock)' | 'Prepupae (Self-Harvest Ramps)' | 'Mixed Prepupae & Larvae' | 'Solar Dried Pupae';
+  destination: 'Transferred to Love Cage' | 'Feed for Livestock' | 'Solar Drying Tunnel' | 'Commercial Sale';
+  trayOrBedNumber?: string;
+  operator?: string;
+  notes?: string;
+}
+
+export interface BsfFeedingRecord {
+  id: string;
+  feedingDate: string; // YYYY-MM-DD
+  batchId: string; // e.g. "BSF-BATCH-202"
+  substrateFed: string; // e.g. "Overripe Avocado & Banana peels"
+  substrateWeightFedKg: number; // kg
+  trayOrBasinNumber: string; // e.g. "Bed Row 04"
+  feedingStage: 'Starter (5-DOL)' | 'Active Fattening' | 'Pre-Harvest Finishing';
+  bedTemperatureC?: number;
+  bedMoisturePercent?: number;
+  operator?: string;
   notes?: string;
 }
 

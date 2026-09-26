@@ -205,7 +205,12 @@ export function BsfSalesHub() {
                     value={form.productType}
                     onChange={e => {
                       const type = e.target.value as any;
-                      const defaultPrice = type === 'Live Larvae' ? 120 : type === 'Dried Grubs' ? 380 : type === 'BSF Seed 5-DOL Neonates' ? 500 : 35;
+                      const defaultPrice = 
+                        type === 'Live Larvae' ? 120 :
+                        type === 'Dried Grubs' ? 380 :
+                        type === 'Pupae / Seed Pupae' ? 650 :
+                        type === 'BSF Eggs' ? 1200 :
+                        type === 'BSF Seed 5-DOL Neonates' ? 500 : 35;
                       setForm(prev => ({
                         ...prev,
                         productType: type,
@@ -217,6 +222,8 @@ export function BsfSalesHub() {
                   >
                     <option value="Live Larvae">Fresh Live Larvae (KES 120/kg)</option>
                     <option value="Dried Grubs">Whole Dried Grubs (KES 380/kg)</option>
+                    <option value="Pupae / Seed Pupae">Dark Pupae / Seed Stock (KES 650/kg)</option>
+                    <option value="BSF Eggs">BSF Egg Clusters (KES 1,200/50g or per unit)</option>
                     <option value="BSF Seed 5-DOL Neonates">5-DOL Seed Starter Neonates (KES 500/kg)</option>
                     <option value="Organic Frass Biofertilizer">Organic Frass Biofertilizer (KES 35/kg)</option>
                   </select>
