@@ -84,14 +84,14 @@ interface DairyBreedingProps {
 }
 
 type DairySubTab =
+  | 'registry'
   | 'lactation'
   | 'breeding_ledger'
   | 'breeding_wheel'
+  | 'semen_inventory'
   | 'veterinary'
-  | 'registry'
   | 'calves_heifers'
   | 'tmr_nutrition'
-  | 'semen_inventory'
   | 'life_ledger';
 
 export function DairyBreeding({
@@ -133,7 +133,7 @@ export function DairyBreeding({
   onDeleteSilage,
   activeSubModule
 }: DairyBreedingProps) {
-  const [subTab, setSubTab] = useState<DairySubTab>('lactation');
+  const [subTab, setSubTab] = useState<DairySubTab>('registry');
 
   // React to activeSubModule when navigating from sidebar or dashboard
   useEffect(() => {
@@ -404,6 +404,18 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
       <div className="bg-white border border-gray-200 rounded-2xl p-1.5 shadow-xs overflow-x-auto">
         <div className="flex gap-1 min-w-max">
           <button
+            onClick={() => setSubTab('registry')}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+              subTab === 'registry'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <Award size={14} />
+            🏷️ Cattle Directory & Pedigree
+          </button>
+
+          <button
             onClick={() => setSubTab('lactation')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
               subTab === 'lactation'
@@ -440,6 +452,17 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
           </button>
 
           <button
+            onClick={() => setSubTab('semen_inventory')}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+              subTab === 'semen_inventory'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <span>🧬</span> Semen Straw Bank ({totalStraws})
+          </button>
+
+          <button
             onClick={() => setSubTab('veterinary')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 relative ${
               subTab === 'veterinary'
@@ -452,41 +475,6 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
             {activeWithdrawals.length > 0 && (
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-2 right-2" />
             )}
-          </button>
-
-          <button
-            onClick={() => setSubTab('registry')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-              subTab === 'registry'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <Award size={14} />
-            🏷️ Cattle Directory & Pedigree
-          </button>
-
-          <button
-            onClick={() => setSubTab('semen_inventory')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-              subTab === 'semen_inventory'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <span>🧬</span> Semen Straw Bank ({totalStraws})
-          </button>
-
-          <button
-            onClick={() => setSubTab('life_ledger')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-              subTab === 'life_ledger'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <TrendingUp size={14} />
-            📈 Livestock Sales & Loss
           </button>
 
           <button
@@ -512,12 +500,37 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
             <Truck size={14} />
             🥣 TMR Nutrition & Silage Pits
           </button>
+
+          <button
+            onClick={() => setSubTab('life_ledger')}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+              subTab === 'life_ledger'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <TrendingUp size={14} />
+            📈 Livestock Sales & Loss
+          </button>
         </div>
       </div>
 
       {/* SUB-TAB CONTENTS */}
 
-      {/* 1. LACTATION & BULK DISPATCH */}
+      {/* 1. CATTLE DIRECTORY & PEDIGREE */}
+      {subTab === 'registry' && (
+        <CowRegistry
+          cows={cows}
+          milkRecords={milkRecords}
+          onDeleteCow={onDeleteCow}
+          onTriggerSectionReport={onTriggerSectionReport}
+          onUpdateCowStatus={onUpdateCowStatus}
+          onAddCow={onAddCow}
+          onEditCow={onEditCow}
+        />
+      )}
+
+      {/* 2. LACTATION & BULK DISPATCH */}
       {subTab === 'lactation' && (
         <LactationLedger
           cows={cows}
@@ -537,7 +550,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 2. BREEDING LEDGER */}
+      {/* 3. BREEDING LEDGER */}
       {subTab === 'breeding_ledger' && (
         <BreedingLedger
           cows={cows}
@@ -554,7 +567,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 3. BREEDING & GESTATION WHEEL */}
+      {/* 4. BREEDING & GESTATION WHEEL */}
       {subTab === 'breeding_wheel' && (
         <GeneticsManager
           cows={cows}
@@ -567,33 +580,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 4. VETERINARY LOG */}
-      {subTab === 'veterinary' && (
-        <VeterinaryLog
-          cows={cows}
-          vetRecords={vetRecords}
-          staffList={staffList}
-          onAddVetRecord={onAddVetRecord}
-          onDeleteVetRecord={onDeleteVetRecord}
-          onEditVetRecord={onEditVetRecord}
-          onTriggerSectionReport={onTriggerSectionReport}
-        />
-      )}
-
-      {/* 5. CATTLE DIRECTORY & PEDIGREE */}
-      {subTab === 'registry' && (
-        <CowRegistry
-          cows={cows}
-          milkRecords={milkRecords}
-          onDeleteCow={onDeleteCow}
-          onTriggerSectionReport={onTriggerSectionReport}
-          onUpdateCowStatus={onUpdateCowStatus}
-          onAddCow={onAddCow}
-          onEditCow={onEditCow}
-        />
-      )}
-
-      {/* 6. SEMEN STRAW INVENTORY */}
+      {/* 5. SEMEN STRAW INVENTORY */}
       {subTab === 'semen_inventory' && (
         <div className="space-y-6 animate-fadeIn" id="semen-inventory-section">
           <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs relative overflow-hidden">
@@ -838,7 +825,221 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         </div>
       )}
 
-      {/* 7. CATTLE SALES & LOSS LEDGER */}
+      {/* 6. VETERINARY LOG */}
+      {subTab === 'veterinary' && (
+        <VeterinaryLog
+          cows={cows}
+          vetRecords={vetRecords}
+          staffList={staffList}
+          onAddVetRecord={onAddVetRecord}
+          onDeleteVetRecord={onDeleteVetRecord}
+          onEditVetRecord={onEditVetRecord}
+          onTriggerSectionReport={onTriggerSectionReport}
+        />
+      )}
+
+      {/* 7. CALVES & HEIFERS PIPELINE */}
+      {subTab === 'calves_heifers' && (
+        <CalvesHeifersHub
+          cows={cows}
+          onAddCow={onAddCow}
+          onGoToSubTab={setSubTab}
+        />
+      )}
+
+      {/* 8. TMR CATTLE NUTRITION & SILAGE PITS */}
+      {subTab === 'tmr_nutrition' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Interactive TMR Mixer */}
+          <TmrMixing onTriggerSectionReport={onTriggerSectionReport} />
+
+          {/* Silage Pits & Feed Rations Directory */}
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <span className="bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2.5 py-1 rounded-full border border-emerald-200">
+                  🌾 Fermented Forage & Bunk Preservation
+                </span>
+                <h3 className="text-xl font-bold text-gray-900 mt-2">
+                  Silage Pits & Bunker Stores
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Track pit silage tonnage, moisture testing, lactic fermentation quality, and herd feed lifespan days.
+                </p>
+              </div>
+              <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-200 text-right">
+                <span className="text-[10px] uppercase font-bold text-emerald-800 block">Total Stored Silage</span>
+                <span className="text-lg font-black text-emerald-950 font-mono">
+                  {silageRecords.reduce((sum, s) => sum + (s.calculatedWeightKg || 0), 0).toLocaleString()} KG
+                </span>
+              </div>
+            </div>
+
+            {/* Silage Form + List */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {onAddSilage && (
+                <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-200 space-y-3">
+                  <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                    <Plus size={14} className="text-emerald-600" />
+                    Record Sealed Silage Pit
+                  </h4>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const fd = new FormData(e.currentTarget);
+                      const material = fd.get('rawMaterial') as string;
+                      const acres = Number(fd.get('acres')) || 0;
+                      const weight = Number(fd.get('weight')) || (acres * 15000);
+                      const dateMade = (fd.get('dateMade') as string) || toIsoDate();
+                      const quality = fd.get('quality') as string;
+                      const notes = fd.get('notes') as string;
+                      const animals = Number(fd.get('animals')) || cows.length || 12;
+                      const dailyIntake = Number(fd.get('dailyIntake')) || 15;
+                      const daysAvailable = Math.round(weight / Math.max(1, animals * dailyIntake));
+
+                      if (!material) return;
+
+                      onAddSilage({
+                        id: `silage-${Date.now()}`,
+                        rawMaterial: material,
+                        acres,
+                        calculatedWeightKg: weight,
+                        dateMade,
+                        quality: quality || 'Excellent (Golden yellow, lactic acid smell)',
+                        animalsFedCount: animals,
+                        averageAnimalWeightKg: 450,
+                        recommendedDailyIntakePerAnimal: dailyIntake,
+                        daysOfFeedAvailable: daysAvailable,
+                        notes: notes || 'Compacted and sealed with UV polythene and soil weights.'
+                      });
+                      e.currentTarget.reset();
+                    }}
+                    className="space-y-3 text-xs"
+                  >
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Forage Crop</label>
+                      <select name="rawMaterial" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                        <option value="Maize (Dough Stage)">Maize (Dough Stage)</option>
+                        <option value="Sorghum (Sweet High-Sugar)">Sorghum (Sweet High-Sugar)</option>
+                        <option value="Super Napier (Pakchong 1)">Super Napier (Pakchong 1)</option>
+                        <option value="Boma Rhodes Grass">Boma Rhodes Grass</option>
+                        <option value="Lucerne / Alfalfa Wilted">Lucerne / Alfalfa Wilted</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Acres Harvested</label>
+                        <input type="number" step="0.1" name="acres" defaultValue="1.5" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Pit Yield (KG)</label>
+                        <input type="number" name="weight" defaultValue="22500" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Date Sealed</label>
+                        <input type="date" name="dateMade" defaultValue={todayStr} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Fermentation Quality</label>
+                        <select name="quality" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs">
+                          <option value="Excellent (Golden yellow, lactic acid smell)">Excellent (Lactic)</option>
+                          <option value="Good (Clean acidic aroma)">Good (Clean Acidic)</option>
+                          <option value="Fair (Slight butyric scent)">Fair (Needs fast feedout)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Preservation / Inoculant Notes</label>
+                      <input type="text" name="notes" placeholder="e.g. Inoculated with Lactobacillus plantarum" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs" />
+                    </div>
+
+                    <button type="submit" className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer">
+                      Save Silage Pit Record
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Stored Silage Pits Listing */}
+              <div className={`space-y-3 ${onAddSilage ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-gray-800">
+                    Active Bunker Stores & Pits ({silageRecords.length})
+                  </h4>
+                  {onTriggerSectionReport && (
+                    <button
+                      onClick={() => onTriggerSectionReport('silage')}
+                      type="button"
+                      className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Download size={12} />
+                      Export Silage Audit
+                    </button>
+                  )}
+                </div>
+
+                {silageRecords.length === 0 ? (
+                  <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400 text-xs">
+                    No silage pits logged yet. Use the form to record newly ensiled forage.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {silageRecords.map((pit) => (
+                      <div key={pit.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs space-y-2 hover:border-emerald-300 transition-all">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-sm text-gray-900 block">{pit.rawMaterial}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">Ensiled: {pit.dateMade}</span>
+                          </div>
+                          {onDeleteSilage && (
+                            <button
+                              onClick={() => onDeleteSilage(pit.id)}
+                              className="text-gray-400 hover:text-rose-600 cursor-pointer p-1"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 py-2 border-y border-gray-100 text-center">
+                          <div>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Weight</span>
+                            <span className="text-xs font-mono font-bold text-emerald-800">{(pit.calculatedWeightKg || 0).toLocaleString()} kg</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Acres</span>
+                            <span className="text-xs font-mono font-bold text-gray-700">{pit.acres} ac</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Lifespan</span>
+                            <span className="text-xs font-mono font-bold text-indigo-700">~{pit.daysOfFeedAvailable || '—'} days</span>
+                          </div>
+                        </div>
+
+                        <div className="text-[11px] text-gray-600 flex justify-between items-center">
+                          <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-medium">
+                            {pit.quality}
+                          </span>
+                          <span className="text-[10px] text-gray-400 italic truncate max-w-[140px]">
+                            {pit.notes}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. CATTLE SALES & LOSS LEDGER */}
       {subTab === 'life_ledger' && (
         <div className="space-y-6 animate-fadeIn" id="life-ledger-dairy">
           {/* Header Actions for Sales & Loss */}
@@ -1098,207 +1299,6 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
                       </button>
                     </div>
                   ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 8. CALVES & HEIFERS PIPELINE */}
-      {subTab === 'calves_heifers' && (
-        <CalvesHeifersHub
-          cows={cows}
-          onAddCow={onAddCow}
-          onGoToSubTab={setSubTab}
-        />
-      )}
-
-      {/* 9. TMR CATTLE NUTRITION & SILAGE PITS */}
-      {subTab === 'tmr_nutrition' && (
-        <div className="space-y-6 animate-fadeIn">
-          {/* Interactive TMR Mixer */}
-          <TmrMixing onTriggerSectionReport={onTriggerSectionReport} />
-
-          {/* Silage Pits & Feed Rations Directory */}
-          <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
-              <div>
-                <span className="bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2.5 py-1 rounded-full border border-emerald-200">
-                  🌾 Fermented Forage & Bunk Preservation
-                </span>
-                <h3 className="text-xl font-bold text-gray-900 mt-2">
-                  Silage Pits & Bunker Stores
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Track pit silage tonnage, moisture testing, lactic fermentation quality, and herd feed lifespan days.
-                </p>
-              </div>
-              <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-200 text-right">
-                <span className="text-[10px] uppercase font-bold text-emerald-800 block">Total Stored Silage</span>
-                <span className="text-lg font-black text-emerald-950 font-mono">
-                  {silageRecords.reduce((sum, s) => sum + (s.calculatedWeightKg || 0), 0).toLocaleString()} KG
-                </span>
-              </div>
-            </div>
-
-            {/* Silage Form + List */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {onAddSilage && (
-                <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-200 space-y-3">
-                  <h4 className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                    <Plus size={14} className="text-emerald-600" />
-                    Record Sealed Silage Pit
-                  </h4>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const fd = new FormData(e.currentTarget);
-                      const material = fd.get('rawMaterial') as string;
-                      const acres = Number(fd.get('acres')) || 0;
-                      const weight = Number(fd.get('weight')) || (acres * 15000);
-                      const dateMade = (fd.get('dateMade') as string) || toIsoDate();
-                      const quality = fd.get('quality') as string;
-                      const notes = fd.get('notes') as string;
-                      const animals = Number(fd.get('animals')) || cows.length || 12;
-                      const dailyIntake = Number(fd.get('dailyIntake')) || 15;
-                      const daysAvailable = Math.round(weight / Math.max(1, animals * dailyIntake));
-
-                      if (!material) return;
-
-                      onAddSilage({
-                        id: `silage-${Date.now()}`,
-                        rawMaterial: material,
-                        acres,
-                        calculatedWeightKg: weight,
-                        dateMade,
-                        quality: quality || 'Excellent (Golden yellow, lactic acid smell)',
-                        animalsFedCount: animals,
-                        averageAnimalWeightKg: 450,
-                        recommendedDailyIntakePerAnimal: dailyIntake,
-                        daysOfFeedAvailable: daysAvailable,
-                        notes: notes || 'Compacted and sealed with UV polythene and soil weights.'
-                      });
-                      e.currentTarget.reset();
-                    }}
-                    className="space-y-3 text-xs"
-                  >
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Forage Crop</label>
-                      <select name="rawMaterial" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold">
-                        <option value="Maize (Dough Stage)">Maize (Dough Stage)</option>
-                        <option value="Sorghum (Sweet High-Sugar)">Sorghum (Sweet High-Sugar)</option>
-                        <option value="Super Napier (Pakchong 1)">Super Napier (Pakchong 1)</option>
-                        <option value="Boma Rhodes Grass">Boma Rhodes Grass</option>
-                        <option value="Lucerne / Alfalfa Wilted">Lucerne / Alfalfa Wilted</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Acres Harvested</label>
-                        <input type="number" step="0.1" name="acres" defaultValue="1.5" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Pit Yield (KG)</label>
-                        <input type="number" name="weight" defaultValue="22500" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Date Sealed</label>
-                        <input type="date" name="dateMade" defaultValue={todayStr} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-gray-700 block mb-1">Fermentation Quality</label>
-                        <select name="quality" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs">
-                          <option value="Excellent (Golden yellow, lactic acid smell)">Excellent (Lactic)</option>
-                          <option value="Good (Clean acidic aroma)">Good (Clean Acidic)</option>
-                          <option value="Fair (Slight butyric scent)">Fair (Needs fast feedout)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-700 block mb-1">Preservation / Inoculant Notes</label>
-                      <input type="text" name="notes" placeholder="e.g. Inoculated with Lactobacillus plantarum" className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs" />
-                    </div>
-
-                    <button type="submit" className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer">
-                      Save Silage Pit Record
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* Stored Silage Pits Listing */}
-              <div className={`space-y-3 ${onAddSilage ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-bold text-gray-800">
-                    Active Bunker Stores & Pits ({silageRecords.length})
-                  </h4>
-                  {onTriggerSectionReport && (
-                    <button
-                      onClick={() => onTriggerSectionReport('silage')}
-                      type="button"
-                      className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Download size={12} />
-                      Export Silage Audit
-                    </button>
-                  )}
-                </div>
-
-                {silageRecords.length === 0 ? (
-                  <div className="text-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400 text-xs">
-                    No silage pits logged yet. Use the form to record newly ensiled forage.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {silageRecords.map((pit) => (
-                      <div key={pit.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs space-y-2 hover:border-emerald-300 transition-all">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-bold text-sm text-gray-900 block">{pit.rawMaterial}</span>
-                            <span className="text-[10px] text-gray-400 font-mono">Ensiled: {pit.dateMade}</span>
-                          </div>
-                          {onDeleteSilage && (
-                            <button
-                              onClick={() => onDeleteSilage(pit.id)}
-                              className="text-gray-400 hover:text-rose-600 cursor-pointer p-1"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2 py-2 border-y border-gray-100 text-center">
-                          <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Weight</span>
-                            <span className="text-xs font-mono font-bold text-emerald-800">{(pit.calculatedWeightKg || 0).toLocaleString()} kg</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Acres</span>
-                            <span className="text-xs font-mono font-bold text-gray-700">{pit.acres} ac</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] uppercase font-bold text-gray-400 block">Lifespan</span>
-                            <span className="text-xs font-mono font-bold text-indigo-700">~{pit.daysOfFeedAvailable || '—'} days</span>
-                          </div>
-                        </div>
-
-                        <div className="text-[11px] text-gray-600 flex justify-between items-center">
-                          <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-medium">
-                            {pit.quality}
-                          </span>
-                          <span className="text-[10px] text-gray-400 italic truncate max-w-[140px]">
-                            {pit.notes}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>
