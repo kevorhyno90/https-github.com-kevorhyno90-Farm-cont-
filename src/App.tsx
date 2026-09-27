@@ -3970,11 +3970,14 @@ function FarmCoreApp() {
   };
 
   const handleAddCalfRecord = (rec: CalfRecord) => {
-    setCalfRecords([rec, ...calfRecords]);
+    const stamped: CalfRecord = { ...rec, updatedAt: new Date().toISOString() };
+    setCalfRecords((prev) => [stamped, ...prev]);
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   const handleDeleteCalfRecord = (id: string) => {
-    setCalfRecords(calfRecords.filter(r => r.id !== id));
+    setCalfRecords((prev) => prev.filter(r => r.id !== id));
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   const handleAddBsfRecord = (rec: BsfRecord) => {
@@ -4002,11 +4005,20 @@ function FarmCoreApp() {
   };
 
   const handleAddHeifer = (rec: HeiferRecord) => {
-    setHeiferRecords([rec, ...heiferRecords]);
+    const stamped: HeiferRecord = { ...rec, updatedAt: new Date().toISOString() };
+    setHeiferRecords((prev) => [stamped, ...prev]);
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   const handleDeleteHeifer = (id: string) => {
-    setHeiferRecords(heiferRecords.filter(h => h.id !== id));
+    setHeiferRecords((prev) => prev.filter(h => h.id !== id));
+    window.dispatchEvent(new Event('local-storage-update'));
+  };
+
+  const handleEditHeiferRecord = (id: string, updated: HeiferRecord) => {
+    const stamped: HeiferRecord = { ...updated, updatedAt: new Date().toISOString() };
+    setHeiferRecords((prev) => prev.map(h => h.id === id ? stamped : h));
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   const handleAddPoultry = (rec: PoultryRecord) => {
@@ -4094,7 +4106,9 @@ function FarmCoreApp() {
   };
 
   const handleEditCalfRecord = (id: string, updated: CalfRecord) => {
-    setCalfRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+    const stamped: CalfRecord = { ...updated, updatedAt: new Date().toISOString() };
+    setCalfRecords((prev) => prev.map((r) => r.id === id ? stamped : r));
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   const handleEditBsfRecord = (id: string, updated: BsfRecord) => {
@@ -7017,6 +7031,9 @@ function FarmCoreApp() {
               heiferRecords={heiferRecords}
               onAddHeifer={handleAddHeifer}
               onDeleteHeifer={handleDeleteHeifer}
+              onEditHeifer={handleEditHeiferRecord}
+              cows={cows}
+              onAddCow={handleAddCow}
               poultryRecords={poultryRecords}
               onAddPoultry={handleAddPoultry}
               onDeletePoultry={handleDeletePoultry}

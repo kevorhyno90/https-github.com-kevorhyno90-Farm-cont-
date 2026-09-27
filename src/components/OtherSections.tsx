@@ -17,12 +17,14 @@ import {
  SilageRecord,
  HeiferRecord,
  PoultryRecord,
- QuarantineRecord
+ QuarantineRecord,
+ Cow
 } from '../types';
 import { exportToCsv } from '../utils/csvHelper';
 import { CaninesManager } from './CaninesManager';
 import { BsfManager } from './BsfManager';
 import { GoatManager } from './goats/GoatManager';
+import { YoungstockManager } from './dairy/YoungstockManager';
 import {
  TreePine,
  Shield,
@@ -111,6 +113,9 @@ interface OtherSectionsProps {
  heiferRecords?: HeiferRecord[];
  onAddHeifer?: (rec: HeiferRecord) => void;
  onDeleteHeifer?: (id: string) => void;
+ onEditHeifer?: (id: string, updated: HeiferRecord) => void;
+ cows?: Cow[];
+ onAddCow?: (cow: Cow) => void;
  poultryRecords?: PoultryRecord[];
  onAddPoultry?: (rec: PoultryRecord) => void;
  onDeletePoultry?: (id: string) => void;
@@ -173,6 +178,9 @@ export function OtherSections({
  heiferRecords = [],
  onAddHeifer,
  onDeleteHeifer,
+ onEditHeifer,
+ cows = [],
+ onAddCow,
  poultryRecords = [],
  onAddPoultry,
  onDeletePoultry,
@@ -2765,7 +2773,7 @@ export function OtherSections({
  livestockSubTab === 'calves' ? 'bg-white shadow-sm text-gray-500 shadow-sm' : 'text-gray-900 font-medium hover:text-gray-500'
  }`}
  >
- Calf Section
+ 🍼 Calves & Youngstock
  </button>
  <button
  onClick={() => { setLivestockSubTab('bsf'); setShowAddForm(false); }}
@@ -3534,322 +3542,25 @@ export function OtherSections({
  </div>
  )}
 
- {/* NEW SUBTAB: HEIFER REPRODUCTION & DEVELOPMENT SYSTEM */}
- {livestockSubTab === 'heifers' && (
- <div className="space-y-8 animate-fadeIn">
- {/* Educational Advisory on Heifer rearing */}
- <div className="bg-white text-amber-50 p-6 rounded-3xl space-y-3 shadow">
- <span className="text-[10px] bg-amber-200 text-amber-950 px-2 py-0.5 rounded font-semibold tracking-normal ">Reproductive Science</span>
- <h4 className="text-xl font-bold tracking-tight text-gray-900">🐄 Sustainable Heifer Growth to First Calving</h4>
- <p className="text-xs text-gray-900 leading-relaxed max-w-2xl font-medium">
- Heifers are the future replacement cows of the dairy farm. Target steady, lean skeletel growth of <strong>655g to 750g average daily liveweight gain (ADG)</strong>. Monitor chest girth metrics so heifers can safely reach breeding size of <strong>290-310 KG</strong> at 14-16 months of maturity.
- </p>
- <div className="text-xs bg-amber-955 p-3 rounded-xl space-y-1.5 border border-amber-800">
- <span className="text-yellow-700 font-semibold  text-[10.5px] block">👑 Best Feeding Strategy</span>
- <p className="text-[10.5px] text-gray-900 leading-tight">
- Provide ad-libitum access to clean Boma Rhodes hay blocks, fortified with 1-2kg of high-energy grower meal raw formulation diariamente. Calcium and trace mineral salts are mandatory to ensure follicular maturation, ovulation capacity, and robust fertility cycles.
- </p>
- </div>
- </div>
+ {/* SUBTAB 2B: HEIFER REPRODUCTION & DEVELOPMENT BOARD */}
+        {livestockSubTab === 'heifers' && (
+          <YoungstockManager
+            calfRecords={calfRecords}
+            heiferRecords={heiferRecords}
+            cows={cows}
+            onAddCalfRecord={onAddCalfRecord}
+            onDeleteCalfRecord={onDeleteCalfRecord}
+            onEditCalfRecord={onEditCalfRecord}
+            onAddHeifer={onAddHeifer}
+            onDeleteHeifer={onDeleteHeifer}
+            onEditHeifer={onEditHeifer}
+            onAddCow={onAddCow}
+            onTriggerSectionReport={onTriggerSectionReport}
+            initialSubTab="heifers"
+          />
+        )}
 
- {/* Girth-to-Weight Interactive Calculator */}
- <div className="bg-gradient-to-r from-emerald-50 to-indigo-50/50 p-6 rounded-3xl border border-emerald-100 space-y-5">
- <div>
- <h5 className="font-semibold text-gray-900 text-xs tracking-tight">📐 CHEST GIRTH-TO-WEIGHT & AI MATURITY CALCULATOR</h5>
- <p className="text-gray-900 font-medium text-[9.5px] font-bold  mt-0.5">Use heart chest girth to predict heifer body weights instantly</p>
- </div>
-
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- <div className="bg-white shadow-sm p-5 rounded-2xl border border-gray-100 space-y-4">
- <span className="text-[10px]  font-semibold text-indigo-900 tracking-normal">Adjustment dial</span>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Heifer Chest Girth: <span className="font-mono text-indigo-900 text-xs font-semibold">{hefGirth} cm</span>
- </label>
- <input
- type="range"
- min="100"
- max="180"
- step="1"
- value={hefGirth}
- onChange={(e) => {
- const val = parseInt(e.target.value);
- setHefGirth(val);
- // standard girth-weight projection for heifers: Girth 100cm = ~110kg, 140cm = ~240kg, 160cm = ~330kg
- const estWt = Math.round(110 + (val - 100) * 3.65);
- setHefWeight(estWt);
- setHefBreedingReady(estWt >= 280);
- }}
- className="w-full accent-indigo-900 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer mt-2"
- />
- <span className="text-[9.5px] text-gray-900 font-medium font-mono mt-0.5 block">Measure around the chest directly behind forelegs.</span>
- </div>
- </div>
-
- <div className="bg-white shadow-sm p-5 rounded-2xl border border-gray-100 flex flex-col justify-between">
- <div>
- <span className="text-[9px] font-semibold text-gray-900 font-medium ">Estimated Liveweight</span>
- <div className="text-3xl font-semibold text-indigo-950 font-mono tracking-tight mt-1">
- {hefWeight} <span className="text-xs text-gray-900 font-medium font-bold ">KG</span>
- </div>
- <p className="text-[10px] text-gray-500 mt-1 font-medium leading-relaxed">
- For dairy breeds (Holstein, Jersey, Friesian crosses), estimated by heart chest girth conversion curves.
- </p>
- </div>
- </div>
-
- <div className={`${hefBreedingReady ? 'bg-white text-gray-800' : 'bg-white shadow-sm text-gray-900 font-semibold'} p-5 rounded-2xl flex flex-col justify-between transition-all`}>
- <div>
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">AI BREEDING ELIGIBILITY</span>
- <div className="text-lg font-semibold mt-2 tracking-tight">
- {hefBreedingReady ? '🎉 BREEDING READY' : '❌ NOT MATURE FOR BULL'}
- </div>
- <p className="text-[10px] text-gray-500 leading-tight mt-1.5 font-medium">
- {hefBreedingReady 
- ? "This heifer has crossed the 280KG threshold and has adequate frame structure to warrant AI insemination." 
- : `Requires ${280 - hefWeight} KG additional liveweight before puberty insemination is veterinary-permissible.`
- }
- </p>
- </div>
- </div>
- </div>
- </div>
-
- {/* Heifer record keeping table */}
- <div className="bg-white shadow-sm p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
- <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
- <div>
- <h5 className="font-semibold text-gray-900 text-sm tracking-tight flex items-center gap-1.5">
- <span>🐄 REGISTERED HEIFER MONITORS</span>
- </h5>
- <p className="text-gray-900 font-medium text-[10px] font-bold  mt-0.5">Development histories, chest dimensions, and daily gains</p>
- </div>
- <div className="flex gap-2">
- <button
- onClick={() => setHefShowAdd(!hefShowAdd)}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-white text-gray-900 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer"
- >
- <Plus size={14} />
- Log Development metrics
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => onTriggerSectionReport('heifers')}
- className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 border border-amber-600/10 text-gray-500 rounded-xl font-bold text-xs tracking-tight transition-all m-0 shadow cursor-pointer font-bold"
- title="Download Heifer Progeny PDF Report"
- >
- <Download size={13} />
- Download PDF Report
- </button>
- )}
- </div>
- </div>
-
- {hefShowAdd && (
- <form
- onSubmit={(e) => {
- e.preventDefault();
- const id = `hef-${Math.floor(1000 + Math.random() * 9000).toString()}`;
- const estWt = Math.round(110 + (hefGirth - 100) * 3.65);
-
- const newRec: HeiferRecord = {
- id,
- cowId: hefCowId,
- dateLogged: hefDate,
- weightKg: estWt,
- girthCm: hefGirth,
- feedRationType: hefRation,
- averageDailyGainGrams: hefAdg,
- breedingReady: estWt >= 280,
- notes: hefNotes
- };
-
- if (onAddHeifer) {
- onAddHeifer(newRec);
- setHefShowAdd(false);
- setHefCowId('');
- setHefNotes('');
- }
- }}
- className="p-6 bg-white border border-gray-200 rounded-2xl border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4"
- >
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Heifer Ear Tag or Name</label>
- <input
- type="text"
- placeholder="E.g. Friesian Cross Lucy"
- required
- value={hefCowId}
- onChange={(e) => setHefCowId(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-white shadow-sm "
- />
- </div>
-
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Date Logged</label>
- <input
- type="date"
- required
- value={hefDate}
- onChange={(e) => setHefDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono bg-white shadow-sm "
- />
- </div>
-
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Chest Girth Metric (cm)</label>
- <input
- type="number"
- min="50"
- max="220"
- required
- value={hefGirth}
- onChange={(e) => {
- const val = parseInt(e.target.value) || 0;
- setHefGirth(val);
- setHefWeight(Math.round(110 + (val - 100) * 3.65));
- }}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono bg-white shadow-sm "
- />
- </div>
-
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Ration Mixture Details</label>
- <input
- type="text"
- placeholder="Rhodes hay, lucerne block, mineral salts"
- value={hefRation}
- onChange={(e) => setHefRation(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-white shadow-sm "
- />
- </div>
-
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Average Daily gain (grams/day): <strong className="font-mono text-gray-900">{hefAdg}g</strong>
- </label>
- <input
- type="range"
- min="300"
- max="1000"
- step="50"
- value={hefAdg}
- onChange={(e) => setHefAdg(parseInt(e.target.value))}
- className="w-full accent-amber-800 h-2 bg-white border border-gray-200 rounded-lg cursor-pointer mt-3"
- />
- </div>
-
- <div className="bg-amber-100/70 border border-amber-200 p-3 rounded-xl flex items-center">
- <span className="text-[10.5px] font-bold text-gray-900 leading-tight">
- Calculated Target weight is <strong>{hefWeight} KG</strong>. Pre-estimated by veterinarian algorithm.
- </span>
- </div>
-
- <div className="md:col-span-3">
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">General Observations (Cycle signs, hair coat texture, vigor)</label>
- <textarea
- rows={2}
- value={hefNotes}
- onChange={(e) => setHefNotes(e.target.value)}
- placeholder="Coat looks shiny, active and alert, shows early heat signs (estrus behavior)."
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold bg-white shadow-sm "
- />
- </div>
-
- <div className="md:col-span-3 flex justify-end gap-2 border-t pt-2">
- <button
- type="button"
- onClick={() => setHefShowAdd(false)}
- className="px-4 py-2 bg-white border border-gray-200 hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all cursor-pointer m-0"
- >
- Cancel
- </button>
- <button
- type="submit"
- className="px-5 py-2 bg-white shadow-sm hover:bg-white text-gray-900 rounded-lg text-xs font-bold  transition-all shadow cursor-pointer m-0"
- >
- Save Heifer Log
- </button>
- </div>
- </form>
- )}
-
- <div className="grid grid-cols-1 gap-4">
- {heiferRecords.length === 0 ? (
- <div className="p-8 text-center bg-white border border-gray-200 border border-dashed rounded-2xl text-gray-900 font-medium font-bold  text-[10.5px]">
- No heifer development logs recorded yet.
- </div>
- ) : (
- heiferRecords.map((item) => (
- <div key={item.id} className="p-5 border border-gray-200 rounded-2xl bg-white border border-gray-200 hover:bg-white border border-gray-200 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
- <div className="space-y-1.5 flex-1">
- <div className="flex flex-wrap items-center gap-2">
- <span className="font-mono bg-white text-gray-900 text-[10px] px-2.5 py-0.5 rounded font-semibold ">
- {item.id}
- </span>
- <span className="text-sm font-semibold text-gray-900">
- Heifer: {item.cowId}
- </span>
- <span className="text-[10.2px] font-mono text-gray-900 font-medium font-bold ">
- Date: {item.dateLogged}
- </span>
- </div>
-
- <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
- <div className="bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">Chest Girth</span>
- <span className="text-xs font-mono font-semibold text-[#111]">
- {item.girthCm || 0} cm
- </span>
- </div>
- <div className="bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">Calculated Weight</span>
- <span className="text-xs font-mono font-semibold text-[#111]">
- {item.weightKg} KG
- </span>
- </div>
- <div className="bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">Ration Notes</span>
- <span className="text-xs font-bold text-indigo-950 block truncate">
- {item.feedRationType}
- </span>
- </div>
- <div className="bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">ADG (Daily Gain)</span>
- <span className="text-xs font-mono font-bold text-green-600">
- {item.averageDailyGainGrams} g/day
- </span>
- </div>
- <div className="bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- <span className="text-[9px] font-semibold text-gray-900 font-medium block ">AI Eligibility</span>
- <span className={`text-[10px] font-semibold  ${item.breedingReady ? 'text-indigo-900' : 'text-gray-900 font-medium'}`}>
- {item.breedingReady ? 'Ready (AI Target)' : 'Immature'}
- </span>
- </div>
- </div>
-
- <p className="text-[11px] text-gray-900 font-medium italic mt-1 bg-white shadow-sm p-2.5 rounded-xl border border-gray-100">
- " {item.notes} "
- </p>
- </div>
-
- {onDeleteHeifer && (
- <button
- onClick={() => onDeleteHeifer(item.id)}
- className="text-gray-900 font-medium hover:text-red-700 p-2.5 rounded-lg border hover:border-red-100/80 bg-white shadow-sm shadow-xs cursor-pointer m-0 transition-colors"
- >
- <Trash2 size={13} />
- </button>
- )}
- </div>
- ))
- )}
- </div>
- </div>
- </div>
- )}
-
- {/* NEW SUBTAB: VETERINARY QUARANTINE ISOLATION CENTRE */}
+        {/* NEW SUBTAB: VETERINARY QUARANTINE ISOLATION CENTRE */}
  {livestockSubTab === 'quarantine' && (
  <div className="space-y-8 animate-fadeIn">
  {/* Introduction Safety Checklist banner */}
@@ -4464,399 +4175,25 @@ export function OtherSections({
           />
         )}
 
- {/* SUBTAB 2C: CALF LIFESPAN FLOW PILES */}
- {livestockSubTab === 'calves' && (
- <div className="space-y-6">
- {/* BRAND NEW: EDUCATIONAL & INTERACTIVE CALF WEANING REGISTER ADVISER */}
- <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-indigo-950 text-gray-900 p-6 rounded-3xl space-y-6 shadow-xl border border-gray-200">
- <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
- <div className="space-y-1">
- <div className="flex items-center gap-2">
- <span className="text-[9.5px] bg-emerald-500 font-semibold text-gray-500 px-2.5 py-0.5 rounded tracking-tight">Veterinary Rearing & Growth Science</span>
- <span className="text-[9.5px] bg-white border border-gray-200 text-gray-500 border border-gray-200 px-2 py-0.5 rounded  font-bold">Interactive Weaning Targetizer</span>
- </div>
- <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
- <span>🍼 Calving & Optimal Weaning weight Advisor</span>
- </h4>
- <p className="text-xs text-gray-900 font-medium leading-relaxed max-w-2xl font-bold">
- Maximize heifer puberty growth, rumen papillae development, and immunity transfer. Standard dairy guidelines recommend weaning calves once they double their birth weight and consume at least 1.5 KG of calf starter pellets daily.
- </p>
- </div>
- </div>
+ {/* SUBTAB 2C: CALF NURSERY & YOUNGSTOCK MANAGEMENT */}
+        {livestockSubTab === 'calves' && (
+          <YoungstockManager
+            calfRecords={calfRecords}
+            heiferRecords={heiferRecords}
+            cows={cows}
+            onAddCalfRecord={onAddCalfRecord}
+            onDeleteCalfRecord={onDeleteCalfRecord}
+            onEditCalfRecord={onEditCalfRecord}
+            onAddHeifer={onAddHeifer}
+            onDeleteHeifer={onDeleteHeifer}
+            onEditHeifer={onEditHeifer}
+            onAddCow={onAddCow}
+            onTriggerSectionReport={onTriggerSectionReport}
+            initialSubTab="calves"
+          />
+        )}
 
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- {/* Interactive Inputs */}
- <div className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 space-y-4">
- <span className="text-[10px]  font-semibold text-green-600 tracking-normal">Weaning Sim Configuration</span>
- 
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Calf Birth Weight: <span className="font-mono text-green-600 font-semibold">{calfBirthWeight} KG</span>
- </label>
- <input
- type="range"
- min="25"
- max="50"
- step="1"
- value={calfBirthWeight}
- onChange={(e) => setCalfBirthWeight(parseInt(e.target.value))}
- className="w-full accent-emerald-550 h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer"
- />
- </div>
-
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">
- Target Weaning Age: <span className="font-mono text-green-600 font-semibold">{calfTargetAgeWeeks} Weeks ({calfTargetAgeWeeks * 7} Days)</span>
- </label>
- <input
- type="range"
- min="6"
- max="16"
- step="1"
- value={calfTargetAgeWeeks}
- onChange={(e) => setCalfTargetAgeWeeks(parseInt(e.target.value))}
- className="w-full accent-emerald-550 h-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer"
- />
- </div>
- </div>
-
- {/* Calculations */}
- <div className="bg-white shadow-sm p-4 rounded-2xl border border-gray-200 flex flex-col justify-between">
- <div>
- <span className="text-[10px]  font-semibold text-gray-900 font-medium tracking-normal block">Calculated Milestones</span>
- <div className="mt-3 grid grid-cols-2 gap-3 text-xs leading-none">
- <div>
- <span className="text-[9px] text-gray-500 block  font-bold">Birth weight</span>
- <span className="text-sm font-semibold text-gray-900 mt-1 block">{calfBirthWeight} KG</span>
- </div>
- <div>
- <span className="text-[9px] text-gray-500 block  font-bold">Target Weaning Weight</span>
- <span className="text-sm font-semibold text-green-600 mt-1 block">{calfBirthWeight * 2} KG</span>
- </div>
- <div className="col-span-2 pt-2 border-t border-gray-200">
- <span className="text-[9px] text-gray-500 text-gray-900 font-medium block  font-bold">Total Gain Required</span>
- <span className="text-sm font-semibold text-gray-900 mt-1 block">{calfBirthWeight} KG</span>
- </div>
- </div>
- </div>
-
- <div className="mt-4 pt-3 border-t border-gray-200">
- <span className="text-[9px] font-semibold text-gray-700 block  mb-1">Target Average Daily Gain (ADG)</span>
- <div className="text-2xl font-semibold text-gray-900 text-gray-900 font-mono tracking-tight leading-none">
- {((calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000).toFixed(0)} <span className="text-xs text-gray-900 font-medium font-sans  font-semibold">g / Day</span>
- </div>
- </div>
- </div>
-
- {/* dynamic feeding advisor based on ADG */}
- <div className="bg-white p-4 rounded-2xl border border-gray-200 flex flex-col justify-between text-xs font-semibold leading-relaxed">
- <div>
- <span className="text-[10px]  font-semibold text-yellow-405 text-yellow-700 block mb-2">🌿 ADG FEED RECOMMENDATION</span>
- {(() => {
- const adg = (calfBirthWeight / (calfTargetAgeWeeks * 7)) * 1000;
- if (adg > 650) {
- return (
- <p className="text-gray-900 font-medium">
- <strong>High Performance:</strong> To achieve over <span className="text-gray-900">650g/day</span>, feed colostrum early (within 2h). Administer premium <strong>Creep Starter pellets</strong> (at least 20% Crude Protein) beginning day 10. Limit fiber intake until rumen is matured.
- </p>
- );
- } else if (adg > 500) {
- return (
- <p className="text-gray-900 font-medium">
- <strong>Steady Moderate ADG:</strong> Requires feeding at least 4-5 Liters whole clean milk daily (at 38°C) split into two feeds. Keep dry starter grains free choice with plenty of clean water to initiate rumen fermentation.
- </p>
- );
- } else {
- return (
- <p className="text-gray-900 font-medium">
- <strong>Gradual Growth Plan:</strong> Feed 4 Liters milk daily. Rumen development will be slower; ensure calf has constant access to mineral salt block and young tender Rhodes grass leaf (avoid tough stalks).
- </p>
- );
- }
- })()}
- </div>
- <div className="text-[10.5px] bg-white shadow-sm border border-gray-200 p-2.5 rounded-xl text-gray-700 mt-2">
- 💡 <strong>Rule of thumb:</strong> Do NOT wean by age alone. Wean only when the calf eats 1.5 KG of dry calf starter pellet daily for 3 consecutive days.
- </div>
- </div>
- </div>
-
- {/* Educational Bento Feed Timeline */}
- <div className="border-t border-gray-200 pt-5 space-y-3">
- <span className="text-[10px]  font-semibold text-gray-500 text-gray-900 font-medium tracking-normal block">Optimal Calf Feeding Weaning Protocol Timeline</span>
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium leading-relaxed text-gray-900 font-medium">
- <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-amber-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Days 1 - 3</span>
- <h5 className="font-semibold text-gray-900 text-xs">The Colostrum Shield</h5>
- <p className="text-[11px] leading-snug">
- Feed colostrum equal to <strong>10% of birth weight</strong> (e.g. 3.5L for a 35kg calf) within 2 hours of birth. This transfers crucial maternal antibodies before gut closure.
- </p>
- </div>
-
- <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-emerald-500/10 text-green-600 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 2 - 8</span>
- <h5 className="font-semibold text-gray-900 text-xs">Liquid Milk & Starter</h5>
- <p className="text-[11px] leading-snug">
- Feed 5-6 Liters milk daily (divided in two). Introduce sweet <strong>Calf Starter Creep Meal</strong> (18-20% crude protein) from day 10. Grain fermentation produces butyrate to grow rumen papillae.
- </p>
- </div>
-
- <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-blue-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 9 - 10</span>
- <h5 className="font-semibold text-gray-900 text-xs">Milk Deceleration</h5>
- <p className="text-[11px] leading-snug">
- Once starter feed intake reaches 1.0 KG daily, cut milk volume by half (single morning feeds of 2-3 Liters). This triggers the calf to eat search alternative nutrition form of dry starter.
- </p>
- </div>
-
- <div className="bg-white shadow-sm p-4 border border-gray-200 rounded-2xl space-y-2">
- <span className="text-[9.5px] bg-indigo-500/10 text-gray-700 font-semibold px-2 py-0.5 rounded block  w-fit">Weeks 11+</span>
- <h5 className="font-semibold text-gray-900 text-xs">Weaning Complete</h5>
- <p className="text-[11px] leading-snug">
- Stop milk entirely once the calf consumes 1.5 KG dry starter pellets. Complete transition to weaner pellets, fine legumes, and unlimited clean dry water.
- </p>
- </div>
- </div>
- </div>
- </div>
-
- <div className="flex justify-between items-center bg-white shadow-sm /20 px-1 font-bold">
- <span className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block">Liquid-fed Calves pipeline</span>
- <div className="flex items-center gap-2">
- <button
- onClick={downloadCalvesCSV}
- type="button"
- className="flex items-center gap-1.5 px-4 py-3 bg-amber-900/20 border border-amber-200 text-amber-950 font-bold text-xs  rounded-xl transition-all shadow-xs cursor-pointer m-0"
- title="Export Calves Directory CSV"
- >
- <FileSpreadsheet size={13} />
- Export CSV
- </button>
- {onTriggerSectionReport && (
- <button
- onClick={() => onTriggerSectionReport('calves')}
- type="button"
- className="flex items-center gap-1.5 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-gray-500 rounded-xl font-bold text-xs  transition-all shadow-md cursor-pointer m-0 border border-amber-600/10 font-bold"
- title="Download Calves PDF Report"
- >
- <Download size={13} />
- Download PDF Report
- </button>
- )}
- <button
- onClick={() => setShowAddForm(!showAddForm)}
- className="bg-amber-955 bg-white text-gray-900 font-semibold text-xs  px-5 py-3 rounded-xl hover:bg-amber-800 flex items-center gap-1.5 m-0 font-sans font-bold"
- >
- <Plus size={14} /> Register Young Calf
- </button>
- </div>
- </div>
-
- {showAddForm && (
- <form onSubmit={handleCalfSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
- <div className="border-b border-gray-100 pb-2">
- <h5 className="text-xs font-semibold tracking-tight text-green-600">Log New Calf Profile & Pedigree</h5>
- <p className="text-[10px] text-gray-900 font-medium font-bold  mt-0.5">Capture birth data, feed metrics, and logs</p>
- </div>
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Calf ID Tag (Unique)</label>
- <input
- type="text"
- required
- value={cfId}
- onChange={(e) => setCfId(e.target.value)}
- placeholder="E.g. Calf-903"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Calf Friendly Name</label>
- <input
- type="text"
- value={cfName}
- onChange={(e) => setCfName(e.target.value)}
- placeholder="E.g. Spot (Optional)"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Calf Biological Sex</label>
- <select
- value={cfSex}
- onChange={(e) => setCfSex(e.target.value as any)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full bg-white shadow-sm font-bold"
- >
- <option value="Female">Female (Heifer)</option>
- <option value="Male">Male (Bull)</option>
- </select>
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Dam Mother Cow ID</label>
- <input
- type="text"
- value={cfDam}
- onChange={(e) => setCfDam(e.target.value)}
- placeholder="E.g. Cow-101 (Daisy)"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Calving Date (DOB)</label>
- <input
- type="date"
- required
- value={cfDob}
- onChange={(e) => setCfDob(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold"
- />
- </div>
- <div>
- <label className="text-[10px] font-semibold text-green-600  block mb-1">Log Date (Historical)</label>
- <input
- type="date"
- required
- value={cfDate}
- onChange={(e) => setCfDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- {!cfWeaned && (
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Daily Milk volume (Liters)</label>
- <input
- type="number"
- required
- min="0"
- step="0.5"
- value={cfMilk}
- onChange={(e) => setCfMilk(e.target.value === '' ? '' : parseFloat(e.target.value))}
- placeholder="Liters daily"
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-bold font-mono"
- />
- </div>
- )}
- <div>
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Creep Starter feed date</label>
- <input
- type="date"
- value={cfCreepDate}
- onChange={(e) => setCfCreepDate(e.target.value)}
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-mono font-bold"
- />
- </div>
- <div className="flex items-center gap-2 py-3">
- <input
- type="checkbox"
- id="cfWeaned"
- checked={cfWeaned}
- onChange={(e) => setCfWeaned(e.target.checked)}
- className="w-4 h-4 text-green-600 border-white/20 rounded cursor-pointer"
- />
- <label htmlFor="cfWeaned" className="text-[10px] font-semibold text-gray-900 font-medium  block cursor-pointer select-none">
- Successfully Weaned (No Milk Fed)
- </label>
- </div>
- <div className="col-span-1 md:col-span-2 lg:col-span-4">
- <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Observation Diagnostics & Health logs</label>
- <input
- type="text"
- value={cfNotes}
- onChange={(e) => setCfNotes(e.target.value)}
- placeholder="E.g. Fed active, consuming mineral salt block. Healthy fecal structure."
- className="text-xs border border-gray-200 rounded-lg p-3 w-full font-medium"
- />
- </div>
- </div>
- <div className="flex justify-end gap-2 border-t pt-3">
- <button
- type="button"
- onClick={() => setShowAddForm(false)}
- className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 font-medium m-0"
- >
- Cancel
- </button>
- <button type="submit" className="px-5 py-2.5 bg-white text-gray-900 font-semibold text-xs  rounded-lg m-0 shadow hover:bg-white cursor-pointer">
- Commit Calf Profile
- </button>
- </div>
- </form>
- )}
-
- {/* Calf grid */}
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
- {calfRecords.map((cf) => {
- const birthDate = new Date(cf.dob);
- const now = new Date();
- const ageDays = Math.floor((now.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
- return (
- <div key={cf.id} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:border-gray-200 transition-all">
- <div>
- <div className="flex justify-between items-start">
- <div>
- <span className="font-semibold text-[#2e7d32] text-sm  tracking-wide block">
- {cf.calfId} {cf.calfName ? `(${cf.calfName})` : ''}
- </span>
- <div className="flex items-center gap-1.5 mt-1">
- <span className={`text-[9.5px] font-semibold  px-2 py-0.2 rounded border ${
- cf.sex === 'Male' ? 'bg-blue-900/20 text-blue-805 border-blue-150' : 'bg-pink-900/20 text-pink-805 border-pink-150'
- }`}>
- 👩‍👧 {cf.sex || 'Female'}
- </span>
- </div>
- <span className="text-[9px] font-bold text-gray-500 block mt-1">Dam / Mother: <span className="text-gray-500 font-semibold">{cf.damId}</span></span>
- </div>
- {onEditCalfRecord && (
- <button
- onClick={() => setEditingCalf(cf)}
- className="text-gray-900 font-medium hover:text-indigo-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200"
- title="Edit Calf record"
- >
- <PenSquare size={13} />
- </button>
- )}
- <button
- onClick={() => onDeleteCalfRecord(cf.id)}
- className="text-gray-900 font-medium hover:text-red-650 p-1.5 rounded transition-all m-0 border border-transparent hover:border-gray-100 hover:bg-white border border-gray-200"
- >
- <Trash2 size={13} />
- </button>
- </div>
-
- <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] leading-snug">
- <div className="bg-white border border-gray-200 p-2 border border-gray-200 rounded-xl">
- <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Lifespan Age</span>
- <span className="font-bold text-gray-900 font-semibold block mt-0.5 font-mono">{ageDays} days on farm</span>
- </div>
- <div className="bg-white border border-gray-200 p-2 border border-gray-200 rounded-xl">
- <span className="text-[9px]  font-semibold text-gray-900 font-medium block">Daily Feeding</span>
- <span className={`font-bold block mt-0.5 ${cf.weaned ? 'text-gray-900 font-medium line-through' : 'text-green-600'}`}>
- {cf.weaned ? 'Weaned' : `${cf.milkIntakeLiters} L Milk`}
- </span>
- </div>
- </div>
-
- {cf.creepFeedIntroDate && (
- <div className="mt-3.5 p-2 bg-emerald-50 border border-emerald-100 rounded-xl text-[10px] text-green-600 font-bold flex items-center gap-1">
- <CheckCircle size={10} />
- <span>Creep Feed Activated: {cf.creepFeedIntroDate}</span>
- </div>
- )}
- </div>
-
- <div className="border-t pt-3 space-y-1">
- <span className="text-[9px] text-gray-500 font-semibold  block">Growth remarks:</span>
- <p className="text-xs text-gray-900 font-medium font-semibold italic">"{cf.notes}"</p>
- <span className="text-[9px] text-gray-900 font-medium font-mono block text-right">Logged: {cf.date}</span>
- </div>
- </div>
- );
- })}
- </div>
- </div>
- )}
-
- {/* SUBTAB 2D: BLACK SOLDIER FLY PROTEIN CYCLES */}
+        {/* SUBTAB 2D: BLACK SOLDIER FLY PROTEIN CYCLES */}
         {livestockSubTab === 'bsf' && (
           <BsfManager
             bsfRecords={bsfRecords}

@@ -482,6 +482,24 @@ export interface CalfRecord {
   status?: string;
   dam?: string;
   sire?: string;
+  breed?: string;
+  // Enhanced zootechnical & veterinary fields
+  birthWeightKg?: number;
+  currentWeightKg?: number;
+  girthCm?: number;
+  stage?: 'Pre-Weaning' | 'Weaned' | 'Yearling' | 'Breeding Heifer' | 'In-Calf Heifer' | 'Bull Calf' | 'Young Bull';
+  colostrumFedWithin2Hours?: boolean;
+  colostrumVolumeLiters?: number;
+  colostrumQualityBrix?: number;
+  navelDipped?: boolean;
+  disbudded?: boolean;
+  dewormed?: boolean;
+  locality?: string; // Pen / Hutch ID
+  targetBreedingDate?: string;
+  expectedCalvingDate?: string;
+  graduated?: boolean;
+  graduatedTo?: string; // e.g. 'CowRegistry' or 'Heifers'
+  updatedAt?: string;
 }
 
 export interface BsfRecord {
@@ -755,6 +773,17 @@ export interface HeiferRecord {
   sire?: string;
   dam?: string;
   status?: string;
+  name?: string;
+  locality?: string;
+  birthWeightKg?: number;
+  firstHeatDate?: string;
+  lastServiceDate?: string;
+  serviceBullOrStraw?: string;
+  pregnancyConfirmed?: boolean;
+  expectedCalvingDate?: string;
+  steamingUpDietStarted?: boolean;
+  graduatedToMilkingHerd?: boolean;
+  updatedAt?: string;
 }
 
 export interface PoultryRecord {
