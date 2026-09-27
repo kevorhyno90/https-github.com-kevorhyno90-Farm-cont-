@@ -221,30 +221,64 @@ class ErrorBoundary extends (Component as any) {
 
 
 export default function App() {
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(() => {
+    // If user has already entered or device is offline, skip auth blocking
+    if (typeof window !== 'undefined') {
+      if (localStorage.getItem('jr_farm_entered') === 'true' || sessionStorage.getItem('jr_farm_entered') === 'true') {
+        return false;
+      }
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const [hasEnteredApp, setHasEnteredApp] = useState(() => {
-    return sessionStorage.getItem('jr_farm_entered') === 'true' || (typeof window !== 'undefined' && window.location.search.includes('offline=true'));
+    if (typeof window === 'undefined') return false;
+    return (
+      localStorage.getItem('jr_farm_entered') === 'true' ||
+      sessionStorage.getItem('jr_farm_entered') === 'true' ||
+      window.location.search.includes('offline=true')
+    );
   });
 
   useEffect(() => {
+    // If device is offline, immediately resolve auth loading so user can use the app without bundles
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setIsAuthLoading(false);
+    }
+
+    // Safety timeout: never hang on a spinner for more than 1.5 seconds if network is absent or dead
+    const timer = setTimeout(() => {
+      setIsAuthLoading(false);
+    }, 1500);
+
     // Handle redirect result explicitly for mobile browsers
     getRedirectResult(auth).then((result) => {
       if (result && result.user) {
+        localStorage.setItem('jr_farm_entered', 'true');
         sessionStorage.setItem('jr_farm_entered', 'true');
         setHasEnteredApp(true);
       }
     }).catch(console.error);
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (_user) => {
       // User is resolved, stop loading
       setIsAuthLoading(false);
+      clearTimeout(timer);
     });
     
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleEnter = (uid?: string) => {
+    localStorage.setItem('jr_farm_entered', 'true');
     sessionStorage.setItem('jr_farm_entered', 'true');
+    if (uid) localStorage.setItem('jr_farm_user_uid', uid);
     setHasEnteredApp(true);
   };
 
@@ -645,19 +679,25 @@ function FarmCoreApp() {
   const alarmRenderUpgradeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bellTrayContentRafRef = useRef<number | null>(null);
 
+  const [isOnline, setIsOnline] = useState<boolean>(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+
   useEffect(() => {
-    if ('Notification' in window) {
-      setNotificationPermissionState(Notification.permission);
-    }
-    // Retrieve and apply the user's saved screen orientation lock/auto-rotate setting
-    try {
-      const stored = getStoredSettings();
-      if (stored && stored.orientationPreference) {
-        applyOrientationPreference(stored.orientationPreference);
-      }
-    } catch (e) {
-      console.warn("Could not apply initial orientation settings:", e);
-    }
+    const handleOnline = () => {
+      setIsOnline(true);
+      triggerAppToastMessage("📶 Internet connection restored! Resuming cloud sync...");
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      triggerAppToastMessage("📴 Offline Mode Active (Zero Bundles): Operating locally with zero data bundles.");
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -738,18 +778,20 @@ function FarmCoreApp() {
     return () => observer.disconnect();
   }, []);
 
-  const headerCloudSyncStatus = !isFirestoreSyncEnabled
+  const headerCloudSyncStatus = !isOnline
+    ? { label: 'OFFLINE (NO BUNDLES)', tone: 'text-emerald-800 bg-emerald-50 border-emerald-300 font-bold' }
+    : !isFirestoreSyncEnabled
     ? { label: 'SYNC LOCKED', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
     : !userCloudSyncEnabled
       ? { label: 'SYNC PAUSED', tone: 'text-amber-800 bg-amber-50 border-amber-200' }
       : !db
         ? { label: 'SYNC OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
         : { label: 'SYNC ENABLED', tone: 'text-emerald-800 bg-emerald-50 border-emerald-200' };
-    const headerRoomSyncStatus = !roomSyncKey
+    const headerRoomSyncStatus = !isOnline
+      ? { label: 'ROOM OFFLINE', tone: 'text-slate-500 bg-slate-50 border-slate-200' }
+      : !roomSyncKey
       ? { label: 'ROOM IDLE', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
-      : !navigator.onLine
-        ? { label: 'ROOM OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
-        : roomSyncPulse.at > 0 && Date.now() - roomSyncPulse.at < 15000
+      : roomSyncPulse.at > 0 && Date.now() - roomSyncPulse.at < 15000
           ? {
               label: roomSyncPulse.source === 'remote' ? 'ROOM LIVE RX' : roomSyncPulse.source === 'manual' ? 'ROOM LIVE MANUAL' : 'ROOM LIVE TX',
               tone: 'text-cyan-800 bg-cyan-50 border-cyan-200'
@@ -6208,6 +6250,24 @@ function FarmCoreApp() {
           </div>
         )}
 
+        {/* Full Offline Notice Banner when device has no data bundles or internet connection */}
+        {!isOnline && (
+          <div className="bg-emerald-950 text-emerald-100 px-4 py-2 text-xs flex items-center justify-between border-b border-emerald-800 shadow-xs z-40 text-left">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <span className="text-[11px] font-medium leading-tight">
+                <strong>Offline Mode Active (Zero Bundles):</strong> All dairy, crops, sales, and livestock records are safely saved locally on this device.
+              </span>
+            </div>
+            <span className="hidden sm:inline-block text-[10px] bg-emerald-900 px-2 py-0.5 rounded font-mono font-bold text-emerald-200 shrink-0">
+              No Bundles Needed
+            </span>
+          </div>
+        )}
+
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-30 sticky top-0 shadow-sm">
           <div className="flex items-center gap-3">
             {activeTab === 'dash' && (
@@ -6237,9 +6297,10 @@ function FarmCoreApp() {
 
           <div className="flex items-center gap-2 md:gap-4 relative text-gray-800">
             <span
-              className={`hidden sm:inline-flex text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
-              title="Cloud sync runtime status"
+              className={`${!isOnline ? 'inline-flex' : 'hidden sm:inline-flex'} text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
+              title={!isOnline ? "Working offline with local storage (Zero data bundles needed)" : "Cloud sync runtime status"}
             >
+              {!isOnline && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse inline-block"></span>}
               {headerCloudSyncStatus.label}
             </span>
             <span

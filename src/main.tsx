@@ -21,23 +21,30 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('📱 ServiceWorker registration successful with scope: ', registration.scope);
-        // Actively check for updates immediately upon load
-        registration.update().catch(() => {});
+        // Only check for updates when device has active internet connectivity
+        const safeUpdate = () => {
+          if (typeof navigator !== 'undefined' && navigator.onLine) {
+            registration.update().catch(() => {});
+          }
+        };
+
+        // Actively check for updates immediately upon load if online
+        safeUpdate();
 
         // Re-check for new updates whenever the app is reopened, tab is focused, or screen wakes up
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible') {
-            registration.update().catch(() => {});
+            safeUpdate();
           }
         });
         window.addEventListener('focus', () => {
-          registration.update().catch(() => {});
+          safeUpdate();
         });
 
-        // Fast update check every 20 seconds
+        // Periodic update check only if online
         setInterval(() => {
-          registration.update().catch(() => {});
-        }, 20 * 1000);
+          safeUpdate();
+        }, 60 * 1000);
 
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;

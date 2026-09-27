@@ -1,5 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore
+} from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
@@ -20,10 +26,18 @@ const isFirestoreSyncEnabled = String(import.meta.env.VITE_ENABLE_FIRESTORE_SYNC
 let db: Firestore | null = null;
 if (isFirestoreSyncEnabled) {
   try {
-    db = getFirestore(app);
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    });
   } catch (error) {
-    console.warn('[Firebase] Firestore init failed. Cloud sync will be disabled.', error);
-    db = null;
+    try {
+      db = getFirestore(app);
+    } catch (e) {
+      console.warn('[Firebase] Firestore init failed. Cloud sync will be disabled.', e);
+      db = null;
+    }
   }
 }
 const realtimeDb = getDatabase(app);

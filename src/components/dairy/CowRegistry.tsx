@@ -59,10 +59,19 @@ export function CowRegistry({
     try {
       if (!(window as any).htmlToImage) {
         const script = document.createElement('script');
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js";
+        script.src = "/html-to-image.min.js";
         script.async = false;
         document.body.appendChild(script);
-        await new Promise(resolve => script.onload = resolve);
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = () => {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = "https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js";
+            fallbackScript.onload = resolve;
+            fallbackScript.onerror = reject;
+            document.body.appendChild(fallbackScript);
+          };
+        });
       }
       
       const element = document.getElementById('pedigree-tree-container');
