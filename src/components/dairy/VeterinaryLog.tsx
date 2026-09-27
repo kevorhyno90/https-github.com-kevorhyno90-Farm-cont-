@@ -125,6 +125,49 @@ export function VeterinaryLog({
     }
   };
 
+  // Helper to resolve cow friendly name for any record (legacy or new)
+  const getCowDisplayName = (rec: VetRecord) => {
+    if (rec.cowName) return rec.cowName;
+    const matched = cows.find(c => 
+      c.id.toLowerCase() === rec.cowId?.toLowerCase() ||
+      (rec.cowId && (c.id.toLowerCase().startsWith(rec.cowId.toLowerCase()) || rec.cowId.toLowerCase().startsWith(c.id.toLowerCase()))) ||
+      (c.name && rec.cowId && rec.cowId.toLowerCase().includes(c.name.toLowerCase()))
+    );
+    return matched?.name || '';
+  };
+
+  // Helper to open edit modal with full form normalization
+  const handleStartEdit = (record: VetRecord) => {
+    const matched = cows.find(c => 
+      c.id.toLowerCase() === record.cowId?.toLowerCase() ||
+      (record.cowId && (c.id.toLowerCase().startsWith(record.cowId.toLowerCase()) || record.cowId.toLowerCase().startsWith(c.id.toLowerCase()))) ||
+      (c.name && record.cowName && c.name.toLowerCase() === record.cowName.toLowerCase()) ||
+      (c.name && record.cowId && record.cowId.toLowerCase().includes(c.name.toLowerCase()))
+    );
+
+    setEditingVet({
+      ...record,
+      cowName: record.cowName || (matched ? matched.name : ''),
+      diseaseOrCondition: record.diseaseOrCondition || record.diagnosis || record.treatment || '',
+      treatment: record.treatment || record.diseaseOrCondition || '',
+      symptoms: record.symptoms || '',
+      causer: record.causer || '',
+      drugUsedFromInventory: record.drugUsedFromInventory || record.drugAdministered || '',
+      drugAdministered: record.drugAdministered || record.drugUsedFromInventory || '',
+      dosage: record.dosage || '',
+      administrationRoute: record.administrationRoute || 'IM',
+      withdrawalMilkDays: record.withdrawalMilkDays || 0,
+      withdrawalMeatDays: record.withdrawalMeatDays || 0,
+      nextTreatmentDate: record.nextTreatmentDate || record.nextDueDate || '',
+      nextDueDate: record.nextDueDate || record.nextTreatmentDate || '',
+      recoveryStatus: record.recoveryStatus || (record.treatmentStatus === 'Done' ? 'Recovered' : 'Under Treatment'),
+      repeatMedicalNotes: record.repeatMedicalNotes || '',
+      staff: record.staff || 'Dr. Devin Omwenga',
+      notes: record.notes || '',
+      cost: record.cost || 0
+    });
+  };
+
   // Clinical Diagnostic Presets for 1-click population
   const applyPreset = (preset: {
     type: VetRecord['type'];
@@ -255,19 +298,19 @@ export function VeterinaryLog({
       rec.id,
       rec.date,
       rec.cowId,
-      rec.cowName || '',
+      rec.cowName || getCowDisplayName(rec) || '',
       rec.animalCategory || 'Cow',
       rec.type,
-      rec.diseaseOrCondition || rec.diagnosis || '',
+      rec.diseaseOrCondition || rec.diagnosis || rec.treatment || '',
       rec.symptoms || '',
       rec.causer || '',
-      rec.treatment,
-      rec.drugAdministered || '',
-      rec.drugUsedFromInventory || '',
+      rec.treatment || rec.diseaseOrCondition || '',
+      rec.drugAdministered || rec.drugUsedFromInventory || '',
+      rec.drugUsedFromInventory || rec.drugAdministered || '',
       rec.dosage || '',
       rec.administrationRoute || 'IM',
       rec.cost || 0,
-      rec.recoveryStatus || 'Completed',
+      rec.recoveryStatus || (rec.treatmentStatus === 'Done' ? 'Recovered' : 'Under Treatment'),
       rec.nextDueDate || rec.nextTreatmentDate || '',
       rec.repeatMedicalNotes || '',
       rec.withdrawalMilkDays || 0,
@@ -282,9 +325,10 @@ export function VeterinaryLog({
   const filteredRecords = useMemo(() => {
     const s = vetSearch.toLowerCase();
     return vetRecords.filter(r => {
+      const cowName = r.cowName || getCowDisplayName(r);
       const matchesSearch = 
         r.cowId?.toLowerCase().includes(s) ||
-        r.cowName?.toLowerCase().includes(s) ||
+        cowName.toLowerCase().includes(s) ||
         r.treatment?.toLowerCase().includes(s) ||
         r.diseaseOrCondition?.toLowerCase().includes(s) ||
         r.diagnosis?.toLowerCase().includes(s) ||
@@ -1112,7 +1156,7 @@ export function VeterinaryLog({
                 <tbody className="divide-y divide-gray-100">
                   {filteredRecords.map(record => {
                     const matchedCow = cows.find(c => c.id.toLowerCase() === record.cowId.toLowerCase());
-                    const cowDisplayName = record.cowName || (matchedCow ? matchedCow.name : '');
+                    const cowDisplayName = record.cowName || getCowDisplayName(record);
                     const isUnderTreatment = record.recoveryStatus === 'Under Treatment' || record.treatmentStatus === 'In Progress';
 
                     return (
@@ -1251,7 +1295,7 @@ export function VeterinaryLog({
                             </button>
                             {onEditVetRecord && (
                               <button
-                                onClick={() => setEditingVet(record)}
+                                onClick={() => handleStartEdit(record)}
                                 className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-800 text-slate-700 rounded-lg transition-colors cursor-pointer"
                                 title="Edit Health Record"
                               >
@@ -1287,7 +1331,7 @@ export function VeterinaryLog({
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredRecords.map(record => {
               const matchedCow = cows.find(c => c.id.toLowerCase() === record.cowId.toLowerCase());
-              const cowDisplayName = record.cowName || (matchedCow ? matchedCow.name : '');
+              const cowDisplayName = record.cowName || getCowDisplayName(record);
 
               return (
                 <div key={record.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
@@ -1321,15 +1365,15 @@ export function VeterinaryLog({
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setSelectedRecordForDetails(record)}
-                          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                          className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                           title="View Full Details"
                         >
                           <Eye size={13} />
                         </button>
                         {onEditVetRecord && (
                           <button
-                            onClick={() => setEditingVet(record)}
-                            className="text-slate-400 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                            onClick={() => handleStartEdit(record)}
+                            className="text-slate-400 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                             title="Edit Record"
                           >
                             <PenSquare size={13} />
@@ -1577,15 +1621,15 @@ export function VeterinaryLog({
       {/* EDIT VETERINARY RECORD MODAL */}
       {editingVet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl p-6 border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-3xl shadow-2xl p-6 border border-slate-100 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b border-slate-100 pb-3">
               <div>
                 <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <PenSquare size={16} className="text-emerald-600" />
-                  Edit Animal Health Record
+                  Edit Animal Health & Clinical Ledger Record
                 </h4>
                 <p className="text-[11px] font-bold text-slate-400 mt-0.5">
-                  Update patient identity, diseases, symptoms, causes, drugs & repeat notes
+                  Update patient identity, diseases, symptoms, causes, inventory drugs, withdrawals & repeat notes
                 </p>
               </div>
               <button
@@ -1597,15 +1641,41 @@ export function VeterinaryLog({
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Animal Tag ID</label>
-                  <input
-                    type="text"
+              {/* Patient Selection & Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">
+                    Animal from Cattle Registry*
+                  </label>
+                  <select
                     value={editingVet.cowId}
-                    onChange={e => setEditingVet({ ...editingVet, cowId: e.target.value })}
-                    className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
-                  />
+                    onChange={e => {
+                      const selectedId = e.target.value;
+                      const matched = cows.find(c => c.id === selectedId);
+                      setEditingVet({
+                        ...editingVet,
+                        cowId: selectedId,
+                        cowName: matched ? matched.name || '' : editingVet.cowName
+                      });
+                    }}
+                    className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold bg-white focus:border-emerald-500 focus:outline-none"
+                  >
+                    <optgroup label="Cattle Registry">
+                      {cows.map(cow => (
+                        <option key={cow.id} value={cow.id}>
+                          {cow.id} ({cow.name || 'Unnamed'}) — {cow.breed}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Herd Protocols">
+                      <option value="All Cattle / Herd Protocol">All Cattle / Herd Protocol</option>
+                      <option value="All Heifers Group">All Heifers Group</option>
+                      <option value="All Calves Group">All Calves Group</option>
+                    </optgroup>
+                    {!cows.some(c => c.id === editingVet.cowId) && editingVet.cowId && (
+                      <option value={editingVet.cowId}>{editingVet.cowId} (Existing ID)</option>
+                    )}
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Friendly Name</label>
@@ -1627,6 +1697,7 @@ export function VeterinaryLog({
                 </div>
               </div>
 
+              {/* Class, Condition, Symptoms & Causer */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Intervention Class</label>
@@ -1642,8 +1713,9 @@ export function VeterinaryLog({
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Disease / Condition</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Disease / Condition / Vaccination*</label>
                   <input
+                    list="cattle-diseases-list"
                     type="text"
                     value={editingVet.diseaseOrCondition || editingVet.treatment}
                     onChange={e => setEditingVet({ ...editingVet, diseaseOrCondition: e.target.value })}
@@ -1654,8 +1726,9 @@ export function VeterinaryLog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Symptoms Observed</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Observed Symptoms & Clinical Signs</label>
                   <input
+                    list="cattle-symptoms-list"
                     type="text"
                     value={editingVet.symptoms || ''}
                     onChange={e => setEditingVet({ ...editingVet, symptoms: e.target.value })}
@@ -1663,8 +1736,9 @@ export function VeterinaryLog({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Suspected Cause / Etiology</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Suspected Cause / Etiology / Vector</label>
                   <input
+                    list="cattle-causers-list"
                     type="text"
                     value={editingVet.causer || ''}
                     onChange={e => setEditingVet({ ...editingVet, causer: e.target.value })}
@@ -1673,9 +1747,22 @@ export function VeterinaryLog({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {/* Treatment Protocol, Drug from Inventory, Dosage & Route */}
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Treatment Protocol / Procedure Summary*</label>
+                <input
+                  type="text"
+                  value={editingVet.treatment || editingVet.diseaseOrCondition || ''}
+                  onChange={e => setEditingVet({ ...editingVet, treatment: e.target.value })}
+                  className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
                 <div className="sm:col-span-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Drug Used from Inventory</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1 flex items-center gap-1">
+                    <Pill size={11} className="text-emerald-600" /> Drug Used from Farm Pharmacy / Inventory
+                  </label>
                   <input
                     list="edit-inventory-drugs"
                     type="text"
@@ -1690,18 +1777,53 @@ export function VeterinaryLog({
                   </datalist>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Dosage & Route</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Dosage</label>
                   <input
                     type="text"
                     value={editingVet.dosage || ''}
                     onChange={e => setEditingVet({ ...editingVet, dosage: e.target.value })}
-                    placeholder="e.g. 20ml IM"
+                    placeholder="e.g. 20ml IM daily"
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Administration Route</label>
+                  <select
+                    value={editingVet.administrationRoute || 'IM'}
+                    onChange={e => setEditingVet({ ...editingVet, administrationRoute: e.target.value as any })}
+                    className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold bg-white focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="IM">IM (Intramuscular)</option>
+                    <option value="IV">IV (Intravenous)</option>
+                    <option value="SC">SC (Subcutaneous)</option>
+                    <option value="Oral">Oral (Drench / Bolus)</option>
+                    <option value="Intramammary">Intramammary</option>
+                    <option value="Topical">Topical</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {/* Withdrawals, Next Date, Recovery, Cost & Staff */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-amber-700 block mb-1">Milk WH (Days)</label>
+                  <input
+                    type="number"
+                    value={editingVet.withdrawalMilkDays || 0}
+                    onChange={e => setEditingVet({ ...editingVet, withdrawalMilkDays: parseInt(e.target.value) || 0 })}
+                    className="border border-amber-200 bg-amber-50 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-amber-700 block mb-1">Meat WH (Days)</label>
+                  <input
+                    type="number"
+                    value={editingVet.withdrawalMeatDays || 0}
+                    onChange={e => setEditingVet({ ...editingVet, withdrawalMeatDays: parseInt(e.target.value) || 0 })}
+                    className="border border-amber-200 bg-amber-50 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Next Treatment Date</label>
                   <input
@@ -1723,6 +1845,27 @@ export function VeterinaryLog({
                     <option value="Recovered">Recovered / Cleared</option>
                     <option value="Critical">Critical</option>
                     <option value="Chronic">Chronic</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Supervising Vet / Staff</label>
+                  <select
+                    value={editingVet.staff || 'Dr. Devin Omwenga (Vet)'}
+                    onChange={e => setEditingVet({ ...editingVet, staff: e.target.value })}
+                    className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold bg-white focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="Dr. Devin Omwenga (Vet)">Dr. Devin Omwenga (Vet Manager)</option>
+                    {staffList.map(st => (
+                      <option key={st.id} value={`${st.name} (${st.unit})`}>
+                        {st.name} ({st.unit})
+                      </option>
+                    ))}
+                    <option value="Resident Farm Attendant">Resident Farm Attendant</option>
+                    <option value="External Private Vet">External Private Vet</option>
                   </select>
                 </div>
                 <div>
@@ -1737,21 +1880,23 @@ export function VeterinaryLog({
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Repeat Medical Notes</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Repeat Medical Notes & Instructions</label>
                 <textarea
                   rows={2}
                   value={editingVet.repeatMedicalNotes || ''}
                   onChange={e => setEditingVet({ ...editingVet, repeatMedicalNotes: e.target.value })}
+                  placeholder="e.g. Follow-up dose in 48h, milk discard protocol, booster schedules..."
                   className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium resize-none focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Clinical Observations</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Clinical Observations & Remarks</label>
                 <textarea
                   rows={2}
                   value={editingVet.notes || ''}
                   onChange={e => setEditingVet({ ...editingVet, notes: e.target.value })}
+                  placeholder="e.g. Clinical responses, temperature readings, husbandry notes..."
                   className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium resize-none focus:border-emerald-500 focus:outline-none"
                 />
               </div>
