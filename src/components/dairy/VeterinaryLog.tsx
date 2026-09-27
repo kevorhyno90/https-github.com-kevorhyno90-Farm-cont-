@@ -218,7 +218,13 @@ export function VeterinaryLog({
   // Submit new vet record
   const handleVetSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!vetCowId || !vetTreatment.trim()) return;
+    const effectiveTreatment = vetTreatment.trim() || vetDiseaseOrCondition.trim() || 'Veterinary Health Intervention';
+    const effectiveDisease = vetDiseaseOrCondition.trim() || effectiveTreatment;
+
+    if (!vetCowId) {
+      alert('Please select an animal from the registry to save this health record.');
+      return;
+    }
 
     const newRecord: VetRecord = {
       id: `vet-${Date.now()}`,
@@ -227,12 +233,12 @@ export function VeterinaryLog({
       animalCategory: vetAnimalCategory,
       date: vetDate,
       type: vetType,
-      diseaseOrCondition: vetDiseaseOrCondition.trim() || undefined,
+      diseaseOrCondition: effectiveDisease,
       symptoms: vetSymptoms.trim() || undefined,
       causer: vetCauser.trim() || undefined,
-      treatment: vetTreatment.trim(),
-      drugAdministered: vetDrugAdministered.trim() || undefined,
-      drugUsedFromInventory: vetDrugUsedFromInventory.trim() || undefined,
+      treatment: effectiveTreatment,
+      drugAdministered: vetDrugAdministered.trim() || vetDrugUsedFromInventory.trim() || undefined,
+      drugUsedFromInventory: vetDrugUsedFromInventory.trim() || vetDrugAdministered.trim() || undefined,
       dosage: vetDosage.trim() || undefined,
       administrationRoute: vetRoute,
       cost: vetCost === '' ? 0 : Number(vetCost),
