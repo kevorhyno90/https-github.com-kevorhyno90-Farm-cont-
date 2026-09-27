@@ -5,7 +5,7 @@ import {
   Baby, Award, Heart, Plus, Scale, Sparkles, AlertCircle, CheckCircle2,
   Calendar, ArrowRight, Activity, TrendingUp, Info, HelpCircle,
   LayoutList, LayoutGrid, Trash2, Milk, ChevronRight, Check, ShieldCheck,
-  Search, Filter, ArrowUpRight
+  Search, Filter, ArrowUpRight, Stethoscope
 } from 'lucide-react';
 
 interface CalvesHeifersHubProps {
@@ -218,6 +218,12 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
     saveCalves(calves.filter(c => c.id !== calf.id));
     alert(`🎉 Success! ${calf.tag} has graduated from the Nursery and entered the Replacement Heifer Pipeline as "${newHeifer.tag}".`);
     setActiveView('heifers');
+  };
+
+  // Shortcut to log veterinary health treatment for calf or heifer
+  const handleLogVetForAnimal = (tag: string) => {
+    localStorage.setItem('jr_farm_preselected_vet_animal', tag);
+    if (onGoToSubTab) onGoToSubTab('veterinary');
   };
 
   // Quick liveweight logger
@@ -818,6 +824,15 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                                 ⚖️ Weight
                               </button>
 
+                              <button
+                                onClick={() => handleLogVetForAnimal(calf.tag)}
+                                className="px-2.5 py-1 text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                title="Log illness, fever, or medication in Veterinary Log"
+                              >
+                                <Stethoscope size={11} />
+                                <span>Vet Log</span>
+                              </button>
+
                               {isFemale && (
                                 <button
                                   onClick={() => handlePromoteCalfToHeifer(calf)}
@@ -923,6 +938,15 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                         ⚖️ Update Weight
                       </button>
 
+                      <button
+                        onClick={() => handleLogVetForAnimal(calf.tag)}
+                        className="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors cursor-pointer flex items-center gap-1"
+                        title="Log sick calf in Veterinary Log"
+                      >
+                        <Stethoscope size={12} />
+                        <span>Vet Log</span>
+                      </button>
+
                       {isFemale && (
                         <button
                           onClick={() => handlePromoteCalfToHeifer(calf)}
@@ -995,6 +1019,14 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                         </td>
                         <td className="p-3.5 font-semibold text-gray-700">{heifer.status}</td>
                         <td className="p-3.5 text-right space-x-2">
+                          <button
+                            onClick={() => handleLogVetForAnimal(heifer.tag)}
+                            className="px-2.5 py-1 text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title="Log illness, deworming, or vaccine for heifer in Veterinary Log"
+                          >
+                            <Stethoscope size={11} />
+                            <span>Vet Log</span>
+                          </button>
                           {isServiceReady && heifer.status !== 'In-Calf' && (
                             <button
                               onClick={() => {

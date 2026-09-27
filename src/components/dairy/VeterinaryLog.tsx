@@ -36,6 +36,41 @@ export function VeterinaryLog({
   const [editingVet, setEditingVet] = useState<VetRecord | null>(null);
   const [selectedRecordForDetails, setSelectedRecordForDetails] = useState<VetRecord | null>(null);
 
+  // Calves & Heifers loaded from nursery & replacement boards
+  const [nurseryCalves, setNurseryCalves] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_dairy_calves') || localStorage.getItem('jr_farm_calves');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [];
+  });
+
+  const [replacementHeifers, setReplacementHeifers] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem('jr_farm_dairy_heifers') || localStorage.getItem('jr_farm_heifers');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [];
+  });
+
+  // Reactive listener for local-storage updates across tabs
+  React.useEffect(() => {
+    const handleStorageUpdate = () => {
+      try {
+        const storedCalves = localStorage.getItem('jr_farm_dairy_calves') || localStorage.getItem('jr_farm_calves');
+        if (storedCalves) setNurseryCalves(JSON.parse(storedCalves));
+        const storedHeifers = localStorage.getItem('jr_farm_dairy_heifers') || localStorage.getItem('jr_farm_heifers');
+        if (storedHeifers) setReplacementHeifers(JSON.parse(storedHeifers));
+      } catch {}
+    };
+    window.addEventListener('local-storage-update', handleStorageUpdate);
+    window.addEventListener('storage', handleStorageUpdate);
+    return () => {
+      window.removeEventListener('local-storage-update', handleStorageUpdate);
+      window.removeEventListener('storage', handleStorageUpdate);
+    };
+  }, []);
+
   // Filters
   const [vetSearch, setVetSearch] = useState('');
   const [vetTypeFilter, setVetTypeFilter] = useState('');
@@ -71,6 +106,22 @@ export function VeterinaryLog({
   const [vetWithdrawalMeat, setVetWithdrawalMeat] = useState<number | ''>('');
   const [vetPrognosis, setVetPrognosis] = useState<VetRecord['prognosis']>('Good');
 
+  // Check for pre-selected animal shortcut from Calves & Heifers board
+  React.useEffect(() => {
+    const preselected = localStorage.getItem('jr_farm_preselected_vet_animal');
+    if (preselected) {
+      localStorage.removeItem('jr_farm_preselected_vet_animal');
+      setVetCowId(preselected);
+      setVetCowName(preselected);
+      const isCalf = nurseryCalves.some(c => c.tag === preselected || c.id === preselected) || preselected.startsWith('CALF-');
+      const isHeifer = replacementHeifers.some(h => h.tag === preselected || h.id === preselected) || preselected.startsWith('H-');
+      if (isCalf) setVetAnimalCategory('Calf');
+      else if (isHeifer) setVetAnimalCategory('Heifer');
+      else setVetAnimalCategory('Cow');
+      setShowAddVetForm(true);
+    }
+  }, [nurseryCalves, replacementHeifers]);
+
   // Curated list of farm pharmaceuticals and veterinary supplies
   const standardPharmacyDrugs = [
     'Buparvaquone (Butalex / Bupatox 50ml)',
@@ -103,13 +154,42 @@ export function VeterinaryLog({
     return Array.from(new Set([...invNames, ...standardPharmacyDrugs]));
   }, [inventory]);
 
-  // Selected cow details for quick info display in form
+  // Selected animal details for quick info display in form (cows, calves, heifers)
   const selectedCowInfo = useMemo(() => {
-    if (!vetCowId || vetAnimalCategory !== 'Cow') return null;
-    return cows.find(c => c.id.toLowerCase() === vetCowId.toLowerCase());
-  }, [vetCowId, vetAnimalCategory, cows]);
+    if (!vetCowId) return null;
+    const cow = cows.find(c => c.id.toLowerCase() === vetCowId.toLowerCase());
+    if (cow) return { ...cow, category: 'Cow' };
 
-  // Handler when cow is selected from registry
+    const calf = nurseryCalves.find(c => (c.tag && c.tag.toLowerCase() === vetCowId.toLowerCase()) || (c.id && c.id.toLowerCase() === vetCowId.toLowerCase()));
+    if (calf) {
+      return {
+        id: calf.tag || calf.id,
+        name: calf.tag || 'Nursery Calf',
+        breed: calf.sex === 'Female' ? 'Female Heifer Track' : 'Male Bull Track',
+        gender: calf.sex,
+        locality: 'Nursery Calf Pen',
+        status: `Calf (${calf.weight || 35}kg, Status: ${calf.status || 'Nursery'})`,
+        category: 'Calf'
+      };
+    }
+
+    const heifer = replacementHeifers.find(h => (h.tag && h.tag.toLowerCase() === vetCowId.toLowerCase()) || (h.id && h.id.toLowerCase() === vetCowId.toLowerCase()));
+    if (heifer) {
+      return {
+        id: heifer.tag || heifer.id,
+        name: heifer.tag || 'Replacement Heifer',
+        breed: heifer.breed || 'Dairy Replacement',
+        gender: 'Female',
+        locality: 'Heifer Pen',
+        status: `Heifer (${heifer.weight || 250}kg, Status: ${heifer.status || 'Growing'})`,
+        category: 'Heifer'
+      };
+    }
+
+    return null;
+  }, [vetCowId, cows, nurseryCalves, replacementHeifers]);
+
+  // Handler when animal is selected from registry
   const handleSelectCow = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
     setVetCowId(selectedId);
@@ -117,15 +197,47 @@ export function VeterinaryLog({
       setVetCowName('');
       return;
     }
-    const matched = cows.find(c => c.id === selectedId);
-    if (matched) {
-      setVetCowName(matched.name || '');
-    } else if (selectedId === 'All Cattle / Herd Protocol') {
+
+    // 1. Check registered cows
+    const matchedCow = cows.find(c => c.id === selectedId);
+    if (matchedCow) {
+      setVetCowName(matchedCow.name || '');
+      if (matchedCow.status === 'Heifer') setVetAnimalCategory('Heifer');
+      else if (matchedCow.status === 'Calf') setVetAnimalCategory('Calf');
+      else setVetAnimalCategory('Cow');
+      return;
+    }
+
+    // 2. Check nursery calves
+    const matchedCalf = nurseryCalves.find(c => c.tag === selectedId || c.id === selectedId);
+    if (matchedCalf) {
+      setVetCowName(matchedCalf.tag || '');
+      setVetAnimalCategory('Calf');
+      return;
+    }
+
+    // 3. Check replacement heifers
+    const matchedHeifer = replacementHeifers.find(h => h.tag === selectedId || h.id === selectedId);
+    if (matchedHeifer) {
+      setVetCowName(matchedHeifer.tag || '');
+      setVetAnimalCategory('Heifer');
+      return;
+    }
+
+    // 4. Check group protocols
+    if (selectedId === 'All Cattle / Herd Protocol') {
       setVetCowName('Entire Herd');
+      setVetAnimalCategory('Cow');
+    } else if (selectedId === 'All Heifers Group') {
+      setVetCowName('Heifers Cohort');
+      setVetAnimalCategory('Heifer');
+    } else if (selectedId === 'All Calves Group') {
+      setVetCowName('Nursery Calves Cohort');
+      setVetAnimalCategory('Calf');
     }
   };
 
-  // Helper to resolve cow friendly name for any record (legacy or new)
+  // Helper to resolve cow/calf/heifer friendly name for any record (legacy or new)
   const getCowDisplayName = (rec: VetRecord) => {
     if (rec.cowName) return rec.cowName;
     const matched = cows.find(c => 
@@ -133,7 +245,15 @@ export function VeterinaryLog({
       (rec.cowId && (c.id.toLowerCase().startsWith(rec.cowId.toLowerCase()) || rec.cowId.toLowerCase().startsWith(c.id.toLowerCase()))) ||
       (c.name && rec.cowId && rec.cowId.toLowerCase().includes(c.name.toLowerCase()))
     );
-    return matched?.name || '';
+    if (matched) return matched.name || '';
+
+    const matchedCalf = nurseryCalves.find(c => (c.tag && c.tag.toLowerCase() === rec.cowId?.toLowerCase()) || (c.id && c.id.toLowerCase() === rec.cowId?.toLowerCase()));
+    if (matchedCalf) return matchedCalf.tag;
+
+    const matchedHeifer = replacementHeifers.find(h => (h.tag && h.tag.toLowerCase() === rec.cowId?.toLowerCase()) || (h.id && h.id.toLowerCase() === rec.cowId?.toLowerCase()));
+    if (matchedHeifer) return matchedHeifer.tag;
+
+    return '';
   };
 
   // Helper to open edit modal with full form normalization
@@ -457,9 +577,25 @@ export function VeterinaryLog({
                 className="text-xs border border-slate-200 rounded-xl px-3 py-3 w-full font-bold text-slate-600 bg-white focus:outline-none cursor-pointer hover:border-slate-300 transition-all"
               >
                 <option value="">All Animals</option>
-                {cows.map(cow => (
-                  <option key={cow.id} value={cow.id}>{cow.id} ({cow.name})</option>
-                ))}
+                {nurseryCalves.length > 0 && (
+                  <optgroup label="🍼 Nursery Calves">
+                    {nurseryCalves.map(calf => (
+                      <option key={calf.id} value={calf.tag || calf.id}>{calf.tag}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {replacementHeifers.length > 0 && (
+                  <optgroup label="🐄 Replacement Heifers">
+                    {replacementHeifers.map(heifer => (
+                      <option key={heifer.id} value={heifer.tag || heifer.id}>{heifer.tag}</option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="🥛 Adult Dairy Herd">
+                  {cows.map(cow => (
+                    <option key={cow.id} value={cow.id}>{cow.id} ({cow.name})</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
@@ -688,6 +824,78 @@ export function VeterinaryLog({
                     repeatNotes: 'Monitor heart rhythm during IV infusion. Administer oral calcium paste at 12 hours.',
                     notes: 'Calved 18 hours prior. Emergency clinical response.',
                     daysToNext: 1
+                  },
+                  {
+                    label: '🍼 Calf Scours (Enteritis)',
+                    type: 'Treatment' as const,
+                    disease: 'Neonatal Calf Scours (Enteritis Complex)',
+                    symptoms: 'Profuse watery diarrhea, sunken eyes, severe dehydration, cold extremities, lethargy',
+                    causer: 'Enteric pathogens (E. coli, Cryptosporidium, Rotavirus / Coronavirus)',
+                    treatment: 'Immediate oral electrolyte rehydration (ORS 2L warm) + Kaolin-Spectinomycin drench',
+                    drug: 'Oral Rehydration Salts (ORS) + Kaolin-Spectinomycin',
+                    inventoryDrug: 'Standard Veterinary Pharmacy',
+                    dosage: '2 Liters ORS BID between milk feeds + 10ml Kaolin drench',
+                    route: 'Oral' as const,
+                    temp: 38.8, hr: 110, rr: 32,
+                    milkWH: 0, meatWH: 14, cost: 950,
+                    recoveryStatus: 'Under Treatment',
+                    repeatNotes: 'Recheck hydration skin-tent test in 12 hours. Continue warm dry bedding. Never stop milk entirely.',
+                    notes: 'Isolated in dedicated hospital hutch. Separate sanitized bottle used.',
+                    daysToNext: 1
+                  },
+                  {
+                    label: '🫁 Calf Pneumonia (BRD)',
+                    type: 'Treatment' as const,
+                    disease: 'Bovine Respiratory Disease (Calf Enzootic Pneumonia)',
+                    symptoms: 'High fever (40.8°C), rapid abdominal breathing, productive cough, mucopurulent nasal discharge',
+                    causer: 'Bacterial/viral complex (Mannheimia haemolytica / Pasteurella)',
+                    treatment: 'Deep IM Florfenicol / Oxytetracycline 20% L.A. + Meloxicam anti-inflammatory',
+                    drug: 'Oxytetracycline 20% L.A. + Meloxicam 20mg/ml',
+                    inventoryDrug: 'Oxytetracycline 20% L.A. 100ml',
+                    dosage: '1ml per 10kg bodyweight IM + 0.5ml Meloxicam per 20kg',
+                    route: 'IM' as const,
+                    temp: 40.8, hr: 105, rr: 48,
+                    milkWH: 0, meatWH: 28, cost: 1600,
+                    recoveryStatus: 'Under Treatment',
+                    repeatNotes: 'Auscultate lungs in 48 hours. Ensure barn ventilation is draft-free but well-aerated.',
+                    notes: 'Respiratory distress observed during morning milk feeding.',
+                    daysToNext: 2
+                  },
+                  {
+                    label: '🩹 Navel Ill (Omphalitis)',
+                    type: 'Treatment' as const,
+                    disease: 'Navel Ill / Joint Ill (Omphalophlebitis)',
+                    symptoms: 'Enlarged, hard, painful umbilical cord with purulent exudate, swollen warm carpal joint',
+                    causer: 'Ascending bacterial infection via untreated umbilical cord at birth',
+                    treatment: 'Systemic Penicillin-Streptomycin injection + 7% Iodine umbilical flush',
+                    drug: 'Penicillin-Streptomycin 20/20 + Iodine wash',
+                    inventoryDrug: 'Penicillin-Streptomycin 20/20 100ml',
+                    dosage: '5ml IM daily for 5 days + daily topical iodine swab',
+                    route: 'IM' as const,
+                    temp: 39.7, hr: 90, rr: 28,
+                    milkWH: 0, meatWH: 14, cost: 1100,
+                    recoveryStatus: 'Under Treatment',
+                    repeatNotes: 'Palpate umbilical stalk daily. Continue course for minimum 5 consecutive days.',
+                    notes: 'Navel cleaned with antiseptic chlorhexidine solution.',
+                    daysToNext: 1
+                  },
+                  {
+                    label: '🪱 Heifer Anthelmintic & Blackleg',
+                    type: 'Vaccination' as const,
+                    disease: 'Blackleg (Clostridial) & GI Parasitism Prophylaxis',
+                    symptoms: 'None (Healthy growing replacement heifer routine preventative protocol)',
+                    causer: 'Clostridium chauvoei prevention + internal roundworms',
+                    treatment: 'Anthrax & Blackquarter Dual Vaccine (2ml SC) + Albendazole 10% drench',
+                    drug: 'Anthrax & Blackquarter Dual Vaccine + Albendazole 10%',
+                    inventoryDrug: 'Anthrax & Blackquarter Dual Vaccine',
+                    dosage: '2ml SC into neck/dewlap + 25ml Albendazole oral drench',
+                    route: 'SC' as const,
+                    temp: 38.6, hr: 72, rr: 22,
+                    milkWH: 0, meatWH: 14, cost: 950,
+                    recoveryStatus: 'Recovered',
+                    repeatNotes: 'Annual clostridial booster before rainy season.',
+                    notes: 'Administered at 6 months of age during pen weighing.',
+                    daysToNext: 180
                   }
                 ].map((p, idx) => (
                   <button
@@ -722,13 +930,39 @@ export function VeterinaryLog({
                     className="w-full text-xs p-3 border border-slate-200 rounded-xl font-bold bg-white focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="">-- Choose Registered Animal --</option>
-                    <optgroup label="Registered Dairy Cows">
+                    
+                    {/* 1. Nursery Calves */}
+                    {nurseryCalves.length > 0 && (
+                      <optgroup label="🍼 Nursery Calves (Liquid Fed & Weaned)">
+                        {nurseryCalves.map(calf => (
+                          <option key={calf.id} value={calf.tag || calf.id}>
+                            {calf.tag} — {calf.sex} Calf ({calf.weight || 35}kg, Dam: {calf.dam || 'N/A'})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    {/* 2. Replacement Heifers */}
+                    {replacementHeifers.length > 0 && (
+                      <optgroup label="🐄 Replacement Heifers (Growing & In-Calf)">
+                        {replacementHeifers.map(heifer => (
+                          <option key={heifer.id} value={heifer.tag || heifer.id}>
+                            {heifer.tag} — {heifer.breed} ({heifer.weight || 250}kg, {heifer.status})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    {/* 3. Adult Milking Herd */}
+                    <optgroup label="🥛 Adult Dairy Herd (Cows & In-Calf)">
                       {cows.map(cow => (
                         <option key={cow.id} value={cow.id}>
-                          {cow.id} ({cow.name || 'Unnamed'}) — {cow.breed} [{cow.locality || 'General Barn'}]
+                          {cow.id} ({cow.name || 'Unnamed'}) — {cow.breed} [{cow.locality || 'General Barn'}] ({cow.status})
                         </option>
                       ))}
                     </optgroup>
+
+                    {/* 4. Special & Herd Protocols */}
                     <optgroup label="Special & Herd Protocols">
                       <option value="All Cattle / Herd Protocol">All Cattle / Herd Protocol (Entire Herd)</option>
                       <option value="All Heifers Group">All Heifers Group</option>
@@ -740,7 +974,10 @@ export function VeterinaryLog({
                   {/* Registered animal info pill if matched */}
                   {selectedCowInfo && (
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] bg-emerald-50 text-emerald-900 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold">
-                      <span>🏷️ <strong>{selectedCowInfo.name}</strong> ({selectedCowInfo.id})</span>
+                      <span>
+                        {selectedCowInfo.category === 'Calf' ? '🍼' : selectedCowInfo.category === 'Heifer' ? '🐄' : '🏷️'}{' '}
+                        <strong>{selectedCowInfo.name}</strong> ({selectedCowInfo.id})
+                      </span>
                       <span>•</span>
                       <span>{selectedCowInfo.breed}</span>
                       <span>•</span>
