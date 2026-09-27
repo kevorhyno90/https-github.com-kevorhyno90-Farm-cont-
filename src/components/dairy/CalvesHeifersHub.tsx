@@ -3,7 +3,9 @@ import { Cow, CalfRecord, HeiferRecord } from '../../types';
 import { toIsoDate } from '../../utils/dateHelper';
 import {
   Baby, Award, Heart, Plus, Scale, Sparkles, AlertCircle, CheckCircle2,
-  Calendar, ArrowRight, Activity, TrendingUp, Info, HelpCircle
+  Calendar, ArrowRight, Activity, TrendingUp, Info, HelpCircle,
+  LayoutList, LayoutGrid, Trash2, Milk, ChevronRight, Check, ShieldCheck,
+  Search, Filter, ArrowUpRight
 } from 'lucide-react';
 
 interface CalvesHeifersHubProps {
@@ -15,11 +17,14 @@ interface CalvesHeifersHubProps {
 export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifersHubProps) {
   // Local state for calves & heifers stored in localStorage / state
   const [activeView, setActiveView] = useState<'calves' | 'heifers' | 'weaning_sim'>('calves');
+  const [calfViewMode, setCalfViewMode] = useState<'table' | 'cards'>('table');
+  const [calfSearch, setCalfSearch] = useState('');
+  const [calfFilter, setCalfFilter] = useState<'all' | 'female' | 'male' | 'nursery' | 'weaned'>('all');
 
   // Sample or persisted calves
   const [calves, setCalves] = useState<CalfRecord[]>(() => {
     try {
-      const stored = localStorage.getItem('jr_farm_dairy_calves');
+      const stored = localStorage.getItem('jr_farm_dairy_calves') || localStorage.getItem('jr_farm_calves');
       if (stored) return JSON.parse(stored);
     } catch {}
     return [
@@ -32,7 +37,12 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
         sex: 'Female',
         status: 'Healthy',
         weight: 52,
-        notes: 'Vigorous drinker. Drinking 3L AM + 3L PM. Rumen starting on calf starter pellets.'
+        notes: 'Vigorous drinker. Drinking 3L AM + 3L PM. Rumen starting on calf starter pellets.',
+        colostrumFedWithin2Hours: true,
+        navelDipped: true,
+        disbudded: true,
+        dewormed: false,
+        stage: 'Pre-Weaning'
       },
       {
         id: 'calf-102',
@@ -43,7 +53,12 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
         sex: 'Female',
         status: 'Healthy',
         weight: 34,
-        notes: 'Colostrum intake verified within 2 hrs of birth. Navel treated with iodine.'
+        notes: 'Colostrum intake verified within 2 hrs of birth. Navel treated with iodine.',
+        colostrumFedWithin2Hours: true,
+        navelDipped: true,
+        disbudded: false,
+        dewormed: false,
+        stage: 'Pre-Weaning'
       },
       {
         id: 'calf-103',
@@ -54,7 +69,12 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
         sex: 'Male',
         status: 'Weaned',
         weight: 76,
-        notes: 'Successfully transitioned to grower meal & wilted sweet potato vines.'
+        notes: 'Successfully transitioned to grower meal & wilted sweet potato vines.',
+        colostrumFedWithin2Hours: true,
+        navelDipped: true,
+        disbudded: true,
+        dewormed: true,
+        stage: 'Weaned'
       }
     ];
   });
@@ -62,7 +82,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
   // Sample or persisted replacement heifers
   const [heifers, setHeifers] = useState<HeiferRecord[]>(() => {
     try {
-      const stored = localStorage.getItem('jr_farm_dairy_heifers');
+      const stored = localStorage.getItem('jr_farm_dairy_heifers') || localStorage.getItem('jr_farm_heifers');
       if (stored) return JSON.parse(stored);
     } catch {}
     return [
@@ -109,6 +129,8 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
     setCalves(newCalves);
     try {
       localStorage.setItem('jr_farm_dairy_calves', JSON.stringify(newCalves));
+      localStorage.setItem('jr_farm_calves', JSON.stringify(newCalves));
+      window.dispatchEvent(new Event('local-storage-update'));
     } catch {}
   };
 
@@ -116,6 +138,8 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
     setHeifers(newHeifers);
     try {
       localStorage.setItem('jr_farm_dairy_heifers', JSON.stringify(newHeifers));
+      localStorage.setItem('jr_farm_heifers', JSON.stringify(newHeifers));
+      window.dispatchEvent(new Event('local-storage-update'));
     } catch {}
   };
 
@@ -165,19 +189,115 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
     onAddCow(newAdultCow);
     const remaining = heifers.filter(item => item.id !== h.id);
     saveHeifers(remaining);
-    alert(`Successfully graduated ${h.tag} into the active Cattle Registry!`);
+    alert(`🎉 Successfully graduated ${h.tag} into the active Adult Cow Registry as a lactating dairy cow!`);
     if (onGoToSubTab) onGoToSubTab('registry');
   };
 
-  // Age calculator
+  // Promote Calf directly to Replacement Heifers Pipeline
+  const handlePromoteCalfToHeifer = (calf: CalfRecord) => {
+    const currentWt = calf.weight || 70;
+    const isServiceReady = currentWt >= 290;
+    const newHeiferTag = calf.tag.startsWith('CALF-')
+      ? calf.tag.replace(/^CALF-/, 'H-')
+      : `H-${calf.tag}`;
+
+    const newHeifer: HeiferRecord = {
+      id: `heifer-${Date.now()}`,
+      tag: newHeiferTag,
+      breed: calf.breed || 'Holstein / Dairy Cross',
+      dob: calf.dob,
+      girth: calf.girthCm || Math.min(155, Math.round(75 + currentWt * 0.65)),
+      weight: currentWt,
+      sire: calf.sire,
+      dam: calf.dam,
+      status: isServiceReady ? 'Ready for Service' : 'Growing',
+      notes: `Promoted from nursery liquid-fed calf. Weaning weight: ${currentWt}kg. ${calf.notes || ''}`
+    };
+
+    saveHeifers([...heifers, newHeifer]);
+    saveCalves(calves.filter(c => c.id !== calf.id));
+    alert(`🎉 Success! ${calf.tag} has graduated from the Nursery and entered the Replacement Heifer Pipeline as "${newHeifer.tag}".`);
+    setActiveView('heifers');
+  };
+
+  // Quick liveweight logger
+  const handleUpdateCalfWeight = (calf: CalfRecord) => {
+    const promptVal = prompt(`Enter updated liveweight for ${calf.tag} (kg):`, String(calf.weight || 45));
+    if (promptVal && !isNaN(Number(promptVal))) {
+      const newWeight = Math.max(15, Number(promptVal));
+      const isNowWeaned = newWeight >= 70 || calf.status === 'Weaned';
+      const updated = calves.map(c =>
+        c.id === calf.id
+          ? {
+              ...c,
+              weight: newWeight,
+              currentWeightKg: newWeight,
+              status: isNowWeaned ? 'Weaned' : c.status
+            }
+          : c
+      );
+      saveCalves(updated);
+    }
+  };
+
+  // Toggle clinical milestones
+  const handleToggleMilestone = (calfId: string, field: 'navelDipped' | 'colostrumFedWithin2Hours' | 'disbudded' | 'dewormed') => {
+    const updated = calves.map(c => {
+      if (c.id === calfId) {
+        return { ...c, [field]: !c[field] };
+      }
+      return c;
+    });
+    saveCalves(updated);
+  };
+
+  // Toggle milk intake / weaning step-down
+  const handleToggleMilkStatus = (calf: CalfRecord) => {
+    const isCurrentlyWeaned = calf.status === 'Weaned';
+    const nextStatus = isCurrentlyWeaned ? 'Healthy' : 'Weaned';
+    const updated = calves.map(c => (c.id === calf.id ? { ...c, status: nextStatus } : c));
+    saveCalves(updated);
+  };
+
+  // Delete calf
+  const handleDeleteCalf = (id: string, tag: string) => {
+    if (window.confirm(`Are you sure you want to remove calf "${tag}" from the nursery?`)) {
+      saveCalves(calves.filter(c => c.id !== id));
+    }
+  };
+
+  // Age calculators
+  const calcAgeDays = (dobStr: string) => {
+    const diff = Date.now() - new Date(dobStr).getTime();
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  };
+
   const calcAgeWeeks = (dobStr: string) => {
     const diff = Date.now() - new Date(dobStr).getTime();
     return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24 * 7)));
   };
 
+  // Filtered calves list
+  const filteredCalves = calves.filter(calf => {
+    const query = calfSearch.toLowerCase();
+    const matchesSearch =
+      calf.tag.toLowerCase().includes(query) ||
+      (calf.dam && calf.dam.toLowerCase().includes(query)) ||
+      (calf.sire && calf.sire.toLowerCase().includes(query)) ||
+      (calf.notes && calf.notes.toLowerCase().includes(query));
+
+    if (!matchesSearch) return false;
+
+    if (calfFilter === 'female') return calf.sex === 'Female';
+    if (calfFilter === 'male') return calf.sex === 'Male';
+    if (calfFilter === 'weaned') return calf.status === 'Weaned' || (calf.weight || 0) >= 70;
+    if (calfFilter === 'nursery') return calf.status !== 'Weaned' && (calf.weight || 0) < 70;
+    return true;
+  });
+
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Overview Cards */}
+      {/* Overview Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xl font-bold shrink-0">
@@ -222,6 +342,127 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Target ADG Growth</span>
             <span className="text-2xl font-black text-gray-900">+700g</span>
             <span className="text-[11px] text-purple-600 font-semibold block mt-0.5">Daily liveweight gain</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Visual Calf-to-Heifer Lifecycle Pipeline Banner */}
+      <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-indigo-950 text-white rounded-3xl p-5 shadow-lg border border-emerald-800/40 relative overflow-hidden">
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-emerald-500/10 to-transparent pointer-events-none" />
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="p-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg border border-emerald-400/30">
+                <Sparkles size={16} />
+              </span>
+              <div>
+                <h3 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                  Calf-to-Heifer Rearing Pipeline
+                  <span className="text-[10px] font-normal uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/20">
+                    24-Month Roadmap
+                  </span>
+                </h3>
+                <p className="text-[11px] text-emerald-100/70">
+                  Track female progeny from nursery milk feeding into replacement heifers, breeding readiness, and first lactation.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-200/80 font-mono">
+              <span>Nursery Calves: <strong className="text-white">{calves.length}</strong></span>
+              <span>•</span>
+              <span>Heifers: <strong className="text-white">{heifers.length}</strong></span>
+              <span>•</span>
+              <span>AI Ready: <strong className="text-white">{heifers.filter(h => (h.weight || 0) >= 290).length}</strong></span>
+            </div>
+          </div>
+
+          {/* 6-Stage Progression Flow */}
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pt-1 text-left">
+            <div 
+              onClick={() => setActiveView('calves')}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                activeView === 'calves' 
+                  ? 'bg-emerald-500/25 border-emerald-400 text-white ring-1 ring-emerald-400' 
+                  : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/90'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-emerald-400">Stage 1</span>
+                <span className="text-xs">🍼</span>
+              </div>
+              <div className="text-xs font-bold text-white">Nursery Liquid Milk</div>
+              <div className="text-[10px] text-emerald-200/80 font-mono">0 – 8 Weeks</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">6L Milk/day + 10% Colostrum in 2 hrs. Navel dip & disbud.</p>
+            </div>
+
+            <div 
+              onClick={() => setActiveView('calves')}
+              className="p-2.5 rounded-xl border bg-white/5 border-white/10 hover:bg-white/10 text-white/90 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-amber-400">Stage 2</span>
+                <span className="text-xs">⚖️</span>
+              </div>
+              <div className="text-xs font-bold text-white">Weaning Gate</div>
+              <div className="text-[10px] text-amber-200/80 font-mono">8 – 12 Weeks</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">Target &gt;70kg (2x birth wt) & 1.5kg calf pellets/day. Promote to heifer.</p>
+            </div>
+
+            <div 
+              onClick={() => setActiveView('heifers')}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                activeView === 'heifers' 
+                  ? 'bg-indigo-500/25 border-indigo-400 text-white ring-1 ring-indigo-400' 
+                  : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/90'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-indigo-400">Stage 3</span>
+                <span className="text-xs">🌿</span>
+              </div>
+              <div className="text-xs font-bold text-white">Growing Heifer</div>
+              <div className="text-[10px] text-indigo-200/80 font-mono">3 – 12 Months</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">Forage + 16% CP heifer meal. Frame development (+700g/d ADG).</p>
+            </div>
+
+            <div 
+              onClick={() => setActiveView('heifers')}
+              className="p-2.5 rounded-xl border bg-white/5 border-white/10 hover:bg-white/10 text-white/90 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-emerald-400">Stage 4</span>
+                <span className="text-xs">🎯</span>
+              </div>
+              <div className="text-xs font-bold text-white">AI Service Ready</div>
+              <div className="text-[10px] text-emerald-200/80 font-mono">12 – 15 Months</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">Target &gt;290kg liveweight / 150cm girth. Inseminate with sexed semen.</p>
+            </div>
+
+            <div 
+              onClick={() => setActiveView('heifers')}
+              className="p-2.5 rounded-xl border bg-white/5 border-white/10 hover:bg-white/10 text-white/90 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-purple-400">Stage 5</span>
+                <span className="text-xs">🤰</span>
+              </div>
+              <div className="text-xs font-bold text-white">In-Calf Heifer</div>
+              <div className="text-[10px] text-purple-200/80 font-mono">15 – 24 Months</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">Gestation monitoring & lead feeding 3 weeks before expected calving.</p>
+            </div>
+
+            <div 
+              onClick={() => onGoToSubTab && onGoToSubTab('registry')}
+              className="p-2.5 rounded-xl border bg-white/5 border-white/10 hover:bg-white/10 text-white/90 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-black uppercase text-amber-300">Stage 6</span>
+                <span className="text-xs">🥛</span>
+              </div>
+              <div className="text-xs font-bold text-white">Milking Cow Herd</div>
+              <div className="text-[10px] text-amber-200/80 font-mono">24 Months+</div>
+              <p className="text-[10px] text-white/60 mt-1 line-clamp-2">First calving. Graduates to Adult Cow Registry & milk recording.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -287,102 +528,417 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
       {/* VIEW 1: LIQUID FED CALVES */}
       {activeView === 'calves' && (
         <div className="space-y-4">
-          <div className="bg-emerald-50/50 border border-emerald-200/70 p-4 rounded-2xl flex items-start gap-3">
+          {/* Best practice callout banner */}
+          <div className="bg-emerald-50/70 border border-emerald-200/80 p-4 rounded-2xl flex items-start gap-3">
             <Info size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-emerald-900">
-              <span className="font-bold">Colostrum & Nursery Golden Rule:</span> Every calf must receive <strong>10% of body weight (3-4 Liters)</strong> of high-quality maternal colostrum within the first 2 hours of life for passive immunity transfer. Wean only when consuming at least 1.5kg of calf starter pellets daily and body weight has doubled.
+            <div className="text-xs text-emerald-950">
+              <span className="font-bold">Colostrum & Nursery Golden Rule:</span> Every calf must receive <strong>10% of body weight (3-4 Liters)</strong> of high-quality maternal colostrum within the first 2 hours of life for passive immunity transfer. Wean only when consuming at least 1.5kg of calf starter pellets daily and body weight has doubled (&ge;70kg), then graduate them into the Replacement Heifers pipeline.
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {calves.map(calf => (
-              <div key={calf.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs hover:border-emerald-300 transition-all space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      {calf.sex} Calf
-                    </span>
-                    <h4 className="text-base font-bold text-gray-900 mt-1">{calf.tag}</h4>
-                    <span className="text-xs text-gray-500 font-medium">Age: {calcAgeWeeks(calf.dob)} weeks</span>
-                  </div>
-                  <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${
-                    calf.status === 'Weaned' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
-                  }`}>
-                    {calf.status}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-3 rounded-xl border border-gray-100">
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-bold">Current Weight</span>
-                    <span className="font-black text-gray-900 text-sm">{calf.weight} kg</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-bold">Milk Intake</span>
-                    <span className="font-bold text-emerald-600 text-xs">
-                      {calf.status === 'Weaned' ? 'Weaned / Pellets' : '5 - 6 Liters/day'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-bold">Dam (Mother)</span>
-                    <span className="font-medium text-gray-700 truncate block">{calf.dam || 'Unknown'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-bold">Sire (Father)</span>
-                    <span className="font-medium text-gray-700 truncate block">{calf.sire || 'AI Semen'}</span>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-gray-600 italic bg-gray-50/50 p-2.5 rounded-lg border border-gray-100">
-                  "{calf.notes}"
-                </p>
-
-                <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
-                  <button
-                    onClick={() => {
-                      const updatedWeight = prompt(`Update weight for ${calf.tag} (kg):`, calf.weight.toString());
-                      if (updatedWeight && !isNaN(Number(updatedWeight))) {
-                        const newWeight = Number(updatedWeight);
-                        const newStatus = newWeight >= 75 ? 'Weaned' : calf.status;
-                        const updated = calves.map(c => c.id === calf.id ? { ...c, weight: newWeight, status: newStatus } : c);
-                        saveCalves(updated);
-                      }
-                    }}
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
-                  >
-                    ⚖️ Update Weight
-                  </button>
-
-                  {calf.sex === 'Female' && calf.weight >= 70 && (
-                    <button
-                      onClick={() => {
-                        // Promote to Heifers board
-                        const newHeifer: HeiferRecord = {
-                          id: `heifer-${Date.now()}`,
-                          tag: calf.tag.replace('CALF-', 'H-'),
-                          breed: 'Holstein / Dairy Cross',
-                          dob: calf.dob,
-                          girth: 110,
-                          weight: calf.weight,
-                          sire: calf.sire,
-                          dam: calf.dam,
-                          status: 'Growing',
-                          notes: `Promoted from nursery calf. Weaning weight: ${calf.weight}kg.`
-                        };
-                        saveHeifers([...heifers, newHeifer]);
-                        saveCalves(calves.filter(c => c.id !== calf.id));
-                        alert(`Promoted ${calf.tag} to Replacement Heifers Board!`);
-                        setActiveView('heifers');
-                      }}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                    >
-                      Promote to Heifer <ArrowRight size={12} />
-                    </button>
-                  )}
-                </div>
+          {/* Subheader Toolbar: Search, Filters & View Toggle */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200 shadow-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search calf tag, dam, sire..."
+                  value={calfSearch}
+                  onChange={e => setCalfSearch(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-emerald-500 focus:bg-white w-48 sm:w-60"
+                />
               </div>
-            ))}
+
+              {/* Filter Pills */}
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-[11px] font-semibold">
+                <button
+                  onClick={() => setCalfFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    calfFilter === 'all' ? 'bg-white text-gray-900 shadow-xs font-bold' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  All ({calves.length})
+                </button>
+                <button
+                  onClick={() => setCalfFilter('female')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    calfFilter === 'female' ? 'bg-white text-emerald-700 shadow-xs font-bold' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ♀ Heifer Track ({calves.filter(c => c.sex === 'Female').length})
+                </button>
+                <button
+                  onClick={() => setCalfFilter('nursery')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    calfFilter === 'nursery' ? 'bg-white text-indigo-700 shadow-xs font-bold' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  🍼 Liquid Phase ({calves.filter(c => c.status !== 'Weaned' && (c.weight || 0) < 70).length})
+                </button>
+                <button
+                  onClick={() => setCalfFilter('weaned')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    calfFilter === 'weaned' ? 'bg-white text-amber-700 shadow-xs font-bold' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  🌿 Weaned ({calves.filter(c => c.status === 'Weaned' || (c.weight || 0) >= 70).length})
+                </button>
+              </div>
+            </div>
+
+            {/* List / Cards View Switcher */}
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl self-end md:self-auto">
+              <button
+                onClick={() => setCalfViewMode('table')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                  calfViewMode === 'table'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+                title="Switch to List/Table View"
+              >
+                <LayoutList size={14} className={calfViewMode === 'table' ? 'text-emerald-600' : ''} />
+                <span>List View</span>
+              </button>
+              <button
+                onClick={() => setCalfViewMode('cards')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                  calfViewMode === 'cards'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+                title="Switch to Cards View"
+              >
+                <LayoutGrid size={14} className={calfViewMode === 'cards' ? 'text-emerald-600' : ''} />
+                <span>Cards View</span>
+              </button>
+            </div>
           </div>
+
+          {/* TABLE / LIST VIEW (DEFAULT) */}
+          {calfViewMode === 'table' && (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold text-[10px] uppercase tracking-wider">
+                      <th className="p-3.5">Calf Tag & Sex</th>
+                      <th className="p-3.5">Age & DOB</th>
+                      <th className="p-3.5">Pedigree Lineage</th>
+                      <th className="p-3.5">Liveweight & Growth</th>
+                      <th className="p-3.5">Milk Intake & Diet</th>
+                      <th className="p-3.5">Veterinary Milestones</th>
+                      <th className="p-3.5">Heifer Pipeline Stage</th>
+                      <th className="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredCalves.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-gray-400">
+                          No calves found matching your filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCalves.map(calf => {
+                        const ageWks = calcAgeWeeks(calf.dob);
+                        const ageDays = calcAgeDays(calf.dob);
+                        const currentWt = calf.weight || 35;
+                        const isWeaned = calf.status === 'Weaned' || currentWt >= 70;
+                        const weanProgress = Math.min(100, Math.round((currentWt / 70) * 100));
+                        const isFemale = calf.sex === 'Female';
+                        const isReadyForHeifer = isFemale && (currentWt >= 65 || isWeaned);
+
+                        return (
+                          <tr key={calf.id} className="hover:bg-gray-50/70 transition-colors">
+                            {/* Tag & Animal */}
+                            <td className="p-3.5 font-bold text-gray-900">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                                  isFemale ? 'bg-pink-50 text-pink-700 border border-pink-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                                }`}>
+                                  {isFemale ? '♀' : '♂'}
+                                </div>
+                                <div>
+                                  <span className="text-gray-900 font-bold block">{calf.tag}</span>
+                                  <span className="text-[10px] text-gray-400 font-normal truncate max-w-[140px] block">
+                                    {calf.notes || 'Nursery progeny'}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Age & DOB */}
+                            <td className="p-3.5">
+                              <span className="font-semibold text-gray-800 block">{ageWks} wks ({ageDays}d)</span>
+                              <span className="text-[10px] text-gray-400 font-mono block">DOB: {calf.dob}</span>
+                            </td>
+
+                            {/* Pedigree */}
+                            <td className="p-3.5">
+                              <div className="space-y-0.5">
+                                <span className="text-[10px] text-gray-500 block truncate max-w-[120px]">
+                                  <strong className="text-gray-700">Dam:</strong> {calf.dam || '—'}
+                                </span>
+                                <span className="text-[10px] text-gray-500 block truncate max-w-[120px]">
+                                  <strong className="text-gray-700">Sire:</strong> {calf.sire || 'AI Straw'}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Liveweight & Progress to Weaning */}
+                            <td className="p-3.5">
+                              <div className="space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-mono font-bold text-gray-900">{currentWt} kg</span>
+                                  <button
+                                    onClick={() => handleUpdateCalfWeight(calf)}
+                                    className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                                    title="Click to update liveweight"
+                                  >
+                                    ⚖️ Log
+                                  </button>
+                                </div>
+                                <div className="w-24 bg-gray-100 rounded-full h-1.5 overflow-hidden border border-gray-200">
+                                  <div
+                                    className={`h-full rounded-full ${
+                                      currentWt >= 70 ? 'bg-emerald-500' : 'bg-amber-400'
+                                    }`}
+                                    style={{ width: `${weanProgress}%` }}
+                                  />
+                                </div>
+                                <span className="text-[9px] text-gray-400 block font-mono">
+                                  {currentWt >= 70 ? 'Target doubled (70kg)' : `${70 - currentWt}kg to weaning gate`}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Milk Intake & Protocol */}
+                            <td className="p-3.5">
+                              <div className="space-y-1">
+                                {isWeaned ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                                    🌿 Weaned (Starter Meal)
+                                  </span>
+                                ) : ageWks >= 7 ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                    <Milk size={11} /> 2.0 L/day (Step-down)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    <Milk size={11} /> 6.0 L/day (3L AM/PM)
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => handleToggleMilkStatus(calf)}
+                                  className="text-[9px] text-gray-400 hover:text-gray-700 underline block"
+                                >
+                                  {isWeaned ? 'Revert to milk' : 'Mark as weaned'}
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Clinical Milestones (Interactive toggles) */}
+                            <td className="p-3.5">
+                              <div className="flex flex-wrap gap-1 max-w-[140px]">
+                                <button
+                                  onClick={() => handleToggleMilestone(calf.id, 'colostrumFedWithin2Hours')}
+                                  title="Colostrum fed within 2h"
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 border cursor-pointer ${
+                                    calf.colostrumFedWithin2Hours
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-gray-100 text-gray-400 border-gray-200'
+                                  }`}
+                                >
+                                  🍼 Colostrum {calf.colostrumFedWithin2Hours && '✓'}
+                                </button>
+                                <button
+                                  onClick={() => handleToggleMilestone(calf.id, 'navelDipped')}
+                                  title="Navel dipped with 7% iodine"
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 border cursor-pointer ${
+                                    calf.navelDipped
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-gray-100 text-gray-400 border-gray-200'
+                                  }`}
+                                >
+                                  🩹 Navel {calf.navelDipped && '✓'}
+                                </button>
+                                <button
+                                  onClick={() => handleToggleMilestone(calf.id, 'disbudded')}
+                                  title="Disbudded / Horn buds cauterized (2-4 wks)"
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 border cursor-pointer ${
+                                    calf.disbudded
+                                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                      : 'bg-gray-100 text-gray-400 border-gray-200'
+                                  }`}
+                                >
+                                  ✂️ Disbud {calf.disbudded && '✓'}
+                                </button>
+                                <button
+                                  onClick={() => handleToggleMilestone(calf.id, 'dewormed')}
+                                  title="Dewormed at weaning"
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 border cursor-pointer ${
+                                    calf.dewormed
+                                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                      : 'bg-gray-100 text-gray-400 border-gray-200'
+                                  }`}
+                                >
+                                  💊 Deworm {calf.dewormed && '✓'}
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Heifer Pipeline Stage */}
+                            <td className="p-3.5">
+                              {isFemale ? (
+                                isReadyForHeifer ? (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-200 shadow-2xs">
+                                    <Sparkles size={11} className="text-indigo-600" /> Ready for Heifers Board
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    🍼 Pre-Weaning Nursery
+                                  </span>
+                                )
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                                  🐂 Bull Calf Track
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                              <button
+                                onClick={() => handleUpdateCalfWeight(calf)}
+                                className="px-2.5 py-1 text-[10px] font-bold bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors cursor-pointer"
+                                title="Update liveweight"
+                              >
+                                ⚖️ Weight
+                              </button>
+
+                              {isFemale && (
+                                <button
+                                  onClick={() => handlePromoteCalfToHeifer(calf)}
+                                  className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                                    isReadyForHeifer
+                                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700 shadow-xs ring-1 ring-indigo-400'
+                                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                                  }`}
+                                  title="Promote to Replacement Heifers Pipeline"
+                                >
+                                  <span>Promote to Heifer</span>
+                                  <ArrowRight size={11} />
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleDeleteCalf(calf.id, calf.tag)}
+                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer inline-flex items-center"
+                                title="Delete calf record"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* CARDS VIEW (ALTERNATIVE) */}
+          {calfViewMode === 'cards' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {filteredCalves.map(calf => {
+                const currentWt = calf.weight || 35;
+                const isFemale = calf.sex === 'Female';
+                const isReady = isFemale && (currentWt >= 65 || calf.status === 'Weaned');
+
+                return (
+                  <div key={calf.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs hover:border-emerald-300 transition-all space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                          isFemale ? 'text-pink-700 bg-pink-50 border-pink-200' : 'text-blue-700 bg-blue-50 border-blue-200'
+                        }`}>
+                          {calf.sex} {isFemale ? 'Heifer Track' : 'Bull Calf'}
+                        </span>
+                        <h4 className="text-base font-bold text-gray-900 mt-1">{calf.tag}</h4>
+                        <span className="text-xs text-gray-500 font-medium">Age: {calcAgeWeeks(calf.dob)} weeks ({calcAgeDays(calf.dob)} days)</span>
+                      </div>
+                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${
+                        calf.status === 'Weaned' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {calf.status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div>
+                        <span className="text-[10px] text-gray-400 block font-bold">Current Weight</span>
+                        <span className="font-black text-gray-900 text-sm">{currentWt} kg</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-400 block font-bold">Milk Intake</span>
+                        <span className="font-bold text-emerald-600 text-xs">
+                          {calf.status === 'Weaned' ? 'Weaned / Pellets' : '5 - 6 Liters/day'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-400 block font-bold">Dam (Mother)</span>
+                        <span className="font-medium text-gray-700 truncate block">{calf.dam || 'Unknown'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-400 block font-bold">Sire (Father)</span>
+                        <span className="font-medium text-gray-700 truncate block">{calf.sire || 'AI Semen'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1 text-[9px]">
+                      <span className={`px-2 py-0.5 rounded border font-semibold ${calf.colostrumFedWithin2Hours ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                        🍼 Colostrum {calf.colostrumFedWithin2Hours ? '✓' : '—'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded border font-semibold ${calf.navelDipped ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                        🩹 Navel {calf.navelDipped ? '✓' : '—'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded border font-semibold ${calf.disbudded ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                        ✂️ Disbud {calf.disbudded ? '✓' : '—'}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-gray-600 italic bg-gray-50/50 p-2.5 rounded-lg border border-gray-100">
+                      "{calf.notes}"
+                    </p>
+
+                    <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
+                      <button
+                        onClick={() => handleUpdateCalfWeight(calf)}
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
+                      >
+                        ⚖️ Update Weight
+                      </button>
+
+                      {isFemale && (
+                        <button
+                          onClick={() => handlePromoteCalfToHeifer(calf)}
+                          className={`text-xs font-bold flex items-center gap-1 cursor-pointer ${
+                            isReady ? 'text-indigo-600 hover:text-indigo-800' : 'text-gray-600 hover:text-indigo-700'
+                          }`}
+                        >
+                          Promote to Heifer <ArrowRight size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
