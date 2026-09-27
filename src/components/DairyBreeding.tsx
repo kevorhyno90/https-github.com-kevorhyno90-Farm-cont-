@@ -14,7 +14,7 @@ import { generateDairyAuditPdf } from './dairy/DairyPdfGenerator';
 import { TmrMixing } from './TmrMixing';
 import {
   MilkingRecord, AIRecord, StaffMember, Cow, VetRecord,
-  MilkOutflowRecord, SemenInventoryItem, CalfRecord, SilageRecord
+  MilkOutflowRecord, SemenInventoryItem, CalfRecord, SilageRecord, InventoryItem
 } from '../types';
 import { toIsoDate } from '../utils/dateHelper';
 import {
@@ -80,6 +80,7 @@ interface DairyBreedingProps {
   silageRecords?: SilageRecord[];
   onAddSilage?: (rec: SilageRecord) => void;
   onDeleteSilage?: (id: string) => void;
+  inventory?: InventoryItem[];
   activeSubModule?: 'milk' | 'breeding' | 'veterinary' | 'cows' | 'calves' | 'heifers' | 'tmr';
 }
 
@@ -129,6 +130,7 @@ export function DairyBreeding({
   silageRecords = [],
   onAddSilage,
   onDeleteSilage,
+  inventory = [],
   activeSubModule
 }: DairyBreedingProps) {
   const [subTab, setSubTab] = useState<DairySubTab>('registry');
@@ -866,6 +868,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
           cows={cows}
           vetRecords={vetRecords}
           staffList={staffList}
+          inventory={inventory}
           onAddVetRecord={onAddVetRecord}
           onDeleteVetRecord={onDeleteVetRecord}
           onEditVetRecord={onEditVetRecord}

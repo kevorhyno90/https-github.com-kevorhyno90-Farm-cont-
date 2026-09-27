@@ -6859,6 +6859,7 @@ function FarmCoreApp() {
               silageRecords={silageRecords}
               onAddSilage={handleAddSilage}
               onDeleteSilage={handleDeleteSilage}
+              inventory={inventory}
               activeSubModule={
                 activeTab === 'dairy_milk' ? 'milk' :
                 activeTab === 'breeding' ? 'breeding' :

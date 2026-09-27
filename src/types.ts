@@ -349,23 +349,31 @@ export interface Cow {
 export interface VetRecord {
   id: string;
   cowId: string; // Cow tag or general livestock ID
+  cowName?: string; // Friendly name from registry
   animalCategory?: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
   date: string; // YYYY-MM-DD
   type: 'Deworming' | 'Treatment' | 'Vaccination' | 'General Practice';
-  treatment: string; // e.g. "Safeguard deworming bolus", "Mastitis antibiotic syringe"
-  nextDueDate?: string; // YYYY-MM-DD (vital for deworming reminders!)
+  diseaseOrCondition?: string; // e.g. Mastitis, East Coast Fever (ECF), Foot & Mouth Disease, Anaplasmosis, etc.
+  symptoms?: string; // Clinical signs & symptoms observed
+  causer?: string; // Suspected cause / vector / etiology: e.g. Tick vector, Bacterial, Viral, Parasitic, Metabolic
+  treatment: string; // Intervention / Procedure description
+  drugAdministered?: string; // Active drug or formulation
+  drugUsedFromInventory?: string; // Inventory drug/item name or pharmacy stock
+  dosage?: string;
+  administrationRoute?: 'IM' | 'IV' | 'SC' | 'Oral' | 'Topical' | 'Intramammary' | 'Other';
   cost: number; // Ksh
   staff: string;
   notes: string;
+  repeatMedicalNotes?: string; // Repeat notes, follow-up medical review, recovery evaluation
+  nextDueDate?: string; // YYYY-MM-DD (next scheduled treatment or review date)
+  nextTreatmentDate?: string; // Alias / explicit date for next treatment / repeat
+  recoveryStatus?: 'Under Treatment' | 'Recovered' | 'Scheduled Repeat' | 'Critical' | 'Chronic' | 'Resolved' | 'Discontinued' | string;
   
   // Veterinary Clinical Parameters
   diagnosis?: string;
   temperature?: number; // °C
   heartRate?: number; // bpm
   respiratoryRate?: number; // breaths/min
-  drugAdministered?: string;
-  dosage?: string;
-  administrationRoute?: 'IM' | 'IV' | 'SC' | 'Oral' | 'Topical' | 'Intramammary' | 'Other';
   withdrawalMilkDays?: number;
   withdrawalMeatDays?: number;
   prognosis?: 'Good' | 'Fair' | 'Guarded' | 'Poor';
