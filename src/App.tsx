@@ -4767,12 +4767,14 @@ function FarmCoreApp() {
                 <thead>
                   <tr className="border-b border-slate-300 bg-slate-50 text-slate-500 font-black">
                     <th className="p-1">Ear Tag ID</th>
-                    <th className="p-1">Breed Group Name</th>
-                    <th className="p-1">Breed</th>
+                    <th className="p-1">Name</th>
+                    <th className="p-1">Breed & Sex</th>
+                    <th className="p-1">Locality / Pen</th>
                     <th className="p-1">Date of Birth</th>
                     <th className="p-1">Maternal & Sire Pedigree</th>
                     <th className="p-1">Official Registry ID</th>
                     <th className="p-1">Breeding Status</th>
+                    <th className="p-1">Remarks</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -4780,18 +4782,25 @@ function FarmCoreApp() {
                     <tr key={c.id} className="border-b border-slate-100">
                       <td className="p-1.5 font-mono text-emerald-800 font-bold">{c.id}</td>
                       <td className="p-1.5 font-bold text-slate-800">{c.name}</td>
-                      <td className="p-1.5 text-slate-600 font-bold">{c.breed}</td>
+                      <td className="p-1.5 text-slate-600 font-bold">
+                        {c.breed}
+                        <span className={`ml-1 text-[9px] font-bold ${c.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`}>
+                          ({c.gender === 'Male' ? '♂ M' : '♀ F'})
+                        </span>
+                      </td>
+                      <td className="p-1.5 text-slate-700 font-semibold">{c.locality || '—'}</td>
                       <td className="p-1.5 font-mono">{c.dob}</td>
                       <td className="p-1.5">
                         <div className="text-[10px] leading-tight text-slate-500">
-                          <div>Sire: <span className="font-semibold text-slate-700">{c.sire || 'Imported Semen Specimen'}</span></div>
-                          <div>Dam: <span className="font-semibold text-slate-700">{c.dam || 'Acr-Grade Sire Maternal'}</span></div>
+                          <div>Sire: <span className="font-semibold text-slate-700">{c.sire || '—'}</span></div>
+                          <div>Dam: <span className="font-semibold text-slate-700">{c.dam || '—'}</span></div>
                         </div>
                       </td>
                       <td className="p-1.5 font-mono text-slate-600 font-bold">{c.registrationNo || 'UNREG-PENDING'}</td>
                       <td className={`p-1.5 font-bold text-[10px] uppercase ${
                         c.status === 'Lactating' ? 'text-emerald-700' : c.status === 'In-Calf' ? 'text-blue-700' : 'text-slate-500'
                       }`}>{c.status}</td>
+                      <td className="p-1.5 text-[10px] text-slate-500 max-w-[150px] truncate">{c.notes || '—'}</td>
                     </tr>
                   ))}
                 </tbody>

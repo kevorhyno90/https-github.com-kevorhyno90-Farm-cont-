@@ -334,6 +334,7 @@ export interface Cow {
   dob: string;
   status: 'Lactating' | 'Dry' | 'Heifer' | 'In-Calf' | 'Bull' | 'Steer' | 'Calf' | string;
   gender?: 'Female' | 'Male' | string;
+  locality?: string; // Barn, Pen, Shed, Paddock, or Pasture Locality
   notes: string;
   sire?: string;
   dam?: string;
