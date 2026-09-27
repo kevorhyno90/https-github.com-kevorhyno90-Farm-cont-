@@ -5,7 +5,7 @@ import {
   Baby, Award, Heart, Plus, Scale, Sparkles, AlertCircle, CheckCircle2,
   Calendar, ArrowRight, Activity, TrendingUp, Info, HelpCircle,
   LayoutList, LayoutGrid, Trash2, Milk, ChevronRight, Check, ShieldCheck,
-  Search, Filter, ArrowUpRight, Stethoscope
+  Search, Filter, ArrowUpRight, Stethoscope, PenSquare
 } from 'lucide-react';
 
 interface CalvesHeifersHubProps {
@@ -224,6 +224,49 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
   const handleLogVetForAnimal = (tag: string) => {
     localStorage.setItem('jr_farm_preselected_vet_animal', tag);
     if (onGoToSubTab) onGoToSubTab('veterinary');
+  };
+
+  // Edit states for Calf and Heifer
+  const [editingCalf, setEditingCalf] = useState<CalfRecord | null>(null);
+  const [editingHeifer, setEditingHeifer] = useState<HeiferRecord | null>(null);
+
+  const handleSaveEditedCalf = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCalf || !editingCalf.tag.trim()) return;
+    const isWeaned = editingCalf.status === 'Weaned' || (editingCalf.weight || 0) >= 70;
+    const updatedCalf: CalfRecord = {
+      ...editingCalf,
+      tag: editingCalf.tag.trim(),
+      status: isWeaned ? 'Weaned' : editingCalf.status || 'Healthy'
+    };
+    const updatedList = calves.map(c => c.id === editingCalf.id ? updatedCalf : c);
+    saveCalves(updatedList);
+    setEditingCalf(null);
+  };
+
+  const handleSaveEditedHeifer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHeifer || !editingHeifer.tag.trim()) return;
+    const isServiceReady = (editingHeifer.weight || 0) >= 290;
+    const nextStatus = editingHeifer.status === 'In-Calf' 
+      ? 'In-Calf' 
+      : isServiceReady 
+        ? 'Ready for Service' 
+        : editingHeifer.status || 'Growing';
+    const updatedHeifer: HeiferRecord = {
+      ...editingHeifer,
+      tag: editingHeifer.tag.trim(),
+      status: nextStatus
+    };
+    const updatedList = heifers.map(h => h.id === editingHeifer.id ? updatedHeifer : h);
+    saveHeifers(updatedList);
+    setEditingHeifer(null);
+  };
+
+  const handleDeleteHeifer = (id: string, tag: string) => {
+    if (window.confirm(`Are you sure you want to remove heifer "${tag}" from the pipeline?`)) {
+      saveHeifers(heifers.filter(h => h.id !== id));
+    }
   };
 
   // Quick liveweight logger
@@ -825,6 +868,15 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                               </button>
 
                               <button
+                                onClick={() => setEditingCalf(calf)}
+                                className="px-2.5 py-1 text-[10px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                title="Edit calf profile, birth info, and lineage"
+                              >
+                                <PenSquare size={11} />
+                                <span>Edit</span>
+                              </button>
+
+                              <button
                                 onClick={() => handleLogVetForAnimal(calf.tag)}
                                 className="px-2.5 py-1 text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 transition-colors cursor-pointer inline-flex items-center gap-1"
                                 title="Log illness, fever, or medication in Veterinary Log"
@@ -939,6 +991,14 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                       </button>
 
                       <button
+                        onClick={() => setEditingCalf(calf)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer flex items-center gap-1"
+                        title="Edit calf record"
+                      >
+                        <PenSquare size={12} /> Edit
+                      </button>
+
+                      <button
                         onClick={() => handleLogVetForAnimal(calf.tag)}
                         className="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors cursor-pointer flex items-center gap-1"
                         title="Log sick calf in Veterinary Log"
@@ -1018,7 +1078,16 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                           )}
                         </td>
                         <td className="p-3.5 font-semibold text-gray-700">{heifer.status}</td>
-                        <td className="p-3.5 text-right space-x-2">
+                        <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                          <button
+                            onClick={() => setEditingHeifer(heifer)}
+                            className="px-2.5 py-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg border border-slate-200 transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title="Edit heifer details & growth targets"
+                          >
+                            <PenSquare size={11} />
+                            <span>Edit</span>
+                          </button>
+
                           <button
                             onClick={() => handleLogVetForAnimal(heifer.tag)}
                             className="px-2.5 py-1 text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg border border-rose-200 transition-colors cursor-pointer inline-flex items-center gap-1"
@@ -1027,6 +1096,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                             <Stethoscope size={11} />
                             <span>Vet Log</span>
                           </button>
+
                           {isServiceReady && heifer.status !== 'In-Calf' && (
                             <button
                               onClick={() => {
@@ -1037,12 +1107,21 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                               Log AI Service
                             </button>
                           )}
+
                           <button
                             onClick={() => handleGraduateHeifer(heifer)}
                             className="px-2.5 py-1 text-[10px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-800 rounded-lg border border-indigo-200 transition-colors cursor-pointer"
                             title="Promote to Adult Dairy Cow Registry"
                           >
                             Graduate to Cow Registry 🎓
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteHeifer(heifer.id, heifer.tag)}
+                            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer inline-flex items-center"
+                            title="Delete heifer record"
+                          >
+                            <Trash2 size={13} />
                           </button>
                         </td>
                       </tr>
@@ -1397,6 +1476,315 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
                   className="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
                 >
                   Save Heifer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Calf */}
+      {editingCalf && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <PenSquare size={16} className="text-emerald-600" />
+                Edit Calf Details & Growth Records
+              </h4>
+              <button onClick={() => setEditingCalf(null)} className="text-gray-400 hover:text-gray-600 p-1 text-sm font-bold">✕</button>
+            </div>
+            <form onSubmit={handleSaveEditedCalf} className="space-y-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-600 block mb-1">Calf Tag / Name*</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCalf.tag}
+                  onChange={e => setEditingCalf({ ...editingCalf, tag: e.target.value })}
+                  className="w-full text-xs font-bold border border-gray-300 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Dam (Mother)</label>
+                  <input
+                    type="text"
+                    value={editingCalf.dam || ''}
+                    onChange={e => setEditingCalf({ ...editingCalf, dam: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Sire (Father)</label>
+                  <input
+                    type="text"
+                    value={editingCalf.sire || ''}
+                    onChange={e => setEditingCalf({ ...editingCalf, sire: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2.5"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Birth Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={editingCalf.dob}
+                    onChange={e => setEditingCalf({ ...editingCalf, dob: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Sex</label>
+                  <select
+                    value={editingCalf.sex || 'Female'}
+                    onChange={e => setEditingCalf({ ...editingCalf, sex: e.target.value as any })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  >
+                    <option value="Female">Female ♀</option>
+                    <option value="Male">Male ♂</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    value={editingCalf.weight || ''}
+                    onChange={e => setEditingCalf({ ...editingCalf, weight: Number(e.target.value) })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Feeding / Weaning Status</label>
+                  <select
+                    value={editingCalf.status || 'Healthy'}
+                    onChange={e => setEditingCalf({ ...editingCalf, status: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  >
+                    <option value="Healthy">Healthy (Liquid Feeding)</option>
+                    <option value="Weaned">Weaned (&ge;70kg / Pellets)</option>
+                    <option value="Sick / Under Treatment">Sick / Under Treatment</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Breed Class</label>
+                  <input
+                    type="text"
+                    value={editingCalf.breed || ''}
+                    placeholder="e.g. Holstein / Jersey Cross"
+                    onChange={e => setEditingCalf({ ...editingCalf, breed: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  />
+                </div>
+              </div>
+
+              {/* Clinical Milestones toggles */}
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-1.5">
+                <span className="text-[10px] font-bold uppercase text-gray-500 block">Clinical Milestones</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={!!editingCalf.colostrumFedWithin2Hours}
+                      onChange={e => setEditingCalf({ ...editingCalf, colostrumFedWithin2Hours: e.target.checked })}
+                      className="rounded accent-emerald-600"
+                    />
+                    <span>🍼 Colostrum</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={!!editingCalf.navelDipped}
+                      onChange={e => setEditingCalf({ ...editingCalf, navelDipped: e.target.checked })}
+                      className="rounded accent-emerald-600"
+                    />
+                    <span>🩹 Navel Dip</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={!!editingCalf.disbudded}
+                      onChange={e => setEditingCalf({ ...editingCalf, disbudded: e.target.checked })}
+                      className="rounded accent-emerald-600"
+                    />
+                    <span>✂️ Disbudded</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={!!editingCalf.dewormed}
+                      onChange={e => setEditingCalf({ ...editingCalf, dewormed: e.target.checked })}
+                      className="rounded accent-emerald-600"
+                    />
+                    <span>💊 Dewormed</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-600 block mb-1">Notes / Diet / Remarks</label>
+                <textarea
+                  rows={2}
+                  value={editingCalf.notes || ''}
+                  onChange={e => setEditingCalf({ ...editingCalf, notes: e.target.value })}
+                  className="w-full text-xs border border-gray-300 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCalf(null)}
+                  className="w-1/2 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Heifer */}
+      {editingHeifer && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <PenSquare size={16} className="text-indigo-600" />
+                Edit Replacement Heifer Record
+              </h4>
+              <button onClick={() => setEditingHeifer(null)} className="text-gray-400 hover:text-gray-600 p-1 text-sm font-bold">✕</button>
+            </div>
+            <form onSubmit={handleSaveEditedHeifer} className="space-y-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-600 block mb-1">Heifer Tag / Name*</label>
+                <input
+                  type="text"
+                  required
+                  value={editingHeifer.tag}
+                  onChange={e => setEditingHeifer({ ...editingHeifer, tag: e.target.value })}
+                  className="w-full text-xs font-bold border border-gray-300 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Breed Class</label>
+                  <select
+                    value={editingHeifer.breed}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, breed: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2.5"
+                  >
+                    <option value="Holstein-Friesian">Holstein-Friesian</option>
+                    <option value="Jersey">Jersey</option>
+                    <option value="Ayrshire">Ayrshire</option>
+                    <option value="Guernsey">Guernsey</option>
+                    <option value="Friesian Cross">Friesian Cross</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    required
+                    value={editingHeifer.dob}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, dob: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Chest Girth (cm)</label>
+                  <input
+                    type="number"
+                    value={editingHeifer.girth || ''}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, girth: Number(e.target.value) })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Liveweight (kg)</label>
+                  <input
+                    type="number"
+                    value={editingHeifer.weight || ''}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, weight: Number(e.target.value) })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Status</label>
+                  <select
+                    value={editingHeifer.status}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, status: e.target.value as any })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  >
+                    <option value="Growing">Growing (&lt;290kg)</option>
+                    <option value="Ready for Service">Ready for Service (&ge;290kg)</option>
+                    <option value="In-Calf">In-Calf (Pregnant)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Dam (Mother)</label>
+                  <input
+                    type="text"
+                    value={editingHeifer.dam || ''}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, dam: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-600 block mb-1">Sire (Father)</label>
+                  <input
+                    type="text"
+                    value={editingHeifer.sire || ''}
+                    onChange={e => setEditingHeifer({ ...editingHeifer, sire: e.target.value })}
+                    className="w-full text-xs border border-gray-300 rounded-xl p-2"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-600 block mb-1">Notes / Diet / Remarks</label>
+                <textarea
+                  rows={2}
+                  value={editingHeifer.notes || ''}
+                  onChange={e => setEditingHeifer({ ...editingHeifer, notes: e.target.value })}
+                  className="w-full text-xs border border-gray-300 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingHeifer(null)}
+                  className="w-1/2 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

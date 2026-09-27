@@ -796,6 +796,15 @@ export function YoungstockManager({
       if (onEditCalfRecord) {
         onEditCalfRecord(editingItem.id, updated);
       }
+      try {
+        const c1 = JSON.parse(localStorage.getItem('jr_farm_calves') || '[]');
+        const c2 = JSON.parse(localStorage.getItem('jr_farm_dairy_calves') || '[]');
+        const updateArr = (arr: any[]) => arr.map((item: any) => (item.id === editingItem.id || item.calfId === editingItem.tag) ? { ...item, ...updated } : item);
+        localStorage.setItem('jr_farm_calves', JSON.stringify(updateArr(c1)));
+        localStorage.setItem('jr_farm_dairy_calves', JSON.stringify(updateArr(c2)));
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       const updated: HeiferRecord = {
         ...(editingItem.rawHeifer || {
@@ -825,8 +834,18 @@ export function YoungstockManager({
       if (onEditHeifer) {
         onEditHeifer(editingItem.id, updated);
       }
+      try {
+        const h1 = JSON.parse(localStorage.getItem('jr_farm_heifers') || '[]');
+        const h2 = JSON.parse(localStorage.getItem('jr_farm_dairy_heifers') || '[]');
+        const updateArr = (arr: any[]) => arr.map((item: any) => (item.id === editingItem.id || item.cowId === editingItem.tag || item.tag === editingItem.tag) ? { ...item, ...updated } : item);
+        localStorage.setItem('jr_farm_heifers', JSON.stringify(updateArr(h1)));
+        localStorage.setItem('jr_farm_dairy_heifers', JSON.stringify(updateArr(h2)));
+      } catch (err) {
+        console.error(err);
+      }
     }
 
+    window.dispatchEvent(new Event('local-storage-update'));
     showToast(`✓ Profile updated for ${editingItem.tag}.`);
     setEditingItem(null);
   };
@@ -1671,17 +1690,27 @@ export function YoungstockManager({
                 {/* Card Footer Actions */}
                 <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
                   <span className="text-[10px] text-gray-500 font-medium">Pen: {item.locality}</span>
-                  <button
-                    onClick={() => {
-                      setGraduateItem(item);
-                      setGraduateLocality(item.locality);
-                      setGraduateStatus(item.pregnancyConfirmed ? 'In-Calf' : 'Lactating');
-                    }}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-colors"
-                  >
-                    <span>Graduate Animal</span>
-                    <ArrowRight size={13} />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setEditingItem(item)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-colors"
+                      title="Edit youngstock profile"
+                    >
+                      <PenSquare size={12} />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setGraduateItem(item);
+                        setGraduateLocality(item.locality);
+                        setGraduateStatus(item.pregnancyConfirmed ? 'In-Calf' : 'Lactating');
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-colors"
+                    >
+                      <span>Graduate</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -2717,6 +2746,317 @@ export function YoungstockManager({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 8: Edit Youngstock Profile */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-gray-200 space-y-5 max-h-[90vh] overflow-y-auto text-left">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <PenSquare className="text-indigo-600" size={20} />
+                <div>
+                  <h4 className="text-sm font-black text-gray-900">
+                    Edit {editingItem.source === 'calf' ? 'Calf' : 'Heifer'} Profile: {editingItem.tag}
+                  </h4>
+                  <p className="text-[11px] text-gray-500">
+                    Update identification, weight metrics, parentage, and management logs.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              {/* Row 1: Identification & Pedigree */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Ear Tag ID (Required)</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingItem.tag}
+                    onChange={(e) => setEditingItem({ ...editingItem, tag: e.target.value })}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Friendly Name</label>
+                  <input
+                    type="text"
+                    value={editingItem.name || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                    placeholder="E.g. Bella"
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Sex</label>
+                  <select
+                    value={editingItem.sex}
+                    onChange={(e) => setEditingItem({ ...editingItem, sex: e.target.value as any })}
+                    className="w-full text-xs font-semibold border border-gray-200 rounded-xl p-2.5 bg-white focus:border-indigo-500"
+                  >
+                    <option value="Female">Female (Heifer)</option>
+                    <option value="Male">Male (Bull)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 2: DOB, Breed, Dam, Sire */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    required
+                    value={editingItem.dob}
+                    onChange={(e) => setEditingItem({ ...editingItem, dob: e.target.value })}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Breed Class</label>
+                  <input
+                    type="text"
+                    value={editingItem.breed}
+                    onChange={(e) => setEditingItem({ ...editingItem, breed: e.target.value })}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Dam (Mother Tag)</label>
+                  <input
+                    type="text"
+                    value={editingItem.damId || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, damId: e.target.value })}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Sire / Straw</label>
+                  <input
+                    type="text"
+                    value={editingItem.sire || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, sire: e.target.value })}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Weight, Girth Tape & Pen Locality */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Birth Weight (KG)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="15"
+                    max="65"
+                    value={editingItem.birthWeightKg || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, birthWeightKg: parseFloat(e.target.value) || 0 })}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Heart Girth (CM)</label>
+                  <input
+                    type="number"
+                    min="40"
+                    max="240"
+                    value={editingItem.girthCm || ''}
+                    onChange={(e) => {
+                      const g = parseFloat(e.target.value) || 0;
+                      setEditingItem({
+                        ...editingItem,
+                        girthCm: g,
+                        currentWeightKg: g > 0 ? calculateWeightFromGirth(g) : editingItem.currentWeightKg
+                      });
+                    }}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Liveweight (KG)</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="15"
+                    max="800"
+                    value={editingItem.currentWeightKg || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, currentWeightKg: parseFloat(e.target.value) || 0 })}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white text-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Pen / Locality</label>
+                  <input
+                    type="text"
+                    value={editingItem.locality || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, locality: e.target.value })}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Source Specific Attributes */}
+              {editingItem.source === 'calf' ? (
+                <div className="space-y-3 bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/70">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <label className="text-[10px] font-bold text-amber-900 block mb-1">Feeding / Weaning Status</label>
+                      <label className="flex items-center gap-2 cursor-pointer mt-1">
+                        <input
+                          type="checkbox"
+                          checked={editingItem.weaned}
+                          onChange={(e) => setEditingItem({
+                            ...editingItem,
+                            weaned: e.target.checked,
+                            milkIntakeLiters: e.target.checked ? 0 : (editingItem.milkIntakeLiters || 4)
+                          })}
+                          className="w-4 h-4 text-emerald-600 rounded-sm"
+                        />
+                        <span className="text-xs font-bold text-gray-800">
+                          {editingItem.weaned ? '✓ Fully Weaned (Solid Rations Only)' : '🥛 Liquid-Fed (Active Milk Intake)'}
+                        </span>
+                      </label>
+                    </div>
+                    {!editingItem.weaned && (
+                      <div>
+                        <label className="text-[10px] font-bold text-amber-900 block mb-1">Daily Milk Intake (Liters)</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          max="12"
+                          value={editingItem.milkIntakeLiters || 0}
+                          onChange={(e) => setEditingItem({ ...editingItem, milkIntakeLiters: parseFloat(e.target.value) || 0 })}
+                          className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2 bg-white"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-amber-900 block mb-1.5">Nursery Health Milestones Completed</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <label className="flex items-center gap-1.5 text-xs text-gray-700 bg-white p-2 rounded-xl border border-amber-100 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!editingItem.colostrumFedWithin2Hours}
+                          onChange={(e) => setEditingItem({ ...editingItem, colostrumFedWithin2Hours: e.target.checked })}
+                          className="w-3.5 h-3.5 text-indigo-600 rounded-sm"
+                        />
+                        <span className="text-[11px] font-medium">Colostrum &lt;2h</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs text-gray-700 bg-white p-2 rounded-xl border border-amber-100 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!editingItem.navelDipped}
+                          onChange={(e) => setEditingItem({ ...editingItem, navelDipped: e.target.checked })}
+                          className="w-3.5 h-3.5 text-indigo-600 rounded-sm"
+                        />
+                        <span className="text-[11px] font-medium">Navel Dipped</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs text-gray-700 bg-white p-2 rounded-xl border border-amber-100 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!editingItem.disbudded}
+                          onChange={(e) => setEditingItem({ ...editingItem, disbudded: e.target.checked })}
+                          className="w-3.5 h-3.5 text-indigo-600 rounded-sm"
+                        />
+                        <span className="text-[11px] font-medium">Disbudded</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs text-gray-700 bg-white p-2 rounded-xl border border-amber-100 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!editingItem.dewormed}
+                          onChange={(e) => setEditingItem({ ...editingItem, dewormed: e.target.checked })}
+                          className="w-3.5 h-3.5 text-indigo-600 rounded-sm"
+                        />
+                        <span className="text-[11px] font-medium">Dewormed</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-200/70">
+                  <div>
+                    <label className="text-[10px] font-bold text-indigo-900 block mb-1">Feed Ration Profile</label>
+                    <input
+                      type="text"
+                      value={editingItem.feedRation || ''}
+                      onChange={(e) => setEditingItem({ ...editingItem, feedRation: e.target.value })}
+                      placeholder="E.g. Grower pellets + hay"
+                      className="w-full text-xs border border-gray-200 rounded-xl p-2 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-indigo-900 block mb-1">Breeding Status</label>
+                    <label className="flex items-center gap-2 cursor-pointer mt-1">
+                      <input
+                        type="checkbox"
+                        checked={!!editingItem.pregnancyConfirmed}
+                        onChange={(e) => setEditingItem({ ...editingItem, pregnancyConfirmed: e.target.checked })}
+                        className="w-4 h-4 text-purple-600 rounded-sm"
+                      />
+                      <span className="text-xs font-bold text-gray-800">
+                        {editingItem.pregnancyConfirmed ? '✨ Confirmed In-Calf' : '🌿 Open / Maiden Heifer'}
+                      </span>
+                    </label>
+                  </div>
+                  {editingItem.pregnancyConfirmed && (
+                    <div>
+                      <label className="text-[10px] font-bold text-indigo-900 block mb-1">Expected Calving Date</label>
+                      <input
+                        type="date"
+                        value={editingItem.expectedCalvingDate || ''}
+                        onChange={(e) => setEditingItem({ ...editingItem, expectedCalvingDate: e.target.value })}
+                        className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2 bg-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Notes */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Clinical Remarks & Notes</label>
+                <textarea
+                  rows={2}
+                  value={editingItem.notes || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
+                  placeholder="Health observations, growth traits, vaccination notes..."
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-colors"
+                >
+                  <Check size={14} />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
