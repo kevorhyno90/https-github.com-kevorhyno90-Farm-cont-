@@ -253,10 +253,12 @@ export function VeterinaryLog({
       withdrawalMilkDays: vetWithdrawalMilk === '' ? undefined : Number(vetWithdrawalMilk),
       withdrawalMeatDays: vetWithdrawalMeat === '' ? undefined : Number(vetWithdrawalMeat),
       prognosis: vetPrognosis,
-      retreatmentScheduled: !!vetNextDue && (vetRecoveryStatus === 'Under Treatment' || vetRecoveryStatus === 'Scheduled Repeat')
+      retreatmentScheduled: !!vetNextDue && (vetRecoveryStatus === 'Under Treatment' || vetRecoveryStatus === 'Scheduled Repeat'),
+      updatedAt: new Date().toISOString()
     };
 
     onAddVetRecord(newRecord);
+    window.dispatchEvent(new Event('local-storage-update'));
 
     // Reset Form
     setVetTreatment('');
@@ -1717,7 +1719,7 @@ export function VeterinaryLog({
                   <input
                     list="cattle-diseases-list"
                     type="text"
-                    value={editingVet.diseaseOrCondition || editingVet.treatment}
+                    value={editingVet.diseaseOrCondition ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, diseaseOrCondition: e.target.value })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:border-emerald-500 focus:outline-none"
                   />
@@ -1730,7 +1732,7 @@ export function VeterinaryLog({
                   <input
                     list="cattle-symptoms-list"
                     type="text"
-                    value={editingVet.symptoms || ''}
+                    value={editingVet.symptoms ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, symptoms: e.target.value })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium focus:border-emerald-500 focus:outline-none"
                   />
@@ -1740,7 +1742,7 @@ export function VeterinaryLog({
                   <input
                     list="cattle-causers-list"
                     type="text"
-                    value={editingVet.causer || ''}
+                    value={editingVet.causer ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, causer: e.target.value })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium focus:border-emerald-500 focus:outline-none"
                   />
@@ -1752,7 +1754,7 @@ export function VeterinaryLog({
                 <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Treatment Protocol / Procedure Summary*</label>
                 <input
                   type="text"
-                  value={editingVet.treatment || editingVet.diseaseOrCondition || ''}
+                  value={editingVet.treatment ?? ''}
                   onChange={e => setEditingVet({ ...editingVet, treatment: e.target.value })}
                   className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:border-emerald-500 focus:outline-none"
                 />
@@ -1766,7 +1768,7 @@ export function VeterinaryLog({
                   <input
                     list="edit-inventory-drugs"
                     type="text"
-                    value={editingVet.drugUsedFromInventory || editingVet.drugAdministered || ''}
+                    value={editingVet.drugUsedFromInventory ?? editingVet.drugAdministered ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, drugUsedFromInventory: e.target.value, drugAdministered: e.target.value })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-bold focus:border-emerald-500 focus:outline-none"
                   />
@@ -1780,7 +1782,7 @@ export function VeterinaryLog({
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Dosage</label>
                   <input
                     type="text"
-                    value={editingVet.dosage || ''}
+                    value={editingVet.dosage ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, dosage: e.target.value })}
                     placeholder="e.g. 20ml IM daily"
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
@@ -1828,7 +1830,7 @@ export function VeterinaryLog({
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Next Treatment Date</label>
                   <input
                     type="date"
-                    value={editingVet.nextDueDate || editingVet.nextTreatmentDate || ''}
+                    value={editingVet.nextDueDate ?? editingVet.nextTreatmentDate ?? ''}
                     onChange={e => setEditingVet({ ...editingVet, nextDueDate: e.target.value, nextTreatmentDate: e.target.value })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
                   />
@@ -1872,8 +1874,8 @@ export function VeterinaryLog({
                   <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Cost (Ksh)</label>
                   <input
                     type="number"
-                    value={editingVet.cost}
-                    onChange={e => setEditingVet({ ...editingVet, cost: parseInt(e.target.value) || 0 })}
+                    value={editingVet.cost ?? ''}
+                    onChange={e => setEditingVet({ ...editingVet, cost: e.target.value === '' ? 0 : parseInt(e.target.value) || 0 })}
                     className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
@@ -1883,7 +1885,7 @@ export function VeterinaryLog({
                 <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Repeat Medical Notes & Instructions</label>
                 <textarea
                   rows={2}
-                  value={editingVet.repeatMedicalNotes || ''}
+                  value={editingVet.repeatMedicalNotes ?? ''}
                   onChange={e => setEditingVet({ ...editingVet, repeatMedicalNotes: e.target.value })}
                   placeholder="e.g. Follow-up dose in 48h, milk discard protocol, booster schedules..."
                   className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium resize-none focus:border-emerald-500 focus:outline-none"
@@ -1894,7 +1896,7 @@ export function VeterinaryLog({
                 <label className="text-[10px] font-black uppercase text-slate-500 block mb-1">Clinical Observations & Remarks</label>
                 <textarea
                   rows={2}
-                  value={editingVet.notes || ''}
+                  value={editingVet.notes ?? ''}
                   onChange={e => setEditingVet({ ...editingVet, notes: e.target.value })}
                   placeholder="e.g. Clinical responses, temperature readings, husbandry notes..."
                   className="border border-slate-200 rounded-xl p-2.5 w-full text-xs font-medium resize-none focus:border-emerald-500 focus:outline-none"
@@ -1913,9 +1915,29 @@ export function VeterinaryLog({
               <button
                 type="button"
                 onClick={() => {
+                  const nowIso = new Date().toISOString();
+                  const finalTreatment = editingVet.treatment?.trim() || editingVet.diseaseOrCondition?.trim() || 'Health Treatment';
+                  const finalDisease = editingVet.diseaseOrCondition?.trim() || finalTreatment;
+                  const finalDrug = editingVet.drugUsedFromInventory?.trim() || editingVet.drugAdministered?.trim();
+                  const finalDue = editingVet.nextDueDate || editingVet.nextTreatmentDate;
+
+                  const updatedRecord: VetRecord = {
+                    ...editingVet,
+                    treatment: finalTreatment,
+                    diseaseOrCondition: finalDisease,
+                    drugUsedFromInventory: finalDrug,
+                    drugAdministered: finalDrug,
+                    nextDueDate: finalDue,
+                    nextTreatmentDate: finalDue,
+                    updatedAt: nowIso
+                  };
+
                   if (onEditVetRecord) {
-                    onEditVetRecord(editingVet.id, editingVet);
+                    onEditVetRecord(editingVet.id, updatedRecord);
                   }
+                  
+                  // Force local storage and sync dispatch
+                  window.dispatchEvent(new Event('local-storage-update'));
                   setEditingVet(null);
                 }}
                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase rounded-xl transition-colors shadow-md cursor-pointer flex items-center gap-1.5"

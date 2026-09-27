@@ -153,15 +153,19 @@ export function FirebaseSyncer() {
       if (isManual) setSyncStatus('syncing');
 
       const dbRef = ref(realtimeDb);
-      const targetRooms = Array.from(new Set([farmId, MASTER_DEFAULT_ROOM, 'default_farm_001']));
+      const targetRooms = [farmId];
+      if (farmId !== MASTER_DEFAULT_ROOM) targetRooms.push(MASTER_DEFAULT_ROOM);
       let didChange = false;
+      let foundData = false;
 
       for (const room of targetRooms) {
+        if (foundData) break;
         try {
           const snapshot = await get(child(dbRef, `cloudSyncRooms/${room}`));
           if (snapshot.exists()) {
             const reply = snapshot.val();
             if (reply && reply.database && typeof reply.database === 'object') {
+              foundData = true;
               const mergedPayload = executeSmartMerge(reply.database, 'merge');
 
               Object.entries(mergedPayload).forEach(([k, v]) => {

@@ -144,11 +144,25 @@ export const executeSmartMerge = (
         if (!cloudMap.has(id)) {
           mergedArray.push(val);
         } else {
-          const resolution = conflictResolutions.get(id) || 'cloud';
+          const cloudVal = cloudMap.get(id);
+          const resolution = conflictResolutions.get(id);
           if (resolution === 'local') {
             mergedArray.push(val);
+          } else if (resolution === 'cloud') {
+            mergedArray.push(cloudVal);
           } else {
-            mergedArray.push(cloudMap.get(id));
+            // Intelligent conflict resolution: compare timestamps if available
+            const localTime = val?.updatedAt ? new Date(val.updatedAt).getTime() : (val?.date ? new Date(val.date).getTime() : 0);
+            const cloudTime = cloudVal?.updatedAt ? new Date(cloudVal.updatedAt).getTime() : (cloudVal?.date ? new Date(cloudVal.date).getTime() : 0);
+
+            if (localTime > cloudTime) {
+              mergedArray.push(val);
+            } else if (cloudTime > localTime) {
+              mergedArray.push(cloudVal);
+            } else {
+              // Same timestamp or untracked: merge fields, with local edits taking precedence over stale cloud fields
+              mergedArray.push({ ...cloudVal, ...val });
+            }
           }
         }
       });

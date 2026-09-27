@@ -3913,7 +3913,11 @@ function FarmCoreApp() {
   };
 
   const handleAddVetRecord = (rec: VetRecord) => {
-    setVetRecords([rec, ...vetRecords]);
+    const stampedRecord: VetRecord = {
+      ...rec,
+      updatedAt: rec.updatedAt || new Date().toISOString()
+    };
+    setVetRecords((prev) => [stampedRecord, ...prev]);
     if (rec.cost > 0) {
       handleAddTransaction({
         id: `f-vet-${Date.now()}`,
@@ -3927,7 +3931,7 @@ function FarmCoreApp() {
   };
 
   const handleDeleteVetRecord = (id: string) => {
-    setVetRecords(vetRecords.filter(r => r.id !== id));
+    setVetRecords((prev) => prev.filter(r => r.id !== id));
   };
 
   const handleAddAnimalSale = (rec: AnimalSaleRecord) => {
@@ -4078,7 +4082,11 @@ function FarmCoreApp() {
   };
 
   const handleEditVetRecord = (id: string, updated: VetRecord) => {
-    setVetRecords((prev) => prev.map((r) => r.id === id ? updated : r));
+    const stampedRecord: VetRecord = {
+      ...updated,
+      updatedAt: updated.updatedAt || new Date().toISOString()
+    };
+    setVetRecords((prev) => prev.map((r) => r.id === id ? stampedRecord : r));
   };
 
   const handleEditGoatRecord = (id: string, updated: GoatRecord) => {

@@ -350,7 +350,7 @@ export interface VetRecord {
   id: string;
   cowId: string; // Cow tag or general livestock ID
   cowName?: string; // Friendly name from registry
-  animalCategory?: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
+  animalCategory?: 'Cow' | 'Bull' | 'Heifer' | 'Calf' | 'Goat' | 'Poultry' | 'Dog' | 'Other';
   date: string; // YYYY-MM-DD
   type: 'Deworming' | 'Treatment' | 'Vaccination' | 'General Practice';
   diseaseOrCondition?: string; // e.g. Mastitis, East Coast Fever (ECF), Foot & Mouth Disease, Anaplasmosis, etc.
@@ -380,6 +380,7 @@ export interface VetRecord {
   retreatmentScheduled?: boolean;
   treatmentStatus?: 'Done' | 'In Progress' | 'Failed' | 'Remind Later' | 'Pending';
   reminderStatus?: 'Done' | 'In Progress' | 'Failed' | 'Remind Later' | 'Pending';
+  updatedAt?: string; // ISO timestamp for conflict-free sync
 }
 
 export interface GoatRecord {
