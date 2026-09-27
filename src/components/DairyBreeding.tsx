@@ -87,8 +87,6 @@ type DairySubTab =
   | 'registry'
   | 'lactation'
   | 'breeding_ledger'
-  | 'breeding_wheel'
-  | 'semen_inventory'
   | 'veterinary'
   | 'calves_heifers'
   | 'tmr_nutrition'
@@ -134,6 +132,7 @@ export function DairyBreeding({
   activeSubModule
 }: DairyBreedingProps) {
   const [subTab, setSubTab] = useState<DairySubTab>('registry');
+  const [breedingSubTab, setBreedingSubTab] = useState<'ai_ledger' | 'gestation_wheel' | 'semen_inventory'>('ai_ledger');
 
   // React to activeSubModule when navigating from sidebar or dashboard
   useEffect(() => {
@@ -436,30 +435,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
             }`}
           >
             <CalendarDays size={14} />
-            📋 AI & Breeding Cycles
-          </button>
-
-          <button
-            onClick={() => setSubTab('breeding_wheel')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-              subTab === 'breeding_wheel'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <Sparkles size={14} />
-            🎡 Gestation Wheel & Curves
-          </button>
-
-          <button
-            onClick={() => setSubTab('semen_inventory')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
-              subTab === 'semen_inventory'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-          >
-            <span>🧬</span> Semen Straw Bank ({totalStraws})
+            📋 AI & Breeding Hub
           </button>
 
           <button
@@ -550,38 +526,95 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 3. BREEDING LEDGER */}
+      {/* 3. AI & BREEDING HUB (AI Insemination, Gestation Wheel, Semen Straw Bank) */}
       {subTab === 'breeding_ledger' && (
-        <BreedingLedger
-          cows={cows}
-          aiRecords={aiRecords}
-          semenInventory={semenInventory}
-          staffList={staffList}
-          onAddAIRecord={onAddAIRecord}
-          onDeleteAIRecord={onDeleteAIRecord}
-          onEditAIRecord={onEditAIRecord}
-          onUpdateAIStatus={onUpdateAIStatus}
-          onAddCalfRecord={onAddCalfRecord}
-          setSemenInventory={setSemenInventory}
-          onTriggerSectionReport={onTriggerSectionReport}
-        />
-      )}
+        <div className="space-y-6 animate-fadeIn">
+          {/* Inner Breeding Sub-Navigation Bar */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-1.5 shadow-xs flex flex-wrap items-center justify-between gap-2">
+            <div className="flex gap-1.5 min-w-max">
+              <button
+                type="button"
+                onClick={() => setBreedingSubTab('ai_ledger')}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                  breedingSubTab === 'ai_ledger'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <CalendarDays size={14} />
+                📋 AI & Insemination Cycles ({aiRecords.length})
+              </button>
 
-      {/* 4. BREEDING & GESTATION WHEEL */}
-      {subTab === 'breeding_wheel' && (
-        <GeneticsManager
-          cows={cows}
-          aiRecords={aiRecords}
-          getAverageYield={getAverageYield}
-          getCowAge={getCowAge}
-          onTriggerSectionReport={onTriggerSectionReport}
-          onGoToSubTab={setSubTab}
-          onUpdateCowStatus={onUpdateCowStatus}
-        />
-      )}
+              <button
+                type="button"
+                onClick={() => setBreedingSubTab('gestation_wheel')}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                  breedingSubTab === 'gestation_wheel'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <Sparkles size={14} />
+                🎡 Gestation Wheel & Curves
+              </button>
 
-      {/* 5. SEMEN STRAW INVENTORY */}
-      {subTab === 'semen_inventory' && (
+              <button
+                type="button"
+                onClick={() => setBreedingSubTab('semen_inventory')}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                  breedingSubTab === 'semen_inventory'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <span>🧬</span> Semen Straw Bank ({totalStraws} straws)
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-xl border border-amber-200/60 text-[11px] text-amber-900 font-medium">
+              <span>⚡ Confirmed In-Calf:</span>
+              <span className="font-bold font-mono text-emerald-700">{inCalfCount} cows</span>
+              <span className="text-gray-300">|</span>
+              <span>Straws in N2:</span>
+              <span className="font-bold font-mono text-amber-800">{totalStraws}</span>
+            </div>
+          </div>
+
+          {/* Sub-view 1: AI & Insemination Cycles */}
+          {breedingSubTab === 'ai_ledger' && (
+            <BreedingLedger
+              cows={cows}
+              aiRecords={aiRecords}
+              semenInventory={semenInventory}
+              staffList={staffList}
+              onAddAIRecord={onAddAIRecord}
+              onDeleteAIRecord={onDeleteAIRecord}
+              onEditAIRecord={onEditAIRecord}
+              onUpdateAIStatus={onUpdateAIStatus}
+              onAddCalfRecord={onAddCalfRecord}
+              setSemenInventory={setSemenInventory}
+              onTriggerSectionReport={onTriggerSectionReport}
+            />
+          )}
+
+          {/* Sub-view 2: Gestation Wheel & Curves */}
+          {breedingSubTab === 'gestation_wheel' && (
+            <GeneticsManager
+              cows={cows}
+              aiRecords={aiRecords}
+              getAverageYield={getAverageYield}
+              getCowAge={getCowAge}
+              onTriggerSectionReport={onTriggerSectionReport}
+              onGoToSubTab={(tab) => {
+                if (tab === 'breeding_ledger') setBreedingSubTab('ai_ledger');
+                else setSubTab(tab as DairySubTab);
+              }}
+              onUpdateCowStatus={onUpdateCowStatus}
+            />
+          )}
+
+          {/* Sub-view 3: Semen Straw Bank */}
+          {breedingSubTab === 'semen_inventory' && (
         <div className="space-y-6 animate-fadeIn" id="semen-inventory-section">
           <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs relative overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -824,8 +857,10 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
           </div>
         </div>
       )}
+    </div>
+  )}
 
-      {/* 6. VETERINARY LOG */}
+      {/* 4. VETERINARY LOG */}
       {subTab === 'veterinary' && (
         <VeterinaryLog
           cows={cows}
@@ -838,7 +873,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 7. CALVES & HEIFERS PIPELINE */}
+      {/* 5. CALVES & HEIFERS PIPELINE */}
       {subTab === 'calves_heifers' && (
         <CalvesHeifersHub
           cows={cows}
@@ -847,7 +882,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         />
       )}
 
-      {/* 8. TMR CATTLE NUTRITION & SILAGE PITS */}
+      {/* 6. TMR CATTLE NUTRITION & SILAGE PITS */}
       {subTab === 'tmr_nutrition' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Interactive TMR Mixer */}
@@ -1039,7 +1074,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
         </div>
       )}
 
-      {/* 9. CATTLE SALES & LOSS LEDGER */}
+      {/* 7. CATTLE SALES & LOSS LEDGER */}
       {subTab === 'life_ledger' && (
         <div className="space-y-6 animate-fadeIn" id="life-ledger-dairy">
           {/* Header Actions for Sales & Loss */}
