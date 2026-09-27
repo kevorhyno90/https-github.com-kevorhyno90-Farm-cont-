@@ -323,7 +323,7 @@ export function YoungstockManager({
       // Determine stage
       let stage: UnifiedYoungstock['stage'] = 'Pre-Weaning';
       if (c.stage) {
-        stage = c.stage;
+        stage = c.stage as any;
       } else if (c.sex === 'Male') {
         stage = ageDays > 180 ? 'Young Bull' : 'Bull Calf';
       } else if (c.weaned) {
@@ -540,14 +540,10 @@ export function YoungstockManager({
       onAddMilkRecord({
         id: `m-today-${Date.now()}`,
         date: today,
-        morningYield: 0,
-        eveningYield: 0,
-        totalYield: 0,
+        am: 0,
+        pm: 0,
+        staff: 'Nursery Manager',
         milkUsedByCalf: needed,
-        lossSpillage: 0,
-        milkSoldDirect: 0,
-        milkSoldHotel: 0,
-        hotelBalancePayment: 0,
         notes: `Auto-synced ${needed} L daily calf intake from Youngstock Nursery.`
       });
       showToast(`✓ Created today's milk entry with ${needed} L calf milk deduction.`);
@@ -615,17 +611,15 @@ export function YoungstockManager({
     // 1. Add AI record
     if (onAddAiRecord) {
       const aiRec: AIRecord = {
-        id: `ai-${Date.now()}`,
         cowId: inseminateItem.tag,
         date: aiDate,
         bull: aiBull,
-        technician: aiTechnician,
         due: calvingDue,
         status: 'Pending',
         checkDate: pdCheck,
         returnHeatDate: returnHeat,
         cost: aiCost,
-        notes: `Heifer maiden service. ${aiNotes}`
+        notes: `Heifer maiden service by ${aiTechnician}. ${aiNotes}`
       };
       onAddAiRecord(aiRec);
     }
@@ -662,12 +656,14 @@ export function YoungstockManager({
         id: `vet-young-${Date.now()}`,
         date: medDate,
         cowId: medicalItem.tag,
+        type: 'Treatment',
         diseaseOrCondition: medCondition,
         treatment: medTreatment,
-        drugUsed: medDrug,
+        drugAdministered: medDrug,
         cost: medCost,
+        staff: 'Nursery Tech',
         nextTreatmentDate: medRepeatDate || undefined,
-        category: 'Calf',
+        animalCategory: 'Calf',
         notes: `Youngstock Clinical Log: ${medNotes}`,
         updatedAt: new Date().toISOString()
       };
@@ -884,8 +880,7 @@ export function YoungstockManager({
     } else {
       if (onAddCow) {
         const newCow: Cow = {
-          id: `cow-${Date.now()}`,
-          tag: graduateItem.tag,
+          id: graduateItem.tag,
           name: graduateItem.name || graduateItem.tag,
           breed: graduateItem.breed || 'Friesian',
           dob: graduateItem.dob,
@@ -893,10 +888,8 @@ export function YoungstockManager({
           gender: 'Female',
           dam: graduateItem.damId,
           sire: graduateItem.sire,
-          weight: graduateItem.currentWeightKg,
-          girth: graduateItem.girthCm,
           locality: graduateLocality || 'Main Milking Barn',
-          remarks: `Graduated from Heifer Roster. First Calving expected/achieved.`
+          notes: `Graduated from Heifer Roster. Weight: ${graduateItem.currentWeightKg}kg, Girth: ${graduateItem.girthCm}cm.`
         };
 
         onAddCow(newCow);
@@ -943,7 +936,7 @@ export function YoungstockManager({
               <span>Calf Nursery & Heifer Development Board</span>
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Track birth weights, heart-girth growth curves, colostrum immunology, milk intake, and automated breeding weight markers ($280+\text{ kg}$). Transition weaned stock and graduate mature heifers directly into the milking herd.
+              Track birth weights, heart-girth growth curves, colostrum immunology, milk intake, and automated breeding weight markers (280+ kg). Transition weaned stock and graduate mature heifers directly into the milking herd.
             </p>
           </div>
 
@@ -1113,7 +1106,7 @@ export function YoungstockManager({
                 </div>
 
                 <p className="text-[10.5px] text-gray-600 leading-snug">
-                  💡 <strong>Gold Rule:</strong> Wean only when the calf consumes $\ge 1.5\text{ kg}$ dry starter pellets daily for 3 consecutive days, ensuring rumen papillae fermentation is mature.
+                  💡 <strong>Gold Rule:</strong> Wean only when the calf consumes ≥ 1.5 kg dry starter pellets daily for 3 consecutive days, ensuring rumen papillae fermentation is mature.
                 </p>
               </div>
             </div>
@@ -1167,7 +1160,7 @@ export function YoungstockManager({
                 </div>
 
                 <p className="text-[10.5px] text-gray-600 leading-snug">
-                  🔬 Based on dairy research tape correlation: $100\text{ cm} \approx 110\text{ kg}$, with $\approx 3.65\text{ kg}$ incremental gain per additional centimeter of heart circumference.
+                  🔬 Based on dairy research tape correlation: 100 cm ≈ 110 kg, with ≈ 3.65 kg incremental gain per additional centimeter of heart circumference.
                 </p>
               </div>
             </div>
@@ -1832,7 +1825,7 @@ export function YoungstockManager({
                     className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5 focus:border-emerald-500"
                   />
                   <datalist id="damList">
-                    {cows.map(c => <option key={c.id} value={c.tag} />)}
+                    {cows.map(c => <option key={c.id} value={(c as any).tag || c.id} />)}
                   </datalist>
                 </div>
 

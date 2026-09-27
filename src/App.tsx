@@ -7099,7 +7099,7 @@ function FarmCoreApp() {
               onAddMilkRecord={handleAddMilkRecord}
               onEditMilkRecord={handleEditMilkRecord}
               onAddVetRecord={handleAddVetRecord}
-              onAddAiRecord={handleAddAiRecord}
+              onAddAiRecord={handleAddAIRecord}
               poultryRecords={poultryRecords}
               onAddPoultry={handleAddPoultry}
               onDeletePoultry={handleDeletePoultry}
