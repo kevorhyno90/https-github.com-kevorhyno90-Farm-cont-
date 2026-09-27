@@ -3,15 +3,19 @@ import {
   Search, Plus, FileSpreadsheet, Download, LayoutList, LayoutGrid,
   Heart, Sparkles, Scale, Milk, CheckCircle2, AlertTriangle, ArrowRight,
   ChevronDown, ChevronUp, Calendar, Trash2, PenSquare, Info, Award,
-  Activity, ShieldAlert, Check, X, ShieldCheck, Stethoscope
+  Activity, ShieldAlert, Check, X, ShieldCheck, Stethoscope, Dna,
+  Syringe, Printer, Clock, FileText, CheckCircle
 } from 'lucide-react';
-import { CalfRecord, HeiferRecord, Cow } from '../../types';
+import { CalfRecord, HeiferRecord, Cow, VetRecord, AIRecord, MilkingRecord } from '../../types';
 import { exportToCsv } from '../../utils/csvHelper';
 
 export interface YoungstockManagerProps {
   calfRecords: CalfRecord[];
   heiferRecords?: HeiferRecord[];
   cows?: Cow[];
+  vetRecords?: VetRecord[];
+  aiRecords?: AIRecord[];
+  milkRecords?: MilkingRecord[];
   onAddCalfRecord: (rec: CalfRecord) => void;
   onDeleteCalfRecord: (id: string) => void;
   onEditCalfRecord?: (id: string, updated: CalfRecord) => void;
@@ -19,6 +23,10 @@ export interface YoungstockManagerProps {
   onDeleteHeifer?: (id: string) => void;
   onEditHeifer?: (id: string, updated: HeiferRecord) => void;
   onAddCow?: (cow: Cow) => void;
+  onAddVetRecord?: (rec: VetRecord) => void;
+  onAddAiRecord?: (rec: any) => void;
+  onAddMilkRecord?: (rec: MilkingRecord) => void;
+  onEditMilkRecord?: (id: string, updated: MilkingRecord, date?: string) => void;
   onTriggerSectionReport?: (sectionKey: string) => void;
   initialSubTab?: 'all' | 'calves' | 'heifers';
 }
@@ -60,10 +68,146 @@ export interface UnifiedYoungstock {
   rawHeifer?: HeiferRecord;
 }
 
+// Age-Based Milestone & SOP Guideline Engine
+export function getYoungstockMilestone(item: UnifiedYoungstock): {
+  title: string;
+  badgeColor: string;
+  isUrgent: boolean;
+  description: string;
+  actionText?: string;
+} {
+  const { ageDays, ageMonths, disbudded, weaned, pregnancyConfirmed, expectedCalvingDate, sex, currentWeightKg } = item;
+
+  if (pregnancyConfirmed) {
+    if (expectedCalvingDate) {
+      const due = new Date(expectedCalvingDate).getTime();
+      const diffDays = Math.round((due - Date.now()) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 60 && diffDays > 0) {
+        return {
+          title: `🐄 Steaming-Up (${diffDays}d to Calve)`,
+          badgeColor: 'bg-purple-100 text-purple-900 border-purple-300',
+          isUrgent: true,
+          description: 'Feed transitional high-density forage and anionic salts 60–21 days pre-calving.',
+          actionText: 'Steaming-Up'
+        };
+      }
+    }
+    return {
+      title: '✨ Confirmed In-Calf',
+      badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
+      isUrgent: false,
+      description: 'Gestation progressing normally.'
+    };
+  }
+
+  if (sex === 'Female' && (currentWeightKg >= 280 || ageMonths >= 14)) {
+    return {
+      title: '✨ AI Window (≥280kg Ready)',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      isUrgent: true,
+      description: 'Reached mature breeding frame. Eligible for first artificial insemination.',
+      actionText: 'Inseminate'
+    };
+  }
+
+  if (ageDays <= 14) {
+    return {
+      title: '🍼 Maternal Immunity Watch',
+      badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+      isUrgent: false,
+      description: 'Ensure navel is dry and calf drinks 4.5–5.0 Liters warm milk daily.'
+    };
+  }
+
+  if (ageDays > 14 && ageDays <= 35) {
+    if (!disbudded) {
+      return {
+        title: '⚠️ Disbudding Window (Due)',
+        badgeColor: 'bg-rose-100 text-rose-900 border-rose-300',
+        isUrgent: true,
+        description: 'Horn bud cauterization is safest between days 14–28 before attaching to skull.',
+        actionText: 'Disbud'
+      };
+    }
+    return {
+      title: '✓ Disbudding Complete',
+      badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
+      isUrgent: false,
+      description: 'Horn buds cauterized. Consuming dry creep starter feed.'
+    };
+  }
+
+  if (ageDays > 35 && ageDays <= 70) {
+    return {
+      title: '💉 1st Clostridial / Blackquarter',
+      badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-200',
+      isUrgent: ageDays >= 55,
+      description: 'Primary immunization against Blackquarter, Anthrax, and Enterotoxemia.',
+      actionText: 'Vaccinate'
+    };
+  }
+
+  if (ageDays > 70 && ageDays <= 100) {
+    if (!weaned) {
+      return {
+        title: '🥛 Weaning & Deworming (Due)',
+        badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+        isUrgent: true,
+        description: 'Step-down milk volume as dry starter reaches 1.5kg daily; administer first dewormer.',
+        actionText: 'Wean & Deworm'
+      };
+    }
+    return {
+      title: '✓ Weaned to Solid Diet',
+      badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      isUrgent: false,
+      description: 'Consuming dry weaner rations, good quality hay, and clean water.'
+    };
+  }
+
+  if (ageMonths > 3 && ageMonths <= 6) {
+    return {
+      title: '🌿 Weaner Phase & ECF Watch',
+      badgeColor: 'bg-blue-50 text-blue-900 border-blue-200',
+      isUrgent: false,
+      description: 'Maintain 650g/day ADG; monitor tick dip intervals for East Coast Fever.'
+    };
+  }
+
+  if (ageMonths > 6 && ageMonths <= 9) {
+    return {
+      title: '💉 Brucellosis (S19 / RB51)',
+      badgeColor: 'bg-cyan-50 text-cyan-900 border-cyan-200',
+      isUrgent: false,
+      description: 'Calfhood brucellosis vaccination window recommended for dairy replacements.'
+    };
+  }
+
+  if (ageMonths > 9 && ageMonths <= 13) {
+    const diff = Math.max(0, 280 - currentWeightKg);
+    return {
+      title: `⚖️ Weight Watch (${diff}kg to AI)`,
+      badgeColor: 'bg-slate-100 text-slate-800 border-slate-200',
+      isUrgent: false,
+      description: 'Targeting 280–300kg liveweight before puberty insemination.'
+    };
+  }
+
+  return {
+    title: '🌿 Routine Growing Stock',
+    badgeColor: 'bg-slate-100 text-slate-700 border-slate-200',
+    isUrgent: false,
+    description: 'Routine nutrition and mineral salt block monitoring.'
+  };
+}
+
 export function YoungstockManager({
   calfRecords = [],
   heiferRecords = [],
   cows = [],
+  vetRecords = [],
+  aiRecords = [],
+  milkRecords = [],
   onAddCalfRecord,
   onDeleteCalfRecord,
   onEditCalfRecord,
@@ -71,6 +215,10 @@ export function YoungstockManager({
   onDeleteHeifer,
   onEditHeifer,
   onAddCow,
+  onAddVetRecord,
+  onAddAiRecord,
+  onAddMilkRecord,
+  onEditMilkRecord,
   onTriggerSectionReport,
   initialSubTab = 'all'
 }: YoungstockManagerProps) {
@@ -93,6 +241,13 @@ export function YoungstockManager({
   const [simTargetWeeks, setSimTargetWeeks] = useState(10);
   const [tapeGirthCm, setTapeGirthCm] = useState(145);
 
+  // Notification Toast state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   // Modals state
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<UnifiedYoungstock | null>(null);
@@ -100,6 +255,11 @@ export function YoungstockManager({
   const [graduateItem, setGraduateItem] = useState<UnifiedYoungstock | null>(null);
   const [graduateStatus, setGraduateStatus] = useState<'Lactating' | 'Dry' | 'Heifer' | 'In-Calf'>('Lactating');
   const [graduateLocality, setGraduateLocality] = useState('');
+
+  // Brand-New Modals: Profile Card, AI Insemination, and Medical Check
+  const [profileItem, setProfileItem] = useState<UnifiedYoungstock | null>(null);
+  const [inseminateItem, setInseminateItem] = useState<UnifiedYoungstock | null>(null);
+  const [medicalItem, setMedicalItem] = useState<UnifiedYoungstock | null>(null);
 
   // Form State for Add Modal
   const [formType, setFormType] = useState<'calf' | 'heifer'>('calf');
@@ -127,8 +287,23 @@ export function YoungstockManager({
   const [formInCalf, setFormInCalf] = useState(false);
   const [formExpectedCalving, setFormExpectedCalving] = useState('');
 
+  // AI Insemination Form State
+  const [aiDate, setAiDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [aiBull, setAiBull] = useState('ABS Friesian Super Sire #402');
+  const [aiTechnician, setAiTechnician] = useState('Dr. Maina (Inseminator)');
+  const [aiCost, setAiCost] = useState(2500);
+  const [aiNotes, setAiNotes] = useState('First service at optimal liveweight threshold.');
+
+  // Medical Check Form State
+  const [medDate, setMedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [medCondition, setMedCondition] = useState('Calf Scours / Dehydration');
+  const [medTreatment, setMedTreatment] = useState('Oral Electrolytes + Kaolin Pectin');
+  const [medDrug, setMedDrug] = useState('Aliseryl WS + Diakur Plus');
+  const [medCost, setMedCost] = useState(450);
+  const [medRepeatDate, setMedRepeatDate] = useState('');
+  const [medNotes, setMedNotes] = useState('Calf active, suckling reflex intact. Rehydrating 2x daily.');
+
   // Girth tape calculation: standard dairy chest girth to liveweight
-  // formula: ~ 110kg at 100cm, scaling ~3.65kg per cm
   const calculateWeightFromGirth = (girth: number) => {
     if (!girth || girth < 50) return 40;
     return Math.round(110 + (girth - 100) * 3.65);
@@ -198,12 +373,10 @@ export function YoungstockManager({
 
     // 2. Process heifer records
     heiferRecords.forEach((h) => {
-      // Avoid duplicate if same tag was in calves
       const tag = h.cowId || h.tag || `Heifer-${h.id.slice(-4)}`;
       if (list.some(item => item.tag === tag)) return;
 
       const logDate = new Date(h.dateLogged || now.toISOString());
-      // estimate DOB if not explicit
       let bDate = h.dob ? new Date(h.dob) : new Date(logDate.getTime() - 400 * 24 * 60 * 60 * 1000);
       const ageDays = Math.max(0, Math.floor((now.getTime() - bDate.getTime()) / (1000 * 60 * 60 * 24)));
       const ageMonths = parseFloat((ageDays / 30.4375).toFixed(1));
@@ -256,14 +429,12 @@ export function YoungstockManager({
   // Filtered List based on Active Sub-Tab & Filters
   const filteredList = useMemo(() => {
     return unifiedList.filter((item) => {
-      // 1. Tab filter
       if (activeFilterTab === 'calves' && (item.ageDays > 90 || item.weaned)) return false;
       if (activeFilterTab === 'weaners' && (!item.weaned || item.ageMonths > 12)) return false;
       if (activeFilterTab === 'heifers' && (item.sex !== 'Female' || item.ageMonths < 10)) return false;
       if (activeFilterTab === 'in_calf' && !item.pregnancyConfirmed) return false;
       if (activeFilterTab === 'bulls' && item.sex !== 'Male') return false;
 
-      // 2. Search term
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const matches =
@@ -276,14 +447,9 @@ export function YoungstockManager({
         if (!matches) return false;
       }
 
-      // 3. Sex filter
       if (sexFilter !== 'all' && item.sex !== sexFilter) return false;
-
-      // 4. Weaned filter
       if (weanedFilter === 'liquid' && item.weaned) return false;
       if (weanedFilter === 'weaned' && !item.weaned) return false;
-
-      // 5. Breeding filter
       if (breedingFilter === 'ready' && !item.breedingReady) return false;
       if (breedingFilter === 'growing' && item.breedingReady) return false;
 
@@ -316,36 +482,78 @@ export function YoungstockManager({
       'Tag ID', 'Friendly Name', 'Sex', 'Stage', 'DOB', 'Age (Days)', 'Age (Months)',
       'Dam ID', 'Sire / Semen Straw', 'Breed', 'Birth Weight (KG)', 'Current Weight (KG)',
       'Chest Girth (CM)', 'ADG (g/day)', 'Daily Milk (L)', 'Weaned', 'Colostrum <2h',
-      'Navel Dipped', 'Disbudded', 'Locality', 'Breeding Ready', 'In-Calf', 'Notes'
+      'Navel Dipped', 'Disbudded', 'Locality', 'Breeding Ready', 'In-Calf', 'Next Care Due', 'Notes'
     ];
 
-    const rows = filteredList.map(item => [
-      item.tag,
-      item.name || '-',
-      item.sex,
-      item.stage,
-      item.dob,
-      item.ageDays,
-      item.ageMonths,
-      item.damId,
-      item.sire,
-      item.breed,
-      item.birthWeightKg,
-      item.currentWeightKg,
-      item.girthCm,
-      item.adgGrams,
-      item.milkIntakeLiters,
-      item.weaned ? 'Yes' : 'No',
-      item.colostrumFedWithin2Hours ? 'Yes' : 'No',
-      item.navelDipped ? 'Yes' : 'No',
-      item.disbudded ? 'Yes' : 'No',
-      item.locality,
-      item.breedingReady ? 'Yes' : 'No',
-      item.pregnancyConfirmed ? 'Yes' : 'No',
-      item.notes.replace(/,/g, ' ')
-    ]);
+    const rows = filteredList.map(item => {
+      const milestone = getYoungstockMilestone(item);
+      return [
+        item.tag,
+        item.name || '-',
+        item.sex,
+        item.stage,
+        item.dob,
+        item.ageDays,
+        item.ageMonths,
+        item.damId,
+        item.sire,
+        item.breed,
+        item.birthWeightKg,
+        item.currentWeightKg,
+        item.girthCm,
+        item.adgGrams,
+        item.milkIntakeLiters,
+        item.weaned ? 'Yes' : 'No',
+        item.colostrumFedWithin2Hours ? 'Yes' : 'No',
+        item.navelDipped ? 'Yes' : 'No',
+        item.disbudded ? 'Yes' : 'No',
+        item.locality,
+        item.breedingReady ? 'Yes' : 'No',
+        item.pregnancyConfirmed ? 'Yes' : 'No',
+        milestone.title,
+        item.notes.replace(/,/g, ' ')
+      ];
+    });
 
     exportToCsv(`Youngstock_Heifer_Registry_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+  };
+
+  // Sync Milk to Daily Milking Log Handler
+  const handleSyncMilkToMilkingLog = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const needed = metrics.totalMilkFed;
+
+    if (needed <= 0) {
+      showToast('No calves currently on liquid milk intake.');
+      return;
+    }
+
+    const existingToday = milkRecords.find(m => m.date === today);
+
+    if (existingToday && onEditMilkRecord) {
+      onEditMilkRecord(existingToday.id, {
+        ...existingToday,
+        milkUsedByCalf: needed
+      }, today);
+      showToast(`✓ Updated today's milking ledger with ${needed} L calf milk deduction.`);
+    } else if (onAddMilkRecord) {
+      onAddMilkRecord({
+        id: `m-today-${Date.now()}`,
+        date: today,
+        morningYield: 0,
+        eveningYield: 0,
+        totalYield: 0,
+        milkUsedByCalf: needed,
+        lossSpillage: 0,
+        milkSoldDirect: 0,
+        milkSoldHotel: 0,
+        hotelBalancePayment: 0,
+        notes: `Auto-synced ${needed} L daily calf intake from Youngstock Nursery.`
+      });
+      showToast(`✓ Created today's milk entry with ${needed} L calf milk deduction.`);
+    }
+
+    window.dispatchEvent(new Event('local-storage-update'));
   };
 
   // Quick Tape Liveweight Save
@@ -389,7 +597,85 @@ export function YoungstockManager({
       }
     }
 
+    showToast(`✓ Weight tape recorded: ${tapeItem.tag} is ${newWeight} KG (${newGirth} cm).`);
     setTapeItem(null);
+  };
+
+  // Submit AI Insemination for Heifer
+  const handleSaveAiService = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inseminateItem) return;
+
+    // Calculate Dates
+    const serviceDate = new Date(aiDate);
+    const returnHeat = new Date(serviceDate.getTime() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const pdCheck = new Date(serviceDate.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const calvingDue = new Date(serviceDate.getTime() + 283 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    // 1. Add AI record
+    if (onAddAiRecord) {
+      const aiRec: AIRecord = {
+        id: `ai-${Date.now()}`,
+        cowId: inseminateItem.tag,
+        date: aiDate,
+        bull: aiBull,
+        technician: aiTechnician,
+        due: calvingDue,
+        status: 'Pending',
+        checkDate: pdCheck,
+        returnHeatDate: returnHeat,
+        cost: aiCost,
+        notes: `Heifer maiden service. ${aiNotes}`
+      };
+      onAddAiRecord(aiRec);
+    }
+
+    // 2. Update Heifer status
+    if (inseminateItem.source === 'heifer' && onEditHeifer) {
+      const updated: HeiferRecord = {
+        ...(inseminateItem.rawHeifer || {
+          id: inseminateItem.id,
+          cowId: inseminateItem.tag,
+          notes: inseminateItem.notes
+        }),
+        status: 'Served (Pending PD)',
+        lastServiceDate: aiDate,
+        serviceBullOrStraw: aiBull,
+        expectedCalvingDate: calvingDue,
+        pregnancyConfirmed: false,
+        updatedAt: new Date().toISOString()
+      };
+      onEditHeifer(inseminateItem.id, updated);
+    }
+
+    showToast(`✓ Insemination logged for ${inseminateItem.tag}! Return heat check on ${returnHeat}.`);
+    setInseminateItem(null);
+  };
+
+  // Submit Medical Check / Scour Intervention
+  const handleSaveMedicalIntervention = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!medicalItem) return;
+
+    if (onAddVetRecord) {
+      const vetRec: VetRecord = {
+        id: `vet-young-${Date.now()}`,
+        date: medDate,
+        cowId: medicalItem.tag,
+        diseaseOrCondition: medCondition,
+        treatment: medTreatment,
+        drugUsed: medDrug,
+        cost: medCost,
+        nextTreatmentDate: medRepeatDate || undefined,
+        category: 'Calf',
+        notes: `Youngstock Clinical Log: ${medNotes}`,
+        updatedAt: new Date().toISOString()
+      };
+      onAddVetRecord(vetRec);
+    }
+
+    showToast(`✓ Medical record logged for ${medicalItem.tag} in Veterinary Ledger.`);
+    setMedicalItem(null);
   };
 
   // Submit Add Youngstock Form
@@ -431,6 +717,7 @@ export function YoungstockManager({
       };
 
       onAddCalfRecord(newCalf);
+      showToast(`✓ Registered calf ${newCalf.calfId} in Nursery.`);
     } else {
       const newHeifer: HeiferRecord = {
         id: `hef-${Date.now()}`,
@@ -458,9 +745,9 @@ export function YoungstockManager({
       if (onAddHeifer) {
         onAddHeifer(newHeifer);
       }
+      showToast(`✓ Registered heifer ${newHeifer.cowId} in Replacement Board.`);
     }
 
-    // Reset Form
     setShowAddModal(false);
     setFormTag('');
     setFormName('');
@@ -540,6 +827,7 @@ export function YoungstockManager({
       }
     }
 
+    showToast(`✓ Profile updated for ${editingItem.tag}.`);
     setEditingItem(null);
   };
 
@@ -548,7 +836,6 @@ export function YoungstockManager({
     if (!graduateItem) return;
 
     if (graduateItem.source === 'calf' && graduateItem.sex === 'Female') {
-      // Promote female calf to Heifer board
       const newHeifer: HeiferRecord = {
         id: `hef-${Date.now()}`,
         cowId: graduateItem.tag,
@@ -574,8 +861,8 @@ export function YoungstockManager({
         onAddHeifer(newHeifer);
       }
       onDeleteCalfRecord(graduateItem.id);
+      showToast(`✓ Promoted ${graduateItem.tag} to Heifer Roster!`);
     } else {
-      // Promote Heifer to Cow Registry (Milking Herd)
       if (onAddCow) {
         const newCow: Cow = {
           id: `cow-${Date.now()}`,
@@ -601,6 +888,8 @@ export function YoungstockManager({
       } else if (graduateItem.source === 'calf') {
         onDeleteCalfRecord(graduateItem.id);
       }
+
+      showToast(`✓ Graduated ${graduateItem.tag} into Main Cow Registry as ${graduateStatus}!`);
     }
 
     setGraduateItem(null);
@@ -608,6 +897,14 @@ export function YoungstockManager({
 
   return (
     <div className="space-y-6 text-gray-900">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs font-bold animate-bounce">
+          <CheckCircle className="text-emerald-400" size={18} />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Banner / Header */}
       <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-indigo-950 rounded-3xl p-6 text-white shadow-xl border border-emerald-900/40">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -633,6 +930,16 @@ export function YoungstockManager({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+            {/* Sync Milk to Milking Log Button */}
+            <button
+              onClick={handleSyncMilkToMilkingLog}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 rounded-xl font-bold text-xs transition-all shadow-md"
+              title="Auto-deduct nursery calf milk in today's milking ledger"
+            >
+              <Milk size={14} />
+              <span>Sync {metrics.totalMilkFed}L Milk</span>
+            </button>
+
             <button
               onClick={() => setShowToolsDrawer(!showToolsDrawer)}
               className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all border ${
@@ -642,7 +949,7 @@ export function YoungstockManager({
               }`}
             >
               <Scale size={14} />
-              <span>Scientific Tools & Calculators</span>
+              <span>Scientific Tools</span>
               {showToolsDrawer ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
 
@@ -658,11 +965,11 @@ export function YoungstockManager({
             {onTriggerSectionReport && (
               <button
                 onClick={() => onTriggerSectionReport('calves')}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 rounded-xl font-bold text-xs transition-all shadow-md"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/15 rounded-xl font-bold text-xs transition-all"
                 title="Download PDF Report"
               >
                 <Download size={14} />
-                <span>PDF Report</span>
+                <span>PDF</span>
               </button>
             )}
 
@@ -940,7 +1247,6 @@ export function YoungstockManager({
 
         {/* Filter Bar & Search */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
-          {/* Search Box */}
           <div className="lg:col-span-2 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
             <input
@@ -952,7 +1258,6 @@ export function YoungstockManager({
             />
           </div>
 
-          {/* Sex Filter */}
           <div>
             <select
               value={sexFilter}
@@ -965,7 +1270,6 @@ export function YoungstockManager({
             </select>
           </div>
 
-          {/* Weaning Filter */}
           <div>
             <select
               value={weanedFilter}
@@ -978,7 +1282,6 @@ export function YoungstockManager({
             </select>
           </div>
 
-          {/* Breeding Readiness */}
           <div>
             <select
               value={breedingFilter}
@@ -1007,7 +1310,7 @@ export function YoungstockManager({
                   <th className="py-3 px-3">Weight & ADG</th>
                   <th className="py-3 px-3">Nutrition & Milk</th>
                   <th className="py-3 px-3">Veterinary SOPs</th>
-                  <th className="py-3 px-3">Reproductive Marker</th>
+                  <th className="py-3 px-3">Next Care Due</th>
                   <th className="py-3 px-3">Pen / Location</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -1026,22 +1329,28 @@ export function YoungstockManager({
                 ) : (
                   filteredList.map((item) => {
                     const isBreedingHeifer = item.sex === 'Female' && item.currentWeightKg >= 280;
+                    const milestone = getYoungstockMilestone(item);
+
                     return (
                       <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                        {/* Tag & Animal */}
+                        {/* Tag & Animal (Clickable for Pedigree Certificate Profile) */}
                         <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${item.sex === 'Male' ? 'bg-blue-500' : 'bg-pink-500'}`} />
+                          <button
+                            onClick={() => setProfileItem(item)}
+                            className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                            title="Click to view complete Pedigree & Growth Card"
+                          >
+                            <span className={`w-2.5 h-2.5 rounded-full ${item.sex === 'Male' ? 'bg-blue-500' : 'bg-pink-500'}`} />
                             <div>
                               <div className="font-bold text-gray-900 font-mono text-[13px] flex items-center gap-1.5">
-                                <span>{item.tag}</span>
+                                <span className="underline decoration-emerald-500/40">{item.tag}</span>
                                 {item.name && (
                                   <span className="font-medium text-gray-600 text-xs font-sans">({item.name})</span>
                                 )}
                               </div>
                               <span className="text-[10px] text-gray-500 font-medium">{item.breed}</span>
                             </div>
-                          </div>
+                          </button>
                         </td>
 
                         {/* Stage / Sex */}
@@ -1141,23 +1450,16 @@ export function YoungstockManager({
                           </div>
                         </td>
 
-                        {/* Reproductive Marker */}
+                        {/* Automated Next Care Due Milestone */}
                         <td className="py-3 px-3">
-                          {item.pregnancyConfirmed ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-900 border border-purple-200 rounded-full font-bold text-[10px]">
-                              ✨ In-Calf {item.expectedCalvingDate ? `(Due ${item.expectedCalvingDate})` : ''}
+                          <div className="space-y-1">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${milestone.badgeColor}`}>
+                              {milestone.title}
                             </span>
-                          ) : isBreedingHeifer ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-full font-bold text-[10px]">
-                              <CheckCircle2 size={11} className="text-emerald-700" /> Ready for AI
+                            <span className="text-[9.5px] text-gray-500 block leading-tight max-w-[170px]">
+                              {milestone.description}
                             </span>
-                          ) : item.sex === 'Female' ? (
-                            <span className="text-[10px] text-gray-500 font-medium">
-                              Growing ({280 - item.currentWeightKg > 0 ? `${280 - item.currentWeightKg}kg to AI` : 'Near target'})
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-gray-500 font-medium">Bull Class</span>
-                          )}
+                          </div>
                         </td>
 
                         {/* Locality */}
@@ -1168,6 +1470,47 @@ export function YoungstockManager({
                         {/* Action Buttons */}
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Profile Card Modal */}
+                            <button
+                              onClick={() => setProfileItem(item)}
+                              className="p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors border border-gray-200"
+                              title="View Pedigree & Growth Certificate"
+                            >
+                              <FileText size={13} />
+                            </button>
+
+                            {/* Medical Check Button */}
+                            <button
+                              onClick={() => {
+                                setMedicalItem(item);
+                                setMedCondition(item.ageDays < 60 ? 'Calf Scours / Dehydration' : 'Routine Preventive Deworming');
+                                setMedTreatment(item.ageDays < 60 ? 'Oral Electrolytes + Kaolin Pectin' : 'Oral Albendazole 10% drench');
+                                setMedDrug(item.ageDays < 60 ? 'Aliseryl WS + Diakur Plus' : 'Albendazole 10%');
+                              }}
+                              className="p-1.5 text-gray-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border border-gray-200"
+                              title="Log Medical Check / Scour Intervention directly to Veterinary Ledger"
+                            >
+                              <Stethoscope size={13} />
+                            </button>
+
+                            {/* Inseminate Button (For Ready Heifers) */}
+                            {item.sex === 'Female' && (
+                              <button
+                                onClick={() => {
+                                  setInseminateItem(item);
+                                  setAiBull('ABS Friesian Super Sire #402');
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors border ${
+                                  isBreedingHeifer
+                                    ? 'text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100'
+                                    : 'text-gray-400 hover:text-indigo-700 hover:bg-indigo-50 border-gray-200'
+                                }`}
+                                title="Log AI Insemination directly to AI & Breeding Ledger"
+                              >
+                                <Syringe size={13} />
+                              </button>
+                            )}
+
                             {/* Tape Liveweight Button */}
                             <button
                               onClick={() => {
@@ -1235,92 +1578,114 @@ export function YoungstockManager({
       ) : (
         /* Cards View (Optional Toggle) */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredList.map((item) => (
-            <div key={item.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-emerald-300 transition-all">
-              <div className="space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-mono font-bold text-emerald-800 text-sm block">
-                      {item.tag} {item.name ? `(${item.name})` : ''}
-                    </span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        item.sex === 'Male' ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-pink-50 text-pink-800 border-pink-200'
-                      }`}>
-                        {item.sex === 'Male' ? '♂ Bull' : '♀ Heifer'}
-                      </span>
-                      <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full font-bold">
-                        {item.stage}
-                      </span>
+          {filteredList.map((item) => {
+            const milestone = getYoungstockMilestone(item);
+            return (
+              <div key={item.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-emerald-300 transition-all">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <button
+                        onClick={() => setProfileItem(item)}
+                        className="font-mono font-bold text-emerald-800 text-sm block text-left hover:underline"
+                      >
+                        {item.tag} {item.name ? `(${item.name})` : ''}
+                      </button>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          item.sex === 'Male' ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-pink-50 text-pink-800 border-pink-200'
+                        }`}>
+                          {item.sex === 'Male' ? '♂ Bull' : '♀ Heifer'}
+                        </span>
+                        <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-full font-bold">
+                          {item.stage}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setProfileItem(item)}
+                        className="p-1.5 text-gray-500 hover:text-emerald-700 border border-gray-200 rounded-lg hover:bg-emerald-50"
+                        title="View Profile Certificate"
+                      >
+                        <FileText size={13} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMedicalItem(item);
+                          setMedCondition(item.ageDays < 60 ? 'Calf Scours / Dehydration' : 'Routine Preventive Deworming');
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-rose-700 border border-gray-200 rounded-lg hover:bg-rose-50"
+                        title="Medical Check"
+                      >
+                        <Stethoscope size={13} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTapeItem(item);
+                          setTapeGirthCm(item.girthCm || 100);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-emerald-700 border border-gray-200 rounded-lg hover:bg-emerald-50"
+                        title="Tape Weight"
+                      >
+                        <Scale size={13} />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        setTapeItem(item);
-                        setTapeGirthCm(item.girthCm || 100);
-                      }}
-                      className="p-1.5 text-gray-500 hover:text-emerald-700 border border-gray-200 rounded-lg hover:bg-emerald-50"
-                      title="Tape Weight"
-                    >
-                      <Scale size={13} />
-                    </button>
-                    <button
-                      onClick={() => setEditingItem(item)}
-                      className="p-1.5 text-gray-500 hover:text-indigo-700 border border-gray-200 rounded-lg hover:bg-indigo-50"
-                      title="Edit"
-                    >
-                      <PenSquare size={13} />
-                    </button>
+                  {/* Milestone Alert Banner */}
+                  <div className={`p-2.5 rounded-2xl border ${milestone.badgeColor}`}>
+                    <span className="text-[10.5px] font-bold block">{milestone.title}</span>
+                    <span className="text-[10px] opacity-90 block mt-0.5">{milestone.description}</span>
                   </div>
+
+                  {/* Pedigree & Age */}
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <div>
+                      <span className="text-[9.5px] text-gray-500 font-semibold block">Dam / Mother</span>
+                      <span className="font-bold text-gray-800 font-mono text-xs">{item.damId}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] text-gray-500 font-semibold block">Age on Farm</span>
+                      <span className="font-bold text-emerald-700 text-xs font-mono">{item.ageDays} days ({item.ageMonths} mo)</span>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] text-gray-500 font-semibold block">Liveweight</span>
+                      <span className="font-bold text-gray-800 font-mono text-xs">{item.currentWeightKg} KG</span>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] text-gray-500 font-semibold block">Daily Intake</span>
+                      <span className="font-bold text-gray-800 text-xs">{item.weaned ? 'Weaned' : `${item.milkIntakeLiters} L Milk`}</span>
+                    </div>
+                  </div>
+
+                  {/* Remarks */}
+                  {item.notes && (
+                    <p className="text-[11px] text-gray-600 italic bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
+                      "{item.notes}"
+                    </p>
+                  )}
                 </div>
 
-                {/* Pedigree & Age */}
-                <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                  <div>
-                    <span className="text-[9.5px] text-gray-500 font-semibold block">Dam / Mother</span>
-                    <span className="font-bold text-gray-800 font-mono text-xs">{item.damId}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9.5px] text-gray-500 font-semibold block">Age on Farm</span>
-                    <span className="font-bold text-emerald-700 text-xs font-mono">{item.ageDays} days ({item.ageMonths} mo)</span>
-                  </div>
-                  <div>
-                    <span className="text-[9.5px] text-gray-500 font-semibold block">Liveweight</span>
-                    <span className="font-bold text-gray-800 font-mono text-xs">{item.currentWeightKg} KG</span>
-                  </div>
-                  <div>
-                    <span className="text-[9.5px] text-gray-500 font-semibold block">Daily Intake</span>
-                    <span className="font-bold text-gray-800 text-xs">{item.weaned ? 'Weaned' : `${item.milkIntakeLiters} L Milk`}</span>
-                  </div>
+                {/* Card Footer Actions */}
+                <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+                  <span className="text-[10px] text-gray-500 font-medium">Pen: {item.locality}</span>
+                  <button
+                    onClick={() => {
+                      setGraduateItem(item);
+                      setGraduateLocality(item.locality);
+                      setGraduateStatus(item.pregnancyConfirmed ? 'In-Calf' : 'Lactating');
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-colors"
+                  >
+                    <span>Graduate Animal</span>
+                    <ArrowRight size={13} />
+                  </button>
                 </div>
-
-                {/* Remarks */}
-                {item.notes && (
-                  <p className="text-[11px] text-gray-600 italic bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
-                    "{item.notes}"
-                  </p>
-                )}
               </div>
-
-              {/* Card Footer Actions */}
-              <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                <span className="text-[10px] text-gray-500 font-medium">Pen: {item.locality}</span>
-                <button
-                  onClick={() => {
-                    setGraduateItem(item);
-                    setGraduateLocality(item.locality);
-                    setGraduateStatus(item.pregnancyConfirmed ? 'In-Calf' : 'Lactating');
-                  }}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition-colors"
-                >
-                  <span>Graduate Animal</span>
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -1886,7 +2251,400 @@ export function YoungstockManager({
         </div>
       )}
 
-      {/* MODAL 4: One-Click Graduation Confirmation */}
+      {/* MODAL 4: Full Pedigree & Growth Profile Card Certificate Modal */}
+      {profileItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 max-w-xl w-full shadow-2xl border border-gray-200 space-y-5 text-left max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-indigo-600 flex items-center justify-center text-white text-xl font-black shadow-md">
+                  {profileItem.sex === 'Male' ? '🐂' : '🐄'}
+                </div>
+                <div>
+                  <h4 className="text-base font-black text-gray-900 flex items-center gap-2">
+                    <span>{profileItem.tag}</span>
+                    {profileItem.name && <span className="text-gray-500 font-medium text-xs">({profileItem.name})</span>}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded-full border border-slate-200">
+                      {profileItem.breed}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-mono">
+                      DOB: {profileItem.dob} ({profileItem.ageDays}d / {profileItem.ageMonths}m)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => window.print()}
+                  className="p-2 text-gray-500 hover:text-emerald-700 border border-gray-200 rounded-xl hover:bg-slate-50 transition-colors"
+                  title="Print Profile Card"
+                >
+                  <Printer size={15} />
+                </button>
+                <button onClick={() => setProfileItem(null)} className="text-gray-400 hover:text-gray-600 p-1.5">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* 3-Generation Pedigree Lineage Card */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 border-b border-slate-200 pb-1.5">
+                <Dna size={14} className="text-indigo-600" />
+                <span>Pedigree Lineage & Bloodline</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                  <span className="text-[10px] text-pink-700 font-bold uppercase tracking-wider block">Maternal Dam (Mother)</span>
+                  <span className="font-bold text-gray-900 font-mono text-sm block">{profileItem.damId}</span>
+                  <span className="text-[10px] text-gray-500 block">Milking Herd Lineage</span>
+                </div>
+                <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                  <span className="text-[10px] text-blue-700 font-bold uppercase tracking-wider block">Paternal Sire (Father)</span>
+                  <span className="font-bold text-gray-900 font-mono text-sm block">{profileItem.sire}</span>
+                  <span className="text-[10px] text-gray-500 block">AI Straw Semen Source</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Growth & Weight Progression */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
+                  <Scale size={14} className="text-emerald-600" />
+                  <span>Growth Journey & Liveweight</span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                  Gain: +{profileItem.adgGrams} g/day
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-gray-500 font-medium block">Birth Weight</span>
+                  <span className="text-base font-bold text-gray-900 font-mono mt-0.5 block">{profileItem.birthWeightKg} KG</span>
+                </div>
+                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-gray-500 font-medium block">Heart Girth</span>
+                  <span className="text-base font-bold text-indigo-900 font-mono mt-0.5 block">{profileItem.girthCm} CM</span>
+                </div>
+                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-gray-500 font-medium block">Current Weight</span>
+                  <span className="text-base font-black text-emerald-700 font-mono mt-0.5 block">{profileItem.currentWeightKg} KG</span>
+                </div>
+              </div>
+
+              {/* Progress bar to 280kg AI marker */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10.5px] font-semibold">
+                  <span className="text-gray-600">Progress to AI Breeding Weight (280 KG)</span>
+                  <span className="font-mono text-emerald-800 font-bold">
+                    {Math.min(100, Math.round((profileItem.currentWeightKg / 280) * 100))}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-emerald-600 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, Math.round((profileItem.currentWeightKg / 280) * 100))}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Veterinary Immunology & SOP Checklist */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 border-b border-slate-200 pb-1.5">
+                <ShieldCheck size={14} className="text-emerald-600" />
+                <span>Immunology & Health Milestones</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                  <CheckCircle2 size={14} className={profileItem.colostrumFedWithin2Hours ? 'text-emerald-600' : 'text-gray-300'} />
+                  <div>
+                    <span className="font-bold text-[11px] block">Colostrum &le;2h (10% Rule)</span>
+                    <span className="text-[9.5px] text-gray-500 block">4.0L fed for maternal antibodies</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                  <CheckCircle2 size={14} className={profileItem.navelDipped ? 'text-emerald-600' : 'text-gray-300'} />
+                  <div>
+                    <span className="font-bold text-[11px] block">Navel Dipped (7% Iodine)</span>
+                    <span className="text-[9.5px] text-gray-500 block">Prevents joint & navel ill</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                  <CheckCircle2 size={14} className={profileItem.disbudded ? 'text-emerald-600' : 'text-gray-300'} />
+                  <div>
+                    <span className="font-bold text-[11px] block">Horn Buds Cauterized</span>
+                    <span className="text-[9.5px] text-gray-500 block">Disbudded at 2–4 weeks</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                  <CheckCircle2 size={14} className={profileItem.weaned ? 'text-emerald-600' : 'text-amber-500'} />
+                  <div>
+                    <span className="font-bold text-[11px] block">{profileItem.weaned ? 'Weaned to Dry Feed' : 'Liquid Milk Fed'}</span>
+                    <span className="text-[9.5px] text-gray-500 block">{profileItem.weaned ? 'Rumen papillae mature' : `${profileItem.milkIntakeLiters} L / day intake`}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-xs">
+              <span className="text-gray-500 text-[11px]">Housed at: <strong>{profileItem.locality}</strong></span>
+              <button
+                onClick={() => setProfileItem(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs"
+              >
+                Close Certificate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: Direct AI Insemination for Heifers */}
+      {inseminateItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-gray-200 space-y-5 text-left">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Syringe className="text-emerald-600" size={18} />
+                <h4 className="text-sm font-black text-gray-900">
+                  Log AI Service: {inseminateItem.tag}
+                </h4>
+              </div>
+              <button onClick={() => setInseminateItem(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAiService} className="space-y-3 text-xs">
+              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+                <span className="text-emerald-900 font-bold block text-xs">
+                  {inseminateItem.tag} is {inseminateItem.currentWeightKg} KG ({inseminateItem.ageMonths} mos).
+                </span>
+                <span className="text-[10.5px] text-emerald-700 block mt-0.5">
+                  Eligible for maiden service. Insemination will auto-schedule 21-day return heat check and 283-day gestation calendar.
+                </span>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Insemination Date</label>
+                <input
+                  type="date"
+                  required
+                  value={aiDate}
+                  onChange={(e) => setAiDate(e.target.value)}
+                  className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Semen Straw / Bull Selection</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="E.g. ABS Friesian Super Sire #402"
+                  value={aiBull}
+                  onChange={(e) => setAiBull(e.target.value)}
+                  className="w-full text-xs font-bold border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Inseminator / Tech</label>
+                  <input
+                    type="text"
+                    required
+                    value={aiTechnician}
+                    onChange={(e) => setAiTechnician(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Service Fee (KES)</label>
+                  <input
+                    type="number"
+                    value={aiCost}
+                    onChange={(e) => setAiCost(parseFloat(e.target.value) || 0)}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Service Notes</label>
+                <input
+                  type="text"
+                  value={aiNotes}
+                  onChange={(e) => setAiNotes(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setInseminateItem(null)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md"
+                >
+                  Confirm Insemination
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: Medical Check / Scour Intervention Modal */}
+      {medicalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-gray-200 space-y-5 text-left">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Stethoscope className="text-rose-600" size={18} />
+                <h4 className="text-sm font-black text-gray-900">
+                  Medical Intervention: {medicalItem.tag}
+                </h4>
+              </div>
+              <button onClick={() => setMedicalItem(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMedicalIntervention} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Date Administered</label>
+                <input
+                  type="date"
+                  required
+                  value={medDate}
+                  onChange={(e) => setMedDate(e.target.value)}
+                  className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              {/* Quick condition selector */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Intervention Category</label>
+                <select
+                  value={medCondition}
+                  onChange={(e) => {
+                    const c = e.target.value;
+                    setMedCondition(c);
+                    if (c.includes('Scours')) {
+                      setMedTreatment('Oral Electrolyte Fluid Replacement');
+                      setMedDrug('Aliseryl WS + Diakur');
+                    } else if (c.includes('Pneumonia')) {
+                      setMedTreatment('Injectable Antibiotic + Anti-inflammatory');
+                      setMedDrug('Betamox LA + Meloxicam');
+                    } else if (c.includes('Deworming')) {
+                      setMedTreatment('Broad Spectrum Nematode Drench');
+                      setMedDrug('Albendazole 10%');
+                    } else if (c.includes('Navel')) {
+                      setMedTreatment('Topical Disinfection + Systemic Penicillin');
+                      setMedDrug('7% Iodine spray + PenStrep');
+                    }
+                  }}
+                  className="w-full text-xs font-semibold border border-gray-200 rounded-xl p-2.5 bg-white"
+                >
+                  <option value="Calf Scours / Dehydration">🍼 Calf Scours / Dehydration (Rehydration)</option>
+                  <option value="Calf Pneumonia / Respiratory">🫁 Calf Pneumonia / Respiratory Distress</option>
+                  <option value="Routine Preventive Deworming">🪱 Routine Preventive Deworming</option>
+                  <option value="Navel Infection / Joint Ill">🧴 Navel Infection / Joint Ill</option>
+                  <option value="Coccidiosis / Bloody Scour">🩸 Coccidiosis / Bloody Scour</option>
+                  <option value="General Health Intervention">General Health Intervention</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-700 block mb-1">Procedure / Treatment Administered</label>
+                <input
+                  type="text"
+                  required
+                  value={medTreatment}
+                  onChange={(e) => setMedTreatment(e.target.value)}
+                  className="w-full text-xs font-semibold border border-gray-200 rounded-xl p-2.5"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Drug Used & Dosage</label>
+                  <input
+                    type="text"
+                    value={medDrug}
+                    onChange={(e) => setMedDrug(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Medication Cost (KES)</label>
+                  <input
+                    type="number"
+                    value={medCost}
+                    onChange={(e) => setMedCost(parseFloat(e.target.value) || 0)}
+                    className="w-full text-xs font-mono font-bold border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Repeat Check Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={medRepeatDate}
+                    onChange={(e) => setMedRepeatDate(e.target.value)}
+                    className="w-full text-xs font-mono border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-700 block mb-1">Clinical Notes</label>
+                  <input
+                    type="text"
+                    value={medNotes}
+                    onChange={(e) => setMedNotes(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-xl p-2.5"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setMedicalItem(null)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-md"
+                >
+                  Save Medical Record
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: One-Click Graduation Confirmation */}
       {graduateItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-gray-200 space-y-5 text-left">

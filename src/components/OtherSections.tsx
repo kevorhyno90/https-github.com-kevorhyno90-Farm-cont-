@@ -18,7 +18,10 @@ import {
  HeiferRecord,
  PoultryRecord,
  QuarantineRecord,
- Cow
+ Cow,
+ MilkingRecord,
+ VetRecord,
+ AIRecord
 } from '../types';
 import { exportToCsv } from '../utils/csvHelper';
 import { CaninesManager } from './CaninesManager';
@@ -116,6 +119,11 @@ interface OtherSectionsProps {
  onEditHeifer?: (id: string, updated: HeiferRecord) => void;
  cows?: Cow[];
  onAddCow?: (cow: Cow) => void;
+ milkRecords?: MilkingRecord[];
+ onAddMilkRecord?: (rec: MilkingRecord) => void;
+ onEditMilkRecord?: (id: string, updated: MilkingRecord, date?: string) => void;
+ onAddVetRecord?: (rec: VetRecord) => void;
+ onAddAiRecord?: (rec: any) => void;
  poultryRecords?: PoultryRecord[];
  onAddPoultry?: (rec: PoultryRecord) => void;
  onDeletePoultry?: (id: string) => void;
@@ -181,6 +189,11 @@ export function OtherSections({
  onEditHeifer,
  cows = [],
  onAddCow,
+ milkRecords = [],
+ onAddMilkRecord,
+ onEditMilkRecord,
+ onAddVetRecord,
+ onAddAiRecord,
  poultryRecords = [],
  onAddPoultry,
  onDeletePoultry,
@@ -3548,6 +3561,9 @@ export function OtherSections({
             calfRecords={calfRecords}
             heiferRecords={heiferRecords}
             cows={cows}
+            vetRecords={vetRecords}
+            aiRecords={aiRecords}
+            milkRecords={milkRecords}
             onAddCalfRecord={onAddCalfRecord}
             onDeleteCalfRecord={onDeleteCalfRecord}
             onEditCalfRecord={onEditCalfRecord}
@@ -3555,6 +3571,10 @@ export function OtherSections({
             onDeleteHeifer={onDeleteHeifer}
             onEditHeifer={onEditHeifer}
             onAddCow={onAddCow}
+            onAddVetRecord={onAddVetRecord}
+            onAddAiRecord={onAddAiRecord}
+            onAddMilkRecord={onAddMilkRecord}
+            onEditMilkRecord={onEditMilkRecord}
             onTriggerSectionReport={onTriggerSectionReport}
             initialSubTab="heifers"
           />
@@ -4181,6 +4201,9 @@ export function OtherSections({
             calfRecords={calfRecords}
             heiferRecords={heiferRecords}
             cows={cows}
+            vetRecords={vetRecords}
+            aiRecords={aiRecords}
+            milkRecords={milkRecords}
             onAddCalfRecord={onAddCalfRecord}
             onDeleteCalfRecord={onDeleteCalfRecord}
             onEditCalfRecord={onEditCalfRecord}
@@ -4188,6 +4211,10 @@ export function OtherSections({
             onDeleteHeifer={onDeleteHeifer}
             onEditHeifer={onEditHeifer}
             onAddCow={onAddCow}
+            onAddVetRecord={onAddVetRecord}
+            onAddAiRecord={onAddAiRecord}
+            onAddMilkRecord={onAddMilkRecord}
+            onEditMilkRecord={onEditMilkRecord}
             onTriggerSectionReport={onTriggerSectionReport}
             initialSubTab="calves"
           />

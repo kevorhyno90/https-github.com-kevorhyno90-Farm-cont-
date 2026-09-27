@@ -7034,6 +7034,11 @@ function FarmCoreApp() {
               onEditHeifer={handleEditHeiferRecord}
               cows={cows}
               onAddCow={handleAddCow}
+              milkRecords={milkRecords}
+              onAddMilkRecord={handleAddMilkRecord}
+              onEditMilkRecord={handleEditMilkRecord}
+              onAddVetRecord={handleAddVetRecord}
+              onAddAiRecord={handleAddAiRecord}
               poultryRecords={poultryRecords}
               onAddPoultry={handleAddPoultry}
               onDeletePoultry={handleDeletePoultry}
