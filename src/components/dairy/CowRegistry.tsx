@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Plus, FileSpreadsheet, Droplets, Trash2, CheckCircle2, GitFork, Activity, PenSquare, Download } from 'lucide-react';
+import {
+  Search, Plus, FileSpreadsheet, Droplets, Trash2, CheckCircle2,
+  GitFork, Activity, PenSquare, Download, LayoutList, LayoutGrid
+} from 'lucide-react';
 import { Cow, MilkingRecord } from '../../types';
 import { exportToCsv } from '../../utils/csvHelper';
 
@@ -24,6 +27,7 @@ export function CowRegistry({
 }: CowRegistryProps) {
 
   // Local State
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [cowSearch, setCowSearch] = useState('');
   const [cowBreedFilter, setCowBreedFilter] = useState('');
   const [cowStatusFilter, setCowStatusFilter] = useState('');
@@ -177,6 +181,36 @@ export function CowRegistry({
           </div>
           
           <div className="flex flex-wrap items-center justify-end gap-2 w-full xl:w-auto">
+            {/* View Mode Switcher */}
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+                title="Compact Table List View"
+              >
+                <LayoutList size={13} />
+                List View
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'cards'
+                    ? 'bg-white text-emerald-800 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+                title="Card Grid View"
+              >
+                <LayoutGrid size={13} />
+                Cards
+              </button>
+            </div>
+
             <button
               onClick={downloadBreedersCSV}
               type="button"
@@ -199,7 +233,7 @@ export function CowRegistry({
             )}
             <button
               onClick={() => setShowAddCowForm(!showAddCowForm)}
-              className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-900 flex items-center justify-center gap-1.5 m-0 shadow-sm"
+              className="bg-emerald-950 text-white font-black text-xs uppercase px-5 py-3 rounded-xl hover:bg-emerald-900 flex items-center justify-center gap-1.5 m-0 shadow-sm cursor-pointer"
             >
               <Plus size={14} /> Add Cow ID Card
             </button>
@@ -245,150 +279,300 @@ export function CowRegistry({
           </form>
         )}
 
-        {/* Directory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {(() => {
-            const searchLower = cowSearch.toLowerCase();
-            const filteredCows = cows.filter(c => {
-              const matchesSearch = (c.id?.toLowerCase().includes(searchLower) || c.name?.toLowerCase().includes(searchLower) || c.registrationNo?.toLowerCase().includes(searchLower));
-              const matchesBreed = cowBreedFilter ? c.breed === cowBreedFilter : true;
-              const matchesStatus = cowStatusFilter ? c.status === cowStatusFilter : true;
-              const matchesGender = cowGenderFilter ? (c.gender || 'Female') === cowGenderFilter : true;
-              return matchesSearch && matchesBreed && matchesStatus && matchesGender;
-            });
+        {/* Directory View (Table or Cards) */}
+        {(() => {
+          const searchLower = cowSearch.toLowerCase();
+          const filteredCows = cows.filter(c => {
+            const matchesSearch = (c.id?.toLowerCase().includes(searchLower) || c.name?.toLowerCase().includes(searchLower) || c.registrationNo?.toLowerCase().includes(searchLower));
+            const matchesBreed = cowBreedFilter ? c.breed === cowBreedFilter : true;
+            const matchesStatus = cowStatusFilter ? c.status === cowStatusFilter : true;
+            const matchesGender = cowGenderFilter ? (c.gender || 'Female') === cowGenderFilter : true;
+            return matchesSearch && matchesBreed && matchesStatus && matchesGender;
+          });
 
-            if (filteredCows.length === 0) {
-              return (
-                <div className="col-span-full bg-white border border-slate-100 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                    <Search className="text-slate-300" size={24} />
-                  </div>
-                  <h4 className="text-slate-700 font-black text-sm uppercase mb-1">No Cattle Found</h4>
-                  <p className="text-slate-400 text-xs font-bold mb-6 max-w-md">
-                    Try adjusting your search criteria, or add a new animal to the directory.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => { setCowSearch(''); setCowBreedFilter(''); setCowStatusFilter(''); setCowGenderFilter(''); }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-850 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer border-none"
-                  >
-                    Clear Filters
-                  </button>
+          if (filteredCows.length === 0) {
+            return (
+              <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                  <Search className="text-slate-300" size={24} />
                 </div>
-              );
-            }
+                <h4 className="text-slate-700 font-black text-sm uppercase mb-1">No Cattle Found</h4>
+                <p className="text-slate-400 text-xs font-bold mb-6 max-w-md">
+                  Try adjusting your search criteria, or add a new animal to the directory.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setCowSearch(''); setCowBreedFilter(''); setCowStatusFilter(''); setCowGenderFilter(''); }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-850 text-xs font-bold uppercase rounded-xl transition-all cursor-pointer border-none"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            );
+          }
 
-            return filteredCows.map(cow => {
-              const avgYield = getAverageYield(cow.id);
-              return (
-                <div key={cow.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="font-black text-slate-800 text-[13.5px] uppercase block tracking-wider">{cow.id}</span>
-                        <span className="text-[11px] font-bold text-slate-400 mt-1 block">Name: <span className="text-slate-600 font-extrabold">{cow.name}</span></span>
+          if (viewMode === 'table') {
+            return (
+              <div className="bg-white border border-gray-200 rounded-3xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-gray-200 text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                        <th className="py-3.5 px-4">Tag ID & Name</th>
+                        <th className="py-3.5 px-4">Breed & Sex</th>
+                        <th className="py-3.5 px-4">Age / DOB</th>
+                        <th className="py-3.5 px-4">Milking Status</th>
+                        <th className="py-3.5 px-4">Lineage (Sire / Dam)</th>
+                        <th className="py-3.5 px-4 text-center">Avg Yield</th>
+                        <th className="py-3.5 px-4">Notes</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredCows.map(cow => {
+                        const avgYield = getAverageYield(cow.id);
+                        return (
+                          <tr key={cow.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-black font-mono text-slate-900 text-xs block">{cow.id}</span>
+                                {cow.registrationNo && (
+                                  <span className="text-[9px] font-mono font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200">
+                                    {cow.registrationNo}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-bold text-slate-500 block mt-0.5">{cow.name || 'Unnamed'}</span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-slate-800 block">{cow.breed}</span>
+                              <span className={`text-[10px] font-bold inline-block mt-0.5 ${cow.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`}>
+                                {cow.gender === 'Male' ? '♂ Male' : '♀ Female'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-slate-700 block">{getCowAge(cow.dob)}</span>
+                              <span className="text-[10px] font-mono text-slate-400 block">{cow.dob || '—'}</span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <select
+                                value={cow.status}
+                                onChange={(e) => onUpdateCowStatus && onUpdateCowStatus(cow.id, e.target.value as any)}
+                                className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border cursor-pointer focus:outline-none transition-colors ${
+                                  cow.status === 'Lactating'
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    : cow.status === 'In-Calf'
+                                    ? 'bg-indigo-50 text-indigo-800 border-indigo-300'
+                                    : cow.status === 'Dry'
+                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                    : cow.status === 'Heifer'
+                                    ? 'bg-purple-50 text-purple-800 border-purple-300'
+                                    : cow.status === 'Bull'
+                                    ? 'bg-blue-50 text-blue-800 border-blue-300'
+                                    : 'bg-slate-50 text-slate-800 border-slate-300'
+                                }`}
+                              >
+                                <option value="Lactating">Lactating</option>
+                                <option value="Dry">Dry</option>
+                                <option value="Heifer">Heifer</option>
+                                <option value="In-Calf">In-Calf</option>
+                                <option value="Bull">Bull</option>
+                                <option value="Steer">Steer</option>
+                                <option value="Calf">Calf</option>
+                              </select>
+                            </td>
+                            <td className="py-3.5 px-4 text-xs">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5 text-[11px]">
+                                  <span className="text-slate-400 font-medium">Sire:</span>
+                                  <span className="font-bold text-slate-700 truncate max-w-[130px]">{cow.sire || '—'}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px]">
+                                  <span className="text-slate-400 font-medium">Dam:</span>
+                                  <span className="font-bold text-slate-700 truncate max-w-[130px]">{cow.dam || '—'}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              {avgYield > 0 ? (
+                                <span className="font-black font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg text-xs inline-flex items-center gap-1">
+                                  <Droplets size={12} className="text-emerald-600" />
+                                  {avgYield.toFixed(1)} L/d
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-slate-400 italic font-mono">—</span>
+                              )}
+                              {cow.peakYieldTarget && (
+                                <span className="block text-[9px] text-slate-400 font-mono mt-0.5">Target: {cow.peakYieldTarget}L</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 max-w-[180px]">
+                              <span className="text-[11px] text-slate-600 truncate block" title={cow.notes || ''}>
+                                {cow.notes || <span className="text-slate-300 italic">No notes</span>}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setPedigreeCow(cow)}
+                                  className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg transition-colors border border-emerald-200 cursor-pointer"
+                                  title="View Pedigree Family Tree"
+                                >
+                                  <GitFork size={13} />
+                                </button>
+                                <button
+                                  onClick={() => setEditingCow(cow)}
+                                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                                  title="Edit Cow Details"
+                                >
+                                  <PenSquare size={13} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name}) from registry?`)) {
+                                      onDeleteCow(cow.id);
+                                    }
+                                  }}
+                                  className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors cursor-pointer"
+                                  title="Delete Cow Record"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-slate-50/80 px-4 py-2.5 border-t border-gray-100 flex flex-wrap justify-between items-center text-xs text-slate-500 font-medium">
+                  <span>Showing <strong className="text-slate-800 font-mono">{filteredCows.length}</strong> cattle ({filteredCows.filter(c => c.status === 'Lactating').length} lactating, {filteredCows.filter(c => c.status === 'In-Calf').length} in-calf, {filteredCows.filter(c => c.status === 'Heifer').length} heifers)</span>
+                  <span className="text-[11px] text-slate-400">Click <strong>Pedigree</strong> icon to view 3-generation ancestry chart</span>
+                </div>
+              </div>
+            );
+          }
+
+          // Card Grid View
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredCows.map(cow => {
+                const avgYield = getAverageYield(cow.id);
+                return (
+                  <div key={cow.id} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4 hover:border-slate-200 transition-all flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="font-black text-slate-800 text-[13.5px] uppercase block tracking-wider">{cow.id}</span>
+                          <span className="text-[11px] font-bold text-slate-400 mt-1 block">Name: <span className="text-slate-600 font-extrabold">{cow.name}</span></span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setEditingCow(cow)}
+                            className="text-slate-300 hover:text-indigo-805 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0 cursor-pointer"
+                            title="Edit Cow Details"
+                          >
+                            <PenSquare size={13} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name})?`)) {
+                                onDeleteCow(cow.id);
+                              }
+                            }}
+                            className="text-slate-300 hover:text-red-600 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0 cursor-pointer"
+                            title="Delete Cow Record"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setEditingCow(cow)}
-                          className="text-slate-300 hover:text-indigo-805 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
-                          title="Edit Cow Details"
+
+                      <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
+                        <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
+                          <span className="text-[9px] uppercase font-black text-slate-400 block">Breed</span>
+                          <span className="font-extrabold text-slate-700 truncate block mt-0.5">{cow.breed}</span>
+                        </div>
+                        <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
+                          <span className="text-[9px] uppercase font-black text-slate-400 block">Age</span>
+                          <span className="font-extrabold text-slate-700 block mt-0.5">{getCowAge(cow.dob)}</span>
+                        </div>
+                        <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
+                          <span className="text-[9px] uppercase font-black text-slate-400 block">Gender</span>
+                          <span className={`font-extrabold block mt-0.5 ${cow.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`}>
+                            {cow.gender === 'Male' ? '♂ Male' : '♀ Female'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-1.5">
+                        <span className="text-[10px] font-black text-slate-400 uppercase">Status:</span>
+                        <select
+                          value={cow.status}
+                          onChange={(e) => onUpdateCowStatus && onUpdateCowStatus(cow.id, e.target.value as any)}
+                          className="text-[10px] font-black uppercase text-emerald-950 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-250 cursor-pointer focus:outline-none"
                         >
-                          <PenSquare size={13} />
-                        </button>
-                        <button
-                          onClick={() => onDeleteCow(cow.id)}
-                          className="text-slate-300 hover:text-red-600 p-1.5 rounded transition-all border border-transparent hover:border-slate-100 hover:bg-slate-50 m-0"
-                          title="Delete Cow Record"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                          <option value="Lactating">Lactating</option>
+                          <option value="Dry">Dry</option>
+                          <option value="Heifer">Heifer</option>
+                          <option value="In-Calf">In-Calf</option>
+                          <option value="Bull">Bull</option>
+                          <option value="Steer">Steer</option>
+                          <option value="Calf">Calf</option>
+                        </select>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
-                      <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
-                        <span className="text-[9px] uppercase font-black text-slate-400 block">Breed</span>
-                        <span className="font-extrabold text-slate-700 truncate block mt-0.5">{cow.breed}</span>
+                    <div className="border-t border-slate-100 mt-4 pt-3 space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                        <span className="uppercase text-slate-400 font-extrabold flex items-center gap-1">
+                          <GitFork size={11} className="text-emerald-700" /> Ancestry / Lineage
+                        </span>
+                        {cow.registrationNo ? (
+                          <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 uppercase font-black">{cow.registrationNo}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">No Studbook Reg</span>
+                        )}
                       </div>
-                      <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
-                        <span className="text-[9px] uppercase font-black text-slate-400 block">Age</span>
-                        <span className="font-extrabold text-slate-700 block mt-0.5">{getCowAge(cow.dob)}</span>
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-[11px] leading-tight">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-semibold">Sire:</span>
+                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]">{cow.sire || 'Unknown'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400 font-semibold">Dam:</span>
+                          <span className="font-extrabold text-slate-800 truncate max-w-[150px]">{cow.dam || 'Unknown'}</span>
+                        </div>
                       </div>
-                      <div className="bg-slate-50 p-2 border border-slate-100 rounded-xl">
-                        <span className="text-[9px] uppercase font-black text-slate-400 block">Gender</span>
-                        <span className={`font-extrabold block mt-0.5 ${cow.gender === 'Male' ? 'text-blue-600' : 'text-pink-600'}`}>
-                          {cow.gender === 'Male' ? '♂ Male' : '♀ Female'}
+                    </div>
+
+                    <div className="border-t border-slate-100 mt-4 pt-3 space-y-1">
+                      <span className="text-[10px] uppercase font-black text-slate-400 font-bold flex items-center gap-1">
+                        <Activity size={11} className="text-emerald-700" /> Lactation Yield Metric
+                      </span>
+                      <div className="flex justify-between items-center bg-emerald-50 p-2 rounded-xl border border-emerald-100">
+                        <span className="text-xs text-slate-500 font-bold">Log average per day:</span>
+                        <span className="text-xs font-black font-mono text-emerald-850">
+                          {avgYield > 0 ? `${avgYield.toFixed(1)} Liters` : 'No logs'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-1.5">
-                      <span className="text-[10px] font-black text-slate-400 uppercase">Status:</span>
-                      <select
-                        value={cow.status}
-                        onChange={(e) => onUpdateCowStatus && onUpdateCowStatus(cow.id, e.target.value as any)}
-                        className="text-[10px] font-black uppercase text-emerald-950 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-250 cursor-pointer focus:outline-none"
+                    <div className="pt-2 border-t border-slate-50">
+                      <button
+                        onClick={() => setPedigreeCow(cow)}
+                        className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors cursor-pointer m-0"
                       >
-                        <option value="Lactating">Lactating</option>
-                        <option value="Dry">Dry</option>
-                        <option value="Heifer">Heifer</option>
-                        <option value="In-Calf">In-Calf</option>
-                        <option value="Bull">Bull</option>
-                        <option value="Steer">Steer</option>
-                        <option value="Calf">Calf</option>
-                      </select>
+                        View Pedigree Family Tree
+                      </button>
                     </div>
                   </div>
-
-                  <div className="border-t border-slate-100 mt-4 pt-3 space-y-2">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
-                      <span className="uppercase text-slate-400 font-extrabold flex items-center gap-1">
-                        <GitFork size={11} className="text-emerald-700" /> Ancestry / Lineage
-                      </span>
-                      {cow.registrationNo ? (
-                        <span className="font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 uppercase font-black">{cow.registrationNo}</span>
-                      ) : (
-                        <span className="text-slate-400 italic">No Studbook Reg</span>
-                      )}
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-[11px] leading-tight">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400 font-semibold">Sire:</span>
-                        <span className="font-extrabold text-slate-800 truncate max-w-[150px]">{cow.sire || 'Unknown'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400 font-semibold">Dam:</span>
-                        <span className="font-extrabold text-slate-800 truncate max-w-[150px]">{cow.dam || 'Unknown'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-100 mt-4 pt-3 space-y-1">
-                    <span className="text-[10px] uppercase font-black text-slate-400 font-bold flex items-center gap-1">
-                      <Activity size={11} className="text-emerald-700" /> Lactation Yield Metric
-                    </span>
-                    <div className="flex justify-between items-center bg-emerald-50 p-2 rounded-xl border border-emerald-100">
-                      <span className="text-xs text-slate-500 font-bold">Log average per day:</span>
-                      <span className="text-xs font-black font-mono text-emerald-850">
-                        {avgYield > 0 ? `${avgYield.toFixed(1)} Liters` : 'No logs'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-50">
-                    <button
-                      onClick={() => setPedigreeCow(cow)}
-                      className="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-black py-2 rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors cursor-pointer m-0"
-                    >
-                      View Pedigree Family Tree
-                    </button>
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {pedigreeCow && (
