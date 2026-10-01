@@ -136,13 +136,103 @@ const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
 export const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
 
+function normalizeStaffList(parsed: any): StaffMember[] {
+  let list: StaffMember[] = Array.isArray(parsed) ? parsed : INITIAL_STAFF;
+  list = list.filter((s) => !s.name?.toLowerCase().includes('victor'));
+  const hasDevin = list.some((s) => s.name?.includes('Devin') || s.role === 'Overall Farm Manager');
+  if (!hasDevin) {
+    list = [INITIAL_STAFF[0], ...list];
+  } else {
+    list = list.map((s) => {
+      if (s.role === 'Overall Farm Manager' || s.name?.includes('Devin')) {
+        return {
+          ...s,
+          id: 'st-0',
+          name: 'Dr. Devin Omwenga',
+          role: 'Overall Farm Manager',
+          unit: 'General'
+        };
+      }
+      return s;
+    });
+  }
+  return list;
+}
+
+function normalizeMilkRecords(parsed: any): MilkingRecord[] {
+  if (Array.isArray(parsed)) {
+    return parsed.map((item: any) => {
+      const debtsList = item.debtsList || (item.debtsKsh && item.debtCustomer ? [{ debtor: item.debtCustomer, amount: Number(item.debtsKsh) }] : []);
+      const debtsKsh = debtsList.reduce((sum: number, d: any) => sum + (Number(d.amount) || 0), 0) || Number(item.debtsKsh || 0);
+      return {
+        ...item,
+        debtsList,
+        debtsKsh,
+        milkUsedByCalf: item.milkUsedByCalf !== undefined ? Number(item.milkUsedByCalf) : undefined
+      };
+    });
+  }
+  return INITIAL_MILK_RECORDS;
+}
+
+function normalizeTeaRecords(parsed: any): TeaRecord[] {
+  if (Array.isArray(parsed)) {
+    return parsed.map((item: any) => ({
+      qty: Number(item.qty ?? 0),
+      ref: item.ref || 'KTDA-UNKNOWN',
+      date: item.date || toIsoDate(),
+      pricePerKg: Number(item.pricePerKg ?? 58),
+      buyer: item.buyer || 'Chinga KTDA Factory',
+      totalSales: Number(item.totalSales ?? (Number(item.qty ?? 0) * Number(item.pricePerKg ?? 58)))
+    }));
+  }
+  return INITIAL_TEA_RECORDS;
+}
+
+function normalizeAvoRecords(parsed: any): AvocadoRecord[] {
+  if (Array.isArray(parsed)) {
+    return parsed.map((item: any) => {
+      const grade1Kg = Number(item.grade1Kg ?? item.gradeA ?? item.grade1 ?? 0);
+      const grade1PricePerKg = Number(item.grade1PricePerKg ?? item.priceGradeA ?? 150);
+      const rejectKg = Number(item.rejectKg ?? item.rejects ?? item.reject ?? 0);
+      const priceForRejects = Number(item.priceForRejects ?? item.priceRejects ?? 35);
+      const totalSales = Number(item.totalSales ?? ((grade1Kg * grade1PricePerKg) + (rejectKg * priceForRejects)));
+      return {
+        ref: item.ref || 'EXP-UNKNOWN',
+        date: item.date || toIsoDate(),
+        grade1Kg,
+        grade1PricePerKg,
+        rejectKg,
+        priceForRejects,
+        grade1Buyer: item.grade1Buyer || item.buyerGradeA || 'Kakuzi Agribusiness Exporters',
+        rejectBuyer: item.rejectBuyer || item.buyerRejects || 'Local Puree Processor',
+        paymentMode: item.paymentMode || item.paymentModeNextHarvestSeason || 'Deferred',
+        nextHarvestSeason: item.nextHarvestSeason || 'October - December',
+        paymentModeNextHarvestSeason: item.paymentModeNextHarvestSeason || 'Deferred',
+        debts: Number(item.debts ?? 0),
+        notes: item.notes || '',
+        totalSales
+      };
+    });
+  }
+  return INITIAL_AVOCADO_RECORDS;
+}
+
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isRemoteHydrationRef = useRef(false);
+  const hydrationTimerRef = useRef<number | null>(null);
 
   const persistJson = (key: string, value: any) => {
-    const serialized = JSON.stringify(value);
+    // During remote hydration, localStorage is already authoritative from the cloud.
+    // Do not write back or trigger local storage update events.
     if (isRemoteHydrationRef.current) {
-      nativeSetItem(key, serialized);
+      return;
+    }
+
+    const serialized = JSON.stringify(value);
+    const existing = localStorage.getItem(key);
+    // If the storage already has the exact same content, skip write to prevent redundant change events
+    if (existing === serialized) {
       return;
     }
 
@@ -151,6 +241,9 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const reloadFromLocalStorage = () => {
     isRemoteHydrationRef.current = true;
+    if (hydrationTimerRef.current) {
+      window.clearTimeout(hydrationTimerRef.current);
+    }
 
     try {
       const loadJson = <T,>(key: string, fallback: T): T => {
@@ -164,12 +257,12 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       };
 
-      setStaffList(loadJson('jr_farm_staff', INITIAL_STAFF));
+      setStaffList(normalizeStaffList(loadJson('jr_farm_staff', INITIAL_STAFF)));
       setIngredients(loadJson('jr_farm_ingredients', INITIAL_INGREDIENTS));
-      setMilkRecords(loadJson('jr_farm_milk', INITIAL_MILK_RECORDS));
+      setMilkRecords(normalizeMilkRecords(loadJson('jr_farm_milk', INITIAL_MILK_RECORDS)));
       setAiRecords(loadJson('jr_farm_ai', INITIAL_AI_RECORDS));
-      setTeaRecords(loadJson('jr_farm_tea', INITIAL_TEA_RECORDS));
-      setAvoRecords(loadJson('jr_farm_avo', INITIAL_AVOCADO_RECORDS));
+      setTeaRecords(normalizeTeaRecords(loadJson('jr_farm_tea', INITIAL_TEA_RECORDS)));
+      setAvoRecords(normalizeAvoRecords(loadJson('jr_farm_avo', INITIAL_AVOCADO_RECORDS)));
       setFinancials(loadJson('jr_farm_financials', INITIAL_FINICAL_RECORDS));
       setSprayRecords(loadJson('jr_farm_sprays', INITIAL_SPRAY_RECORDS));
       setMilkOutflows(loadJson('jr_farm_milk_outflows', INITIAL_MILK_OUTFLOW_RECORDS));
@@ -197,9 +290,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMachines(loadJson('jr_farm_machinery', INITIAL_MACHINES));
       setMachineServices(loadJson('jr_farm_machinery_services', INITIAL_MACHINE_SERVICES));
     } finally {
-      window.setTimeout(() => {
+      // Keep hydration lock for 1500ms so all batched renders and effects finish
+      hydrationTimerRef.current = window.setTimeout(() => {
         isRemoteHydrationRef.current = false;
-      }, 500);
+        hydrationTimerRef.current = null;
+      }, 1500);
     }
   };
 
@@ -214,31 +309,16 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSyncApplied);
       window.removeEventListener('storage', handleRemoteSyncApplied);
+      if (hydrationTimerRef.current) {
+        window.clearTimeout(hydrationTimerRef.current);
+      }
     };
   }, []);
 
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const saved = localStorage.getItem('jr_farm_staff');
-    let parsed: StaffMember[] = saved ? JSON.parse(saved) : INITIAL_STAFF;
-    parsed = parsed.filter((s) => !s.name.toLowerCase().includes('victor'));
-    const hasDevin = parsed.some((s) => s.name.includes('Devin') || s.role === 'Overall Farm Manager');
-    if (!hasDevin) {
-      parsed = [INITIAL_STAFF[0], ...parsed];
-    } else {
-      parsed = parsed.map((s) => {
-        if (s.role === 'Overall Farm Manager' || s.name.includes('Devin')) {
-          return {
-            ...s,
-            id: 'st-0',
-            name: 'Dr. Devin Omwenga',
-            role: 'Overall Farm Manager',
-            unit: 'General'
-          };
-        }
-        return s;
-      });
-    }
-    return parsed;
+    const parsed = saved ? JSON.parse(saved) : INITIAL_STAFF;
+    return normalizeStaffList(parsed);
   });
 
   const [ingredients, setIngredients] = useState<Ingredient[]>(() => {
@@ -249,19 +329,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [milkRecords, setMilkRecords] = useState<MilkingRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_milk');
     const parsed = saved ? JSON.parse(saved) : INITIAL_MILK_RECORDS;
-    if (Array.isArray(parsed)) {
-      return parsed.map((item: any) => {
-        const debtsList = item.debtsList || (item.debtsKsh && item.debtCustomer ? [{ debtor: item.debtCustomer, amount: Number(item.debtsKsh) }] : []);
-        const debtsKsh = debtsList.reduce((sum: number, d: any) => sum + (Number(d.amount) || 0), 0) || Number(item.debtsKsh || 0);
-        return {
-          ...item,
-          debtsList,
-          debtsKsh,
-          milkUsedByCalf: item.milkUsedByCalf !== undefined ? Number(item.milkUsedByCalf) : undefined
-        };
-      });
-    }
-    return INITIAL_MILK_RECORDS;
+    return normalizeMilkRecords(parsed);
   });
 
   const [aiRecords, setAiRecords] = useState<AIRecord[]>(() => {
@@ -272,48 +340,13 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [teaRecords, setTeaRecords] = useState<TeaRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_tea');
     const parsed = saved ? JSON.parse(saved) : INITIAL_TEA_RECORDS;
-    if (Array.isArray(parsed)) {
-      return parsed.map((item: any) => ({
-        qty: Number(item.qty ?? 0),
-        ref: item.ref || 'KTDA-UNKNOWN',
-        date: item.date || toIsoDate(),
-        pricePerKg: Number(item.pricePerKg ?? 58),
-        buyer: item.buyer || 'Chinga KTDA Factory',
-        totalSales: Number(item.totalSales ?? (Number(item.qty ?? 0) * Number(item.pricePerKg ?? 58)))
-      }));
-    }
-    return INITIAL_TEA_RECORDS;
+    return normalizeTeaRecords(parsed);
   });
 
   const [avoRecords, setAvoRecords] = useState<AvocadoRecord[]>(() => {
     const saved = localStorage.getItem('jr_farm_avo');
     const parsed = saved ? JSON.parse(saved) : INITIAL_AVOCADO_RECORDS;
-    if (Array.isArray(parsed)) {
-      return parsed.map((item: any) => {
-        const grade1Kg = Number(item.grade1Kg ?? item.gradeA ?? item.grade1 ?? 0);
-        const grade1PricePerKg = Number(item.grade1PricePerKg ?? item.priceGradeA ?? 150);
-        const rejectKg = Number(item.rejectKg ?? item.rejects ?? item.reject ?? 0);
-        const priceForRejects = Number(item.priceForRejects ?? item.priceRejects ?? 35);
-        const totalSales = Number(item.totalSales ?? ((grade1Kg * grade1PricePerKg) + (rejectKg * priceForRejects)));
-        return {
-          ref: item.ref || 'EXP-UNKNOWN',
-          date: item.date || toIsoDate(),
-          grade1Kg,
-          grade1PricePerKg,
-          rejectKg,
-          priceForRejects,
-          grade1Buyer: item.grade1Buyer || item.buyerGradeA || 'Kakuzi Agribusiness Exporters',
-          rejectBuyer: item.rejectBuyer || item.buyerRejects || 'Local Puree Processor',
-          paymentMode: item.paymentMode || item.paymentModeNextHarvestSeason || 'Deferred',
-          nextHarvestSeason: item.nextHarvestSeason || 'October - December',
-          paymentModeNextHarvestSeason: item.paymentModeNextHarvestSeason || 'Deferred',
-          debts: Number(item.debts ?? 0),
-          notes: item.notes || '',
-          totalSales
-        };
-      });
-    }
-    return INITIAL_AVOCADO_RECORDS;
+    return normalizeAvoRecords(parsed);
   });
 
   const [financials, setFinancials] = useState<FinancialRecord[]>(() => {

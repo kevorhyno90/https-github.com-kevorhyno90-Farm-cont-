@@ -12,6 +12,54 @@ const CLOUD_SYNC_KEY_STORAGE = 'jr_farm_cloud_sync_key';
 // Primary default room used by JR Farm
 const MASTER_DEFAULT_ROOM = 'devin';
 
+function isDeepEqual(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== 'object') return false;
+
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!isDeepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  if (Array.isArray(b)) return false;
+
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+    if (!isDeepEqual(a[key], b[key])) return false;
+  }
+  return true;
+}
+
+function areJsonStringsEqual(a: string | null, b: string | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  try {
+    const objA = JSON.parse(a);
+    const objB = JSON.parse(b);
+    return isDeepEqual(objA, objB);
+  } catch {
+    return a === b;
+  }
+}
+
+const timeoutPromise = <T,>(p: Promise<T>, ms: number): Promise<T> => {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+    )
+  ]);
+};
+
 // Unique device session ID to identify self-updates vs remote updates
 const LOCAL_DEVICE_ID = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
 
@@ -57,9 +105,31 @@ export function FirebaseSyncer() {
 
   const isPushingRef = useRef(false);
   const isPullingRef = useRef(false);
+  const hasPendingPushRef = useRef(false);
   const initialSyncDoneRef = useRef(false);
   const lastRemoteUpdatedRef = useRef<string>('');
+  const syncStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canUseCloud = userCloudSyncEnabled && isDeviceOnline && !!realtimeDb;
+
+  const updateSyncStatus = (status: 'idle' | 'syncing' | 'error' | 'success') => {
+    setSyncStatus(status);
+    if (syncStatusTimerRef.current) {
+      clearTimeout(syncStatusTimerRef.current);
+      syncStatusTimerRef.current = null;
+    }
+    if (status === 'syncing') {
+      // 8-second safety timeout so mobile phone NEVER stays stuck in continuous cycling
+      syncStatusTimerRef.current = setTimeout(() => {
+        setSyncStatus('idle');
+        isPushingRef.current = false;
+        isPullingRef.current = false;
+      }, 8000);
+    } else if (status === 'success' || status === 'error') {
+      syncStatusTimerRef.current = setTimeout(() => {
+        setSyncStatus('idle');
+      }, 2500);
+    }
+  };
 
   const computeEffectiveFarmId = (user: any, key: string) => {
     const cleanKey = key?.trim().toLowerCase();
@@ -150,7 +220,7 @@ export function FirebaseSyncer() {
     if (!canUseCloud || !realtimeDb || isPullingRef.current) return;
     try {
       isPullingRef.current = true;
-      if (isManual) setSyncStatus('syncing');
+      if (isManual) updateSyncStatus('syncing');
 
       const dbRef = ref(realtimeDb);
       const targetRooms = [farmId];
@@ -161,17 +231,30 @@ export function FirebaseSyncer() {
       for (const room of targetRooms) {
         if (foundData) break;
         try {
-          const snapshot = await get(child(dbRef, `cloudSyncRooms/${room}`));
+          const snapshot = await timeoutPromise(get(child(dbRef, `cloudSyncRooms/${room}`)), 6000);
           if (snapshot.exists()) {
             const reply = snapshot.val();
             if (reply && reply.database && typeof reply.database === 'object') {
+              // 1. Ignore echoes from this same device
+              if (reply.senderDeviceId === LOCAL_DEVICE_ID) {
+                foundData = true;
+                continue;
+              }
+              // 2. Ignore if cloud timestamp is identical to what we already ingested
+              if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) {
+                foundData = true;
+                continue;
+              }
+
               foundData = true;
+              lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
+
               const mergedPayload = executeSmartMerge(reply.database, 'merge');
 
               Object.entries(mergedPayload).forEach(([k, v]) => {
                 const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
                 const currentLocal = localStorage.getItem(k);
-                if (currentLocal !== stringVal) {
+                if (!areJsonStringsEqual(currentLocal, stringVal)) {
                   didChange = true;
                   nativeSetItem(k, stringVal);
                 }
@@ -179,7 +262,7 @@ export function FirebaseSyncer() {
             }
           }
         } catch (e) {
-          console.error(`[Autosync] Error querying room ${room}:`, e);
+          console.warn(`[Autosync] Notice on room ${room}:`, e);
         }
       }
 
@@ -190,15 +273,15 @@ export function FirebaseSyncer() {
       }
 
       setLastSync(new Date());
-      setSyncStatus('success');
+      updateSyncStatus('success');
       if (isManual) {
         setSyncToast('Fetched latest breeding and farm data from cloud!');
         setTimeout(() => setSyncToast(null), 3000);
       }
-      setTimeout(() => setSyncStatus('idle'), 2000);
     } catch (err) {
       console.error("[Autosync] Pull Error:", err);
-      if (isManual) setSyncStatus('error');
+      if (isManual) updateSyncStatus('error');
+      else updateSyncStatus('idle');
     } finally {
       isPullingRef.current = false;
     }
@@ -206,11 +289,14 @@ export function FirebaseSyncer() {
 
   // Push local changes to cloud (mirrors to active room and default rooms)
   const pushToCloud = async (isManual = false) => {
-    if (isPushingRef.current && !isManual) return;
+    if (isPushingRef.current && !isManual) {
+      hasPendingPushRef.current = true;
+      return;
+    }
     if (!farmId || !canUseCloud || !realtimeDb) return;
     try {
       isPushingRef.current = true;
-      setSyncStatus('syncing');
+      updateSyncStatus('syncing');
 
       const databasePayload = buildAllFarmPayload();
       const nowIso = new Date().toISOString();
@@ -222,8 +308,8 @@ export function FirebaseSyncer() {
         senderDeviceId: LOCAL_DEVICE_ID
       };
 
-      // Push to current active room
-      await set(ref(realtimeDb, `cloudSyncRooms/${farmId}`), payload);
+      // 7-second timeout prevents indefinite promise hanging on unstable mobile connections
+      await timeoutPromise(set(ref(realtimeDb, `cloudSyncRooms/${farmId}`), payload), 7000);
 
       // Mirror to master room and default room so any device finds it immediately
       if (farmId !== MASTER_DEFAULT_ROOM) {
@@ -233,20 +319,22 @@ export function FirebaseSyncer() {
         set(ref(realtimeDb, 'cloudSyncRooms/default_farm_001'), payload).catch(() => {});
       }
 
-      setSyncStatus('success');
+      updateSyncStatus('success');
       setLastSync(new Date());
 
       if (isManual) {
         setSyncToast('Uploaded all farm records to cloud successfully!');
         setTimeout(() => setSyncToast(null), 3000);
       }
-
-      setTimeout(() => setSyncStatus('idle'), 2000);
     } catch (err) {
-      console.error("[Autosync] Push Error:", err);
-      setSyncStatus('error');
+      console.warn("[Autosync] Push network notice:", err);
+      updateSyncStatus(isManual ? 'error' : 'idle');
     } finally {
       isPushingRef.current = false;
+      if (hasPendingPushRef.current) {
+        hasPendingPushRef.current = false;
+        setTimeout(() => pushToCloud(false), 500);
+      }
     }
   };
 
@@ -280,12 +368,14 @@ export function FirebaseSyncer() {
     };
   }, [farmId, canUseCloud]);
 
-  // Continuous Heartbeat: Check cloud every 8 seconds in the background
+  // Background Heartbeat: Check cloud every 25 seconds when visible and not pushing
   useEffect(() => {
     if (!canUseCloud) return;
     const interval = setInterval(() => {
-      pullAndMergeFromCloud(false);
-    }, 8000);
+      if (document.visibilityState === 'visible' && !isPushingRef.current) {
+        pullAndMergeFromCloud(false);
+      }
+    }, 25000);
 
     return () => clearInterval(interval);
   }, [farmId, canUseCloud]);
@@ -312,7 +402,8 @@ export function FirebaseSyncer() {
         let didChange = false;
         Object.entries(mergedPayload).forEach(([k, v]) => {
           const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
-          if (localStorage.getItem(k) !== stringVal) {
+          const currentLocal = localStorage.getItem(k);
+          if (!areJsonStringsEqual(currentLocal, stringVal)) {
             didChange = true;
             nativeSetItem(k, stringVal);
           }
@@ -324,9 +415,8 @@ export function FirebaseSyncer() {
           setTimeout(() => setSyncToast(null), 4000);
         }
 
-        setSyncStatus('success');
+        updateSyncStatus('success');
         setLastSync(new Date());
-        setTimeout(() => setSyncStatus('idle'), 2000);
       } catch (e) {
         console.error("[Autosync] Merge error from snapshot", e);
       }
