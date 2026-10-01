@@ -33,7 +33,7 @@ export function MobileBottomNav({
       icon: Milk,
       color: 'bg-blue-500 text-white',
       badge: 'Dairy',
-      tabId: 'dairy'
+      tabId: 'dairy_milk'
     },
     {
       title: 'Record Egg Collection',
@@ -49,7 +49,7 @@ export function MobileBottomNav({
       icon: Stethoscope,
       color: 'bg-rose-500 text-white',
       badge: 'Health',
-      tabId: 'dairy'
+      tabId: 'veterinary'
     },
     {
       title: 'Quick Dispense Stock',
@@ -76,6 +76,16 @@ export function MobileBottomNav({
       tabId: 'tea'
     }
   ];
+
+  const isDairyActive =
+    activeTab === 'dairy' ||
+    activeTab === 'dairy_milk' ||
+    activeTab === 'veterinary' ||
+    activeTab === 'breeding' ||
+    activeTab === 'cows' ||
+    activeTab === 'calves' ||
+    activeTab === 'heifers' ||
+    activeTab === 'tmr';
 
   const handleActionClick = (tabId: string) => {
     setSpeedDialOpen(false);
@@ -176,10 +186,10 @@ export function MobileBottomNav({
             type="button"
             onClick={() => onSelectTab(navItems[1].id)}
             className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer border-0 bg-transparent ${
-              activeTab === navItems[1].id ? 'text-emerald-700 font-bold' : 'text-slate-400 hover:text-slate-600'
+              isDairyActive ? 'text-emerald-700 font-bold' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Activity size={20} className={activeTab === navItems[1].id ? 'scale-110 text-emerald-600' : ''} />
+            <Activity size={20} className={isDairyActive ? 'scale-110 text-emerald-600' : ''} />
             <span className="text-[10px] mt-0.5 tracking-tight font-medium">{navItems[1].label}</span>
           </button>
 

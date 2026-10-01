@@ -16,6 +16,7 @@ import { PoultryMortalityHub } from './PoultryMortalityHub';
 import { PoultryAdvisoryHub } from './PoultryAdvisoryHub';
 import { generatePoultryAuditPdf } from './PoultryPdfGenerator';
 import { toIsoDate } from '../../utils/dateHelper';
+import { setPersistentData } from '../../utils/storageDb';
 import {
   Layers, Egg, Stethoscope, AlertTriangle, BookOpen,
   Download, Share2, Plus, Sparkles, TrendingUp
@@ -81,27 +82,19 @@ export function PoultryManager({
 
   // Persistence
   useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_poultry_flocks', JSON.stringify(flocks));
-    } catch {}
+    setPersistentData('jr_farm_poultry_flocks', flocks);
   }, [flocks]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_poultry_eggs', JSON.stringify(eggRecords));
-    } catch {}
+    setPersistentData('jr_farm_poultry_eggs', eggRecords);
   }, [eggRecords]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_poultry_health', JSON.stringify(healthRecords));
-    } catch {}
+    setPersistentData('jr_farm_poultry_health', healthRecords);
   }, [healthRecords]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('jr_farm_poultry_mortality', JSON.stringify(mortalityRecords));
-    } catch {}
+    setPersistentData('jr_farm_poultry_mortality', mortalityRecords);
   }, [mortalityRecords]);
 
   // Flock CRUD
