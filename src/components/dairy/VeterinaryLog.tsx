@@ -8,6 +8,7 @@ import {
   Clock, MapPin, Sparkles, Filter, X
 } from 'lucide-react';
 import { exportToCsv } from '../../utils/csvHelper';
+import { autoDeductInventoryItem, autoPostFinancialTransaction } from '../../utils/inventoryHelper';
 
 interface VeterinaryLogProps {
   vetRecords: VetRecord[];
@@ -105,6 +106,8 @@ export function VeterinaryLog({
   const [vetWithdrawalMilk, setVetWithdrawalMilk] = useState<number | ''>('');
   const [vetWithdrawalMeat, setVetWithdrawalMeat] = useState<number | ''>('');
   const [vetPrognosis, setVetPrognosis] = useState<VetRecord['prognosis']>('Good');
+  const [autoDeductMedicine, setAutoDeductMedicine] = useState(true);
+  const [autoPostExpense, setAutoPostExpense] = useState(true);
 
   // Check for pre-selected animal shortcut from Calves & Heifers board
   React.useEffect(() => {
@@ -384,6 +387,33 @@ export function VeterinaryLog({
     };
 
     onAddVetRecord(newRecord);
+
+    // Cross-module auto-deductions from farm pharmacy
+    if (autoDeductMedicine) {
+      const drugName = vetDrugUsedFromInventory.trim() || vetDrugAdministered.trim();
+      if (drugName) {
+        const parsedDose = parseFloat(vetDosage) || 1;
+        autoDeductInventoryItem(
+          drugName,
+          parsedDose,
+          'Dairy Herd & Parlour',
+          `Treatment for ${vetAnimalCategory} ${vetCowName || vetCowId}: ${effectiveDisease}`,
+          vetStaff
+        );
+      }
+    }
+
+    // Cross-module auto-posting to financial ledger
+    if (autoPostExpense && Number(vetCost) > 0) {
+      autoPostFinancialTransaction({
+        type: 'Expense',
+        category: 'Veterinary & Medicines',
+        amount: Number(vetCost),
+        description: `Vet treatment for ${vetAnimalCategory} ${vetCowName || vetCowId}: ${effectiveDisease} (${effectiveTreatment})`,
+        date: vetDate
+      });
+    }
+
     window.dispatchEvent(new Event('local-storage-update'));
 
     // Reset Form
@@ -1324,6 +1354,34 @@ export function VeterinaryLog({
                     className="w-full text-xs p-3 border border-slate-200 rounded-xl font-medium resize-none focus:border-emerald-500 focus:outline-none"
                   ></textarea>
                 </div>
+              </div>
+            </div>
+
+            {/* CROSS-MODULE AUTOMATION TOGGLES */}
+            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 space-y-2">
+              <h5 className="text-[11px] font-black uppercase text-emerald-900 tracking-wider flex items-center gap-1.5">
+                <Sparkles size={14} className="text-emerald-600" />
+                Cross-Module Automations
+              </h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold select-none">
+                  <input
+                    type="checkbox"
+                    checked={autoDeductMedicine}
+                    onChange={e => setAutoDeductMedicine(e.target.checked)}
+                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                  />
+                  <span>Auto-deduct drug from Pharmacy Inventory</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold select-none">
+                  <input
+                    type="checkbox"
+                    checked={autoPostExpense}
+                    onChange={e => setAutoPostExpense(e.target.checked)}
+                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                  />
+                  <span>Auto-post cost to Financials Ledger</span>
+                </label>
               </div>
             </div>
 

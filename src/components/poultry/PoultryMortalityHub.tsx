@@ -5,6 +5,7 @@ import {
   Search, Filter, ShieldAlert, CheckCircle2, Flame, ArrowDownCircle
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
 
 interface PoultryMortalityHubProps {
   mortalityRecords: PoultryMortalityRecord[];
@@ -150,6 +151,17 @@ export function PoultryMortalityHub({
         notes
       };
       onAddMortalityRecord(newRec, autoDeduct);
+
+      // Cross-module auto-posting for culled bird / table meat revenue
+      if (newRec.revenueCollectedKsh && newRec.revenueCollectedKsh > 0) {
+        autoPostFinancialTransaction({
+          type: 'Income',
+          category: 'Poultry / Meat Sales',
+          amount: newRec.revenueCollectedKsh,
+          description: `Culled Poultry Sale: ${newRec.count} ${newRec.species} from ${newRec.flockName}`,
+          date: newRec.date
+        });
+      }
     }
     setShowModal(false);
   };

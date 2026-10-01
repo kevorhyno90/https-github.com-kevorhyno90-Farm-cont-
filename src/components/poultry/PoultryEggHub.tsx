@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckCircle, ChevronLeft, ChevronRight, DollarSign, Filter
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
 
 interface PoultryEggHubProps {
   eggRecords: PoultryEggRecord[];
@@ -210,6 +211,19 @@ export function PoultryEggHub({
         notes
       };
       onAddEggRecord(newRec);
+
+      // Cross-module auto-posting for egg sales income
+      if (newRec.cratesSold && newRec.cratesSold > 0) {
+        const unitPrice = newRec.pricePerCrate || 380;
+        const totalAmount = newRec.cratesSold * unitPrice;
+        autoPostFinancialTransaction({
+          type: 'Income',
+          category: 'Poultry / Eggs',
+          amount: totalAmount,
+          description: `Egg Sales: ${newRec.cratesSold} crates from ${newRec.flockName} @ Ksh ${unitPrice}/crate`,
+          date: newRec.date
+        });
+      }
     }
     setShowModal(false);
   };

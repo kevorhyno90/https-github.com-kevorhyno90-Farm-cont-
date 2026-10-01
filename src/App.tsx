@@ -52,6 +52,7 @@ import { buildDefaultDeductLogs, buildDefaultDiagnosticHistory, buildDefaultTime
 import { buildReportPdfFilename } from './utils/reportHelper';
 import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { FarmProvider, useFarmState } from './context/FarmContext';
 import { LandingPage } from './components/LandingPage';
 import { auth } from './firebase';
@@ -3042,18 +3043,51 @@ function FarmCoreApp() {
 
     // 4. Warehouse Stock Level Breaches
     inventory.forEach((item) => {
-      if (item.quantity <= item.minStock) {
+      if (item.quantity <= 0) {
+        list.push({
+          id: `inv-zero-${item.id}`,
+          section: 'Stock',
+          title: `🚨 Stock Depleted (OVER): ${item.name}`,
+          body: `Zero stock remaining (0 ${item.unit})! Urgent reorder needed immediately for ${item.category} operations.`,
+          severity: 'high',
+          actionLabel: 'Emergency Restock',
+          actionTab: 'inventory'
+        });
+      } else if (item.quantity <= item.minStock) {
         list.push({
           id: `inv-low-${item.id}`,
           section: 'Stock',
-          title: `📦 Critical Low Stock: ${item.name}`,
-          body: `Current count is down to ${item.quantity} ${item.unit} (Minimum requirement is ${item.minStock} ${item.unit}). Restock immediately to sustain routine feeding and treatments.`,
-          severity: 'high',
+          title: `📦 Low Stock Warning: ${item.name}`,
+          body: `Current count is down to ${item.quantity} ${item.unit} (Safety min: ${item.minStock} ${item.unit}). Restock soon.`,
+          severity: 'medium',
           actionLabel: 'Review Stock',
           actionTab: 'inventory'
         });
       }
     });
+
+    // 4b. Poultry Drug Withdrawal Quarantines
+    try {
+      const poultryHealthStr = localStorage.getItem('jr_farm_poultry_health');
+      if (poultryHealthStr) {
+        const poultryHealth: any[] = JSON.parse(poultryHealthStr);
+        const todayStr = new Date().toISOString().split('T')[0];
+        poultryHealth.forEach((ph) => {
+          if (ph.withdrawalEndDate && ph.withdrawalEndDate >= todayStr && ph.withdrawalPeriodDays > 0) {
+            list.push({
+              id: `poultry-quar-${ph.id}`,
+              section: 'Vet',
+              title: `🚫 Avian Withdrawal Active: ${ph.flockName}`,
+              body: `Food chain withholding for "${ph.drugsOrVaccineUsed}" active until ${ph.withdrawalEndDate}. Strict quarantine: DO NOT harvest eggs or meat for human consumption!`,
+              severity: 'high',
+              date: ph.withdrawalEndDate,
+              actionLabel: 'Check Poultry Health',
+              actionTab: 'poultry'
+            });
+          }
+        });
+      }
+    } catch {}
 
     // 5. Staff Absenteeism
     staffOffRecords.forEach((off) => {
@@ -6790,7 +6824,7 @@ function FarmCoreApp() {
         )}
 
         {/* 4. MAIN CENTRAL PANEL VIEWS CONTROLLER */}
-        <main className="flex-1 p-5 md:p-8 max-w-7xl mx-auto w-full transition-all">
+        <main className="flex-1 p-5 md:p-8 pb-28 md:pb-8 max-w-7xl mx-auto w-full transition-all">
           <React.Suspense fallback={
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <div className="w-12 h-12 border-4 border-emerald-800 border-t-transparent rounded-full animate-spin"></div>
@@ -7871,6 +7905,13 @@ function FarmCoreApp() {
           <span>{appToastMessage}</span>
         </div>
       )}
+      {/* 8. MOBILE-FIRST BOTTOM NAVIGATION & SPEED DIAL */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        activeAlarmsCount={sensitiveSectionAlarms.length}
+      />
+
       <FirebaseSyncer />
     </div>
     </ErrorBoundary>

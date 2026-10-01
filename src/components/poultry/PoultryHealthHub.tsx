@@ -5,6 +5,7 @@ import {
   Calendar, CheckCircle2, Search, Filter, Clock, DollarSign
 } from 'lucide-react';
 import { toIsoDate, offsetIsoDate } from '../../utils/dateHelper';
+import { autoDeductInventoryItem, autoPostFinancialTransaction } from '../../utils/inventoryHelper';
 
 interface PoultryHealthHubProps {
   healthRecords: PoultryHealthRecord[];
@@ -90,6 +91,8 @@ export function PoultryHealthHub({
   const [costKsh, setCostKsh] = useState<number>(1200);
   const [outcome, setOutcome] = useState<'Fully Recovered' | 'Under Treatment' | 'Scheduled Booster' | 'Worsened / Mortality'>('Fully Recovered');
   const [notes, setNotes] = useState<string>('');
+  const [autoDeductStock, setAutoDeductStock] = useState<boolean>(true);
+  const [autoPostCost, setAutoPostCost] = useState<boolean>(true);
 
   React.useEffect(() => {
     if (preselectedFlock) {
@@ -196,6 +199,28 @@ export function PoultryHealthHub({
         notes
       };
       onAddHealthRecord(newRec);
+
+      // Cross-module auto-deductions for poultry pharmaceuticals
+      if (autoDeductStock && drugsOrVaccineUsed) {
+        autoDeductInventoryItem(
+          drugsOrVaccineUsed,
+          1,
+          'Poultry & Avian',
+          `Health treatment for ${flockName}: ${diseaseOrCondition}`,
+          vetOrStaff
+        );
+      }
+
+      // Cross-module financial expense logging
+      if (autoPostCost && Number(costKsh) > 0) {
+        autoPostFinancialTransaction({
+          type: 'Expense',
+          category: 'Poultry / Veterinary',
+          amount: Number(costKsh),
+          description: `Poultry Health: ${diseaseOrCondition} (${drugsOrVaccineUsed}) for ${flockName}`,
+          date: dateRecorded
+        });
+      }
     }
     setShowModal(false);
   };
@@ -670,6 +695,35 @@ export function PoultryHealthHub({
                   />
                 </div>
               </div>
+
+              {/* Automation Toggles */}
+              {!editingRecord && (
+                <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+                  <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider block">
+                    ⚡ Cross-Module Automations
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold select-none">
+                      <input
+                        type="checkbox"
+                        checked={autoDeductStock}
+                        onChange={e => setAutoDeductStock(e.target.checked)}
+                        className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span>Auto-deduct drug from Pharmacy Inventory</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold select-none">
+                      <input
+                        type="checkbox"
+                        checked={autoPostCost}
+                        onChange={e => setAutoPostCost(e.target.checked)}
+                        className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span>Auto-post cost to Financials Ledger</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-2">
                 <button

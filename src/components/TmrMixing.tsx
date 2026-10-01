@@ -5,6 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Truck, Scale, Sparkles, Check, Trash2, ClipboardCheck, Activity, Calendar, FlaskConical, RefreshCw, Layers, Printer, Download } from 'lucide-react';
+import { autoDeductInventoryItem } from '../utils/inventoryHelper';
 
 interface TmrMixingProps {
  onTriggerSectionReport?: (sectionKey: string) => void;
@@ -141,6 +142,30 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  mode: useCustomFormula ? 'Laboratory Formula Mode' : 'Standard Template'
  };
  setMixLogs([newLog, ...mixLogs]);
+
+ // Cross-module auto-deductions from feed store
+ if (useCustomFormula && activeRecipeItems.length > 0) {
+ const totalConcentrateKg = dairyMeal * cowsCount;
+ activeRecipeItems.forEach(item => {
+ const ingredientKg = Math.round((item.ratio / 100) * totalConcentrateKg);
+ if (ingredientKg > 0) {
+ autoDeductInventoryItem(
+ item.name,
+ ingredientKg,
+ 'Dairy Herd & Parlour',
+ `TMR mixing batch (${ingredientKg}kg) for ${cowsCount} cows`
+ );
+ }
+ });
+ } else if (dairyMeal > 0) {
+ const mealTotalKg = Math.round(dairyMeal * cowsCount);
+ autoDeductInventoryItem(
+ 'Dairy Meal',
+ mealTotalKg,
+ 'Dairy Herd & Parlour',
+ `TMR standard mix (${mealTotalKg}kg) for ${cowsCount} cows`
+ );
+ }
  
  // Reset loading milestones
  setLoadedStep1(false);

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { exportToCsv } from '../../utils/csvHelper';
+import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
 
 interface TeaDailyHarvestHubProps {
   teaRecords: TeaRecord[];
@@ -118,6 +119,16 @@ export function TeaDailyHarvestHub({
       onEditTea(editingRef, record);
     } else {
       onAddTea(record);
+      // Auto-post tea harvest delivery income to financial ledger
+      if (record.totalSales > 0) {
+        autoPostFinancialTransaction({
+          type: 'Income',
+          category: 'Tea Sale',
+          amount: record.totalSales,
+          description: `KTDA Tea Delivery: ${record.qty} kg green leaf @ KES ${record.pricePerKg}/kg (Ref: ${record.ref})`,
+          date: record.date
+        });
+      }
     }
 
     setShowModal(false);

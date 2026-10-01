@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { SprayRecord } from '../types';
 import { FlaskConical, AlertTriangle, ShieldCheck, CalendarCheck, Clock, ShieldAlert, Plus, Sparkles, Trash2, Edit2, FileSpreadsheet, Printer, Download } from 'lucide-react';
+import { autoDeductInventoryItem } from '../utils/inventoryHelper';
 
 interface SprayLogProps {
  sprayRecords: SprayRecord[];
@@ -81,6 +82,14 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  nextSprayDate: nextSprayDate || undefined,
  intervalDays: typeof intervalDays === 'number' ? intervalDays : undefined
  });
+
+ // Cross-module auto-deduction from agrochemicals inventory
+ autoDeductInventoryItem(
+ chemical.trim(),
+ 1,
+ 'Horticulture & Crops',
+ `Crop spraying for ${target.trim()} on ${block.trim()}`
+ );
 
  setBlock('');
  setChemical('');
