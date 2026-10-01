@@ -803,6 +803,105 @@ export interface PoultryRecord {
   notes: string;
 }
 
+export type PoultrySpecies = 'Chicken' | 'Duck' | 'Turkey' | 'Quail' | 'Geese' | 'Guinea Fowl' | 'Other';
+export type PoultryStage = 'Chicks / Ducklings' | 'Growers / Pullets' | 'Adults / Layers / Breeders' | 'Broilers / Table Meat';
+export type PoultryProductionState = 
+  | 'Active Egg Laying' 
+  | 'Point of Lay' 
+  | 'Brooding / Nursery' 
+  | 'Growing Stage' 
+  | 'Molting' 
+  | 'Meat Finishing' 
+  | 'Breeding Pen' 
+  | 'Retired / Spent';
+
+export interface PoultryFlock {
+  id: string;
+  flockName: string; // E.g. "Kuroiler Layers Flock A", "Pekin Duck Adults"
+  species: PoultrySpecies;
+  breed: string; // E.g. "Kuroiler", "ISA Brown", "Kenbro", "Kienyeji", "Pekin", "Muscovy"
+  stage: PoultryStage;
+  stateOfProduction: PoultryProductionState;
+  initialCount: number;
+  currentCount: number;
+  hatchDate: string; // YYYY-MM-DD
+  housingPen: string; // E.g. "Coop A - Deep Litter", "Duck Pond Pasture", "Brooder 2"
+  source?: string; // E.g. "Kenchic Hatchery", "Farm Incubation", "Local Breeder"
+  targetWeightKg?: number;
+  targetLayRatePercent?: number; // Target lay % (e.g. 85%)
+  costPerBird?: number; // KSh
+  description?: string;
+  dateAcquired: string; // YYYY-MM-DD
+  status: 'Active' | 'Culled' | 'Sold' | 'Depleted';
+  updatedAt?: string;
+}
+
+export interface PoultryHealthRecord {
+  id: string;
+  flockId: string;
+  flockName: string;
+  species: PoultrySpecies;
+  dateRecorded: string; // YYYY-MM-DD
+  category: 'Vaccination' | 'Disease Treatment' | 'Deworming' | 'Supplementation' | 'Biosecurity Spray';
+  diseaseOrCondition: string; // "Newcastle Disease", "Coccidiosis", "Gumboro (IBD)", "Fowl Pox", "CRD", etc.
+  symptomsObserved: string; // "Bloody diarrhea, ruffled feathers", "Gasping & nasal discharge", etc.
+  drugsOrVaccineUsed: string; // "Amprolium 20%", "Newcastle LaSota", "Oxytetracycline", "Piperazine", etc.
+  dosage: string; // "1g per 2L water for 5 consecutive days"
+  administrationRoute: 'Drinking Water' | 'Eye Drop' | 'Wing Web Stab' | 'Feed Mix' | 'Subcutaneous Injection' | 'Aerosol Spray';
+  affectedCount: number;
+  mortalityInEpisode?: number;
+  withdrawalPeriodDays: number; // Meat and egg safe withdrawal window (days)
+  withdrawalEndDate?: string; // YYYY-MM-DD
+  vetOrStaff: string;
+  costKsh: number;
+  outcome: 'Fully Recovered' | 'Under Treatment' | 'Scheduled Booster' | 'Worsened / Mortality';
+  notes: string;
+}
+
+export interface PoultryMortalityRecord {
+  id: string;
+  flockId: string;
+  flockName: string;
+  species: PoultrySpecies;
+  date: string; // YYYY-MM-DD
+  type: 
+    | 'Mortality (Natural / Disease)' 
+    | 'Culling (Low Production / Spent)' 
+    | 'Culling (Severe Sickness / Humane)' 
+    | 'Predator Attack / Loss' 
+    | 'Accidental / Trauma' 
+    | 'Emergency Slaughter / Table Sale';
+  count: number;
+  primaryCause: string; // E.g. "Coccidiosis", "Newcastle / Respiratory", "Heat Stress / Suffocation", "Low Lay Rate", etc.
+  postMortemSigns?: string; // Necropsy observations
+  disposalMethod: 'Deep Pit Burial with Lime' | 'High-heat Incineration' | 'Sold for Table Meat' | 'Farm Staff Consumption';
+  revenueCollectedKsh?: number;
+  actionTaken?: string;
+  loggedBy: string;
+  notes?: string;
+}
+
+export interface PoultryEggRecord {
+  id: string;
+  flockId: string;
+  flockName: string;
+  species: PoultrySpecies;
+  date: string; // YYYY-MM-DD
+  goodEggsCount: number; // Table eggs ready for market / sale
+  crackedEggsCount: number; // Broken or hair-cracked eggs
+  abnormalEggsCount: number; // Soft shell, deformed, micro eggs
+  totalEggs: number; // good + cracked + abnormal
+  cratesCollected: number; // Math.floor(totalEggs / 30)
+  cratesLooseRemainder: number; // totalEggs % 30
+  layingFlockBirdCount: number;
+  layRatePercentage: number; // (goodEggsCount / layingFlockBirdCount) * 100
+  cratesSold?: number;
+  pricePerCrate?: number; // Default e.g. 380 KSh / tray
+  collectedBy: string;
+  collectionTime?: 'Morning' | 'Afternoon' | 'Combined Daily Total';
+  notes?: string;
+}
+
 export interface QuarantineRecord {
   id: string;
   animalType: 'Cow' | 'Goat' | 'Calf' | 'Poultry' | 'Dog' | 'Other';
