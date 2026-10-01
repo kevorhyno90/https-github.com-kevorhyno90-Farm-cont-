@@ -1,8 +1,8 @@
 {
   "id": "com.nyaronde.jrfarm.estate",
-  "name": "JR Farm Omni-Estate",
-  "short_name": "JR Farm",
-  "description": "Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.",
+  "name": "JR BioFarm Nexus",
+  "short_name": "JR BioFarm",
+  "description": "Comprehensive estate, livestock, and crop export management platform for JR BioFarm Nexus, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -52,7 +52,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Omni-Estate Command Center Dashboard View"
+      "label": "JR BioFarm Nexus Command Center Dashboard View"
     },
     {
       "src": "/icon-512.png",

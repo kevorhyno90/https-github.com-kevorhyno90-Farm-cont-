@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- * JR Farm Omni-Estate - Export Avocado Disease, Chemical & Agronomic Reference Guide
+ * JR BioFarm Nexus - Export Avocado Disease, Chemical & Agronomic Reference Guide
  * Stamped & Approved by: Dr. Devin Omwenga (General Farm Manager)
  */
 

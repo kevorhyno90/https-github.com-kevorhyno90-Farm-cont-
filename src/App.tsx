@@ -6007,7 +6007,7 @@ function FarmCoreApp() {
             </div>
             {!slimSidebar && (
               <>
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{getStoredSettings()?.estateName || "JR Farm Omni-Estate"}</h1>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">{getStoredSettings()?.estateName || "JR BioFarm Nexus"}</h1>
                 <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1 font-sans">
                   Manager: {getStoredSettings()?.administrator || "Dr. Devin Omwenga"}
                 </p>
@@ -6220,9 +6220,9 @@ function FarmCoreApp() {
               <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 mb-5 shadow-inner">
                 <Monitor size={40} className="animate-pulse" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">Install JR Farm</h3>
+              <h3 className="text-2xl font-black text-slate-800 mb-3 uppercase tracking-tight">Install JR BioFarm Nexus</h3>
               <p className="text-sm text-slate-500 mb-8 font-semibold leading-relaxed">
-                Install the JR Farm Omni-Estate app on your device for lightning-fast offline access and a premium native experience!
+                Install the JR BioFarm Nexus app on your device for lightning-fast offline access and a premium native experience!
               </p>
               <div className="flex flex-col w-full gap-3">
                 <button 
@@ -6636,7 +6636,7 @@ function FarmCoreApp() {
                   ? 'bg-teal-600 hover:bg-teal-500 text-white border-teal-500 shadow-sm shadow-teal-500/20' 
                   : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:text-slate-900 shadow-xs'
               }`}
-              title="Install JR Farm Omni-Estate as a standalone desktop/mobile application"
+              title="Install JR BioFarm Nexus as a standalone desktop/mobile application"
             >
               <Monitor size={13} className={isInstallable ? 'text-teal-100 animate-pulse' : 'text-teal-700'} />
               <span>Install App</span>

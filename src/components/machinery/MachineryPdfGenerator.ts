@@ -148,7 +148,7 @@ export function generateMachineryAuditPdf(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
-  doc.text('JR Farm Omni-Estate Workshop & Fleet Engineering Division • Preventive Maintenance Standards Active', 35, yPos + 28);
+  doc.text('JR BioFarm Nexus Workshop & Fleet Engineering Division • Preventive Maintenance Standards Active', 35, yPos + 28);
 
   doc.save(`JR_Farm_Machinery_Fleet_Audit_${toIsoDate(new Date())}.pdf`);
 }

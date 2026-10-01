@@ -478,7 +478,7 @@ export function Horticulture({
  </div>
  <div>
  <span className="text-[8px]  tracking-wide text-gray-900 font-medium block">Sovereign Farm Site:</span>
- <span className="text-[10px] font-semibold text-gray-900 block">JR Farm Omni-Estate, Nyamira</span>
+ <span className="text-[10px] font-semibold text-gray-900 block">JR BioFarm Nexus, Nyamira</span>
  </div>
  <div>
  <span className="text-[8px]  tracking-wide text-gray-900 font-medium block">Audit GlobalGAP ID:</span>

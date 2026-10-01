@@ -708,7 +708,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  <h5 className="text-sm font-semibold  text-gray-900">PC & Mobile App Installation Center (PWA)</h5>
  </div>
  <p className="text-[11px] text-gray-500 mt-1 font-semibold leading-relaxed">
- JR Farm Omni-Estate is built as an offline-first, light-speed Progressive Web App. Install it on your computer or smartphone to use it offline, run in full-screen standalone mode, and save desktop space.
+ JR BioFarm Nexus is built as an offline-first, light-speed Progressive Web App. Install it on your computer or smartphone to use it offline, run in full-screen standalone mode, and save desktop space.
  </p>
  </div>
 
@@ -757,7 +757,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  className="w-full sm:w-auto px-5 py-2.5 bg-teal-950 hover:bg-teal-900 text-gray-900 text-xs tracking-tight font-semibold rounded-xl transition-all border-0 cursor-pointer flex items-center justify-center gap-2 m-0 shadow-sm"
  >
  <Download size={13} />
- Install JR Farm Omni-Estate Now
+ Install JR BioFarm Nexus Now
  </button>
  ) : (
  <p className="text-xs text-teal-800 font-semibold italic">
@@ -970,7 +970,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  value={settings.playstoreAppTitle}
  onChange={(e) => handleUpdate('playstoreAppTitle', e.target.value)}
  className="border border-gray-200 rounded-xl p-2.5 w-full text-xs font-bold focus:ring-1 focus:ring-blue-500 bg-white shadow-sm "
- placeholder="e.g. JR Farm Omni-Estate Manager"
+ placeholder="e.g. JR BioFarm Nexus Manager"
  />
  <span className="text-[9px] text-gray-900 font-medium font-semibold block mt-1">Official user-facing app name on Google Play</span>
  </div>

@@ -115,7 +115,7 @@ export function Dashboard({
  const terms: Record<string, string> = {
  "Sovereign Compliance Registered": "Kumbukumbu ya Uthibitisho wa Shamba",
  "GlobalGAP Plot: KT-205A": "Kitalu cha Kimataifa cha GAP: KT-205A",
- "JR Farm Omni-Estate": "Mamlaka ya Mashamba ya JR Farm",
+ "JR BioFarm Nexus": "Mamlaka ya Mashamba ya JR BioFarm Nexus",
  "Comprehensive estate, livestock, and crop export management platform for JR Farm, including feed formulation, dairy ledger, GlobalGAP spray logs, and financials.": 
  "Mfumo uliounganishwa wa usimamizi wa mashamba, mifugo, na usafirishaji wa mazao wa JR Farm, ikijumuisha uundaji wa chakula cha mifugo, daftari la maziwa, kumbukumbu za dawa za GlobalGAP, na hesabu za fedha.",
  "Management Core": "Kiini cha Utawala",
@@ -382,7 +382,7 @@ export function Dashboard({
  transition={{ delay: 0.4 }}
  className="text-2xl md:text-5xl font-semibold text-gray-900"
  >
- {t("JR Farm Omni-Estate")}
+ {t("JR BioFarm Nexus")}
  </motion.h1>
  <motion.p 
  initial={{ opacity: 0 }}
@@ -573,7 +573,7 @@ export function Dashboard({
  </div>
  <h4 className="text-sm font-semibold text-gray-500 tracking-wide">PWA Mobile Shortcut</h4>
  <p className="text-[11px] text-gray-900 font-medium mt-2 leading-relaxed font-semibold">
- Pin JR Farm Omni-Estate directly to your mobile phone home screen. Works offline with lightning speed.
+ Pin JR BioFarm Nexus directly to your mobile phone home screen. Works offline with lightning speed.
  </p>
  </div>
  <button

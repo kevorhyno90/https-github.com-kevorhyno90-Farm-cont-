@@ -92,8 +92,8 @@ export default defineConfig(() => {
           'push-worker.js'
         ],
         manifest: {
-          name: 'JR Farm Omni-Estate',
-          short_name: 'JR Farm',
+          name: 'JR BioFarm Nexus',
+          short_name: 'JR BioFarm',
           description: 'Comprehensive Farm Management Application (Full Offline Support)',
           theme_color: '#022c22',
           background_color: '#022c22',

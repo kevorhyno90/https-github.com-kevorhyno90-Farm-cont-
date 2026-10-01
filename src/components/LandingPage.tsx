@@ -52,12 +52,12 @@ export function LandingPage({ onEnter }: LandingPageProps) {
 
  {/* Text Section */}
  <div className="text-center mb-12 space-y-4">
- <h1 className="text-4xl sm:text-5xl font-semibold text-gray-900">
- JR Farm Estate
- </h1>
- <p className="text-gray-900 font-medium text-lg sm:text-xl font-medium tracking-wide">
- Omni-Estate Management System
- </p>
+        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
+          JR BioFarm Nexus
+        </h1>
+        <p className="text-gray-900 font-medium text-lg sm:text-xl tracking-wide">
+          Enterprise Agribusiness & Ecosystem Platform
+        </p>
  </div>
 
  {/* Feature Badges */}

@@ -36,7 +36,7 @@ export const DEFAULT_SETTINGS: FarmSettings = {
   latitude: -0.5667,
   longitude: 34.9333,
   playstorePackageId: 'com.nyaronde.jrfarm.estate',
-  playstoreAppTitle: 'JR Farm Omni-Estate Manager',
+  playstoreAppTitle: 'JR BioFarm Nexus Manager',
   admobBannerUnitId: 'ca-app-pub-3940256099942544/6300978111',
   admobInterstitialUnitId: 'ca-app-pub-3940256099942544/1033173712',
   monetizationStrategy: 'Ad Supported (AdMob)',

@@ -305,7 +305,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  });
 
  const p2pData = {
- app: "JR Farm Omni-Estate Platform",
+ app: "JR BioFarm Nexus Platform",
  version: "1.2.0",
  p2p: true,
  generatedAt: new Date().toISOString(),
@@ -643,7 +643,7 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
 
  const backupPayload: Record<string, any> = {
  metadata: {
- app: "JR Farm Omni-Estate Platform",
+ app: "JR BioFarm Nexus Platform",
  version: "1.2.0",
  exportedAt: new Date().toISOString(),
  designer: "Dr. Devin Omwenga & AI Builder",

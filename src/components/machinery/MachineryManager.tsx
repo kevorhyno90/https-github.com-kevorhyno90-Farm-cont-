@@ -170,7 +170,7 @@ export function MachineryManager({
 🚨 *Overdue for Service:* ${overdueCount} Units
 💰 *Total Maintenance Spend:* KES ${Math.round(totalServiceSpend).toLocaleString()}
 👨‍🔧 *Approved by:* Dr. Devin Omwenga (General Farm Manager)
-Estate: JR Farm Omni-Estate Engineering & Workshop`;
+Estate: JR BioFarm Nexus Engineering & Workshop`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
