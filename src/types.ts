@@ -257,16 +257,63 @@ export interface FieldRecord {
   datePlanted?: string;
 }
 
+export type InventoryCategory = 
+  | 'Feeds & Raw Ingredients'
+  | 'Veterinary & Animal Drugs'
+  | 'Crop Protection & Agrochemicals'
+  | 'Farm Tools & Implements'
+  | 'Machinery & Milking Equipment'
+  | 'Detergents & Biosecurity Hygiene'
+  | 'Feed'
+  | 'Chemical'
+  | 'Machine Parts'
+  | 'Tools'
+  | 'Fencing'
+  | 'Fertilizer';
+
 export interface InventoryItem {
   id: string;
   name: string;
-  category: 'Feed' | 'Chemical' | 'Machine Parts' | 'Tools' | 'Fencing' | 'Fertilizer';
+  category: InventoryCategory;
   quantity: number;
-  unit: string; // "bags", "liters", "KG", "units"
+  unit: string; // "bags (50kg)", "litres", "KG", "bottles (100ml)", "units/pieces", "doses", "sachets"
   minStock: number;
   dateReceived?: string; // YYYY-MM-DD
-  location?: string; // e.g. "Store Alpha", "Workshop A", etc.
-  expiryDate?: string; // optional YYYY-MM-DD
+  location?: string; // e.g. "Feed Warehouse Bay 2", "Vet Pharmacy Cabinet", "Chemical Shed", "Parlour Wash Bay"
+  expiryDate?: string; // YYYY-MM-DD
+  intendedUse?: string; // e.g. "Post-milking teat dip", "Late blight fungicide", "High protein lactating cow feed"
+  unitCostKes?: number;
+  supplier?: string;
+  batchNumber?: string;
+  lastUsedDate?: string;
+  lastRestockedDate?: string;
+  notes?: string;
+}
+
+export type InventorySectionTarget = 
+  | 'Dairy Herd & Parlour'
+  | 'Poultry & Avian'
+  | 'Horticulture & Crops'
+  | 'Goat Dairy'
+  | 'Calf Nursery'
+  | 'Canines & Security'
+  | 'General Farm Operations';
+
+export interface InventoryMovementLog {
+  id: string;
+  itemId: string;
+  itemName: string;
+  category: string;
+  movementType: 'Consumption / Usage' | 'Restock / Purchase' | 'Adjustment / Audit' | 'Expired Disposal';
+  quantityChanged: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  unit: string;
+  usedBySection: InventorySectionTarget;
+  purposeOrReason: string;
+  loggedBy: string;
+  date: string; // YYYY-MM-DD
+  costKes?: number;
 }
 
 export interface MachineItem {
