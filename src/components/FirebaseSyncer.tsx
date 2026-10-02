@@ -63,11 +63,18 @@ const timeoutPromise = <T,>(p: Promise<T>, ms: number): Promise<T> => {
 function computeDatabaseHash(payload: Record<string, any>): string {
   try {
     const keys = Object.keys(payload).sort();
-    let str = '';
+    let hash = 5381;
     for (const k of keys) {
-      str += k + ':' + JSON.stringify(payload[k]) + ';';
+      for (let j = 0; j < k.length; j++) {
+        hash = ((hash << 5) + hash) + k.charCodeAt(j);
+      }
+      const valStr = typeof payload[k] === 'string' ? payload[k] : JSON.stringify(payload[k]);
+      for (let j = 0; j < valStr.length; j++) {
+        hash = ((hash << 5) + hash) + valStr.charCodeAt(j);
+      }
+      hash = hash & hash;
     }
-    return str;
+    return String(hash);
   } catch {
     return String(Date.now());
   }
@@ -295,29 +302,11 @@ export function FirebaseSyncer() {
                 if (k === 'jr_farm_device_persistent_id' || k === '_device_instance_uuid') return;
                 const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
                 const currentLocal = localStorage.getItem(k);
-                if (!areJsonStringsEqual(currentLocal, stringVal)) {
+                if (currentLocal !== stringVal && !areJsonStringsEqual(currentLocal, stringVal)) {
                   didChange = true;
                   nativeSetItem(k, stringVal);
                 }
               });
-
-              // Clean up keys deleted entirely from cloud
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (
-                  key &&
-                  key.startsWith('jr_farm_') &&
-                  key !== 'jr_farm_cloud_last_synced_at' &&
-                  key !== 'jr_farm_cloud_sync_key' &&
-                  key !== 'jr_farm_device_persistent_id' &&
-                  key !== 'jr_farm_cloud_sync_enabled'
-                ) {
-                  if (payloadToApply[key] === undefined && localStorage.getItem(key) !== null) {
-                    didChange = true;
-                    localStorage.removeItem(key);
-                  }
-                }
-              }
             }
           }
         } catch (e) {
@@ -328,7 +317,6 @@ export function FirebaseSyncer() {
       if (didChange) {
         lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
         window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
-        window.dispatchEvent(new Event('storage'));
         setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
         setTimeout(() => setSyncToast(null), 3500);
         updateSyncStatus('success');
@@ -476,34 +464,15 @@ export function FirebaseSyncer() {
           if (k === 'jr_farm_device_persistent_id' || k === '_device_instance_uuid') return;
           const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
           const currentLocal = localStorage.getItem(k);
-          if (!areJsonStringsEqual(currentLocal, stringVal)) {
+          if (currentLocal !== stringVal && !areJsonStringsEqual(currentLocal, stringVal)) {
             didChange = true;
             nativeSetItem(k, stringVal);
           }
         });
 
-        // Clean up keys deleted entirely from cloud
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (
-            key &&
-            key.startsWith('jr_farm_') &&
-            key !== 'jr_farm_cloud_last_synced_at' &&
-            key !== 'jr_farm_cloud_sync_key' &&
-            key !== 'jr_farm_device_persistent_id' &&
-            key !== 'jr_farm_cloud_sync_enabled'
-          ) {
-            if (payloadToApply[key] === undefined && localStorage.getItem(key) !== null) {
-              didChange = true;
-              localStorage.removeItem(key);
-            }
-          }
-        }
-
         if (didChange) {
           lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
           window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
-          window.dispatchEvent(new Event('storage'));
           setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
           setTimeout(() => setSyncToast(null), 4000);
           updateSyncStatus('success');

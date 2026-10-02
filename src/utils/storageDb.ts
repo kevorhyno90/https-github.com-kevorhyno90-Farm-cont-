@@ -85,7 +85,11 @@ export function getPersistentData<T>(key: string, fallback: T): T {
  */
 export function setPersistentData<T>(key: string, value: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    if (localStorage.getItem(key) === serialized) {
+      return;
+    }
+    localStorage.setItem(key, serialized);
   } catch (err: any) {
     // If localStorage quota exceeded, clear non-critical caches and save to IndexedDB
     if (err?.name === 'QuotaExceededError' || err?.code === 22) {

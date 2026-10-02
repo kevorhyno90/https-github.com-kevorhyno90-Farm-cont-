@@ -63,10 +63,8 @@ export function TeaWeeklyPayoutHub({
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 

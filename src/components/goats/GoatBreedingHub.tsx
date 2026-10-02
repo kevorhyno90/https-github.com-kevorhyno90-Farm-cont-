@@ -81,10 +81,8 @@ export function GoatBreedingHub({ goats = [], staffList = [], onKidBorn }: GoatB
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 

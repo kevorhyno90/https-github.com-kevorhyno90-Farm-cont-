@@ -110,7 +110,13 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
 
     deferredMixLogWriteRef.current = window.setTimeout(() => {
       deferredMixLogWriteRef.current = null;
-      localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
+      try {
+        const serialized = JSON.stringify(mixLogs);
+        if (localStorage.getItem('jr_farm_tmr_mix_logs') === serialized) return;
+        localStorage.setItem('jr_farm_tmr_mix_logs', serialized);
+      } catch (err) {
+        console.error('Failed to save TMR mix logs', err);
+      }
     }, 0);
 
     return () => {
@@ -132,15 +138,13 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
       } finally {
         setTimeout(() => {
           isRemoteSyncingMixRef.current = false;
-        }, 300);
+        }, 500);
       }
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 

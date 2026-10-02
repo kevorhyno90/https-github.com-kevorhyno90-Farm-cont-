@@ -589,36 +589,24 @@ export function CaninesManager({
   });
 
   // Sync to LocalStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(dogs));
-  }, [dogs]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.VACCINES, JSON.stringify(vaccines));
-  }, [vaccines]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TREATMENTS, JSON.stringify(treatments));
-  }, [treatments]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PATROLS, JSON.stringify(patrols));
-  }, [patrols]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TRAINING, JSON.stringify(training));
-  }, [training]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FEEDING, JSON.stringify(feeding));
-  }, [feeding]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.BREEDING, JSON.stringify(breeding));
-  }, [breeding]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.BIOSECURITY, JSON.stringify(biosecurity));
-  }, [biosecurity]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
-  }, [sales]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.MORTALITY, JSON.stringify(mortalities));
-  }, [mortalities]);
+  const safeSave = (key: string, data: any) => {
+    try {
+      const serialized = JSON.stringify(data);
+      if (localStorage.getItem(key) === serialized) return;
+      localStorage.setItem(key, serialized);
+    } catch {}
+  };
+
+  useEffect(() => { safeSave(STORAGE_KEYS.PROFILES, dogs); }, [dogs]);
+  useEffect(() => { safeSave(STORAGE_KEYS.VACCINES, vaccines); }, [vaccines]);
+  useEffect(() => { safeSave(STORAGE_KEYS.TREATMENTS, treatments); }, [treatments]);
+  useEffect(() => { safeSave(STORAGE_KEYS.PATROLS, patrols); }, [patrols]);
+  useEffect(() => { safeSave(STORAGE_KEYS.TRAINING, training); }, [training]);
+  useEffect(() => { safeSave(STORAGE_KEYS.FEEDING, feeding); }, [feeding]);
+  useEffect(() => { safeSave(STORAGE_KEYS.BREEDING, breeding); }, [breeding]);
+  useEffect(() => { safeSave(STORAGE_KEYS.BIOSECURITY, biosecurity); }, [biosecurity]);
+  useEffect(() => { safeSave(STORAGE_KEYS.SALES, sales); }, [sales]);
+  useEffect(() => { safeSave(STORAGE_KEYS.MORTALITY, mortalities); }, [mortalities]);
 
   // Modals state
   const [modalType, setModalType] = useState<

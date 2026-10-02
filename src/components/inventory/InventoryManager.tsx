@@ -137,7 +137,9 @@ export function InventoryManager({
   useEffect(() => {
     if (isRemoteSyncingInvRef.current) return;
     try {
-      localStorage.setItem('jr_farm_inventory_movements', JSON.stringify(movementLogs));
+      const serialized = JSON.stringify(movementLogs);
+      if (localStorage.getItem('jr_farm_inventory_movements') === serialized) return;
+      localStorage.setItem('jr_farm_inventory_movements', serialized);
     } catch {}
   }, [movementLogs]);
 
@@ -153,15 +155,13 @@ export function InventoryManager({
       } finally {
         setTimeout(() => {
           isRemoteSyncingInvRef.current = false;
-        }, 300);
+        }, 500);
       }
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 

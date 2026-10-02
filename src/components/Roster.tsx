@@ -143,7 +143,9 @@ export function Roster({
   useEffect(() => {
     if (isRemoteSyncingRef.current) return;
     try {
-      localStorage.setItem('jr_farm_attendance_records', JSON.stringify(dailyAttendanceMap));
+      const serialized = JSON.stringify(dailyAttendanceMap);
+      if (localStorage.getItem('jr_farm_attendance_records') === serialized) return;
+      localStorage.setItem('jr_farm_attendance_records', serialized);
     } catch (err) {
       console.error('Failed to persist attendance records', err);
     }
@@ -164,7 +166,9 @@ export function Roster({
   useEffect(() => {
     if (isRemoteSyncingRef.current) return;
     try {
-      localStorage.setItem('jr_farm_weekly_shifts', JSON.stringify(weeklyShifts));
+      const serialized = JSON.stringify(weeklyShifts);
+      if (localStorage.getItem('jr_farm_weekly_shifts') === serialized) return;
+      localStorage.setItem('jr_farm_weekly_shifts', serialized);
     } catch (err) {
       console.error('Failed to persist weekly shifts', err);
     }
@@ -184,15 +188,13 @@ export function Roster({
       } finally {
         setTimeout(() => {
           isRemoteSyncingRef.current = false;
-        }, 300);
+        }, 500);
       }
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 

@@ -81,26 +81,33 @@ export function PoultryManager({
   // Preselected flock for cross-hub routing
   const [targetedFlock, setTargetedFlock] = useState<PoultryFlock | null>(null);
 
+  const isRemoteSyncingRef = React.useRef(false);
+
   // Persistence
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     setPersistentData('jr_farm_poultry_flocks', flocks);
   }, [flocks]);
 
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     setPersistentData('jr_farm_poultry_eggs', eggRecords);
   }, [eggRecords]);
 
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     setPersistentData('jr_farm_poultry_health', healthRecords);
   }, [healthRecords]);
 
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     setPersistentData('jr_farm_poultry_mortality', mortalityRecords);
   }, [mortalityRecords]);
 
   // Live remote sync listener to reload poultry datasets when changed on PC or Phone
   useEffect(() => {
     const handleRemoteSync = () => {
+      isRemoteSyncingRef.current = true;
       try {
         const fSaved = localStorage.getItem('jr_farm_poultry_flocks');
         if (fSaved) setFlocks(JSON.parse(fSaved));
@@ -112,14 +119,16 @@ export function PoultryManager({
         if (mSaved) setMortalityRecords(JSON.parse(mSaved));
       } catch (err) {
         console.error("Failed to reload poultry records on remote sync", err);
+      } finally {
+        setTimeout(() => {
+          isRemoteSyncingRef.current = false;
+        }, 500);
       }
     };
 
     window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-    window.addEventListener('storage', handleRemoteSync);
     return () => {
       window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
-      window.removeEventListener('storage', handleRemoteSync);
     };
   }, []);
 
