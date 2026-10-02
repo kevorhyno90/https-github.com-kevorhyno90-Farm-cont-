@@ -394,12 +394,14 @@ export function FirebaseSyncer() {
     lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
   }, []);
 
-  // CRITICAL: Pull immediately on initial app mount so PC gets phone data right away!
+  // Safety startup sync: Run delayed fallback pull so UI renders smoothly first
   useEffect(() => {
     if (!canUseCloud || initialSyncDoneRef.current) return;
     initialSyncDoneRef.current = true;
-    console.log(`[Autosync] Initial startup pull from cloud room: ${farmId}`);
-    pullAndMergeFromCloud(false);
+    const timer = setTimeout(() => {
+      pullAndMergeFromCloud(false);
+    }, 2500);
+    return () => clearTimeout(timer);
   }, [farmId, canUseCloud]);
 
   // Window Focus & Visibility Change: Auto-pull whenever user switches to this window!

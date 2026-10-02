@@ -1,11 +1,4 @@
 import { initializeApp } from "firebase/app";
-import {
-  getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
-  type Firestore
-} from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
@@ -22,24 +15,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const isFirestoreSyncEnabled = String(import.meta.env.VITE_ENABLE_FIRESTORE_SYNC || 'true').toLowerCase() === 'true';
-let db: Firestore | null = null;
-if (isFirestoreSyncEnabled) {
-  try {
-    db = initializeFirestore(app, {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-      })
-    });
-  } catch (error) {
-    try {
-      db = getFirestore(app);
-    } catch (e) {
-      console.warn('[Firebase] Firestore init failed. Cloud sync will be disabled.', e);
-      db = null;
-    }
-  }
-}
+const isFirestoreSyncEnabled = true;
+const db: any = null;
 const realtimeDb = getDatabase(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();

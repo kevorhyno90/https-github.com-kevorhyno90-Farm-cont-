@@ -44,19 +44,20 @@ import {
   Monitor
 } from 'lucide-react';
 
-import { realtimeDb, db, isFirestoreSyncEnabled } from './firebase';
+import { realtimeDb, isFirestoreSyncEnabled } from './firebase';
 import { ref, push, set } from 'firebase/database';
 import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
 import { toIsoDate } from './utils/dateHelper';
 import { buildDefaultDeductLogs, buildDefaultDiagnosticHistory, buildDefaultTimetable } from './utils/appFallbacks';
 import { buildReportPdfFilename } from './utils/reportHelper';
-import { AiAdvisor } from './components/AiAdvisor';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { FarmProvider, useFarmState } from './context/FarmContext';
-import { LandingPage } from './components/LandingPage';
 import { auth } from './firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+
+const LandingPage = React.lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
+const AiAdvisor = React.lazy(() => import('./components/AiAdvisor').then(m => ({ default: m.AiAdvisor })));
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
 const ROOM_SYNC_KEY_STORAGE_KEY = 'jr_farm_cloud_sync_key';
@@ -293,11 +294,17 @@ export default function App() {
 
   return (
     <FarmProvider>
-      {!hasEnteredApp ? (
-        <LandingPage onEnter={handleEnter} />
-      ) : (
-        <FarmCoreApp />
-      )}
+      <React.Suspense fallback={
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+        </div>
+      }>
+        {!hasEnteredApp ? (
+          <LandingPage onEnter={handleEnter} />
+        ) : (
+          <FarmCoreApp />
+        )}
+      </React.Suspense>
     </FarmProvider>
   );
 }
@@ -785,7 +792,7 @@ function FarmCoreApp() {
     ? { label: 'SYNC LOCKED', tone: 'text-slate-600 bg-slate-100 border-slate-200' }
     : !userCloudSyncEnabled
       ? { label: 'SYNC PAUSED', tone: 'text-amber-800 bg-amber-50 border-amber-200' }
-      : !db
+      : !realtimeDb
         ? { label: 'SYNC OFFLINE', tone: 'text-rose-800 bg-rose-50 border-rose-200' }
         : { label: 'SYNC ENABLED', tone: 'text-emerald-800 bg-emerald-50 border-emerald-200' };
     const headerRoomSyncStatus = !isOnline
@@ -7817,16 +7824,18 @@ function FarmCoreApp() {
       )}
 
       {/* Sovereign AI Advisor Bot overlay icon / panel */}
-      <AiAdvisor 
-        farmState={{
-          cowsCount: livestock ? livestock.length : 0,
-          milkTotal: milkRecords ? milkRecords.reduce((sum, r) => sum + (r.am || 0) + (r.pm || 0), 0) : 0,
-          fieldsCount: fields ? fields.length : 0,
-          staffCount: staffList ? staffList.length : 0,
-          income: totalIncome,
-          expense: totalExpense
-        }} 
-      />
+      <React.Suspense fallback={null}>
+        <AiAdvisor 
+          farmState={{
+            cowsCount: livestock ? livestock.length : 0,
+            milkTotal: milkRecords ? milkRecords.reduce((sum, r) => sum + (r.am || 0) + (r.pm || 0), 0) : 0,
+            fieldsCount: fields ? fields.length : 0,
+            staffCount: staffList ? staffList.length : 0,
+            income: totalIncome,
+            expense: totalExpense
+          }} 
+        />
+      </React.Suspense>
 
       {/* 6. FAIL-SAFE ALARM MODAL FOR HIGH PRIORITY SENSITIVE REMINDERS */}
       {failSafeNotificationModal && (

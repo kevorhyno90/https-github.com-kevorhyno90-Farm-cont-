@@ -9,10 +9,20 @@
     <link rel="icon" type="image/png" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.json?v=5" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://dairy-farm-app-b95a9-default-rtdb.firebaseio.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="initial-splash" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#022c22;color:#ffffff;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;z-index:99999;">
+        <div style="width:50px;height:50px;border:3px solid rgba(16,185,129,0.25);border-top-color:#10b981;border-radius:50%;animation:farmSpin 0.75s linear infinite;"></div>
+        <div style="margin-top:20px;font-size:16px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#34d399;">JR BioFarm Nexus</div>
+        <div style="margin-top:6px;font-size:12px;color:#a7f3d0;letter-spacing:0.06em;opacity:0.85;">Initializing Operations...</div>
+        <style>@keyframes farmSpin{to{transform:rotate(360deg)}}</style>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

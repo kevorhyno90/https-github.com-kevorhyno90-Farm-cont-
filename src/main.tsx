@@ -16,64 +16,7 @@ if (typeof window !== 'undefined' && typeof Range !== 'undefined') {
   };
 }
 
-// Register PWA Service Worker for offline resilience only in production
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('📱 ServiceWorker registration successful with scope: ', registration.scope);
-        // Only check for updates when device has active internet connectivity
-        const safeUpdate = () => {
-          if (typeof navigator !== 'undefined' && navigator.onLine) {
-            registration.update().catch(() => {});
-          }
-        };
-
-        // Actively check for updates immediately upon load if online
-        safeUpdate();
-
-        // Re-check for new updates whenever the app is reopened, tab is focused, or screen wakes up
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            safeUpdate();
-          }
-        });
-        window.addEventListener('focus', () => {
-          safeUpdate();
-        });
-
-        // Periodic update check only if online
-        setInterval(() => {
-          safeUpdate();
-        }, 60 * 1000);
-
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('⚡ New update ready, requesting activation...');
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-              }
-            });
-          }
-        });
-      })
-      .catch((err) => {
-        console.error('❌ ServiceWorker registration failed: ', err);
-      });
-  });
-
-  // Automatically refresh clients when a new service worker takes control
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      console.log('⚡ New ServiceWorker activated! Refreshing application to latest build...');
-      window.location.reload();
-    }
-  });
-} else if ('serviceWorker' in navigator && import.meta.env.DEV) {
+if ('serviceWorker' in navigator && import.meta.env.DEV) {
   // Unregister any existing service workers in development mode to prevent caching conflicts
   navigator.serviceWorker.getRegistrations().then(registrations => {
     for (let registration of registrations) {
