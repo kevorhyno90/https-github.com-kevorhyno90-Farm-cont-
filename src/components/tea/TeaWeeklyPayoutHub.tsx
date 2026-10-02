@@ -4,7 +4,7 @@ import {
   Calendar, DollarSign, CheckCircle2, Clock, Users,
   Leaf, ChevronDown, ChevronUp, FileSpreadsheet, Send, ShieldCheck
 } from 'lucide-react';
-import { useFarmState } from '../../context/FarmContext';
+import { useFarmState, REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
 import { exportToCsv } from '../../utils/csvHelper';
 
 interface TeaWeeklyPayoutHubProps {
@@ -53,6 +53,22 @@ export function TeaWeeklyPayoutHub({
       return {};
     }
   });
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const saved = localStorage.getItem('jr_farm_tea_weekly_disbursed');
+        if (saved) setDisbursedWeeks(JSON.parse(saved));
+      } catch {}
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   // Group tea records by Saturday of that week
   const weekGroups: WeekGroup[] = React.useMemo(() => {

@@ -60,6 +60,8 @@ const DEFAULT_BREEDINGS: GoatBreedingRecord[] = [
   }
 ];
 
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+
 export function GoatBreedingHub({ goats = [], staffList = [], onKidBorn }: GoatBreedingHubProps) {
   const [breedings, setBreedings] = useState<GoatBreedingRecord[]>(() => {
     try {
@@ -69,6 +71,22 @@ export function GoatBreedingHub({ goats = [], staffList = [], onKidBorn }: GoatB
       return DEFAULT_BREEDINGS;
     }
   });
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const stored = localStorage.getItem('jr_farm_goat_breedings');
+        if (stored) setBreedings(JSON.parse(stored));
+      } catch {}
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);

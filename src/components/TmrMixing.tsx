@@ -6,6 +6,7 @@
 import React, { useState, useRef } from 'react';
 import { Truck, Scale, Sparkles, Check, Trash2, ClipboardCheck, Activity, Calendar, FlaskConical, RefreshCw, Layers, Printer, Download } from 'lucide-react';
 import { autoDeductInventoryItem } from '../utils/inventoryHelper';
+import { REMOTE_SYNC_APPLIED_EVENT } from '../context/FarmContext';
 
 interface TmrMixingProps {
  onTriggerSectionReport?: (sectionKey: string) => void;
@@ -99,23 +100,49 @@ export function TmrMixing({ onTriggerSectionReport }: TmrMixingProps = {}) {
  ];
  });
 
- React.useEffect(() => {
- if (deferredMixLogWriteRef.current !== null) {
- window.clearTimeout(deferredMixLogWriteRef.current);
- }
+  const isRemoteSyncingMixRef = useRef(false);
 
- deferredMixLogWriteRef.current = window.setTimeout(() => {
- deferredMixLogWriteRef.current = null;
- localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
- }, 0);
+  React.useEffect(() => {
+    if (isRemoteSyncingMixRef.current) return;
+    if (deferredMixLogWriteRef.current !== null) {
+      window.clearTimeout(deferredMixLogWriteRef.current);
+    }
 
- return () => {
- if (deferredMixLogWriteRef.current !== null) {
- window.clearTimeout(deferredMixLogWriteRef.current);
- deferredMixLogWriteRef.current = null;
- }
- };
- }, [mixLogs]);
+    deferredMixLogWriteRef.current = window.setTimeout(() => {
+      deferredMixLogWriteRef.current = null;
+      localStorage.setItem('jr_farm_tmr_mix_logs', JSON.stringify(mixLogs));
+    }, 0);
+
+    return () => {
+      if (deferredMixLogWriteRef.current !== null) {
+        window.clearTimeout(deferredMixLogWriteRef.current);
+        deferredMixLogWriteRef.current = null;
+      }
+    };
+  }, [mixLogs]);
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      isRemoteSyncingMixRef.current = true;
+      try {
+        const saved = localStorage.getItem('jr_farm_tmr_mix_logs');
+        if (saved) setMixLogs(JSON.parse(saved));
+      } catch (err) {
+        console.error('Failed to reload TMR mix logs', err);
+      } finally {
+        setTimeout(() => {
+          isRemoteSyncingMixRef.current = false;
+        }, 300);
+      }
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
  // Math with moisture tuning (Sorghum is scaled to maintain constant Dry Matter intake)
  // Standard DM = 35% (corresponding to 65% moisture).

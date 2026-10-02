@@ -17,6 +17,7 @@ import { PoultryAdvisoryHub } from './PoultryAdvisoryHub';
 import { generatePoultryAuditPdf } from './PoultryPdfGenerator';
 import { toIsoDate } from '../../utils/dateHelper';
 import { setPersistentData } from '../../utils/storageDb';
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
 import {
   Layers, Egg, Stethoscope, AlertTriangle, BookOpen,
   Download, Share2, Plus, Sparkles, TrendingUp
@@ -96,6 +97,31 @@ export function PoultryManager({
   useEffect(() => {
     setPersistentData('jr_farm_poultry_mortality', mortalityRecords);
   }, [mortalityRecords]);
+
+  // Live remote sync listener to reload poultry datasets when changed on PC or Phone
+  useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const fSaved = localStorage.getItem('jr_farm_poultry_flocks');
+        if (fSaved) setFlocks(JSON.parse(fSaved));
+        const eSaved = localStorage.getItem('jr_farm_poultry_eggs');
+        if (eSaved) setEggRecords(JSON.parse(eSaved));
+        const hSaved = localStorage.getItem('jr_farm_poultry_health');
+        if (hSaved) setHealthRecords(JSON.parse(hSaved));
+        const mSaved = localStorage.getItem('jr_farm_poultry_mortality');
+        if (mSaved) setMortalityRecords(JSON.parse(mSaved));
+      } catch (err) {
+        console.error("Failed to reload poultry records on remote sync", err);
+      }
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   // Flock CRUD
   const handleAddFlock = (newFlock: PoultryFlock) => {

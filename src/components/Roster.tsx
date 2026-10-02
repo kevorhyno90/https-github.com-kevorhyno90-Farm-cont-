@@ -9,7 +9,7 @@ import {
   ArrowRight, Check, Send, ShieldCheck, History, CornerDownRight
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { useFarmState } from '../context/FarmContext';
+import { useFarmState, REMOTE_SYNC_APPLIED_EVENT } from '../context/FarmContext';
 import { toIsoDate, offsetIsoDate } from '../utils/dateHelper';
 
 interface RosterProps {
@@ -138,7 +138,10 @@ export function Roster({
     }
   });
 
+  const isRemoteSyncingRef = React.useRef(false);
+
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     try {
       localStorage.setItem('jr_farm_attendance_records', JSON.stringify(dailyAttendanceMap));
     } catch (err) {
@@ -159,12 +162,39 @@ export function Roster({
   });
 
   useEffect(() => {
+    if (isRemoteSyncingRef.current) return;
     try {
       localStorage.setItem('jr_farm_weekly_shifts', JSON.stringify(weeklyShifts));
     } catch (err) {
       console.error('Failed to persist weekly shifts', err);
     }
   }, [weeklyShifts]);
+
+  // Listen for remote sync updates from other devices
+  useEffect(() => {
+    const handleRemoteSync = () => {
+      isRemoteSyncingRef.current = true;
+      try {
+        const attSaved = localStorage.getItem('jr_farm_attendance_records');
+        if (attSaved) setDailyAttendanceMap(JSON.parse(attSaved));
+        const shiftSaved = localStorage.getItem('jr_farm_weekly_shifts');
+        if (shiftSaved) setWeeklyShifts(JSON.parse(shiftSaved));
+      } catch (err) {
+        console.error('Failed to reload roster records on sync', err);
+      } finally {
+        setTimeout(() => {
+          isRemoteSyncingRef.current = false;
+        }, 300);
+      }
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   // Wage filter state
   const [wageStaffFilter, setWageStaffFilter] = useState<string>('all');

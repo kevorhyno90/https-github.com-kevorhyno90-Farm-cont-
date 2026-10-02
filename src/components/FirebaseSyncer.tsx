@@ -275,9 +275,16 @@ export function FirebaseSyncer() {
               foundData = true;
               lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
 
-              const mergedPayload = executeSmartMerge(reply.database, 'merge');
+              const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
+              const hasLocalEdits = currentLocalHash !== lastPushedDatabaseHashRef.current;
 
-              Object.entries(mergedPayload).forEach(([k, v]) => {
+              // If this device has no unpushed local edits (or is manual pull), cloud is authoritative:
+              // deletions are applied directly without resurrection!
+              const payloadToApply = (!hasLocalEdits || isManual)
+                ? reply.database
+                : executeSmartMerge(reply.database, 'merge');
+
+              Object.entries(payloadToApply).forEach(([k, v]) => {
                 const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
                 const currentLocal = localStorage.getItem(k);
                 if (!areJsonStringsEqual(currentLocal, stringVal)) {
@@ -285,6 +292,24 @@ export function FirebaseSyncer() {
                   nativeSetItem(k, stringVal);
                 }
               });
+
+              // Clean up keys deleted entirely from cloud
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (
+                  key &&
+                  key.startsWith('jr_farm_') &&
+                  key !== 'jr_farm_cloud_last_synced_at' &&
+                  key !== 'jr_farm_cloud_sync_key' &&
+                  key !== 'jr_farm_device_persistent_id' &&
+                  key !== 'jr_farm_cloud_sync_enabled'
+                ) {
+                  if (payloadToApply[key] === undefined && localStorage.getItem(key) !== null) {
+                    didChange = true;
+                    localStorage.removeItem(key);
+                  }
+                }
+              }
             }
           }
         } catch (e) {
@@ -431,10 +456,17 @@ export function FirebaseSyncer() {
       lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
 
       try {
-        const mergedPayload = executeSmartMerge(reply.database, 'merge');
+        const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
+        const hasLocalEdits = currentLocalHash !== lastPushedDatabaseHashRef.current;
+
+        // If this device has no unpushed local edits, cloud is authoritative:
+        // deletions are applied directly without resurrection!
+        const payloadToApply = !hasLocalEdits
+          ? reply.database
+          : executeSmartMerge(reply.database, 'merge');
 
         let didChange = false;
-        Object.entries(mergedPayload).forEach(([k, v]) => {
+        Object.entries(payloadToApply).forEach(([k, v]) => {
           const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
           const currentLocal = localStorage.getItem(k);
           if (!areJsonStringsEqual(currentLocal, stringVal)) {
@@ -443,10 +475,28 @@ export function FirebaseSyncer() {
           }
         });
 
+        // Clean up keys deleted entirely from cloud
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (
+            key &&
+            key.startsWith('jr_farm_') &&
+            key !== 'jr_farm_cloud_last_synced_at' &&
+            key !== 'jr_farm_cloud_sync_key' &&
+            key !== 'jr_farm_device_persistent_id' &&
+            key !== 'jr_farm_cloud_sync_enabled'
+          ) {
+            if (payloadToApply[key] === undefined && localStorage.getItem(key) !== null) {
+              didChange = true;
+              localStorage.removeItem(key);
+            }
+          }
+        }
+
         if (didChange) {
           lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
           window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
-          setSyncToast('⚡ New record auto-synced from phone!');
+          setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
           setTimeout(() => setSyncToast(null), 4000);
           updateSyncStatus('success');
           setLastSync(new Date());

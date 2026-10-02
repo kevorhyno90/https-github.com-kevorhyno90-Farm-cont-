@@ -16,6 +16,11 @@ export const getItemKey = (item: any, collectionKey?: string): string => {
   if (item.id) return String(item.id);
   if (item.ref) return String(item.ref);
   if (item.code) return String(item.code);
+  if (item.tagId) return String(item.tagId);
+  if (item.kidTagId) return String(item.kidTagId);
+  if (item.doeTagId) return String(item.doeTagId);
+  if (item.flockId) return String(item.flockId);
+  if (item.batchId) return String(item.batchId);
   // Specifically for breeding/AI records (cowId + date)
   if ((collectionKey === 'jr_farm_ai' || item.bull !== undefined) && item.cowId && item.date) {
     return `ai_${item.cowId}_${item.date}`;

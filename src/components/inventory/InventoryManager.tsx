@@ -14,6 +14,7 @@ import {
 } from '../../utils/inventoryHelper';
 import { generateInventoryAuditPdf } from './InventoryPdfGenerator';
 import { toIsoDate } from '../../utils/dateHelper';
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
 import {
   Warehouse, Search, Plus, Edit2, Trash2, Download, AlertTriangle,
   CheckCircle2, Clock, MapPin, DollarSign, ArrowDownRight, ArrowUpRight,
@@ -130,12 +131,39 @@ export function InventoryManager({
     return merged;
   }, [inventory]);
 
+  const isRemoteSyncingInvRef = React.useRef(false);
+
   // Save movement logs
   useEffect(() => {
+    if (isRemoteSyncingInvRef.current) return;
     try {
       localStorage.setItem('jr_farm_inventory_movements', JSON.stringify(movementLogs));
     } catch {}
   }, [movementLogs]);
+
+  // Listen for remote sync updates from other devices
+  useEffect(() => {
+    const handleRemoteSync = () => {
+      isRemoteSyncingInvRef.current = true;
+      try {
+        const saved = localStorage.getItem('jr_farm_inventory_movements');
+        if (saved) setMovementLogs(JSON.parse(saved));
+      } catch (err) {
+        console.error('Failed to reload inventory movements on sync', err);
+      } finally {
+        setTimeout(() => {
+          isRemoteSyncingInvRef.current = false;
+        }, 300);
+      }
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   // Metrics Calculations
   const stats = useMemo(() => {

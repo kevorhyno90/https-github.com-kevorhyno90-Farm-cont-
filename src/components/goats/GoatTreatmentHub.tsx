@@ -77,6 +77,8 @@ const COMMON_DIAGNOSES = [
   'Trace Mineral / Selenium-Vitamin E Deficiency'
 ];
 
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+
 export function GoatTreatmentHub({ goats = [], staffList = [] }: GoatTreatmentHubProps) {
   const [treatments, setTreatments] = useState<GoatTreatmentRecord[]>(() => {
     try {
@@ -86,6 +88,22 @@ export function GoatTreatmentHub({ goats = [], staffList = [] }: GoatTreatmentHu
       return DEFAULT_TREATMENTS;
     }
   });
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const stored = localStorage.getItem('jr_farm_goat_treatments');
+        if (stored) setTreatments(JSON.parse(stored));
+      } catch {}
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   const [filterRecovery, setFilterRecovery] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);

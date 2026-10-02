@@ -25,6 +25,8 @@ const COMMON_PRACTICES = [
   'Drainage Trenching & Soil Conservation'
 ];
 
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+
 export function TeaPracticesHub({ staffList = [] }: TeaPracticesHubProps) {
   const [practices, setPractices] = useState<TeaPracticeRecord[]>(() => {
     try {
@@ -34,6 +36,22 @@ export function TeaPracticesHub({ staffList = [] }: TeaPracticesHubProps) {
       return INITIAL_TEA_PRACTICE_RECORDS;
     }
   });
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const stored = localStorage.getItem('jr_farm_tea_practices');
+        if (stored) setPractices(JSON.parse(stored));
+      } catch {}
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   const [filterType, setFilterType] = useState<string>('all');
   const [showModal, setShowModal] = useState(false);

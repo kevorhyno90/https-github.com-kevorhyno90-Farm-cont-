@@ -79,6 +79,8 @@ const DEFAULT_KIDS: GoatKidRecord[] = [
   }
 ];
 
+import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+
 export function GoatKidsHub({ staffList = [], onGraduateToAdultHerd }: GoatKidsHubProps) {
   const [kids, setKids] = useState<GoatKidRecord[]>(() => {
     try {
@@ -88,6 +90,22 @@ export function GoatKidsHub({ staffList = [], onGraduateToAdultHerd }: GoatKidsH
       return DEFAULT_KIDS;
     }
   });
+
+  React.useEffect(() => {
+    const handleRemoteSync = () => {
+      try {
+        const stored = localStorage.getItem('jr_farm_goat_kids');
+        if (stored) setKids(JSON.parse(stored));
+      } catch {}
+    };
+
+    window.addEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+    window.addEventListener('storage', handleRemoteSync);
+    return () => {
+      window.removeEventListener(REMOTE_SYNC_APPLIED_EVENT, handleRemoteSync);
+      window.removeEventListener('storage', handleRemoteSync);
+    };
+  }, []);
 
   const [filterSex, setFilterSex] = useState<string>('all');
   const [filterWeaning, setFilterWeaning] = useState<string>('all');
