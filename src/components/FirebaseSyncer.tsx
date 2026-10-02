@@ -60,8 +60,34 @@ const timeoutPromise = <T,>(p: Promise<T>, ms: number): Promise<T> => {
   ]);
 };
 
-// Unique device session ID to identify self-updates vs remote updates
-const LOCAL_DEVICE_ID = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+function computeDatabaseHash(payload: Record<string, any>): string {
+  try {
+    const keys = Object.keys(payload).sort();
+    let str = '';
+    for (const k of keys) {
+      str += k + ':' + JSON.stringify(payload[k]) + ';';
+    }
+    return str;
+  } catch {
+    return String(Date.now());
+  }
+}
+
+const getOrCreateDeviceId = (): string => {
+  try {
+    let id = localStorage.getItem('jr_farm_device_persistent_id');
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+      nativeSetItem('jr_farm_device_persistent_id', id);
+    }
+    return id;
+  } catch {
+    return 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+  }
+};
+
+// Persistent device session ID to identify self-updates vs remote updates
+const LOCAL_DEVICE_ID = getOrCreateDeviceId();
 
 export function FirebaseSyncer() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error' | 'success'>('idle');
@@ -105,9 +131,9 @@ export function FirebaseSyncer() {
 
   const isPushingRef = useRef(false);
   const isPullingRef = useRef(false);
-  const hasPendingPushRef = useRef(false);
   const initialSyncDoneRef = useRef(false);
   const lastRemoteUpdatedRef = useRef<string>('');
+  const lastPushedDatabaseHashRef = useRef<string>('');
   const syncStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canUseCloud = userCloudSyncEnabled && isDeviceOnline && !!realtimeDb;
 
@@ -267,17 +293,18 @@ export function FirebaseSyncer() {
       }
 
       if (didChange) {
+        lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
         window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
         setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
         setTimeout(() => setSyncToast(null), 3500);
+        updateSyncStatus('success');
+      } else if (isManual) {
+        setSyncToast('Fetched latest breeding and farm data from cloud!');
+        setTimeout(() => setSyncToast(null), 3000);
+        updateSyncStatus('success');
       }
 
       setLastSync(new Date());
-      updateSyncStatus('success');
-      if (isManual) {
-        setSyncToast('Fetched latest breeding and farm data from cloud!');
-        setTimeout(() => setSyncToast(null), 3000);
-      }
     } catch (err) {
       console.error("[Autosync] Pull Error:", err);
       if (isManual) updateSyncStatus('error');
@@ -289,16 +316,21 @@ export function FirebaseSyncer() {
 
   // Push local changes to cloud (mirrors to active room and default rooms)
   const pushToCloud = async (isManual = false) => {
-    if (isPushingRef.current && !isManual) {
-      hasPendingPushRef.current = true;
+    if (isPushingRef.current && !isManual) return;
+    if (!farmId || !canUseCloud || !realtimeDb) return;
+
+    const databasePayload = buildAllFarmPayload();
+    const currentHash = computeDatabaseHash(databasePayload);
+
+    // CRITICAL: If no farm data changed since last push, SKIP push completely!
+    if (!isManual && currentHash === lastPushedDatabaseHashRef.current) {
       return;
     }
-    if (!farmId || !canUseCloud || !realtimeDb) return;
+
     try {
       isPushingRef.current = true;
       updateSyncStatus('syncing');
 
-      const databasePayload = buildAllFarmPayload();
       const nowIso = new Date().toISOString();
       lastRemoteUpdatedRef.current = nowIso;
 
@@ -319,6 +351,7 @@ export function FirebaseSyncer() {
         set(ref(realtimeDb, 'cloudSyncRooms/default_farm_001'), payload).catch(() => {});
       }
 
+      lastPushedDatabaseHashRef.current = currentHash;
       updateSyncStatus('success');
       setLastSync(new Date());
 
@@ -331,12 +364,13 @@ export function FirebaseSyncer() {
       updateSyncStatus(isManual ? 'error' : 'idle');
     } finally {
       isPushingRef.current = false;
-      if (hasPendingPushRef.current) {
-        hasPendingPushRef.current = false;
-        setTimeout(() => pushToCloud(false), 500);
-      }
     }
   };
+
+  // Initialize baseline hash on mount
+  useEffect(() => {
+    lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
+  }, []);
 
   // CRITICAL: Pull immediately on initial app mount so PC gets phone data right away!
   useEffect(() => {
@@ -410,13 +444,13 @@ export function FirebaseSyncer() {
         });
 
         if (didChange) {
+          lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
           window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
           setSyncToast('⚡ New record auto-synced from phone!');
           setTimeout(() => setSyncToast(null), 4000);
+          updateSyncStatus('success');
+          setLastSync(new Date());
         }
-
-        updateSyncStatus('success');
-        setLastSync(new Date());
       } catch (e) {
         console.error("[Autosync] Merge error from snapshot", e);
       }
