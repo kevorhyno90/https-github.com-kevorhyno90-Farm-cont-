@@ -142,41 +142,39 @@ export const executeSmartMerge = (
         cloudMap.set(String(id), item);
       });
 
-      localMap.forEach((val, id) => {
-        // Skip if globally deleted
+      // Cloud is authoritative for active items: iterate cloudMap
+      cloudMap.forEach((cloudVal, id) => {
         if (globalDeletedSet.has(id)) return;
 
-        if (!cloudMap.has(id)) {
-          mergedArray.push(val);
+        if (!localMap.has(id)) {
+          mergedArray.push(cloudVal);
         } else {
-          const cloudVal = cloudMap.get(id);
+          const localVal = localMap.get(id);
           const resolution = conflictResolutions.get(id);
           if (resolution === 'local') {
-            mergedArray.push(val);
+            mergedArray.push(localVal);
           } else if (resolution === 'cloud') {
             mergedArray.push(cloudVal);
           } else {
             // Intelligent conflict resolution: compare timestamps if available
-            const localTime = val?.updatedAt ? new Date(val.updatedAt).getTime() : (val?.date ? new Date(val.date).getTime() : 0);
+            const localTime = localVal?.updatedAt ? new Date(localVal.updatedAt).getTime() : (localVal?.date ? new Date(localVal.date).getTime() : 0);
             const cloudTime = cloudVal?.updatedAt ? new Date(cloudVal.updatedAt).getTime() : (cloudVal?.date ? new Date(cloudVal.date).getTime() : 0);
 
             if (localTime > cloudTime) {
-              mergedArray.push(val);
+              mergedArray.push(localVal);
             } else if (cloudTime > localTime) {
               mergedArray.push(cloudVal);
             } else {
-              // Same timestamp or untracked: merge fields, with local edits taking precedence over stale cloud fields
-              mergedArray.push({ ...cloudVal, ...val });
+              mergedArray.push({ ...cloudVal, ...localVal });
             }
           }
         }
       });
 
-      cloudMap.forEach((val, id) => {
-        // Skip if globally deleted
-        if (globalDeletedSet.has(id)) return;
-
-        if (!localMap.has(id)) {
+      // Only preserve local items missing from cloud if explicitly marked as pending offline draft
+      localMap.forEach((val, id) => {
+        if (globalDeletedSet.has(id) || cloudMap.has(id)) return;
+        if (val?._isLocalDraft || val?._pendingUpload) {
           mergedArray.push(val);
         }
       });

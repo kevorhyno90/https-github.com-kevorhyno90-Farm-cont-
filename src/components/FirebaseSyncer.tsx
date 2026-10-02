@@ -276,23 +276,20 @@ export function FirebaseSyncer() {
                 foundData = true;
                 continue;
               }
-              // 2. Ignore if cloud timestamp is identical to what we already ingested
+              // 2. Ignore if cloud timestamp is identical to what we already ingested AND database is identical
               if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) {
-                foundData = true;
-                continue;
+                const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
+                const cloudHash = computeDatabaseHash(reply.database);
+                if (currentLocalHash === cloudHash) {
+                  foundData = true;
+                  continue;
+                }
               }
 
               foundData = true;
               lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
 
-              const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
-              const hasLocalEdits = currentLocalHash !== lastPushedDatabaseHashRef.current;
-
-              // If this device has no unpushed local edits (or is manual pull), cloud is authoritative:
-              // deletions are applied directly without resurrection!
-              const payloadToApply = (!hasLocalEdits || isManual)
-                ? reply.database
-                : executeSmartMerge(reply.database, 'merge');
+              const payloadToApply = executeSmartMerge(reply.database, 'merge');
 
               Object.entries(payloadToApply).forEach(([k, v]) => {
                 if (k === 'jr_farm_device_persistent_id' || k === '_device_instance_uuid') return;
@@ -331,6 +328,7 @@ export function FirebaseSyncer() {
       if (didChange) {
         lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
         window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+        window.dispatchEvent(new Event('storage'));
         setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
         setTimeout(() => setSyncToast(null), 3500);
         updateSyncStatus('success');
@@ -462,19 +460,16 @@ export function FirebaseSyncer() {
 
       // Ignore echoes from this same device
       if (reply.senderDeviceId === LOCAL_DEVICE_ID) return;
-      if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) return;
+      if (reply.updatedAt && reply.updatedAt === lastRemoteUpdatedRef.current) {
+        const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
+        const cloudHash = computeDatabaseHash(reply.database);
+        if (currentLocalHash === cloudHash) return;
+      }
 
       lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
 
       try {
-        const currentLocalHash = computeDatabaseHash(buildAllFarmPayload());
-        const hasLocalEdits = currentLocalHash !== lastPushedDatabaseHashRef.current;
-
-        // If this device has no unpushed local edits, cloud is authoritative:
-        // deletions are applied directly without resurrection!
-        const payloadToApply = !hasLocalEdits
-          ? reply.database
-          : executeSmartMerge(reply.database, 'merge');
+        const payloadToApply = executeSmartMerge(reply.database, 'merge');
 
         let didChange = false;
         Object.entries(payloadToApply).forEach(([k, v]) => {
@@ -508,6 +503,7 @@ export function FirebaseSyncer() {
         if (didChange) {
           lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
           window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+          window.dispatchEvent(new Event('storage'));
           setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
           setTimeout(() => setSyncToast(null), 4000);
           updateSyncStatus('success');
