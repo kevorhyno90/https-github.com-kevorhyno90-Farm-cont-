@@ -59,8 +59,8 @@ export const executeSmartMerge = (
   // Dynamically include any jr_farm_* keys from cloudPayload or localStorage
   const allKeys = Array.from(new Set([
     ...BASE_KEYS,
-    ...Object.keys(cloudPayload).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at'),
-    ...Object.keys(localStorage).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at')
+    ...Object.keys(cloudPayload).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at' && k !== 'jr_farm_device_persistent_id'),
+    ...Object.keys(localStorage).filter(k => k.startsWith('jr_farm_') && k !== 'jr_farm_cloud_last_synced_at' && k !== 'jr_farm_device_persistent_id')
   ]));
 
   const mergedPayload: Record<string, any> = {};

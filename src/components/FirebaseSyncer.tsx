@@ -75,10 +75,13 @@ function computeDatabaseHash(payload: Record<string, any>): string {
 
 const getOrCreateDeviceId = (): string => {
   try {
-    let id = localStorage.getItem('jr_farm_device_persistent_id');
+    // Purge the old jr_farm_ key so it cannot be synced across devices
+    localStorage.removeItem('jr_farm_device_persistent_id');
+    let id = sessionStorage.getItem('_device_instance_uuid') || localStorage.getItem('_device_instance_uuid');
     if (!id) {
       id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-      nativeSetItem('jr_farm_device_persistent_id', id);
+      try { sessionStorage.setItem('_device_instance_uuid', id); } catch {}
+      try { localStorage.setItem('_device_instance_uuid', id); } catch {}
     }
     return id;
   } catch {
@@ -167,7 +170,14 @@ export function FirebaseSyncer() {
     const databasePayload: Record<string, any> = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('jr_farm_') && key !== 'jr_farm_cloud_last_synced_at') {
+      if (
+        key &&
+        key.startsWith('jr_farm_') &&
+        key !== 'jr_farm_cloud_last_synced_at' &&
+        key !== 'jr_farm_cloud_sync_key' &&
+        key !== 'jr_farm_cloud_sync_enabled' &&
+        key !== 'jr_farm_device_persistent_id'
+      ) {
         const raw = localStorage.getItem(key);
         if (raw) {
           try {
@@ -285,6 +295,7 @@ export function FirebaseSyncer() {
                 : executeSmartMerge(reply.database, 'merge');
 
               Object.entries(payloadToApply).forEach(([k, v]) => {
+                if (k === 'jr_farm_device_persistent_id' || k === '_device_instance_uuid') return;
                 const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
                 const currentLocal = localStorage.getItem(k);
                 if (!areJsonStringsEqual(currentLocal, stringVal)) {
@@ -467,6 +478,7 @@ export function FirebaseSyncer() {
 
         let didChange = false;
         Object.entries(payloadToApply).forEach(([k, v]) => {
+          if (k === 'jr_farm_device_persistent_id' || k === '_device_instance_uuid') return;
           const stringVal = typeof v === 'string' ? v : JSON.stringify(v);
           const currentLocal = localStorage.getItem(k);
           if (!areJsonStringsEqual(currentLocal, stringVal)) {
