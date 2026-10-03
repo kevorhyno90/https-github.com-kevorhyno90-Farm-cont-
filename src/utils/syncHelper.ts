@@ -13,27 +13,32 @@ export interface ConflictConfig {
 
 export const getItemKey = (item: any, collectionKey?: string): string => {
   if (!item || typeof item !== 'object') return String(item);
+
+  // 1. Milking records: must combine cow tag + date to be uniquely identifiable
+  if (collectionKey === 'jr_farm_milk' || ((item.am !== undefined || item.pm !== undefined) && item.date)) {
+    const cow = item.id || item.cowId || '';
+    const date = item.date || '';
+    const session = item.session || '';
+    return `milk_${cow}_${date}${session ? '_' + session : ''}`;
+  }
+
+  // 2. AI / Breeding records: cowId + date
+  if ((collectionKey === 'jr_farm_ai' || item.bull !== undefined) && item.cowId && item.date) {
+    return `ai_${item.cowId}_${item.date}`;
+  }
+
+  // 3. Generic Unique IDs
   if (item.id) return String(item.id);
   if (item.ref) return String(item.ref);
   if (item.code) return String(item.code);
+  if (item.tag) return String(item.tag);
   if (item.tagId) return String(item.tagId);
   if (item.kidTagId) return String(item.kidTagId);
   if (item.doeTagId) return String(item.doeTagId);
   if (item.flockId) return String(item.flockId);
   if (item.batchId) return String(item.batchId);
-  // Specifically for breeding/AI records (cowId + date)
-  if ((collectionKey === 'jr_farm_ai' || item.bull !== undefined) && item.cowId && item.date) {
-    return `ai_${item.cowId}_${item.date}`;
-  }
-  if (item.cowId && item.date) {
-    return `${item.cowId}_${item.date}`;
-  }
-  if (item.date && item.time) {
-    return `${item.date}_${item.time}`;
-  }
-  if (collectionKey === 'jr_farm_milk' && item.date) {
-    return `milk_${item.date}`;
-  }
+  if (item.cowId && item.date) return `${item.cowId}_${item.date}`;
+  if (item.date && item.time) return `${item.date}_${item.time}`;
   if (item.name) return String(item.name);
   return JSON.stringify(item);
 };
@@ -53,7 +58,21 @@ export const executeSmartMerge = (
     'jr_farm_silages', 'jr_farm_heifers', 'jr_farm_poultries', 'jr_farm_quarantines',
     'jr_farm_semen_inventory', 'jr_farm_azolla', 'jr_farm_machinery', 'jr_farm_machinery_services',
     'jr_farm_custom_timetable', 'jr_farm_milk_outflows', 'jr_farm_tmr_mix_logs',
-    'jr_farm_estate_settings'
+    'jr_farm_estate_settings',
+    'jr_farm_poultry_flocks', 'jr_farm_poultry_eggs', 'jr_farm_poultry_health', 'jr_farm_poultry_mortality',
+    'jr_farm_canine_profiles', 'jr_farm_canine_vaccines', 'jr_farm_canine_treatments', 'jr_farm_canine_patrols',
+    'jr_farm_canine_training', 'jr_farm_canine_feeding', 'jr_farm_canine_breeding', 'jr_farm_canine_biosecurity',
+    'jr_farm_canine_sales', 'jr_farm_canine_mortality', 'jr_farm_canine_emergency_meds', 'jr_farm_canine_handovers', 'jr_farm_kennel_bays',
+    'jr_farm_bsf_breeding_logs', 'jr_farm_bsf_egg_collections', 'jr_farm_bsf_feedings', 'jr_farm_bsf_harvests',
+    'jr_farm_bsf_pupae_harvests', 'jr_farm_bsf_commercial_sales', 'jr_farm_bsf_substrates',
+    'jr_farm_goat_breedings', 'jr_farm_goat_treatments', 'jr_farm_goat_kids',
+    'jr_farm_dairy_calves', 'jr_farm_dairy_heifers',
+    'jr_farm_morning_buyer_payments', 'jr_farm_monthly_debt_settlements', 'jr_farm_owner_remittances',
+    'jr_farm_tea_practices', 'jr_farm_tea_weekly_disbursed',
+    'jr_farm_avo_practices', 'jr_farm_avo_sections',
+    'jr_farm_inventory_movements',
+    'jr_farm_attendance_records', 'jr_farm_weekly_shifts',
+    'jr_farm_alarm_resolutions', 'jr_farm_feed_formulator_batch'
   ];
 
   // Dynamically include any jr_farm_* keys from cloudPayload or localStorage
@@ -88,7 +107,8 @@ export const executeSmartMerge = (
     }
   }
 
-  const globalDeletedSet = new Set(deletedRecords);
+  // Keep up to 2000 most recent tombstones
+  const globalDeletedSet = new Set(deletedRecords.slice(-2000));
   mergedPayload['jr_farm_deleted_records'] = Array.from(globalDeletedSet);
 
   allKeys.forEach(k => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard, Activity, Plus, Warehouse, Coins,
   X, Milk, Egg, Stethoscope, PackageMinus, DollarSign,
-  Leaf, ChevronRight, Sparkles, AlertCircle
+  Leaf, ChevronRight, Sparkles, AlertCircle, BookOpen
 } from 'lucide-react';
 
 interface MobileBottomNavProps {
@@ -74,6 +74,14 @@ export function MobileBottomNav({
       color: 'bg-emerald-500 text-white',
       badge: 'Tea',
       tabId: 'tea'
+    },
+    {
+      title: 'Make Farm Note & Journal',
+      desc: 'Create or edit dated observations, logs, and checklists',
+      icon: BookOpen,
+      color: 'bg-teal-600 text-white',
+      badge: 'Notes',
+      tabId: 'notes'
     }
   ];
 

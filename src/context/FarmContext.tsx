@@ -31,7 +31,8 @@ import {
   SemenInventoryItem,
   AzollaRecord,
   MachineItem,
-  MachineServiceRecord
+  MachineServiceRecord,
+  FarmNote
 } from '../types';
 
 import {
@@ -60,7 +61,8 @@ import {
   INITIAL_MILK_OUTFLOW_RECORDS,
   INITIAL_SEMEN_INVENTORY,
   INITIAL_MACHINES,
-  INITIAL_MACHINE_SERVICES
+  INITIAL_MACHINE_SERVICES,
+  INITIAL_FARM_NOTES
 } from '../initialData';
 import { offsetIsoDate, toIsoDate } from '../utils/dateHelper';
 import { nativeSetItem } from '../utils/nativeStorage';
@@ -130,6 +132,8 @@ interface FarmContextType {
   setMachines: React.Dispatch<React.SetStateAction<MachineItem[]>>;
   machineServices: MachineServiceRecord[];
   setMachineServices: React.Dispatch<React.SetStateAction<MachineServiceRecord[]>>;
+  farmNotes: FarmNote[];
+  setFarmNotes: React.Dispatch<React.SetStateAction<FarmNote[]>>;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -289,6 +293,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAzollaRecords(loadJson('jr_farm_azolla', []));
       setMachines(loadJson('jr_farm_machinery', INITIAL_MACHINES));
       setMachineServices(loadJson('jr_farm_machinery_services', INITIAL_MACHINE_SERVICES));
+      setFarmNotes(loadJson('jr_farm_notes', INITIAL_FARM_NOTES));
     } finally {
       // Keep hydration lock for 1500ms so all batched renders and effects finish
       hydrationTimerRef.current = window.setTimeout(() => {
@@ -560,6 +565,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : INITIAL_MACHINE_SERVICES;
   });
 
+  const [farmNotes, setFarmNotes] = useState<FarmNote[]>(() => {
+    const saved = localStorage.getItem('jr_farm_notes');
+    return saved ? JSON.parse(saved) : INITIAL_FARM_NOTES;
+  });
+
   // LocalStorage synchronizations
   useEffect(() => { persistJson('jr_farm_staff', staffList); }, [staffList]);
   useEffect(() => { persistJson('jr_farm_ingredients', ingredients); }, [ingredients]);
@@ -593,6 +603,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { persistJson('jr_farm_azolla', azollaRecords); }, [azollaRecords]);
   useEffect(() => { persistJson('jr_farm_machinery', machines); }, [machines]);
   useEffect(() => { persistJson('jr_farm_machinery_services', machineServices); }, [machineServices]);
+  useEffect(() => { persistJson('jr_farm_notes', farmNotes); }, [farmNotes]);
 
   return (
     <FarmContext.Provider
@@ -628,7 +639,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         semenInventory, setSemenInventory,
         azollaRecords, setAzollaRecords,
         machines, setMachines,
-        machineServices, setMachineServices
+        machineServices, setMachineServices,
+        farmNotes, setFarmNotes
       }}
     >
       {children}

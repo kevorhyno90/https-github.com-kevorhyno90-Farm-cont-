@@ -140,6 +140,7 @@ export function FirebaseSyncer() {
   });
 
   const isPushingRef = useRef(false);
+  const hasPendingPushRef = useRef(false);
   const isPullingRef = useRef(false);
   const initialSyncDoneRef = useRef(false);
   const lastRemoteUpdatedRef = useRef<string>('');
@@ -268,6 +269,7 @@ export function FirebaseSyncer() {
       const dbRef = ref(realtimeDb);
       const targetRooms = [farmId];
       if (farmId !== MASTER_DEFAULT_ROOM) targetRooms.push(MASTER_DEFAULT_ROOM);
+      if (!targetRooms.includes('default_farm_001')) targetRooms.push('default_farm_001');
       let didChange = false;
       let foundData = false;
 
@@ -317,6 +319,7 @@ export function FirebaseSyncer() {
       if (didChange) {
         lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
         window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+        console.log('[Autosync] ⚡ Pulled remote changes and updated local storage!');
         setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
         setTimeout(() => setSyncToast(null), 3500);
         updateSyncStatus('success');
@@ -337,15 +340,18 @@ export function FirebaseSyncer() {
   };
 
   // Push local changes to cloud (mirrors to active room and default rooms)
-  const pushToCloud = async (isManual = false) => {
-    if (isPushingRef.current && !isManual) return;
+  const pushToCloud = async (isManual = false, isDeletion = false) => {
+    if (isPushingRef.current && !isManual) {
+      hasPendingPushRef.current = true;
+      return;
+    }
     if (!farmId || !canUseCloud || !realtimeDb) return;
 
     const databasePayload = buildAllFarmPayload();
     const currentHash = computeDatabaseHash(databasePayload);
 
-    // CRITICAL: If no farm data changed since last push, SKIP push completely!
-    if (!isManual && currentHash === lastPushedDatabaseHashRef.current) {
+    // CRITICAL: If no farm data changed since last push, SKIP push completely (unless deletion or manual)
+    if (!isManual && !isDeletion && currentHash === lastPushedDatabaseHashRef.current) {
       return;
     }
 
@@ -362,20 +368,25 @@ export function FirebaseSyncer() {
         senderDeviceId: LOCAL_DEVICE_ID
       };
 
+      const targetPushRooms = [farmId];
+      if (farmId !== MASTER_DEFAULT_ROOM) targetPushRooms.push(MASTER_DEFAULT_ROOM);
+      if (!targetPushRooms.includes('default_farm_001')) targetPushRooms.push('default_farm_001');
+
       // 7-second timeout prevents indefinite promise hanging on unstable mobile connections
       await timeoutPromise(set(ref(realtimeDb, `cloudSyncRooms/${farmId}`), payload), 7000);
 
-      // Mirror to master room and default room so any device finds it immediately
-      if (farmId !== MASTER_DEFAULT_ROOM) {
-        set(ref(realtimeDb, `cloudSyncRooms/${MASTER_DEFAULT_ROOM}`), payload).catch(() => {});
-      }
-      if (farmId !== 'default_farm_001') {
-        set(ref(realtimeDb, 'cloudSyncRooms/default_farm_001'), payload).catch(() => {});
+      // Mirror to secondary rooms in parallel
+      for (const room of targetPushRooms) {
+        if (room !== farmId) {
+          set(ref(realtimeDb, `cloudSyncRooms/${room}`), payload).catch(() => {});
+        }
       }
 
       lastPushedDatabaseHashRef.current = currentHash;
       updateSyncStatus('success');
       setLastSync(new Date());
+
+      console.log(`[Autosync] ✅ Pushed updates (${isDeletion ? 'immediate deletion' : 'normal'}) to room: ${farmId}`);
 
       if (isManual) {
         setSyncToast('Uploaded all farm records to cloud successfully!');
@@ -386,6 +397,10 @@ export function FirebaseSyncer() {
       updateSyncStatus(isManual ? 'error' : 'idle');
     } finally {
       isPushingRef.current = false;
+      if (hasPendingPushRef.current) {
+        hasPendingPushRef.current = false;
+        setTimeout(() => pushToCloud(false, false), 50);
+      }
     }
   };
 
@@ -456,6 +471,7 @@ export function FirebaseSyncer() {
         if (currentLocalHash === cloudHash) return;
       }
 
+      console.log(`[Autosync] 📡 Real-time update received from remote device: ${reply.senderDeviceId}`);
       lastRemoteUpdatedRef.current = reply.updatedAt || new Date().toISOString();
 
       try {
@@ -475,6 +491,7 @@ export function FirebaseSyncer() {
         if (didChange) {
           lastPushedDatabaseHashRef.current = computeDatabaseHash(buildAllFarmPayload());
           window.dispatchEvent(new Event(REMOTE_SYNC_APPLIED_EVENT));
+          console.log('[Autosync] ⚡ Real-time updates applied to local database, reload event dispatched!');
           setSyncToast('⚡ Auto-synced farm & breeding records from cloud!');
           setTimeout(() => setSyncToast(null), 4000);
           updateSyncStatus('success');
@@ -492,32 +509,40 @@ export function FirebaseSyncer() {
     };
   }, [farmId, canUseCloud, realtimeDb]);
 
-  // Debounced push listener whenever local storage updates
+  // Real-time and debounced push listeners
   useEffect(() => {
     if (!farmId || !canUseCloud) return;
     let timeoutId: ReturnType<typeof setTimeout>;
 
+    const handleImmediateUpdate = () => {
+      clearTimeout(timeoutId);
+      console.log("[Autosync] 🚀 Immediate sync triggered for deletion/critical update!");
+      pushToCloud(false, true);
+    };
+
     const handleLocalUpdate = () => {
       clearTimeout(timeoutId);
-      // Fast 600ms debounce
+      // Fast 350ms debounce for edits
       timeoutId = setTimeout(() => {
-        pushToCloud(false);
-      }, 600);
+        pushToCloud(false, false);
+      }, 350);
     };
 
     // If phone screen locks or user switches apps, push immediately
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         clearTimeout(timeoutId);
-        pushToCloud(false);
+        pushToCloud(false, false);
       }
     };
 
+    window.addEventListener('local-storage-update-immediate', handleImmediateUpdate);
     window.addEventListener('local-storage-update', handleLocalUpdate);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', () => pushToCloud(false));
+    window.addEventListener('beforeunload', () => pushToCloud(false, false));
 
     return () => {
+      window.removeEventListener('local-storage-update-immediate', handleImmediateUpdate);
       window.removeEventListener('local-storage-update', handleLocalUpdate);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearTimeout(timeoutId);

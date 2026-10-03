@@ -373,6 +373,17 @@ export function Dashboard({
  >
  {t("GlobalGAP Plot: KT-205A")}
  </motion.span>
+ {onNavigateToTab && (
+ <motion.button
+ initial={{ opacity: 0, scale: 0.9 }}
+ animate={{ opacity: 1, scale: 1 }}
+ transition={{ delay: 0.35 }}
+ onClick={() => onNavigateToTab('notes')}
+ className="text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5 border-0 active:scale-95"
+ >
+ 📝 {t("Farm Notes & Daily Log")}
+ </motion.button>
+ )}
  </div>
 
  <div className="space-y-3 max-w-4xl">

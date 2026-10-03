@@ -168,6 +168,43 @@ export interface Todo {
   assigneeName?: string;
 }
 
+export interface NoteChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export type FarmNoteCategory =
+  | 'General'
+  | 'Dairy & Herd'
+  | 'Crops & Agronomy'
+  | 'Feed & Nutrition'
+  | 'Machinery & Workshop'
+  | 'Financials & Sales'
+  | 'Staff & Operations'
+  | 'Veterinary & Biosecurity'
+  | 'Weather & Environment';
+
+export type FarmNoteColor = 'emerald' | 'amber' | 'blue' | 'rose' | 'purple' | 'slate';
+export type FarmNotePriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface FarmNote {
+  id: string;
+  title: string;
+  content: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:mm
+  category: FarmNoteCategory;
+  tags: string[];
+  pinned: boolean;
+  color: FarmNoteColor;
+  checklists?: NoteChecklistItem[];
+  priority?: FarmNotePriority;
+  createdAt: string;
+  updatedAt: string;
+  archived?: boolean;
+}
+
 export interface ActivityLogEntry {
   id: string;
   message: string;

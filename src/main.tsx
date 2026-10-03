@@ -27,6 +27,7 @@ if ('serviceWorker' in navigator && import.meta.env.DEV) {
 }
 
 // Global Interceptor to track deletions and trigger real-time auto-sync
+export const IMMEDIATE_SYNC_EVENT = 'local-storage-update-immediate';
 let pendingSyncDispatchHandle: number | null = null;
 
 const scheduleSyncDispatch = () => {
@@ -40,6 +41,7 @@ const scheduleSyncDispatch = () => {
 
 localStorage.setItem = function(key: string, value: string) {
   let hasChanges = false;
+  let hasDeletions = false;
 
   if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
     try {
@@ -59,10 +61,12 @@ localStorage.setItem = function(key: string, value: string) {
               .filter(kId => kId && !newKeys.has(kId));
 
             if (deleted.length > 0) {
+              hasDeletions = true;
               const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
               const existingDeleted: string[] = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
               const combined = Array.from(new Set([...existingDeleted, ...deleted]))
-                .filter(kId => !newKeys.has(kId));
+                .filter(kId => !newKeys.has(kId))
+                .slice(-2000);
               nativeSetItem('jr_farm_deleted_records', JSON.stringify(combined));
             }
           }
@@ -77,10 +81,37 @@ localStorage.setItem = function(key: string, value: string) {
   
   nativeSetItem(key, value);
 
-  // Dispatch event only if there were actual changes
-  if (hasChanges) {
+  // If there were actual record deletions, trigger immediate push to cloud (0ms delay)
+  if (hasDeletions) {
+    window.dispatchEvent(new Event(IMMEDIATE_SYNC_EVENT));
+  } else if (hasChanges) {
     scheduleSyncDispatch();
   }
+};
+
+const originalRemoveItem = localStorage.removeItem;
+localStorage.removeItem = function(key: string) {
+  if (key.startsWith('jr_farm_') && key !== 'jr_farm_deleted_records' && key !== 'jr_farm_cloud_last_synced_at') {
+    try {
+      const oldVal = localStorage.getItem(key);
+      if (oldVal) {
+        try {
+          const oldArr = JSON.parse(oldVal);
+          if (Array.isArray(oldArr)) {
+            const deleted = oldArr.map(x => getItemKey(x, key)).filter(Boolean);
+            if (deleted.length > 0) {
+              const existingDeletedRaw = localStorage.getItem('jr_farm_deleted_records');
+              const existingDeleted: string[] = existingDeletedRaw ? JSON.parse(existingDeletedRaw) : [];
+              const combined = Array.from(new Set([...existingDeleted, ...deleted])).slice(-2000);
+              nativeSetItem('jr_farm_deleted_records', JSON.stringify(combined));
+              window.dispatchEvent(new Event(IMMEDIATE_SYNC_EVENT));
+            }
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+  originalRemoveItem.call(localStorage, key);
 };
 
 createRoot(document.getElementById('root')!).render(

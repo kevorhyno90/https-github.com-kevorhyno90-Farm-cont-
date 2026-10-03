@@ -87,6 +87,7 @@ const FarmerAcademy = React.lazy(() => import('./components/FarmerAcademy'));
 const OperationsSchedule = React.lazy(() => import('./components/OperationsSchedule'));
 const SettingsCenter = React.lazy(() => import('./components/SettingsCenter').then(m => ({ default: m.SettingsCenter })));
 const MachineryManager = React.lazy(() => import('./components/machinery/MachineryManager').then(m => ({ default: m.MachineryManager })));
+const FarmNotesHub = React.lazy(() => import('./components/FarmNotesHub').then(m => ({ default: m.FarmNotesHub })));
 
 // Master Types
 import {
@@ -855,7 +856,8 @@ function FarmCoreApp() {
     semenInventory, setSemenInventory,
     azollaRecords, setAzollaRecords,
     machines, setMachines,
-    machineServices, setMachineServices
+    machineServices, setMachineServices,
+    farmNotes, setFarmNotes
   } = useFarmState();
 
   // Alarm / Reminder resolutions persistence
@@ -4550,6 +4552,7 @@ function FarmCoreApp() {
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
     { id: 'machinery', label: 'Fleet & Machinery', icon: Truck, category: 'Operations' },
+    { id: 'notes', label: 'Farm Notes & Journal', icon: BookOpen, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
     { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
@@ -6882,6 +6885,7 @@ function FarmCoreApp() {
                     activeTab === 'spray' ? 'Spray & Quarantine' :
                     activeTab === 'finance' ? 'Ledger & Financials' :
                     activeTab === 'machinery' ? 'Fleet & Machinery Workshop' :
+                    activeTab === 'notes' ? 'Farm Notes & Journal' :
                     activeTab === 'fields' ? 'Agronomy Fields' :
                     activeTab === 'livestock' ? 'Livestock & Canines' :
                     activeTab === 'inventory' ? 'Warehouse Stock' :
@@ -7176,6 +7180,10 @@ function FarmCoreApp() {
               staffList={staffList}
               onTriggerSectionReport={handleTriggerSectionReport}
             />
+          )}
+
+          {activeTab === 'notes' && (
+            <FarmNotesHub />
           )}
 
           {activeTab === 'backup' && (

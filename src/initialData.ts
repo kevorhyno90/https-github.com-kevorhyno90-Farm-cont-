@@ -32,7 +32,8 @@ import {
   MilkOutflowRecord,
   SemenInventoryItem,
   MachineItem,
-  MachineServiceRecord
+  MachineServiceRecord,
+  FarmNote
 } from './types';
 
 // Helper to get formatted dates relative to today
@@ -1678,6 +1679,152 @@ export const INITIAL_MACHINE_SERVICES: MachineServiceRecord[] = [
     status: 'Completed'
   }
 ];
+
+export const INITIAL_FARM_NOTES: FarmNote[] = [
+  {
+    id: 'note-1',
+    title: '🌿 Morning Farm Walkthrough & Agronomy Checklist',
+    content: `## 🌅 Overview & Morning Standup
+Conducted daily 06:30 AM walkthrough across the main compound, Dairy unit, and Avocado Block 1.
+
+### 📌 Observations:
+- **Water Reticulation:** Solar borehole pump running steadily at 4.2 bar; all gravity tanks filled to 95% capacity.
+- **Dairy Section:** Morning milking finished on schedule (342 Liters total). Cow *C-083 (Precious)* showing strong heat signs - flagged for AI technician review.
+- **Pasture:** Paddock 3 boma rhodes grass recovery after last week's rain is thriving; estimated DM yield ~4.5 tons/acre.
+- **Avocado Orchards:** Minor thrips activity noted on edge of Block 2; knapsack spot spray with organic neem oil recommended before Friday.
+
+> **Key Takeaway:** Soil moisture levels in drip irrigation rows are optimal (field capacity ~78%). Maintain current 45-minute daily cycle.`,
+    date: getRelativeDate(0),
+    time: '07:15',
+    category: 'General',
+    tags: ['walkthrough', 'paddock-3', 'dairy', 'irrigation', 'vital'],
+    pinned: true,
+    color: 'emerald',
+    priority: 'high',
+    checklists: [
+      { id: 'chk-1', text: 'Verify solar pump filter backwash at 12:00 PM', completed: true },
+      { id: 'chk-2', text: 'Confirm AI semen straw pulled from tank for C-083', completed: false },
+      { id: 'chk-3', text: 'Inspect drip lines in Avocado Block 1 for leaks', completed: false },
+      { id: 'chk-4', text: 'Update weekly farm staff task ledger', completed: true }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    updatedAt: new Date(Date.now() - 1800000).toISOString()
+  },
+  {
+    id: 'note-2',
+    title: '🥛 High-Yield Dairy Herd Rations & Cow C-083 Heat Observation',
+    content: `### 🐄 Herd Performance & Feed Formulation Notes
+Adjusted the mid-lactation cow TMR batch today to improve butterfat content and curb body condition score dip.
+
+#### Revised TMR Mix (Per Cow/Day):
+1. **Silage (Maize):** 16 kg (DM 34%)
+2. **Boma Rhodes Hay:** 4.5 kg
+3. **Dairy Meal (18% CP):** 6.5 kg
+4. **Wheat Bran / Pollard:** 2.0 kg
+5. **Maclik Super Mineral Premix:** 150 grams
+6. **Sodium Bicarbonate buffer:** 80 grams
+
+#### Veterinary & Reproduction Flag:
+- **Cow C-083:** Standing heat detected at 06:15 AM by Mosoti. Clear mucus discharge, restlessness, and decreased morning yield (12.5L vs avg 16.2L).
+- Scheduled AI service for 16:30 PM (AM/PM rule adhered to). Straw selected: *Semex Supersire Hol 982*.`,
+    date: getRelativeDate(-1),
+    time: '14:20',
+    category: 'Dairy & Herd',
+    tags: ['dairy', 'tmr-formula', 'heat-detection', 'ai-breeding'],
+    pinned: true,
+    color: 'blue',
+    priority: 'urgent',
+    checklists: [
+      { id: 'chk-5', text: 'Isolate Cow C-083 in service stall by 15:30', completed: true },
+      { id: 'chk-6', text: 'Confirm liquid nitrogen level in semen tank > 12cm', completed: true },
+      { id: 'chk-7', text: 'Record AI certificate details in breeding ledger', completed: true }
+    ],
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 80000000).toISOString()
+  },
+  {
+    id: 'note-3',
+    title: '🥑 Avocado Block 2 Canopy Assessment & GlobalGAP Compliance',
+    content: `### 🥑 Avocado Export Section Scouting
+Accompanied agronomist through Block 2 Hass trees (6th year maturity).
+
+- **Canopy Health:** Excellent vegetative flushing with light blossom onset. Skirt pruning completed last month has elevated foliage 50cm above ground, significantly reducing soil-borne fungus splash.
+- **Pest Scouting:** 20 sample trees inspected. No signs of False Codling Moth (FCM) in pheromone traps (trap catch = 0).
+- **Copper Paint Protocol:** Lower 1 meter of trunks inspected for copper fungicide whitewash coverage; intact on 96% of trees.
+
+\`\`\`
+Block 2 Density: 160 trees
+Target Harvest: 85 kg/tree
+Estimated Grade 1: 82%
+Target Buyer: Kakuzi Exporters Ltd
+\`\`\``,
+    date: getRelativeDate(-3),
+    time: '11:00',
+    category: 'Crops & Agronomy',
+    tags: ['avocado', 'globalgap', 'scouting', 'canopy'],
+    pinned: false,
+    color: 'amber',
+    priority: 'medium',
+    checklists: [
+      { id: 'chk-8', text: 'Refill liquid in Delta pheromone traps', completed: true },
+      { id: 'chk-9', text: 'Order 5 bags of Potassium Sulphate (SOP) for fertigation', completed: false }
+    ],
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString()
+  },
+  {
+    id: 'note-4',
+    title: '🚜 Machinery Maintenance & Chaffcutter Blade Sharpening Plan',
+    content: `### 🛠️ Workshop Service Protocol
+Servicing machinery scheduled for this week to maintain smooth forage harvesting and daily feed chopping.
+
+#### Machine Status:
+- **Chaffcutter CC-01:** Reversible high-carbon blades have cut ~12 tons of fodder over past 3 weeks. Edge bevel requires 30-degree sharpening using workshop bench grinder.
+- **Massey Ferguson Tractor MF-240:** Pre-shift check: engine oil level normal, radiator coolant filled, clutch free-play adjusted to 25mm.
+- **DeLaval Milking Vacuum Pump:** Oil levels topped up with ISO 68 food-grade vacuum oil.`,
+    date: getRelativeDate(-5),
+    time: '16:45',
+    category: 'Machinery & Workshop',
+    tags: ['machinery', 'workshop', 'chaffcutter', 'maintenance'],
+    pinned: false,
+    color: 'purple',
+    priority: 'medium',
+    checklists: [
+      { id: 'chk-10', text: 'Remove chaffcutter blades and balance weights', completed: true },
+      { id: 'chk-11', text: 'Replace drive V-belt (B-54 size)', completed: true },
+      { id: 'chk-12', text: 'Grease main shaft bearings with lithium EP2', completed: true }
+    ],
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 5).toISOString()
+  },
+  {
+    id: 'note-5',
+    title: '💰 Monthly Feed Cost Breakdown & Organic Azolla Yield Savings',
+    content: `### 📊 Feed Cost Economics Review
+Analyzing impact of on-farm Azolla aquatic protein ponds on our commercial dairy meal expenditure.
+
+- **Baseline Dairy Meal Consumption:** 180 kg/day @ Ksh 52/kg = Ksh 9,360 / day
+- **Azolla Harvest Substituted:** 45 kg fresh Azolla/day (replacing ~15 kg commercial dairy meal concentrate)
+- **Net Daily Savings:** ~Ksh 780 / day (approx Ksh 23,400 / month)
+- **Milk Yield Impact:** Zero drop in liters; butterfat improved from 3.7% to 3.9%.
+
+> *Recommendation:* Expand pond area by 2 additional concrete basins in Section D next month.`,
+    date: getRelativeDate(-7),
+    time: '09:30',
+    category: 'Financials & Sales',
+    tags: ['financials', 'feed-economics', 'azolla', 'cost-saving'],
+    pinned: false,
+    color: 'rose',
+    priority: 'low',
+    checklists: [
+      { id: 'chk-13', text: 'Measure pond water pH and top up superphosphate', completed: true },
+      { id: 'chk-14', text: 'Review supplier invoice for wheat pollard', completed: true }
+    ],
+    createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 7).toISOString()
+  }
+];
+
 
 
 
