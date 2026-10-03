@@ -4534,6 +4534,7 @@ function FarmCoreApp() {
   // Interactive navigation links
   const sidebarLinks = [
     { id: 'dash', label: 'Command Center', icon: LayoutDashboard, category: 'Main' },
+    { id: 'notes', label: 'Farm Notes & Journal', icon: BookOpen, category: 'Main' },
     { id: 'roster', label: 'Staff Roster', icon: Users, category: 'Main' },
 
     { id: 'factory', label: 'Feed Formulator', icon: FlaskConical, category: 'Feed & Factory' },
@@ -4552,7 +4553,6 @@ function FarmCoreApp() {
 
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
     { id: 'machinery', label: 'Fleet & Machinery', icon: Truck, category: 'Operations' },
-    { id: 'notes', label: 'Farm Notes & Journal', icon: BookOpen, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
     { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
@@ -6078,6 +6078,11 @@ function FarmCoreApp() {
                       const today = toIsoDate(new Date());
                       const overdueCount = machines.filter(m => m.nextServiceDueDate && m.nextServiceDueDate < today).length;
                       if (overdueCount > 0) { hasDot = true; dotColor = 'bg-rose-500 animate-pulse'; }
+                    } else if (link.id === 'notes') {
+                      if (farmNotes && farmNotes.length > 0) {
+                        hasDot = true;
+                        dotColor = 'bg-emerald-500';
+                      }
                     }
  
                     return (
@@ -6157,6 +6162,11 @@ function FarmCoreApp() {
                             if (overdueCount > 0) {
                               badgeText = `${overdueCount} DUE`;
                               badgeColor = 'bg-rose-500 text-white animate-pulse';
+                            }
+                          } else if (link.id === 'notes') {
+                            if (farmNotes && farmNotes.length > 0) {
+                              badgeText = `${farmNotes.length}`;
+                              badgeColor = 'bg-emerald-100 text-emerald-800 font-bold';
                             }
                           }
  
@@ -6359,6 +6369,27 @@ function FarmCoreApp() {
             >
               {headerInteractionStatus.label}
             </span>
+            {/* Quick Access to Farm Notes & Journal */}
+            <button
+              onClick={() => setActiveTab('notes')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                activeTab === 'notes'
+                  ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}
+              title="Open Farm Notes & Daily Journal"
+            >
+              <BookOpen size={14} className={activeTab === 'notes' ? 'text-white' : 'text-emerald-700'} />
+              <span className="hidden sm:inline">Farm Notes</span>
+              {farmNotes && farmNotes.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeTab === 'notes' ? 'bg-white text-emerald-800' : 'bg-emerald-200 text-emerald-900'
+                }`}>
+                  {farmNotes.length}
+                </span>
+              )}
+            </button>
+
             {/* Unified Notification Bell */}
             <div className="relative">
               <button
@@ -6780,6 +6811,11 @@ function FarmCoreApp() {
                               if (overdueCount > 0) {
                                 badgeText = `${overdueCount} DUE`;
                                 badgeColor = 'bg-rose-500 text-white animate-pulse';
+                              }
+                            } else if (link.id === 'notes') {
+                              if (farmNotes && farmNotes.length > 0) {
+                                badgeText = `${farmNotes.length}`;
+                                badgeColor = 'bg-emerald-500 text-white font-bold';
                               }
                             }
  

@@ -28,7 +28,8 @@ import {
  ArrowRight,
  Database,
  DollarSign,
- Truck
+ Truck,
+ BookOpen
 } from 'lucide-react';
 import {
  LineChart,
@@ -379,9 +380,10 @@ export function Dashboard({
  animate={{ opacity: 1, scale: 1 }}
  transition={{ delay: 0.35 }}
  onClick={() => onNavigateToTab('notes')}
- className="text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5 border-0 active:scale-95"
+ className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-full shadow-xs cursor-pointer transition-all flex items-center gap-1.5 border border-emerald-500 active:scale-95"
  >
- 📝 {t("Farm Notes & Daily Log")}
+ <BookOpen size={13} />
+ <span>{t("Farm Notes & Daily Log")}</span>
  </motion.button>
  )}
  </div>
@@ -1565,8 +1567,9 @@ export function Dashboard({
  <p className="text-sm text-gray-900 font-medium mt-1">Launch intelligent agricultural modules and real-time troubleshooting tools.</p>
  </div>
 
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
  {[
+ { id: 'notes', icon: BookOpen, label: "Farm Notes & Journal", desc: "Dated logs, daily supervisor remarks, checklists & PDF export.", color: "emerald" },
  { id: 'dairy', icon: Activity, label: "Dairy Cattle & Milk", desc: "Lactation, AI straws, calving & withdrawal safeguards.", color: "emerald" },
  { id: 'diagnostics_sub', icon: Activity, label: "Diagnostics Wizard", desc: "Symptoms scanner for crops & livestock.", color: "blue" },
  { id: 'inventory_deduct_sub', icon: Database, label: "Stock Auto-Deduct", desc: "Run feed & chem protocols.", color: "indigo" },
