@@ -1541,16 +1541,26 @@ export function Roster({
                           <Phone size={12} className="text-emerald-600" />
                           {st.phone}
                         </a>
-                        <a
-                          href={`https://wa.me/${st.phone.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] text-emerald-700 hover:underline flex items-center gap-1 font-semibold"
-                          title="Message via WhatsApp"
-                        >
-                          <MessageSquare size={11} />
-                          WhatsApp
-                        </a>
+                        <div className="flex items-center gap-2.5">
+                          <a
+                            href={`sms:${st.phone.replace(/[^0-9+]/g, '')}`}
+                            className="text-[11px] text-blue-700 hover:underline flex items-center gap-1 font-semibold"
+                            title="Send SMS"
+                          >
+                            <MessageSquare size={11} />
+                            SMS
+                          </a>
+                          <a
+                            href={`https://wa.me/${st.phone.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-emerald-700 hover:underline flex items-center gap-1 font-semibold"
+                            title="Message via WhatsApp"
+                          >
+                            <MessageSquare size={11} />
+                            WhatsApp
+                          </a>
+                        </div>
                       </div>
 
                       {/* Annual Leave Entitlement Progress Tracker */}
@@ -2984,6 +2994,13 @@ export function Roster({
               >
                 <Phone size={13} className="text-emerald-600" />
                 Call: {selectedStaffDossier.phone}
+              </a>
+              <a
+                href={`sms:${selectedStaffDossier.phone.replace(/[^0-9+]/g, '')}`}
+                className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-semibold border border-blue-200"
+              >
+                <MessageSquare size={13} />
+                Send SMS
               </a>
               <a
                 href={`https://wa.me/${selectedStaffDossier.phone.replace(/[^0-9]/g, '')}`}

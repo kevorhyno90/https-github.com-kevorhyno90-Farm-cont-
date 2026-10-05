@@ -41,7 +41,8 @@ import {
   Sparkles,
   Compass,
   Shield,
-  Monitor
+  Monitor,
+  PhoneCall
 } from 'lucide-react';
 
 import { realtimeDb, isFirestoreSyncEnabled } from './firebase';
@@ -88,6 +89,7 @@ const OperationsSchedule = React.lazy(() => import('./components/OperationsSched
 const SettingsCenter = React.lazy(() => import('./components/SettingsCenter').then(m => ({ default: m.SettingsCenter })));
 const MachineryManager = React.lazy(() => import('./components/machinery/MachineryManager').then(m => ({ default: m.MachineryManager })));
 const FarmNotesHub = React.lazy(() => import('./components/FarmNotesHub').then(m => ({ default: m.FarmNotesHub })));
+const FarmCommunicationsCenter = React.lazy(() => import('./components/FarmCommunicationsCenter').then(m => ({ default: m.FarmCommunicationsCenter })));
 
 // Master Types
 import {
@@ -4555,6 +4557,7 @@ function FarmCoreApp() {
     { id: 'machinery', label: 'Fleet & Machinery', icon: Truck, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
     { id: 'notes_ops', label: 'Farm Notes & Journal', icon: BookOpen, category: 'Operations' },
+    { id: 'communications', label: 'Dispatch & Calls (SMS)', icon: PhoneCall, category: 'Operations' },
     { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
 
@@ -6392,6 +6395,20 @@ function FarmCoreApp() {
               )}
             </button>
 
+            {/* Quick Access to Farm Communications, Call & SMS Dispatch */}
+            <button
+              onClick={() => setActiveTab('communications')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                activeTab === 'communications'
+                  ? 'bg-blue-700 text-white border-blue-800 shadow-sm'
+                  : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
+              }`}
+              title="Open Farm Communications, Call & SMS Dispatch Center"
+            >
+              <PhoneCall size={14} className={activeTab === 'communications' ? 'text-white' : 'text-blue-700'} />
+              <span className="hidden sm:inline">Dispatch & Call</span>
+            </button>
+
             {/* Unified Notification Bell */}
             <div className="relative">
               <button
@@ -6924,6 +6941,7 @@ function FarmCoreApp() {
                     activeTab === 'finance' ? 'Ledger & Financials' :
                     activeTab === 'machinery' ? 'Fleet & Machinery Workshop' :
                     activeTab === 'notes' ? 'Farm Notes & Journal' :
+                    activeTab === 'communications' ? 'Dispatch & Communications (Calls / SMS)' :
                     activeTab === 'fields' ? 'Agronomy Fields' :
                     activeTab === 'livestock' ? 'Livestock & Canines' :
                     activeTab === 'inventory' ? 'Warehouse Stock' :
@@ -7222,6 +7240,10 @@ function FarmCoreApp() {
 
           {activeTab === 'notes' && (
             <FarmNotesHub />
+          )}
+
+          {activeTab === 'communications' && (
+            <FarmCommunicationsCenter />
           )}
 
           {activeTab === 'backup' && (
