@@ -431,6 +431,7 @@ export function FarmNotesHub() {
 
   // Voice Dictation
   const [isListening, setIsListening] = useState(false);
+  const [interimSpeech, setInterimSpeech] = useState('');
   const recognitionRef = useRef<any>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -659,21 +660,30 @@ export function FarmNotesHub() {
 
       recognition.onstart = () => {
         setIsListening(true);
+        setInterimSpeech('');
       };
 
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
+        let finalChunk = '';
+        let interimChunk = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            finalChunk += event.results[i][0].transcript;
+          } else {
+            interimChunk += event.results[i][0].transcript;
           }
         }
 
-        if (finalTranscript) {
+        if (interimChunk) {
+          setInterimSpeech(interimChunk);
+        }
+
+        if (finalChunk) {
+          setInterimSpeech('');
           setEditContent(prev => {
             const separator = prev && !prev.endsWith(' ') && !prev.endsWith('\n') ? ' ' : '';
-            const updated = prev + separator + finalTranscript.trim();
+            const updated = prev + separator + finalChunk.trim();
             saveCurrentNote({ content: updated });
             return updated;
           });
@@ -683,6 +693,7 @@ export function FarmNotesHub() {
       recognition.onerror = (event: any) => {
         console.warn("Speech recognition notice:", event);
         setIsListening(false);
+        setInterimSpeech('');
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
           alert("Microphone permission was denied. Please allow microphone access in your browser or device settings to use Voice to Text.");
         }
@@ -690,6 +701,7 @@ export function FarmNotesHub() {
 
       recognition.onend = () => {
         setIsListening(false);
+        setInterimSpeech('');
       };
 
       recognitionRef.current = recognition;
@@ -1710,27 +1722,36 @@ export function FarmNotesHub() {
 
                 {/* Live Voice Dictation Active Banner */}
                 {isListening && (
-                  <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-3.5 flex items-center justify-between shadow-sm animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
-                      </span>
-                      <div>
-                        <div className="text-xs font-black text-rose-900 flex items-center gap-1.5">
-                          <Mic size={14} className="text-rose-600" /> Listening to your voice in real time...
+                  <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex flex-col gap-2 shadow-sm animate-fadeIn">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
+                        </span>
+                        <div>
+                          <div className="text-xs font-black text-rose-900 flex items-center gap-1.5">
+                            <Mic size={14} className="text-rose-600" /> Listening to your microphone...
+                          </div>
+                          <p className="text-[11px] text-rose-700 font-medium">
+                            Speak clearly — words transcribe automatically into your note text.
+                          </p>
                         </div>
-                        <p className="text-[11px] text-rose-700 font-medium">
-                          Speak clearly into your microphone — your spoken words will be transcribed directly into your note text.
-                        </p>
                       </div>
+                      <button
+                        onClick={handleToggleListening}
+                        className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase rounded-xl cursor-pointer border-0 shadow-xs active:scale-95"
+                      >
+                        Done / Stop
+                      </button>
                     </div>
-                    <button
-                      onClick={handleToggleListening}
-                      className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase rounded-xl cursor-pointer border-0 shadow-xs"
-                    >
-                      Done / Stop
-                    </button>
+
+                    {interimSpeech && (
+                      <div className="bg-white/95 border border-rose-200 rounded-xl px-3 py-1.5 text-xs text-rose-900 font-medium flex items-center gap-2 shadow-inner">
+                        <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">Hearing:</span>
+                        <span className="italic font-semibold">&ldquo;{interimSpeech}&rdquo;</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
