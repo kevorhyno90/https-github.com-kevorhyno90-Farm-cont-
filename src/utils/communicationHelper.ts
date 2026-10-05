@@ -70,7 +70,7 @@ export function generateMorningChoreDispatchMessage(
   }
 ): string {
   const settings = getStoredSettings();
-  const farmName = settings.farmName || 'JR Farm';
+  const farmName = settings.estateName || 'JR Farm';
   const dateStr = options?.date || new Date().toISOString().split('T')[0];
 
   let msg = `🌅 *${farmName.toUpperCase()} - DAILY CHORE DISPATCH*\n`;
@@ -106,7 +106,7 @@ export function generateEmergencyVetMessage(params: {
   location?: string;
 }): string {
   const settings = getStoredSettings();
-  const farmName = settings.farmName || 'JR Farm';
+  const farmName = settings.estateName || 'JR Farm';
   const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   let msg = `🚨 *URGENT VET ALERT - ${farmName.toUpperCase()}*\n`;
@@ -128,7 +128,7 @@ export function generateSecurityAlertMessage(params: {
   location?: string;
 }): string {
   const settings = getStoredSettings();
-  const farmName = settings.farmName || 'JR Farm';
+  const farmName = settings.estateName || 'JR Farm';
   const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   let msg = `🚨 *SECURITY & FENCE ALERT - ${farmName.toUpperCase()}*\n`;
@@ -150,7 +150,7 @@ export function generatePaymentSentMessage(params: {
   ref?: string;
 }): string {
   const settings = getStoredSettings();
-  const farmName = settings.farmName || 'JR Farm';
+  const farmName = settings.estateName || 'JR Farm';
 
   let msg = `💰 *PAYMENT NOTIFICATION - ${farmName.toUpperCase()}*\n`;
   msg += `Hello ${params.staffName},\n`;

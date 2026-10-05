@@ -75,7 +75,7 @@ export function FarmCommunicationsCenter() {
   const [composerPhone, setComposerPhone] = useState(staffList.length > 0 ? staffList[0].phone : '');
   const [composerRecipientName, setComposerRecipientName] = useState(staffList.length > 0 ? staffList[0].name : '');
   const [composerMessage, setComposerMessage] = useState(
-    `Hello! This is a brief update from ${settings.farmName || 'JR Farm'}. Please check in at your station.`
+    `Hello! This is a brief update from ${settings.estateName || 'JR Farm'}. Please check in at your station.`
   );
   const [copiedComposerFeedback, setCopiedComposerFeedback] = useState(false);
 
@@ -148,7 +148,7 @@ export function FarmCommunicationsCenter() {
   // Quick template selection in composer
   const applyQuickTemplate = (templateType: 'morning' | 'milking' | 'payment' | 'urgent' | 'spray') => {
     const name = composerRecipientName || 'Team Member';
-    const farmName = settings.farmName || 'JR Farm';
+    const farmName = settings.estateName || 'JR Farm';
 
     switch (templateType) {
       case 'morning':
@@ -621,14 +621,14 @@ export function FarmCommunicationsCenter() {
                         <Phone size={13} />
                       </button>
                       <button
-                        onClick={() => openSms(contact.phone, `Urgent alert from ${settings.farmName || 'JR Farm'}: Please call the farm manager immediately.`)}
+                        onClick={() => openSms(contact.phone, `Urgent alert from ${settings.estateName || 'JR Farm'}: Please call the farm manager immediately.`)}
                         className="p-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow-xs border-0"
                         title="SMS"
                       >
                         <MessageSquare size={13} />
                       </button>
                       <button
-                        onClick={() => openWhatsApp(contact.phone, `Hello ${contact.name}, this is an urgent notification from ${settings.farmName || 'JR Farm'}. Please respond.`)}
+                        onClick={() => openWhatsApp(contact.phone, `Hello ${contact.name}, this is an urgent notification from ${settings.estateName || 'JR Farm'}. Please respond.`)}
                         className="p-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer shadow-xs border-0"
                         title="WhatsApp"
                       >
@@ -869,7 +869,7 @@ export function FarmCommunicationsCenter() {
                   </button>
 
                   <button
-                    onClick={() => openWhatsApp(st.phone, `Hello ${st.name}, this is ${settings.farmName || 'JR Farm'}.`)}
+                    onClick={() => openWhatsApp(st.phone, `Hello ${st.name}, this is ${settings.estateName || 'JR Farm'}.`)}
                     disabled={!st.phone}
                     className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 hover:border-emerald-300 font-bold text-xs transition-all cursor-pointer shadow-2xs disabled:opacity-40"
                     title={`WhatsApp ${st.name}`}
