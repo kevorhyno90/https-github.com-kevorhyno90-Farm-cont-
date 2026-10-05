@@ -635,7 +635,11 @@ export function FarmNotesHub() {
   const handleToggleListening = () => {
     if (isListening) {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
       }
       setIsListening(false);
       return;
@@ -643,7 +647,7 @@ export function FarmNotesHub() {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Voice dictation is supported in modern browsers like Google Chrome, Microsoft Edge, and Safari.");
+      alert("Voice dictation is supported in modern browsers such as Google Chrome, Microsoft Edge, and Safari (iOS & macOS). Please open in a supported browser.");
       return;
     }
 
@@ -676,8 +680,12 @@ export function FarmNotesHub() {
         }
       };
 
-      recognition.onerror = () => {
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition notice:", event);
         setIsListening(false);
+        if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+          alert("Microphone permission was denied. Please allow microphone access in your browser or device settings to use Voice to Text.");
+        }
       };
 
       recognition.onend = () => {
@@ -690,6 +698,26 @@ export function FarmNotesHub() {
       console.error("Speech recognition error:", err);
       setIsListening(false);
     }
+  };
+
+  // Dedicated helper to trigger Voice Dictation from anywhere (e.g. top header)
+  const handleVoiceDictationClick = () => {
+    if (viewMode !== 'split') {
+      setViewMode('split');
+    }
+    setMobileEditorOpen(true);
+    setEditorPreviewMode('edit');
+
+    // If no note exists at all, create one first
+    if (!currentNote && farmNotes.length === 0) {
+      handleCreateNote();
+      setTimeout(() => {
+        handleToggleListening();
+      }, 200);
+      return;
+    }
+
+    handleToggleListening();
   };
 
   // Create New Note
@@ -984,6 +1012,29 @@ export function FarmNotesHub() {
             >
               <Printer size={14} className="text-slate-500" />
               <span className="hidden md:inline">Print Digest</span>
+            </button>
+
+            {/* Prominent Voice-to-Text Button */}
+            <button
+              onClick={handleVoiceDictationClick}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-95 border m-0 ${
+                isListening
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 animate-pulse ring-2 ring-rose-400'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+              }`}
+              title={isListening ? "Voice Dictation Active (Click to Stop)" : "Voice to Text: Speak into microphone to dictate note"}
+            >
+              {isListening ? (
+                <>
+                  <MicOff size={15} />
+                  <span>Stop Dictating</span>
+                </>
+              ) : (
+                <>
+                  <Mic size={15} className="text-emerald-700" />
+                  <span>Voice to Text</span>
+                </>
+              )}
             </button>
 
             {/* Template Selector & New Note */}
@@ -1615,22 +1666,22 @@ export function FarmNotesHub() {
                     {/* Voice Dictation (Speech-to-Text) Button */}
                     <button
                       onClick={handleToggleListening}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-bold text-[11px] border cursor-pointer m-0 transition-all ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-black text-xs border cursor-pointer m-0 transition-all shadow-xs ${
                         isListening
-                          ? 'bg-rose-600 text-white border-rose-600 animate-pulse'
-                          : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                          ? 'bg-rose-600 text-white border-rose-600 animate-pulse ring-2 ring-rose-300'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700'
                       }`}
                       title={isListening ? "Stop Voice Dictation" : "Dictate Note (Speech-to-Text)"}
                     >
                       {isListening ? (
                         <>
-                          <MicOff size={12} />
-                          <span>Listening...</span>
+                          <MicOff size={13} />
+                          <span>🔴 Listening... (Stop)</span>
                         </>
                       ) : (
                         <>
-                          <Mic size={12} className="text-emerald-600" />
-                          <span>Dictate</span>
+                          <Mic size={13} />
+                          <span>🎙️ Voice to Text</span>
                         </>
                       )}
                     </button>
@@ -1656,6 +1707,32 @@ export function FarmNotesHub() {
                     </button>
                   </div>
                 </div>
+
+                {/* Live Voice Dictation Active Banner */}
+                {isListening && (
+                  <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-3.5 flex items-center justify-between shadow-sm animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
+                      </span>
+                      <div>
+                        <div className="text-xs font-black text-rose-900 flex items-center gap-1.5">
+                          <Mic size={14} className="text-rose-600" /> Listening to your voice in real time...
+                        </div>
+                        <p className="text-[11px] text-rose-700 font-medium">
+                          Speak clearly into your microphone — your spoken words will be transcribed directly into your note text.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleToggleListening}
+                      className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase rounded-xl cursor-pointer border-0 shadow-xs"
+                    >
+                      Done / Stop
+                    </button>
+                  </div>
+                )}
 
                 {/* CONTENT AREA: EDIT or PREVIEW */}
                 {editorPreviewMode === 'edit' ? (
