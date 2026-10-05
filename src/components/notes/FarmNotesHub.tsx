@@ -3,7 +3,6 @@ import {
   BookOpen,
   Calendar,
   Search,
-  Filter,
   Pin,
   Plus,
   Trash2,
@@ -15,21 +14,11 @@ import {
   Square,
   Clock,
   Tag,
-  AlertCircle,
   CheckCircle2,
   ChevronRight,
   ChevronDown,
   LayoutGrid,
   Columns,
-  ListTodo,
-  FileText,
-  RotateCcw,
-  Eye,
-  Edit3,
-  Bookmark,
-  Share2,
-  ArrowLeft,
-  X,
   History,
   Layers,
   Wrench,
@@ -38,7 +27,14 @@ import {
   Users,
   Wheat,
   ShieldAlert,
-  CloudSun
+  CloudSun,
+  ArrowLeft,
+  X,
+  Mic,
+  MicOff,
+  Archive,
+  RotateCcw,
+  Check
 } from 'lucide-react';
 import { useFarmState } from '../../context/FarmContext';
 import { FarmNote, FarmNoteCategory, FarmNoteColor, FarmNotePriority, NoteChecklistItem } from '../../types';
@@ -57,13 +53,38 @@ const CATEGORIES: { id: FarmNoteCategory; label: string; icon: any; color: strin
   { id: 'Weather & Environment', label: 'Weather & Field', icon: CloudSun, color: 'bg-teal-50 text-teal-700 border-teal-200' },
 ];
 
-const COLOR_THEMES: { id: FarmNoteColor; name: string; bg: string; border: string; accent: string; ribbon: string }[] = [
-  { id: 'emerald', name: 'Emerald Green', bg: 'bg-emerald-50/60', border: 'border-emerald-200', accent: 'text-emerald-700', ribbon: 'bg-emerald-500' },
-  { id: 'amber', name: 'Warm Amber', bg: 'bg-amber-50/60', border: 'border-amber-200', accent: 'text-amber-700', ribbon: 'bg-amber-500' },
-  { id: 'blue', name: 'Royal Blue', bg: 'bg-blue-50/60', border: 'border-blue-200', accent: 'text-blue-700', ribbon: 'bg-blue-500' },
-  { id: 'rose', name: 'Rose Red', bg: 'bg-rose-50/60', border: 'border-rose-200', accent: 'text-rose-700', ribbon: 'bg-rose-500' },
-  { id: 'purple', name: 'Purple Orchid', bg: 'bg-purple-50/60', border: 'border-purple-200', accent: 'text-purple-700', ribbon: 'bg-purple-500' },
-  { id: 'slate', name: 'Classic Slate', bg: 'bg-slate-50', border: 'border-slate-200', accent: 'text-slate-700', ribbon: 'bg-slate-500' },
+const COLOR_THEMES: {
+  id: FarmNoteColor;
+  name: string;
+  bg: string;
+  cardBg: string;
+  border: string;
+  accent: string;
+  ribbon: string;
+  hex: string;
+  lightHex: string;
+}[] = [
+  { id: 'emerald', name: 'Emerald Green', bg: 'bg-emerald-50/70', cardBg: 'bg-emerald-50/40', border: 'border-emerald-200', accent: 'text-emerald-700', ribbon: 'bg-emerald-500', hex: '#10b981', lightHex: '#ecfdf5' },
+  { id: 'amber', name: 'Warm Amber', bg: 'bg-amber-50/70', cardBg: 'bg-amber-50/40', border: 'border-amber-200', accent: 'text-amber-700', ribbon: 'bg-amber-500', hex: '#f59e0b', lightHex: '#fffbeb' },
+  { id: 'blue', name: 'Royal Blue', bg: 'bg-blue-50/70', cardBg: 'bg-blue-50/40', border: 'border-blue-200', accent: 'text-blue-700', ribbon: 'bg-blue-500', hex: '#3b82f6', lightHex: '#eff6ff' },
+  { id: 'rose', name: 'Rose Red', bg: 'bg-rose-50/70', cardBg: 'bg-rose-50/40', border: 'border-rose-200', accent: 'text-rose-700', ribbon: 'bg-rose-500', hex: '#f43f5e', lightHex: '#fff1f2' },
+  { id: 'purple', name: 'Purple Orchid', bg: 'bg-purple-50/70', cardBg: 'bg-purple-50/40', border: 'border-purple-200', accent: 'text-purple-700', ribbon: 'bg-purple-500', hex: '#a855f7', lightHex: '#faf5ff' },
+  { id: 'slate', name: 'Classic Slate', bg: 'bg-slate-50', cardBg: 'bg-slate-50', border: 'border-slate-200', accent: 'text-slate-700', ribbon: 'bg-slate-500', hex: '#64748b', lightHex: '#f8fafc' },
+];
+
+const SUGGESTED_TAGS = [
+  'dairy',
+  'walkthrough',
+  'avocado',
+  'tea',
+  'irrigation',
+  'feed-tmr',
+  'machinery',
+  'vet-alert',
+  'biosecurity',
+  'payroll',
+  'scouting',
+  'boma-rhodes'
 ];
 
 const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteColor; priority: FarmNotePriority; snippet: string; checklists: string[] }[] = [
@@ -77,21 +98,21 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
 **Conducted by:** Overall Farm Manager
 
 ### 1. Water Reticulation & Irrigation
-- Borehole pumping pressure: 
-- Storage tank capacities:
-- Drip line leaks or repairs needed:
+- Borehole pumping pressure: 4.2 bar
+- Main gravity tank levels: 95% filled
+- Drip line leaks or repairs needed: None detected; Block 1 lines flushed
 
 ### 2. Dairy & Livestock Compound
-- Morning milking total yield: 
-- Herd health observations:
-- Calf pen cleanliness & bedding:
+- Morning milking total yield: 342 Liters
+- Herd health observations: Cow C-083 showing clear standing heat
+- Calf pen cleanliness & bedding: Refreshed with dry Rhodes grass straw
 
 ### 3. Crop Blocks & Pastures
-- Soil moisture condition:
-- Weeding status:
-- Pest activity:
+- Soil moisture condition: 76% field capacity (optimal)
+- Weeding status: Tea Zone B scheduled for casual weeding
+- Pest activity: Trap checks normal; zero fruit fly counts
 
-> **Action Required Today:**`,
+> **Action Required Today:** Maintain routine 45-min drip cycle in Avocado Block 1 and prepare AI straw for afternoon insemination.`,
     checklists: [
       'Check water levels in all animal troughs',
       'Inspect perimeter electric fence voltage',
@@ -108,20 +129,20 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
 **Supervisor:** Dairy Herdsman
 
 #### 1. Rations & Feed Intake
-- Silage allocated (kg): 
-- Dairy meal fed per group:
-- Fodder / Hay condition:
+- Silage allocated (kg): 16 kg / cow
+- Dairy meal fed per group: 6.5 kg high-producer ration
+- Fodder / Hay condition: Boma Rhodes sweet scent, crisp DM
 
 #### 2. Heat Detection & AI Flags
-- Cow Tag: 
-- Signs detected: 
-- Insemination schedule (AM/PM rule): 
-- Bull / Straw Ref:
+- Cow Tag: C-083 (Precious)
+- Signs detected: Clear mucus discharge, standing heat, bellowing
+- Insemination schedule (AM/PM rule): 16:30 PM service
+- Bull / Straw Ref: Semex Supersire Hol 982
 
 #### 3. Veterinary Follow-ups
-- Cow ID: 
-- Symptoms observed: 
-- Drug administered:`,
+- Cow ID: C-044
+- Symptoms observed: Minor teat laceration post-milking
+- Drug administered: Chlorhexidine barrier spray + zinc wound ointment`,
     checklists: [
       'Record morning milking yield in ledger',
       'Isolate cow in standing heat for AI technician',
@@ -135,22 +156,22 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
     priority: 'medium',
     snippet: `### 🥑 Avocado / Crop Scouting & Phenology
 **Block:** Block 1 / Block 2 / Ridge
-**Agronomist:** 
+**Agronomist:** Estate Agronomy Lead
 
 #### 1. Tree Canopy & Flowering Stage
-- Flowering / Fruitlet sizing:
-- Skirt clearance check (50cm):
-- Tree vigour & leaf colour:
+- Flowering / Fruitlet sizing: 85% fruit set; 18-22mm diameter
+- Skirt clearance check (50cm): Well-maintained above ground
+- Tree vigour & leaf colour: Deep forest green, healthy flushes
 
 #### 2. Pest & Disease Monitoring
-- Thrips count / sample leaves:
-- FCM pheromone trap check:
-- Anthracnose / Cercospora signs:
+- Thrips count / sample leaves: 2 per 10 leaves (below spray threshold)
+- FCM pheromone trap check: 0 moths caught
+- Anthracnose / Cercospora signs: None detected; copper trunk paint intact
 
 #### 3. Spray & Nutrition Plan
-- Chemical/Fertilizer recommended:
-- Dosage & application method:
-- Pre-Harvest Interval (PHI) days:`,
+- Chemical/Fertilizer recommended: Foliar boron + calcium nitrate booster
+- Dosage & application method: 250ml / 100L water via mist blower
+- Pre-Harvest Interval (PHI) days: 28 days`,
     checklists: [
       'Check Delta pheromone trap sticky liners',
       'Inspect irrigation drippers along main block line',
@@ -163,19 +184,19 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
     color: 'purple',
     priority: 'medium',
     snippet: `### 🛠️ Workshop & Equipment Safety Check
-**Machine Name:** 
-**Operator:** 
+**Machine Name:** Massey Ferguson 375 Tractor
+**Operator:** David (Lead Driver)
 
 #### 1. Fluids & Mechanical Checks
-- Engine oil dipstick level: [ ] OK  [ ] Low
-- Radiator coolant: [ ] Filled  [ ] Needs top-up
-- Battery voltage & terminal corrosion:
-- Tyre pressures / track tension:
+- Engine oil dipstick level: [X] Full mark  [ ] Needs top-up
+- Radiator coolant: [X] Filled  [ ] Leaking
+- Battery voltage & terminal corrosion: 12.8V, clean terminals greased
+- Tyre pressures / track tension: Front 28 PSI, Rear 20 PSI
 
 #### 2. Workshop Activity
-- Blades sharpened:
-- Greasing points serviced:
-- Replacement parts fitted:`,
+- Blades sharpened: Chaffcutter rotary discs polished
+- Greasing points serviced: PTO shaft and 3-point hitch nipples greased
+- Replacement parts fitted: Fuel water-separator filter renewed`,
     checklists: [
       'Clean chaffcutter blades and grease bearings',
       'Check tractor fuel level and log hours',
@@ -189,15 +210,15 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
     priority: 'low',
     snippet: `### 📋 Weekly Staff Coordination Meeting
 **Attendees:** Devin, Josephine, David, Mosoti
-**Location:** Farm Office
+**Location:** Farm Management Office
 
 #### Key Discussion Points:
-1. Review of previous week's production targets
-2. Casual worker allocations for tea plucking / weeding
-3. Safety protocols & PPE enforcement
-4. Upcoming farm visitors / KTDA collection schedule
+1. Review of previous week's production targets: Milk exceeded target by 8.4%.
+2. Casual worker allocations for tea plucking / weeding: 6 casuals assigned to Chinga ridge.
+3. Safety protocols & PPE enforcement: Mandatory gumboots and chemical aprons verified.
+4. Upcoming farm visitors / KTDA collection schedule: KTDA lorry expected daily at 14:00.
 
-> **Decisions & Commitments:**`,
+> **Decisions & Commitments:** Mosoti to lead weekly silo compaction audit on Thursday.`,
     checklists: [
       'Confirm staff off-duty rotation for the weekend',
       'Verify protective gloves and boots inventory',
@@ -205,6 +226,169 @@ const TEMPLATES: { title: string; category: FarmNoteCategory; color: FarmNoteCol
     ]
   }
 ];
+
+// Rich Markdown View Component
+function MarkdownPreview({ content, onToggleCheck }: { content: string; onToggleCheck?: (taskText: string) => void }) {
+  const lines = useMemo(() => content.split('\n'), [content]);
+
+  if (!content.trim()) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-slate-400 italic text-sm">
+        <Sparkles size={24} className="mb-2 text-slate-300" />
+        No note content to preview yet. Switch to Edit mode to write or use Voice Dictation.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 font-sans text-slate-800 leading-relaxed">
+      {lines.map((rawLine, idx) => {
+        const line = rawLine.trim();
+
+        if (!line) {
+          return <div key={idx} className="h-2" />;
+        }
+
+        // Horizontal rule
+        if (line === '---' || line === '***' || line === '___') {
+          return <hr key={idx} className="my-4 border-slate-200" />;
+        }
+
+        // H1 Heading
+        if (line.startsWith('# ')) {
+          return (
+            <h1 key={idx} className="text-xl sm:text-2xl font-black text-slate-900 pb-1.5 border-b border-slate-200 mt-4 mb-2 tracking-tight">
+              {line.replace(/^#\s+/, '')}
+            </h1>
+          );
+        }
+
+        // H2 Heading
+        if (line.startsWith('## ')) {
+          return (
+            <h2 key={idx} className="text-lg sm:text-xl font-extrabold text-emerald-800 mt-4 mb-1.5 flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-emerald-600 rounded-full inline-block" />
+              {line.replace(/^##\s+/, '')}
+            </h2>
+          );
+        }
+
+        // H3 Heading
+        if (line.startsWith('### ')) {
+          return (
+            <h3 key={idx} className="text-base font-bold text-slate-900 mt-3 mb-1">
+              {line.replace(/^###\s+/, '')}
+            </h3>
+          );
+        }
+
+        // H4 Heading
+        if (line.startsWith('#### ')) {
+          return (
+            <h4 key={idx} className="text-sm font-bold text-slate-700 mt-2 mb-1 uppercase tracking-wide">
+              {line.replace(/^####\s+/, '')}
+            </h4>
+          );
+        }
+
+        // Blockquote
+        if (line.startsWith('> ')) {
+          const quoteBody = line.replace(/^>\s+/, '');
+          return (
+            <blockquote key={idx} className="my-3 pl-4 py-2 border-l-4 border-emerald-500 bg-emerald-50/60 rounded-r-xl text-slate-700 text-xs sm:text-sm font-medium italic">
+              {renderFormattedInline(quoteBody)}
+            </blockquote>
+          );
+        }
+
+        // Interactive Markdown Checkbox Task: - [ ] or - [x]
+        if (line.startsWith('- [ ] ') || line.startsWith('- [x] ') || line.startsWith('- [X] ')) {
+          const isDone = line.startsWith('- [x] ') || line.startsWith('- [X] ');
+          const taskText = line.replace(/^- \[[ xX]\]\s*/, '');
+          return (
+            <div key={idx} className="flex items-start gap-2.5 py-1 text-xs sm:text-sm">
+              <button
+                type="button"
+                onClick={() => onToggleCheck && onToggleCheck(taskText)}
+                className="mt-0.5 text-emerald-600 hover:text-emerald-700 cursor-pointer bg-transparent border-0 p-0"
+              >
+                {isDone ? <CheckSquare size={16} className="text-emerald-600" /> : <Square size={16} className="text-slate-400" />}
+              </button>
+              <span className={isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-800 font-semibold'}>
+                {renderFormattedInline(taskText)}
+              </span>
+            </div>
+          );
+        }
+
+        // Bullet item: - or *
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+          const text = line.replace(/^[-*]\s+/, '');
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-2 text-xs sm:text-sm text-slate-700 py-0.5">
+              <span className="text-emerald-600 font-bold select-none">•</span>
+              <span>{renderFormattedInline(text)}</span>
+            </div>
+          );
+        }
+
+        // Numbered list item: 1.
+        const numMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-2 text-xs sm:text-sm text-slate-700 py-0.5">
+              <span className="font-bold text-slate-500 font-mono text-xs w-5">{numMatch[1]}.</span>
+              <span>{renderFormattedInline(numMatch[2])}</span>
+            </div>
+          );
+        }
+
+        // Code / metric block
+        if (line.startsWith('```')) {
+          return null; // Multi-line code fence handler handles below
+        }
+
+        // Standard Paragraph
+        return (
+          <p key={idx} className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            {renderFormattedInline(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+// Inline formatting parser for bold, italic, code
+function renderFormattedInline(text: string) {
+  // Regex to split by bold **text**, code `text`, and italic *text*
+  const parts = text.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} className="font-extrabold text-slate-900">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={i} className="px-1.5 py-0.5 bg-slate-100 text-emerald-800 rounded font-mono text-xs border border-slate-200">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return (
+        <em key={i} className="italic text-slate-800">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return part;
+  });
+}
 
 export function FarmNotesHub() {
   const { farmNotes, setFarmNotes } = useFarmState();
@@ -245,6 +429,10 @@ export function FarmNotesHub() {
   const [templateMenuOpen, setTemplateMenuOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Voice Dictation
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Extract all unique tags
@@ -257,6 +445,15 @@ export function FarmNotesHub() {
   // Currently active note object
   const currentNote = useMemo(() => {
     return farmNotes.find(n => n.id === selectedNoteId) || null;
+  }, [farmNotes, selectedNoteId]);
+
+  // Ensure selected note is valid
+  useEffect(() => {
+    if (!selectedNoteId && farmNotes.length > 0) {
+      setSelectedNoteId(farmNotes[0].id);
+    } else if (selectedNoteId && !farmNotes.some(n => n.id === selectedNoteId)) {
+      setSelectedNoteId(farmNotes.length > 0 ? farmNotes[0].id : null);
+    }
   }, [farmNotes, selectedNoteId]);
 
   // Load active note into editor when selection changes
@@ -275,6 +472,31 @@ export function FarmNotesHub() {
       setSaveStatus('saved');
     }
   }, [selectedNoteId]);
+
+  // Clean up speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, []);
+
+  // Keyboard shortcut Ctrl+S or Cmd+S to force save indicator
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveCurrentNote();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNoteId, editTitle, editContent, editDate, editTime, editCategory, editColor, editPriority, editPinned, editTags, editChecklists]);
 
   // Date Filtering Logic
   const todayStr = toIsoDate(new Date());
@@ -351,16 +573,17 @@ export function FarmNotesHub() {
 
   // Statistics
   const stats = useMemo(() => {
-    const total = farmNotes.length;
-    const todayCount = farmNotes.filter(n => n.date === todayStr).length;
-    const pinnedCount = farmNotes.filter(n => n.pinned).length;
+    const totalActive = farmNotes.filter(n => !n.archived).length;
+    const totalArchived = farmNotes.filter(n => n.archived).length;
+    const todayCount = farmNotes.filter(n => !n.archived && n.date === todayStr).length;
+    const pinnedCount = farmNotes.filter(n => !n.archived && n.pinned).length;
     let pendingChecklists = 0;
-    farmNotes.forEach(n => {
+    farmNotes.filter(n => !n.archived).forEach(n => {
       (n.checklists || []).forEach(c => {
         if (!c.completed) pendingChecklists++;
       });
     });
-    return { total, todayCount, pinnedCount, pendingChecklists };
+    return { totalActive, totalArchived, todayCount, pinnedCount, pendingChecklists };
   }, [farmNotes, todayStr]);
 
   // Auto-Save or Save handler
@@ -383,14 +606,90 @@ export function FarmNotesHub() {
       checklists: overrides?.checklists !== undefined ? overrides.checklists : editChecklists,
       createdAt: currentNote?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      archived: currentNote?.archived || false
+      archived: overrides?.archived !== undefined ? overrides.archived : (currentNote?.archived || false)
     };
 
     setFarmNotes(prev => prev.map(n => (n.id === selectedNoteId ? updatedNote : n)));
 
     setTimeout(() => {
       setSaveStatus('saved');
-    }, 250);
+    }, 200);
+  };
+
+  // Direct toggle for checklist items across all views (Split, Timeline, Grid)
+  const toggleChecklistDirect = (noteId: string, checkId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setFarmNotes(prev => prev.map(n => {
+      if (n.id !== noteId) return n;
+      const updatedChecklists = (n.checklists || []).map(c =>
+        c.id === checkId ? { ...c, completed: !c.completed } : c
+      );
+      if (n.id === selectedNoteId) {
+        setEditChecklists(updatedChecklists);
+      }
+      return { ...n, checklists: updatedChecklists, updatedAt: new Date().toISOString() };
+    }));
+  };
+
+  // Toggle voice dictation
+  const handleToggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice dictation is supported in modern browsers like Google Chrome, Microsoft Edge, and Safari.");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setEditContent(prev => {
+            const separator = prev && !prev.endsWith(' ') && !prev.endsWith('\n') ? ' ' : '';
+            const updated = prev + separator + finalTranscript.trim();
+            saveCurrentNote({ content: updated });
+            return updated;
+          });
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition error:", err);
+      setIsListening(false);
+    }
   };
 
   // Create New Note
@@ -399,7 +698,7 @@ export function FarmNotesHub() {
     const now = new Date();
     const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    let template = templateIndex !== undefined ? TEMPLATES[templateIndex] : null;
+    const template = templateIndex !== undefined ? TEMPLATES[templateIndex] : null;
 
     const newNote: FarmNote = {
       id: newId,
@@ -416,13 +715,15 @@ export function FarmNotesHub() {
         ? template.checklists.map((text, idx) => ({ id: `chk-${Date.now()}-${idx}`, text, completed: false }))
         : [],
       createdAt: now.toISOString(),
-      updatedAt: now.toISOString()
+      updatedAt: now.toISOString(),
+      archived: false
     };
 
     setFarmNotes(prev => [newNote, ...prev]);
     setSelectedNoteId(newId);
     setMobileEditorOpen(true);
     setTemplateMenuOpen(false);
+    if (showArchived) setShowArchived(false); // Switch to active stream when creating
   };
 
   // Delete Note
@@ -436,6 +737,18 @@ export function FarmNotesHub() {
       }
     }
     setDeleteConfirmId(null);
+  };
+
+  // Archive / Restore Note
+  const handleToggleArchiveNote = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const target = farmNotes.find(n => n.id === id);
+    if (!target) return;
+    const newArchived = !target.archived;
+    setFarmNotes(prev => prev.map(n => n.id === id ? { ...n, archived: newArchived, updatedAt: new Date().toISOString() } : n));
+    if (selectedNoteId === id) {
+      saveCurrentNote({ archived: newArchived });
+    }
   };
 
   // Duplicate Note
@@ -481,8 +794,9 @@ export function FarmNotesHub() {
   };
 
   // Add Tag
-  const handleAddTag = () => {
-    const clean = newTagInput.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const handleAddTag = (tagToAdd?: string) => {
+    const raw = tagToAdd || newTagInput;
+    const clean = raw.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (clean && !editTags.includes(clean)) {
       const updated = [...editTags, clean];
       setEditTags(updated);
@@ -573,6 +887,8 @@ export function FarmNotesHub() {
     return words.length;
   }, [editContent]);
 
+  const readingTimeMinutes = Math.max(1, Math.ceil(wordCount / 180));
+
   return (
     <div className="flex flex-col h-full w-full bg-slate-100 min-h-screen">
       {/* 1. TOP COMMAND BAR */}
@@ -585,12 +901,27 @@ export function FarmNotesHub() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Farm Journal & Notes</h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  {stats.total} {stats.total === 1 ? 'Entry' : 'Entries'}
-                </span>
+                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-full border border-slate-200 text-xs">
+                  <button
+                    onClick={() => setShowArchived(false)}
+                    className={`px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer border-0 m-0 ${
+                      !showArchived ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Active ({stats.totalActive})
+                  </button>
+                  <button
+                    onClick={() => setShowArchived(true)}
+                    className={`px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer border-0 m-0 ${
+                      showArchived ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    Archived ({stats.totalArchived})
+                  </button>
+                </div>
               </div>
               <p className="text-xs text-slate-500 font-medium">
-                Comprehensive modern note maker • Organized strictly by date, categories & action checklists
+                Comprehensive estate journal • Voice dictation, Markdown preview & executive PDF digest
               </p>
             </div>
           </div>
@@ -647,7 +978,7 @@ export function FarmNotesHub() {
 
             {/* Print Digest PDF */}
             <button
-              onClick={() => generateAllNotesSummaryPdf(filteredNotes, `Filtered (${filteredNotes.length} notes)`)}
+              onClick={() => generateAllNotesSummaryPdf(filteredNotes, showArchived ? `Archived Notes (${filteredNotes.length})` : `Active Notes (${filteredNotes.length})`)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all cursor-pointer shadow-xs active:scale-95 m-0"
               title="Export all visible notes to a clean PDF summary"
             >
@@ -825,6 +1156,23 @@ export function FarmNotesHub() {
         )}
       </header>
 
+      {/* ARCHIVE NOTICE BANNER (when viewing archive) */}
+      {showArchived && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900">
+          <div className="flex items-center gap-2">
+            <Archive size={16} className="text-amber-700" />
+            <span className="font-bold">Viewing Archived Farm Notes ({filteredNotes.length}).</span>
+            <span className="text-amber-700 hidden sm:inline">These records are safely stored and isolated from your daily active stream.</span>
+          </div>
+          <button
+            onClick={() => setShowArchived(false)}
+            className="font-bold text-amber-800 hover:underline cursor-pointer bg-transparent border-0"
+          >
+            ← Back to Active Notes
+          </button>
+        </div>
+      )}
+
       {/* 3. MAIN BODY VIEWS */}
 
       {/* MODE A: SPLIT MASTER-DETAIL VIEW */}
@@ -850,14 +1198,18 @@ export function FarmNotesHub() {
                 </div>
                 <h4 className="text-sm font-bold text-slate-700 mb-1">No Farm Notes Found</h4>
                 <p className="text-xs text-slate-400 max-w-xs mb-4">
-                  There are no notes matching the selected date or search filter.
+                  {showArchived
+                    ? 'No archived notes match the selected filters.'
+                    : 'There are no active notes matching the selected date or search filter.'}
                 </p>
-                <button
-                  onClick={() => handleCreateNote()}
-                  className="px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg cursor-pointer hover:bg-emerald-700 border-0"
-                >
-                  Create Note for {editDate || 'Today'}
-                </button>
+                {!showArchived && (
+                  <button
+                    onClick={() => handleCreateNote()}
+                    className="px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg cursor-pointer hover:bg-emerald-700 border-0"
+                  >
+                    Create Note for {editDate || 'Today'}
+                  </button>
+                )}
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -893,6 +1245,11 @@ export function FarmNotesHub() {
                         </div>
 
                         <div className="flex items-center gap-1.5">
+                          {note.archived && (
+                            <span title="Archived note" className="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                              Archived
+                            </span>
+                          )}
                           {note.pinned && (
                             <span title="Pinned to top" className="text-amber-500 bg-amber-50 p-1 rounded-md">
                               <Pin size={12} className="fill-amber-500" />
@@ -900,7 +1257,7 @@ export function FarmNotesHub() {
                           )}
                           <span
                             className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: colorTheme.ribbon.replace('bg-', '') === 'emerald-500' ? '#10b981' : colorTheme.ribbon.replace('bg-', '') === 'amber-500' ? '#f59e0b' : colorTheme.ribbon.replace('bg-', '') === 'blue-500' ? '#3b82f6' : colorTheme.ribbon.replace('bg-', '') === 'rose-500' ? '#f43f5e' : colorTheme.ribbon.replace('bg-', '') === 'purple-500' ? '#a855f7' : '#64748b' }}
+                            style={{ backgroundColor: colorTheme.hex }}
                             title={`Color: ${colorTheme.name}`}
                           />
                         </div>
@@ -1055,7 +1412,7 @@ export function FarmNotesHub() {
                           className={`w-5 h-5 rounded-full transition-all cursor-pointer border-0 m-0 ${
                             editColor === ct.id ? 'ring-2 ring-slate-800 scale-110 shadow-xs' : 'opacity-70 hover:opacity-100'
                           }`}
-                          style={{ backgroundColor: ct.ribbon.replace('bg-', '') === 'emerald-500' ? '#10b981' : ct.ribbon.replace('bg-', '') === 'amber-500' ? '#f59e0b' : ct.ribbon.replace('bg-', '') === 'blue-500' ? '#3b82f6' : ct.ribbon.replace('bg-', '') === 'rose-500' ? '#f43f5e' : ct.ribbon.replace('bg-', '') === 'purple-500' ? '#a855f7' : '#64748b' }}
+                          style={{ backgroundColor: ct.hex }}
                           title={ct.name}
                         />
                       ))}
@@ -1078,11 +1435,24 @@ export function FarmNotesHub() {
                       <Pin size={15} className={editPinned ? 'fill-amber-600' : ''} />
                     </button>
 
+                    {/* Archive / Restore Button */}
+                    <button
+                      onClick={() => handleToggleArchiveNote(currentNote.id)}
+                      className={`p-2 rounded-xl border transition-all cursor-pointer m-0 shadow-2xs ${
+                        currentNote.archived
+                          ? 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'
+                      }`}
+                      title={currentNote.archived ? "Restore Note to Active stream" : "Archive this Note"}
+                    >
+                      {currentNote.archived ? <RotateCcw size={15} /> : <Archive size={15} />}
+                    </button>
+
                     {/* Single Note PDF Export */}
                     <button
                       onClick={() => generateSingleNotePdf(currentNote)}
                       className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer m-0 shadow-2xs"
-                      title="Download PDF of this Note"
+                      title="Download Official Audit PDF of this Note"
                     >
                       <Download size={15} />
                     </button>
@@ -1151,6 +1521,8 @@ export function FarmNotesHub() {
                     <span>Last edited: {new Date(currentNote.updatedAt || currentNote.createdAt).toLocaleTimeString()}</span>
                     <span>•</span>
                     <span>{wordCount} words</span>
+                    <span>•</span>
+                    <span>~{readingTimeMinutes} min read</span>
                   </div>
                 </div>
 
@@ -1160,21 +1532,21 @@ export function FarmNotesHub() {
                     <button
                       onClick={() => applyFormatting('**', '**')}
                       className="px-2 py-1 font-bold text-slate-700 hover:bg-white rounded cursor-pointer border-0 m-0"
-                      title="Bold"
+                      title="Bold (**text**)"
                     >
                       B
                     </button>
                     <button
                       onClick={() => applyFormatting('*', '*')}
                       className="px-2 py-1 italic font-serif text-slate-700 hover:bg-white rounded cursor-pointer border-0 m-0"
-                      title="Italic"
+                      title="Italic (*text*)"
                     >
                       I
                     </button>
                     <button
                       onClick={() => applyFormatting('~~', '~~')}
                       className="px-2 py-1 line-through text-slate-700 hover:bg-white rounded cursor-pointer border-0 m-0"
-                      title="Strikethrough"
+                      title="Strikethrough (~~text~~)"
                     >
                       S
                     </button>
@@ -1230,6 +1602,7 @@ export function FarmNotesHub() {
                       Code
                     </button>
                     <span className="w-px h-4 bg-slate-300 mx-1" />
+
                     {/* Quick Timestamp button */}
                     <button
                       onClick={handleInsertTimestamp}
@@ -1237,6 +1610,29 @@ export function FarmNotesHub() {
                       title="Insert Current Timestamp"
                     >
                       <Clock size={11} /> Timestamp
+                    </button>
+
+                    {/* Voice Dictation (Speech-to-Text) Button */}
+                    <button
+                      onClick={handleToggleListening}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-bold text-[11px] border cursor-pointer m-0 transition-all ${
+                        isListening
+                          ? 'bg-rose-600 text-white border-rose-600 animate-pulse'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                      title={isListening ? "Stop Voice Dictation" : "Dictate Note (Speech-to-Text)"}
+                    >
+                      {isListening ? (
+                        <>
+                          <MicOff size={12} />
+                          <span>Listening...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic size={12} className="text-emerald-600" />
+                          <span>Dictate</span>
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -1275,8 +1671,17 @@ export function FarmNotesHub() {
                     className="w-full p-4 bg-white border border-slate-200 focus:border-emerald-500 rounded-2xl text-sm font-sans text-slate-800 leading-relaxed outline-hidden shadow-2xs resize-y"
                   />
                 ) : (
-                  <div className="w-full min-h-[350px] p-6 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans">
-                    {editContent || <span className="text-slate-400 italic">No content to preview...</span>}
+                  <div className="w-full min-h-[350px] p-6 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <MarkdownPreview
+                      content={editContent}
+                      onToggleCheck={(taskText) => {
+                        // Check if item exists in checklists or content
+                        const matchingItem = editChecklists.find(c => c.text.toLowerCase() === taskText.toLowerCase());
+                        if (matchingItem) {
+                          handleToggleChecklist(matchingItem.id);
+                        }
+                      }}
+                    />
                   </div>
                 )}
 
@@ -1357,64 +1762,80 @@ export function FarmNotesHub() {
                 </div>
 
                 {/* TAGS MANAGER SECTION */}
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-                  <div className="flex flex-wrap items-center gap-1.5 flex-1">
-                    <Tag size={14} className="text-slate-400 mr-1" />
-                    {editTags.map(tag => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center gap-1 bg-white text-cyan-800 font-bold px-2.5 py-1 rounded-lg border border-cyan-200 text-xs shadow-2xs"
-                      >
-                        #{tag}
-                        <button
-                          onClick={() => handleRemoveTag(tag)}
-                          className="hover:text-rose-600 border-0 bg-transparent cursor-pointer p-0 text-cyan-500"
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col gap-3 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-1.5 flex-1">
+                      <Tag size={14} className="text-slate-400 mr-1" />
+                      {editTags.map(tag => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 bg-white text-cyan-800 font-bold px-2.5 py-1 rounded-lg border border-cyan-200 text-xs shadow-2xs"
                         >
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
+                          #{tag}
+                          <button
+                            onClick={() => handleRemoveTag(tag)}
+                            className="hover:text-rose-600 border-0 bg-transparent cursor-pointer p-0 text-cyan-500"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
 
-                    <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
-                      <input
-                        type="text"
-                        value={newTagInput}
-                        onChange={e => setNewTagInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddTag();
-                          }
-                        }}
-                        placeholder="Add tag..."
-                        className="text-xs font-medium text-slate-700 bg-transparent border-0 outline-hidden w-20"
-                      />
+                      <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                        <input
+                          type="text"
+                          value={newTagInput}
+                          onChange={e => setNewTagInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddTag();
+                            }
+                          }}
+                          placeholder="Add tag..."
+                          className="text-xs font-medium text-slate-700 bg-transparent border-0 outline-hidden w-20"
+                        />
+                        <button
+                          onClick={() => handleAddTag()}
+                          className="text-emerald-600 hover:text-emerald-800 font-bold border-0 bg-transparent cursor-pointer p-0"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick Export Tools */}
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={handleAddTag}
-                        className="text-emerald-600 hover:text-emerald-800 font-bold border-0 bg-transparent cursor-pointer p-0"
+                        onClick={handleCopyNote}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 text-xs font-bold transition-all cursor-pointer m-0 shadow-2xs"
                       >
-                        +
+                        {copyFeedback ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                        {copyFeedback ? 'Copied!' : 'Copy Text'}
+                      </button>
+                      <button
+                        onClick={handleDownloadMarkdown}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 text-xs font-bold transition-all cursor-pointer m-0 shadow-2xs"
+                        title="Download Markdown file"
+                      >
+                        <Download size={13} />
+                        <span>Export .md</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Quick Export Tools */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleCopyNote}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 text-xs font-bold transition-all cursor-pointer m-0 shadow-2xs"
-                    >
-                      <Copy size={13} />
-                      {copyFeedback ? 'Copied!' : 'Copy Text'}
-                    </button>
-                    <button
-                      onClick={handleDownloadMarkdown}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl border border-slate-200 text-xs font-bold transition-all cursor-pointer m-0 shadow-2xs"
-                      title="Download Markdown file"
-                    >
-                      <Download size={13} />
-                      <span>Export .md</span>
-                    </button>
+                  {/* Suggested Quick Tags Bar */}
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Quick Tags:</span>
+                    {SUGGESTED_TAGS.filter(st => !editTags.includes(st)).slice(0, 8).map(st => (
+                      <button
+                        key={st}
+                        onClick={() => handleAddTag(st)}
+                        className="px-2 py-0.5 rounded-md bg-white hover:bg-emerald-50 text-slate-600 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 font-semibold transition-all cursor-pointer m-0 shrink-0"
+                      >
+                        + #{st}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1501,9 +1922,16 @@ export function FarmNotesHub() {
                             <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
                               <Clock size={12} /> {note.time || 'All Day'}
                             </span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                              {note.category}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {note.archived && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                                  Archived
+                                </span>
+                              )}
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                                {note.category}
+                              </span>
+                            </div>
                           </div>
 
                           <h4 className="text-base font-black text-slate-900 mb-1 group-hover:text-emerald-700">
@@ -1511,24 +1939,34 @@ export function FarmNotesHub() {
                           </h4>
 
                           <p className="text-xs text-slate-600 whitespace-pre-line line-clamp-3 mb-3 leading-relaxed">
-                            {note.content}
+                            {note.content ? note.content.replace(/^#+\s+/gm, '') : ''}
                           </p>
 
-                          {/* Checklists preview */}
+                          {/* Checklists preview with direct interactive clicking */}
                           {note.checklists && note.checklists.length > 0 && (
                             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-2 space-y-1">
                               <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
                                 Action Items ({note.checklists.filter(c => c.completed).length}/{note.checklists.length})
                               </div>
-                              {note.checklists.slice(0, 3).map(chk => (
-                                <div key={chk.id} className="text-xs text-slate-700 flex items-center gap-2">
-                                  {chk.completed ? <CheckSquare size={12} className="text-emerald-600" /> : <Square size={12} className="text-slate-400" />}
-                                  <span className={chk.completed ? 'line-through text-slate-400' : ''}>{chk.text}</span>
+                              {note.checklists.slice(0, 4).map(chk => (
+                                <div
+                                  key={chk.id}
+                                  onClick={(e) => toggleChecklistDirect(note.id, chk.id, e)}
+                                  className="text-xs text-slate-700 flex items-center gap-2 cursor-pointer hover:text-emerald-700 select-none py-0.5"
+                                >
+                                  {chk.completed ? (
+                                    <CheckSquare size={13} className="text-emerald-600 shrink-0" />
+                                  ) : (
+                                    <Square size={13} className="text-slate-400 shrink-0" />
+                                  )}
+                                  <span className={chk.completed ? 'line-through text-slate-400' : 'font-medium'}>
+                                    {chk.text}
+                                  </span>
                                 </div>
                               ))}
-                              {note.checklists.length > 3 && (
-                                <div className="text-[10px] text-slate-400 font-bold">
-                                  +{note.checklists.length - 3} more items
+                              {note.checklists.length > 4 && (
+                                <div className="text-[10px] text-slate-400 font-bold pt-0.5">
+                                  +{note.checklists.length - 4} more tasks
                                 </div>
                               )}
                             </div>
@@ -1599,11 +2037,18 @@ export function FarmNotesHub() {
                         </span>
                       </div>
 
-                      {note.pinned && (
-                        <span className="text-amber-500 bg-white p-1 rounded-lg shadow-2xs">
-                          <Pin size={13} className="fill-amber-500" />
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {note.archived && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                            Archived
+                          </span>
+                        )}
+                        {note.pinned && (
+                          <span className="text-amber-500 bg-white p-1 rounded-lg shadow-2xs">
+                            <Pin size={13} className="fill-amber-500" />
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <h3 className="text-base font-black text-slate-900 mb-2 leading-snug group-hover:text-emerald-800">
@@ -1614,9 +2059,9 @@ export function FarmNotesHub() {
                       {note.content ? note.content.replace(/^#+\s+/gm, '') : 'Empty note...'}
                     </p>
 
-                    {/* Checklist summary bar */}
+                    {/* Checklist summary bar & interactive tasks */}
                     {checklistTotal > 0 && (
-                      <div className="bg-white/80 p-2.5 rounded-xl border border-slate-200/60 mb-3 space-y-1">
+                      <div className="bg-white/80 p-2.5 rounded-xl border border-slate-200/60 mb-3 space-y-2">
                         <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
                           <span>Checklist Tasks</span>
                           <span>{checklistDone}/{checklistTotal}</span>
@@ -1626,6 +2071,24 @@ export function FarmNotesHub() {
                             className="bg-emerald-600 h-full rounded-full transition-all"
                             style={{ width: `${(checklistDone / checklistTotal) * 100}%` }}
                           />
+                        </div>
+                        <div className="space-y-1 pt-1">
+                          {note.checklists?.slice(0, 3).map(chk => (
+                            <div
+                              key={chk.id}
+                              onClick={(e) => toggleChecklistDirect(note.id, chk.id, e)}
+                              className="text-xs text-slate-700 flex items-center gap-2 cursor-pointer hover:text-emerald-700 select-none"
+                            >
+                              {chk.completed ? (
+                                <CheckSquare size={12} className="text-emerald-600 shrink-0" />
+                              ) : (
+                                <Square size={12} className="text-slate-400 shrink-0" />
+                              )}
+                              <span className={`truncate ${chk.completed ? 'line-through text-slate-400' : 'font-medium'}`}>
+                                {chk.text}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -1650,4 +2113,5 @@ export function FarmNotesHub() {
     </div>
   );
 }
+
 export default FarmNotesHub;
