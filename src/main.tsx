@@ -16,7 +16,57 @@ if (typeof window !== 'undefined' && typeof Range !== 'undefined') {
   };
 }
 
-if ('serviceWorker' in navigator && import.meta.env.DEV) {
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        const safeUpdate = () => {
+          if (typeof navigator !== 'undefined' && navigator.onLine) {
+            registration.update().catch(() => {});
+          }
+        };
+
+        safeUpdate();
+
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            safeUpdate();
+          }
+        });
+        window.addEventListener('focus', () => {
+          safeUpdate();
+        });
+
+        // Periodic update check every 60s when online
+        setInterval(() => {
+          safeUpdate();
+        }, 60 * 1000);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        console.error('ServiceWorker registration error:', err);
+      });
+  });
+
+  // Automatically refresh when a new service worker activates
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+} else if ('serviceWorker' in navigator && import.meta.env.DEV) {
   // Unregister any existing service workers in development mode to prevent caching conflicts
   navigator.serviceWorker.getRegistrations().then(registrations => {
     for (let registration of registrations) {

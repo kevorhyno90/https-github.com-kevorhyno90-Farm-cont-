@@ -4554,6 +4554,7 @@ function FarmCoreApp() {
     { id: 'finance', label: 'Financials (P&L)', icon: Coins, category: 'Operations' },
     { id: 'machinery', label: 'Fleet & Machinery', icon: Truck, category: 'Operations' },
     { id: 'inventory', label: 'Inventory Store', icon: Warehouse, category: 'Operations' },
+    { id: 'notes_ops', label: 'Farm Notes & Journal', icon: BookOpen, category: 'Operations' },
     { id: 'biogas', label: 'Biogas Optimizer', icon: Droplets, category: 'Operations' },
     { id: 'backup', label: 'Database Backup', icon: Database, category: 'Operations' },
 
@@ -6054,13 +6055,14 @@ function FarmCoreApp() {
             {slimSidebar ? (
               <div className="space-y-4 flex flex-col items-center">
                 {sidebarLinks
+                  .filter((link) => link.id !== 'notes_ops')
                   .filter((link) => 
                     link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
                     link.category.toLowerCase().includes(sidebarSearch.toLowerCase())
                   )
                   .map((link) => {
                     const Icon = link.icon;
-                    const isActive = activeTab === link.id;
+                    const isActive = activeTab === link.id || (link.id === 'notes' && activeTab === 'notes');
                     
                     let hasDot = false;
                     let dotColor = 'bg-yellow-500';
@@ -6089,7 +6091,7 @@ function FarmCoreApp() {
                       <button
                         key={link.id}
                         onClick={() => {
-                          setActiveTab(link.id);
+                          setActiveTab(link.id === 'notes_ops' ? 'notes' : link.id);
                           setMobileMenuOpen(false);
                         }}
                         className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all relative border-none ${
@@ -6133,7 +6135,7 @@ function FarmCoreApp() {
                       <div className="space-y-0.5 animate-fadeIn">
                         {catLinks.map((link) => {
                           const Icon = link.icon;
-                          const isActive = activeTab === link.id;
+                          const isActive = activeTab === link.id || (link.id === 'notes_ops' && activeTab === 'notes');
                           
                           let badgeText = '';
                           let badgeColor = 'bg-yellow-500 text-slate-950';
@@ -6163,7 +6165,7 @@ function FarmCoreApp() {
                               badgeText = `${overdueCount} DUE`;
                               badgeColor = 'bg-rose-500 text-white animate-pulse';
                             }
-                          } else if (link.id === 'notes') {
+                          } else if (link.id === 'notes' || link.id === 'notes_ops') {
                             if (farmNotes && farmNotes.length > 0) {
                               badgeText = `${farmNotes.length}`;
                               badgeColor = 'bg-emerald-100 text-emerald-800 font-bold';
@@ -6174,7 +6176,7 @@ function FarmCoreApp() {
                             <button
                               key={link.id}
                               onClick={() => {
-                                setActiveTab(link.id);
+                                setActiveTab(link.id === 'notes_ops' ? 'notes' : link.id);
                                 setMobileMenuOpen(false);
                               }}
                               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all font-medium text-[13px] border-none ${
@@ -6782,7 +6784,7 @@ function FarmCoreApp() {
                         <div className="space-y-0.5 animate-fadeIn">
                           {catLinks.map((link) => {
                             const Icon = link.icon;
-                            const isActive = activeTab === link.id;
+                            const isActive = activeTab === link.id || (link.id === 'notes_ops' && activeTab === 'notes');
                             
                             let badgeText = '';
                             let badgeColor = 'bg-yellow-500 text-slate-955';
@@ -6812,7 +6814,7 @@ function FarmCoreApp() {
                                 badgeText = `${overdueCount} DUE`;
                                 badgeColor = 'bg-rose-500 text-white animate-pulse';
                               }
-                            } else if (link.id === 'notes') {
+                            } else if (link.id === 'notes' || link.id === 'notes_ops') {
                               if (farmNotes && farmNotes.length > 0) {
                                 badgeText = `${farmNotes.length}`;
                                 badgeColor = 'bg-emerald-500 text-white font-bold';
@@ -6823,7 +6825,7 @@ function FarmCoreApp() {
                               <button
                                 key={link.id}
                                 onClick={() => {
-                                  setActiveTab(link.id);
+                                  setActiveTab(link.id === 'notes_ops' ? 'notes' : link.id);
                                   setMobileMenuOpen(false);
                                 }}
                                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all font-semibold text-xs border-none ${
