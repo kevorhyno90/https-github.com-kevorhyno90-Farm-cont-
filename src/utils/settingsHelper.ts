@@ -1,3 +1,44 @@
+export type UserRole = 'owner' | 'manager' | 'herdsman_vet' | 'field_worker';
+
+export interface RolePermissionConfig {
+  role: UserRole;
+  label: string;
+  description: string;
+  allowedCategories: string[];
+  disallowedTabIds: string[];
+}
+
+export const ROLE_PERMISSIONS: Record<UserRole, RolePermissionConfig> = {
+  owner: {
+    role: 'owner',
+    label: 'Farm Owner & Director',
+    description: 'Unrestricted master access to all financial records, executive settings, system backups, and operations.',
+    allowedCategories: ['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'],
+    disallowedTabIds: []
+  },
+  manager: {
+    role: 'manager',
+    label: 'General Estate Manager',
+    description: 'Operational and workforce leadership across all production, machinery, and logistics domains.',
+    allowedCategories: ['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'],
+    disallowedTabIds: ['backup']
+  },
+  herdsman_vet: {
+    role: 'herdsman_vet',
+    label: 'Herdsman & Veterinary Lead',
+    description: 'Specialized focus on dairy cattle, caprine breeding, poultry, biosecurity, and feed ration formulation.',
+    allowedCategories: ['Main', 'Feed & Factory', 'Livestock', 'Academy'],
+    disallowedTabIds: ['finance', 'backup', 'settings', 'roster']
+  },
+  field_worker: {
+    role: 'field_worker',
+    label: 'Agronomy & Field Specialist',
+    description: 'Hands-on focus for cash crops, tea harvesting, avocado orchard shipments, and GlobalGAP spraying.',
+    allowedCategories: ['Main', 'Crop Exports', 'Academy'],
+    disallowedTabIds: ['finance', 'backup', 'settings', 'roster', 'dairy', 'canines']
+  }
+};
+
 export interface FarmSettings {
   estateName: string;
   administrator: string;
@@ -19,6 +60,7 @@ export interface FarmSettings {
   monetizationStrategy: string;
   premiumAppPrice: string;
   orientationPreference: 'any' | 'portrait' | 'landscape';
+  activeRole: UserRole;
 }
 
 export const DEFAULT_SETTINGS: FarmSettings = {
@@ -41,7 +83,8 @@ export const DEFAULT_SETTINGS: FarmSettings = {
   admobInterstitialUnitId: 'ca-app-pub-3940256099942544/1033173712',
   monetizationStrategy: 'Ad Supported (AdMob)',
   premiumAppPrice: '9.99',
-  orientationPreference: 'any'
+  orientationPreference: 'any',
+  activeRole: 'owner'
 };
 
 export function getStoredSettings(): FarmSettings {
@@ -53,6 +96,9 @@ export function getStoredSettings(): FarmSettings {
       const merged = { ...DEFAULT_SETTINGS, ...parsed };
       if (!merged.orientationPreference) {
         merged.orientationPreference = 'any';
+      }
+      if (!merged.activeRole) {
+        merged.activeRole = 'owner';
       }
       merged.latitude = parseFloat(merged.latitude as any) || DEFAULT_SETTINGS.latitude;
       merged.longitude = parseFloat(merged.longitude as any) || DEFAULT_SETTINGS.longitude;

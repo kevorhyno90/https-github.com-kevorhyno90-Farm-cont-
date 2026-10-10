@@ -191,12 +191,10 @@ export const executeSmartMerge = (
         }
       });
 
-      // Only preserve local items missing from cloud if explicitly marked as pending offline draft
+      // Preserve local items missing from cloud unless explicitly tombstoned in deletedRecords
       localMap.forEach((val, id) => {
         if (globalDeletedSet.has(id) || cloudMap.has(id)) return;
-        if (val?._isLocalDraft || val?._pendingUpload) {
-          mergedArray.push(val);
-        }
+        mergedArray.push(val);
       });
 
       mergedPayload[k] = mergedArray;

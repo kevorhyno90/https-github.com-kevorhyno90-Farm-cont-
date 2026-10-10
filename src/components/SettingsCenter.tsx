@@ -20,7 +20,7 @@ import {
  RefreshCw,
  Monitor
 } from 'lucide-react';
-import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference } from '../utils/settingsHelper';
+import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference, ROLE_PERMISSIONS, UserRole } from '../utils/settingsHelper';
 import { isFirestoreSyncEnabled } from '../firebase';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
@@ -352,6 +352,38 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  onChange={(e) => handleUpdate('longitude', parseFloat(e.target.value) || 0)}
  className="border border-gray-200 rounded-xl p-3 w-full text-xs font-bold focus:ring-1 focus:ring-emerald-500 bg-white border border-gray-200 font-mono"
  />
+ </div>
+ </div>
+
+ {/* Role-Based Access Control Selection */}
+ <div className="border-t border-gray-200 pt-5 mt-4">
+ <label className="text-[11px] font-bold text-gray-900 uppercase tracking-wider block mb-1">
+ Operational User Role (RBAC Security Profile)
+ </label>
+ <p className="text-xs text-gray-500 mb-3 font-medium">
+ Select which role is currently active on this device. Restricts navigation, sensitive financials, and system backups accordingly.
+ </p>
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+ {Object.values(ROLE_PERMISSIONS).map((rp) => (
+ <button
+ key={rp.role}
+ type="button"
+ onClick={() => handleUpdate('activeRole', rp.role)}
+ className={`p-3.5 rounded-2xl border text-left transition-all ${
+ (settings.activeRole || 'owner') === rp.role
+ ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/20'
+ : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+ }`}
+ >
+ <div className="flex items-center justify-between mb-1">
+ <span className="text-xs font-bold text-gray-900">{rp.label}</span>
+ {(settings.activeRole || 'owner') === rp.role && (
+ <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">Active</span>
+ )}
+ </div>
+ <p className="text-[11px] text-gray-600 font-medium leading-relaxed">{rp.description}</p>
+ </button>
+ ))}
  </div>
  </div>
 

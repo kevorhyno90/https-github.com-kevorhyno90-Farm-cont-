@@ -47,7 +47,7 @@ import {
 
 import { realtimeDb, isFirestoreSyncEnabled } from './firebase';
 import { ref, push, set } from 'firebase/database';
-import { getStoredSettings, applyOrientationPreference } from './utils/settingsHelper';
+import { getStoredSettings, applyOrientationPreference, ROLE_PERMISSIONS, type UserRole } from './utils/settingsHelper';
 import { toIsoDate } from './utils/dateHelper';
 import { buildDefaultDeductLogs, buildDefaultDiagnosticHistory, buildDefaultTimetable } from './utils/appFallbacks';
 import { buildReportPdfFilename } from './utils/reportHelper';
@@ -4571,6 +4571,16 @@ function FarmCoreApp() {
     { id: 'settings', label: "Control Settings", icon: Settings, category: 'Operations' }
   ];
 
+  const currentRole = (farmSettings?.activeRole || 'owner') as UserRole;
+  const rolePermission = ROLE_PERMISSIONS[currentRole] || ROLE_PERMISSIONS.owner;
+  const authorizedSidebarLinks = useMemo(() => {
+    return sidebarLinks.filter(link => {
+      if (link.id === 'dash' || link.id === 'notes') return true;
+      if (rolePermission.disallowedTabIds.includes(link.id)) return false;
+      return rolePermission.allowedCategories.includes(link.category);
+    });
+  }, [sidebarLinks, rolePermission]);
+
   const renderReportContent = (sections: Record<string, boolean>, forPdf = false) => {
     try {
     // Override raw records with the filtered records in the scope of this function
@@ -6057,7 +6067,7 @@ function FarmCoreApp() {
           <nav className="flex-1 px-4 space-y-6">
             {slimSidebar ? (
               <div className="space-y-4 flex flex-col items-center">
-                {sidebarLinks
+                {authorizedSidebarLinks
                   .filter((link) => link.id !== 'notes_ops')
                   .filter((link) => 
                     link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
@@ -6114,7 +6124,7 @@ function FarmCoreApp() {
               </div>
             ) : (
               ['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => {
-                const catLinks = sidebarLinks
+                const catLinks = authorizedSidebarLinks
                   .filter((link) => link.category === cat)
                   .filter((link) => 
                     link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
@@ -6355,6 +6365,16 @@ function FarmCoreApp() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 relative text-gray-800">
+            {/* Operational Role Badge */}
+            <button
+              onClick={() => setActiveTab('settings')}
+              className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
+              title={`Active Operational Profile: ${rolePermission.label}. Click to modify in Control Settings.`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              <span>{rolePermission.label}</span>
+            </button>
+
             <span
               className={`${!isOnline ? 'inline-flex' : 'hidden sm:inline-flex'} text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full border ${headerCloudSyncStatus.tone}`}
               title={!isOnline ? "Working offline with local storage (Zero data bundles needed)" : "Cloud sync runtime status"}
@@ -6777,7 +6797,7 @@ function FarmCoreApp() {
  
               <nav className="flex-1 space-y-5">
                 {['Main', 'Feed & Factory', 'Livestock', 'Crop Exports', 'Operations', 'Academy'].map((cat) => {
-                  const catLinks = sidebarLinks
+                  const catLinks = authorizedSidebarLinks
                     .filter((link) => link.category === cat)
                     .filter((link) => 
                       link.label.toLowerCase().includes(sidebarSearch.toLowerCase()) ||

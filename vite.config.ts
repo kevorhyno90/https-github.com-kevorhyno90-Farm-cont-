@@ -10,7 +10,7 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
-      VitePWA({
+      ...(!process.env.VITEST ? [VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
         workbox: {
@@ -114,7 +114,7 @@ export default defineConfig(() => {
             }
           ]
         }
-      })
+      })] : [])
     ],
     resolve: {
       alias: {
