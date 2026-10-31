@@ -861,8 +861,8 @@ export function CaninesManager({
   const filteredDogs = useMemo(() => {
     return dogs.filter(dog => {
       const matchSearch =
-        dog.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dog.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(dog.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(dog.breed || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (dog.chipId && dog.chipId.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (dog.handlerName && dog.handlerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (dog.kennelNo && dog.kennelNo.toLowerCase().includes(searchTerm.toLowerCase()));

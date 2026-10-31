@@ -365,7 +365,7 @@ export function Financials({
  // Calving event triggers standard commercial peak earnings projection
  let projected90DaysPeakVolume = 0;
  upcomingCalvings.forEach(c => {
- const peakDaily = c.breed.toLowerCase().includes('friesian') ? 28 : (c.breed.toLowerCase().includes('jersey') ? 19 : 24);
+ const peakDaily = String(c.breed || '').toLowerCase().includes('friesian') ? 28 : (String(c.breed || '').toLowerCase().includes('jersey') ? 19 : 24);
  projected90DaysPeakVolume += (peakDaily * 90);
  });
 
@@ -409,7 +409,7 @@ export function Financials({
  ];
 
  const totalFeedLedgerExpense = financialRecords
- .filter(f => f.type === 'expense' && (f.category.toLowerCase().includes('feed') || f.description.toLowerCase().includes('feed')))
+ .filter(f => f.type === 'expense' && (String(f.category || '').toLowerCase().includes('feed') || String(f.description || '').toLowerCase().includes('feed')))
  .reduce((sum, f) => sum + f.amount, 0);
 
  const milkByCow: Record<string, number> = {};
@@ -443,7 +443,7 @@ export function Financials({
  let milkLiters = milkByCow[cowId] || 0;
  let isEstimated = false;
  if (milkLiters === 0 && cow.status === 'Lactating') {
- const dailyEst = cow.breed.toLowerCase().includes('friesian') ? 22 : (cow.breed.toLowerCase().includes('jersey') ? 14 : 18);
+ const dailyEst = String(cow.breed || '').toLowerCase().includes('friesian') ? 22 : (String(cow.breed || '').toLowerCase().includes('jersey') ? 14 : 18);
  milkLiters = dailyEst * 30;
  isEstimated = true;
  }
@@ -460,7 +460,7 @@ export function Financials({
  .reduce((sum, c) => {
  let l = milkByCow[c.id] || 0;
  if (l === 0) {
- const dailyEst = c.breed.toLowerCase().includes('friesian') ? 22 : (c.breed.toLowerCase().includes('jersey') ? 14 : 18);
+ const dailyEst = String(c.breed || '').toLowerCase().includes('friesian') ? 22 : (String(c.breed || '').toLowerCase().includes('jersey') ? 14 : 18);
  l = dailyEst * 30;
  }
  return sum + l;
@@ -469,7 +469,7 @@ export function Financials({
  feedCost = totalFeedLedgerExpense * share;
  } else {
  const daysAnalyzed = 30;
- const baselineCostPerDay = cow.breed.toLowerCase().includes('friesian') ? 320 : (cow.breed.toLowerCase().includes('jersey') ? 220 : 270);
+ const baselineCostPerDay = String(cow.breed || '').toLowerCase().includes('friesian') ? 320 : (String(cow.breed || '').toLowerCase().includes('jersey') ? 220 : 270);
  feedCost = baselineCostPerDay * daysAnalyzed;
  }
  } else {
@@ -1453,7 +1453,7 @@ export function Financials({
  <tbody className="divide-y divide-slate-50 font-medium text-gray-500">
  {breedingPredictionData.upcomingCalvings.map((c, i) => {
  const daysColor = c.daysLeft <= 30 ? 'text-red-700 font-semibold' : (c.daysLeft <= 60 ? 'text-amber-705 text-amber-700' : 'text-gray-900 font-medium');
- const peakDaily = c.breed.toLowerCase().includes('friesian') ? 28 : (c.breed.toLowerCase().includes('jersey') ? 19 : 24);
+ const peakDaily = String(c.breed || '').toLowerCase().includes('friesian') ? 28 : (String(c.breed || '').toLowerCase().includes('jersey') ? 19 : 24);
  const expectedSum = peakDaily * 90 * activeMarketMilkPrice;
 
  return (

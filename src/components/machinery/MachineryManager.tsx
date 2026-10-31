@@ -136,10 +136,10 @@ export function MachineryManager({
     const matchesStatus = statusFilter === 'All' || m.status === statusFilter;
     const q = searchQuery.toLowerCase();
     const matchesSearch =
-      m.name.toLowerCase().includes(q) ||
-      m.regNoOrSerial.toLowerCase().includes(q) ||
-      m.modelOrSpecs.toLowerCase().includes(q) ||
-      m.assignedOperator.toLowerCase().includes(q);
+      String(m.name || "").toLowerCase().includes(q) ||
+      String(m.regNoOrSerial || "").toLowerCase().includes(q) ||
+      String(m.modelOrSpecs || "").toLowerCase().includes(q) ||
+      String(m.assignedOperator || "").toLowerCase().includes(q);
     return matchesCat && matchesStatus && matchesSearch;
   });
 
@@ -147,11 +147,11 @@ export function MachineryManager({
   const filteredServices = services.filter((s) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
-      s.machineName.toLowerCase().includes(q) ||
-      s.regNoOrSerial.toLowerCase().includes(q) ||
-      s.whatWasServiced.toLowerCase().includes(q) ||
-      s.servicedBy.toLowerCase().includes(q) ||
-      s.serviceTicketRef.toLowerCase().includes(q);
+      String(s.machineName || "").toLowerCase().includes(q) ||
+      String(s.regNoOrSerial || "").toLowerCase().includes(q) ||
+      String(s.whatWasServiced || "").toLowerCase().includes(q) ||
+      String(s.servicedBy || "").toLowerCase().includes(q) ||
+      String(s.serviceTicketRef || "").toLowerCase().includes(q);
     return matchesSearch;
   });
 

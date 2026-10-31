@@ -230,9 +230,9 @@ export function PoultryHealthHub({
     return healthRecords
       .filter(r => {
         const matchesSearch =
-          r.flockName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.diseaseOrCondition.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.drugsOrVaccineUsed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(r.flockName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(r.diseaseOrCondition || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(r.drugsOrVaccineUsed || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
           (r.symptomsObserved || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'All' || r.category === categoryFilter;
         const matchesOutcome = outcomeFilter === 'All' || r.outcome === outcomeFilter;

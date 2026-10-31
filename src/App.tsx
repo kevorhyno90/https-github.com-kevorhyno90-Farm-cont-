@@ -332,7 +332,7 @@ function FarmCoreApp() {
   };
 
   const getIngredientNutrients = (name: string): { cp: number; me: number; cost: number } => {
-    const custom = (ingredients || []).find(i => i.name.toLowerCase() === name.toLowerCase());
+    const custom = (ingredients || []).find(i => String(i.name || "").toLowerCase() === String(name || "").toLowerCase());
     if (custom) {
       return { cp: custom.cp, me: custom.me, cost: custom.cost || 40 };
     }
@@ -3926,7 +3926,7 @@ function FarmCoreApp() {
     setSprayRecords([rec, ...sprayRecords]);
     
     // Auto-deduct matching chemical from warehouse inventory
-    const chemicalLower = rec.chemical.toLowerCase();
+    const chemicalLower = String(rec.chemical || "").toLowerCase();
     const matched = inventory.find(item => item.name.toLowerCase().includes(chemicalLower) && item.category === 'Chemical');
     if (matched) {
       const deductionAmount = 1; // Default 1 unit/liter per spray run
@@ -3970,7 +3970,7 @@ function FarmCoreApp() {
       
       if (item.deductions) {
         item.deductions.forEach(ded => {
-          const lowerName = ded.name.toLowerCase();
+          const lowerName = String(ded.name || "").toLowerCase();
           updated = updated.map(inv => {
             if (inv.name.toLowerCase().includes(lowerName) && (inv.category === 'Feed' || inv.category === 'Fertilizer')) {
               const nextQty = Math.max(0, inv.quantity - ded.amount);

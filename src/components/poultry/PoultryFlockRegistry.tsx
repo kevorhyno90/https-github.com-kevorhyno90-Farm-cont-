@@ -151,9 +151,9 @@ export function PoultryFlockRegistry({
 
   const filteredFlocks = flocks.filter(f => {
     const matchesSearch = 
-      f.flockName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      f.housingPen.toLowerCase().includes(searchTerm.toLowerCase());
+      String(f.flockName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(f.breed || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(f.housingPen || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSpecies = speciesFilter === 'All' || f.species === speciesFilter;
     const matchesStage = stageFilter === 'All' || f.stage === stageFilter;
     return matchesSearch && matchesSpecies && matchesStage;

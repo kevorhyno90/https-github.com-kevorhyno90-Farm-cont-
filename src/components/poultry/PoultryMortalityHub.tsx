@@ -170,8 +170,8 @@ export function PoultryMortalityHub({
     return mortalityRecords
       .filter(r => {
         const matchesSearch =
-          r.flockName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.primaryCause.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(r.flockName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+          String(r.primaryCause || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
           (r.postMortemSigns || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesType = typeFilter === 'All' || r.type === typeFilter;
         return matchesSearch && matchesType;

@@ -620,7 +620,7 @@ export function Roster({
       if (!isWage) return false;
       if (wageStaffFilter === 'all') return true;
       const s = staffList.find((w) => w.id === wageStaffFilter);
-      return s ? f.description?.toLowerCase().includes(s.name.toLowerCase()) : true;
+      return s ? f.description?.toLowerCase().includes(String(s.name || "").toLowerCase()) : true;
     });
   }, [financials, wageStaffFilter, staffList]);
 
@@ -3202,7 +3202,7 @@ export function Roster({
                 .filter(
                   (f: any) =>
                     f.date?.startsWith(payslipMonth) &&
-                    f.description?.toLowerCase().includes(payslipStaff.name.toLowerCase()) &&
+                    f.description?.toLowerCase().includes(String(payslipStaff.name || "").toLowerCase()) &&
                     (f.description?.toLowerCase().includes('advance') || f.description?.toLowerCase().includes('wage'))
                 )
                 .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);

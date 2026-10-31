@@ -387,7 +387,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  </div>
  
  {(() => {
- const name = rec.chemical.toLowerCase();
+ const name = String(rec.chemical || "").toLowerCase();
  let tox = { label: 'WHO Class II: Moderately Hazardous', color: 'text-amber-700 bg-amber-900/20 border-amber-200' };
  if (name.includes('dimethoate') || name.includes('carbofuran') || name.includes('methomyl') || name.includes('ddvp')) {
  tox = { label: 'WHO Class Ib: Highly Hazardous', color: 'text-red-705 bg-red-900/20 border-red-200' };

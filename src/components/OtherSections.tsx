@@ -590,7 +590,7 @@ export function OtherSections({
  if (!isEmpty && vetCardName) {
  matchingLogs = livestock.filter(item => 
  item.type === 'Dogs' && 
- item.name.toLowerCase().includes(vetCardName.toLowerCase())
+ String(item?.name || '').toLowerCase().includes(String(vetCardName || '').toLowerCase())
  );
  }
 
@@ -1438,18 +1438,19 @@ export function OtherSections({
  const isActive = selectedMapFieldId === f.id || (!selectedMapFieldId && idx === 0);
  
  // Determine color gradients by crop name key matches
- let colorGrad = 'from-emerald-800 to-teal-950 shadow-emerald-950/20'; // Default Tea
- if (f.cropType.toLowerCase().includes('tea')) {
- colorGrad = 'from-emerald-600 to-teal-900 border-emerald-500/20 shadow-emerald-950/30';
- } else if (f.cropType.toLowerCase().includes('napier') || f.cropType.toLowerCase().includes('grass') || f.cropType.toLowerCase().includes('pasture')) {
- colorGrad = 'from-lime-600 to-emerald-850 border-lime-600/20 shadow-lime-950/30';
- } else if (f.cropType.toLowerCase().includes('gum') || f.cropType.toLowerCase().includes('eucalyptus')) {
- colorGrad = 'from-slate-700 to-emerald-950 border-gray-200 shadow-slate-950/30';
- } else if (f.cropType.toLowerCase().includes('avocado')) {
- colorGrad = 'from-green-700 to-slate-900 border-green-600/20 shadow-green-950/30';
- } else if (f.cropType.toLowerCase().includes('maize') || f.cropType.toLowerCase().includes('sorghum') || f.cropType.toLowerCase().includes('corn')) {
- colorGrad = 'from-yellow-700 to-amber-950 border-amber-600/20 shadow-amber-950/30';
- }
+    let colorGrad = 'from-emerald-800 to-teal-950 shadow-emerald-950/20'; // Default Tea
+    const cType = String(f?.cropType || '').toLowerCase();
+    if (cType.includes('tea')) {
+      colorGrad = 'from-emerald-600 to-teal-900 border-emerald-500/20 shadow-emerald-950/30';
+    } else if (cType.includes('napier') || cType.includes('grass') || cType.includes('pasture')) {
+      colorGrad = 'from-lime-600 to-emerald-850 border-lime-600/20 shadow-lime-950/30';
+    } else if (cType.includes('gum') || cType.includes('eucalyptus')) {
+      colorGrad = 'from-slate-700 to-emerald-950 border-gray-200 shadow-slate-950/30';
+    } else if (cType.includes('avocado')) {
+      colorGrad = 'from-green-700 to-slate-900 border-green-600/20 shadow-green-950/30';
+    } else if (cType.includes('maize') || cType.includes('sorghum') || cType.includes('corn')) {
+      colorGrad = 'from-yellow-700 to-amber-950 border-amber-600/20 shadow-amber-950/30';
+    }
 
  // Soil moisture warning pulse
  const isDry = f.irrigationMethod === 'None' || (!f.irrigationMethod && idx === 2);

@@ -85,8 +85,8 @@ export function BsfManager({
   const filteredBatches = useMemo(() => {
     return bsfRecords.filter(b => {
       const matchSearch =
-        b.batchId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.substrateType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(b.batchId || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(b.substrateType || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (b.notes && b.notes.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchStatus = statusFilter === 'all' || b.status === statusFilter;

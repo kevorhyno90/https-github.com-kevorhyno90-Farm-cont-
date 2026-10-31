@@ -154,11 +154,11 @@ export function AvocadoSalesHub({
 
   // Filter records
   const filteredRecords = records.filter((r) => {
-    const matchesBuyer = buyerFilter === 'All' || r.grade1Buyer.toLowerCase().includes(buyerFilter.toLowerCase());
+    const matchesBuyer = buyerFilter === 'All' || String(r.grade1Buyer || "").toLowerCase().includes(buyerFilter.toLowerCase());
     const q = searchQuery.toLowerCase();
     const matchesSearch =
-      r.ref.toLowerCase().includes(q) ||
-      r.grade1Buyer.toLowerCase().includes(q) ||
+      String(r.ref || "").toLowerCase().includes(q) ||
+      String(r.grade1Buyer || "").toLowerCase().includes(q) ||
       (r.rejectBuyer && r.rejectBuyer.toLowerCase().includes(q)) ||
       (r.sectionOrBlock && r.sectionOrBlock.toLowerCase().includes(q)) ||
       (r.notes && r.notes.toLowerCase().includes(q));
