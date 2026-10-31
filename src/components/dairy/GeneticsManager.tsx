@@ -308,7 +308,7 @@ export default function GeneticsManager({
 
  const opt = {
  margin: [0.3, 0.3, 0.3, 0.3],
- filename: `pedigree_${cow.name.toLowerCase()}_${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.pdf`,
+ filename: `pedigree_${String(cow?.name || 'cow').toLowerCase()}_${String(cow?.id || 'id').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.pdf`,
  image: { type: 'jpeg', quality: 0.98 },
  html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
  jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
@@ -322,7 +322,7 @@ export default function GeneticsManager({
  const url = URL.createObjectURL(blob);
  const link = document.createElement('a');
  link.href = url;
- link.download = `pedigree_${cow.name.toLowerCase()}_${cow.id.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.html`;
+ link.download = `pedigree_${String(cow?.name || 'cow').toLowerCase()}_${String(cow?.id || 'id').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.html`;
  link.click();
  URL.revokeObjectURL(url);
  }
@@ -387,7 +387,7 @@ export default function GeneticsManager({
  const enrichedCows = cows.map(cow => {
  // Latest service AI cycle
  const cowAI = aiRecords
- .filter(r => r.cowId.toLowerCase() === cow.id.toLowerCase())
+ .filter(r => r && r.cowId && cow && cow.id && String(r.cowId).toLowerCase() === String(cow.id).toLowerCase())
  .sort((a, b) => b.date.localeCompare(a.date))[0];
 
  let serviceDay = 0;
@@ -436,7 +436,8 @@ export default function GeneticsManager({
  });
 
  // Click cow to focus
- const focusedCowData = enrichedCows.find(c => c.id.toLowerCase() === selectedWheelCow.toLowerCase()) || enrichedCows[0];
+ const selWheel = String(selectedWheelCow || '').toLowerCase();
+    const focusedCowData = enrichedCows.find(c => c && c.id && String(c.id).toLowerCase() === selWheel) || enrichedCows[0];
 
  // 30 days upcoming forecast list based on current simulation pointer
  const forecastEvents = enrichedCows.flatMap(cow => {
@@ -641,7 +642,7 @@ export default function GeneticsManager({
  {enrichedCows.map(cow => {
  if (cow.serviceDay <= 0) return null;
 
- const isSelected = selectedWheelCow.toLowerCase() === cow.id.toLowerCase();
+ const isSelected = Boolean(selectedWheelCow && cow && cow.id && String(selectedWheelCow).toLowerCase() === String(cow.id).toLowerCase());
  const coords = getPolarCoords(160, cow.serviceDay);
 
  // Choose node color based on status
@@ -1030,7 +1031,7 @@ export default function GeneticsManager({
 
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1">
  {enrichedCows.map(cow => {
- const isSelected = selectedWheelCow.toLowerCase() === cow.id.toLowerCase();
+ const isSelected = Boolean(selectedWheelCow && cow && cow.id && String(selectedWheelCow).toLowerCase() === String(cow.id).toLowerCase());
  return (
  <button
  key={`btn-dir-${cow.id}`}
@@ -1163,11 +1164,11 @@ export default function GeneticsManager({
  <span className="text-sm font-semibold text-gray-900 block">{pedigreeCow.sire || 'Imported Semen Specimen'}</span>
  <span className="text-[10px] text-gray-900 font-medium font-bold block mt-1">Certified Pureblood Lineage</span>
  
- {pedigreeCow.sire && cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) && (
+ {pedigreeCow.sire && cows.find(c => (c.id && String(c.id).toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) || (c.name && String(c.name).toLowerCase() === pedigreeCow.sire!.trim().toLowerCase())) && (
  <button 
  type="button"
  onClick={() => {
- const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.sire!.trim().toLowerCase());
+ const target = cows.find(c => (c.id && String(c.id).toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()) || (c.name && String(c.name).toLowerCase() === pedigreeCow.sire!.trim().toLowerCase()));
  if (target) setPedigreeCow(target);
  }}
  className="mt-2.5 text-[9px] font-semibold  text-blue-800 bg-blue-10/20 hover:bg-blue-100 hover:text-blue-950 border border-blue-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
@@ -1183,11 +1184,11 @@ export default function GeneticsManager({
  <span className="text-sm font-semibold text-gray-900 block">{pedigreeCow.dam || 'Acr-Grade Sire Maternal'}</span>
  <span className="text-[10px] text-gray-900 font-medium font-bold block mt-1">Excellent Butterfat Producer</span>
 
- {pedigreeCow.dam && cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) && (
+ {pedigreeCow.dam && cows.find(c => (c.id && String(c.id).toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) || (c.name && String(c.name).toLowerCase() === pedigreeCow.dam!.trim().toLowerCase())) && (
  <button 
  type="button"
  onClick={() => {
- const target = cows.find(c => c.id.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase() || c.name.toLowerCase() === pedigreeCow.dam!.trim().toLowerCase());
+ const target = cows.find(c => (c.id && String(c.id).toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()) || (c.name && String(c.name).toLowerCase() === pedigreeCow.dam!.trim().toLowerCase()));
  if (target) setPedigreeCow(target);
  }}
  className="mt-2.5 text-[9px] font-semibold  text-rose-800 bg-rose-10/20 hover:bg-rose-100 hover:text-rose-950 border border-rose-200 px-2 py-1 rounded transition-all w-full cursor-pointer m-0 text-center block"
@@ -1308,10 +1309,17 @@ export default function GeneticsManager({
 
  {/* Find Direct Offspring */}
  {(() => {
- const directOffspring = cows.filter(c => 
- (c.dam && (c.dam.toLowerCase() === pedigreeCow.id.toLowerCase() || c.dam.toLowerCase() === pedigreeCow.name.toLowerCase())) ||
- (c.sire && (c.sire.toLowerCase() === pedigreeCow.id.toLowerCase() || c.sire.toLowerCase() === pedigreeCow.name.toLowerCase()))
- );
+ const pedIdLower = String(pedigreeCow?.id || '').toLowerCase();
+    const pedNameLower = String(pedigreeCow?.name || '').toLowerCase();
+    const directOffspring = cows.filter(c => {
+      if (!c) return false;
+      const cDam = String(c.dam || '').toLowerCase();
+      const cSire = String(c.sire || '').toLowerCase();
+      return (
+        (cDam && (cDam === pedIdLower || (pedNameLower && cDam === pedNameLower))) ||
+        (cSire && (cSire === pedIdLower || (pedNameLower && cSire === pedNameLower)))
+      );
+    });
 
  return (
  <div className="space-y-4">
@@ -1332,10 +1340,17 @@ export default function GeneticsManager({
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {directOffspring.map(child => {
  // Find grandchildren (progeny of this child)
- const grandKids = cows.filter(g =>
- (g.dam && (g.dam.toLowerCase() === child.id.toLowerCase() || g.dam.toLowerCase() === child.name.toLowerCase())) ||
- (g.sire && (g.sire.toLowerCase() === child.id.toLowerCase() || g.sire.toLowerCase() === child.name.toLowerCase()))
- );
+ const childIdLower = String(child?.id || '').toLowerCase();
+      const childNameLower = String(child?.name || '').toLowerCase();
+      const grandKids = cows.filter(g => {
+        if (!g) return false;
+        const gDam = String(g.dam || '').toLowerCase();
+        const gSire = String(g.sire || '').toLowerCase();
+        return (
+          (gDam && (gDam === childIdLower || (childNameLower && gDam === childNameLower))) ||
+          (gSire && (gSire === childIdLower || (childNameLower && gSire === childNameLower)))
+        );
+      });
 
  return (
  <div key={child.id} className="bg-white border border-gray-200 border border-gray-200 rounded-2xl p-4 space-y-3 relative hover:border-emerald-600 transition-all">
@@ -1464,10 +1479,11 @@ export default function GeneticsManager({
  }
 
  // Compute inbreeding hazard
- const isSharedPedigree = selectedMateId !== 'straw-hf' && selectedMateId !== 'straw-ay' && selectedMateId !== 'straw-js' && (
- selectedMateId.toLowerCase() === pedigreeCow.sire?.toLowerCase().trim() ||
- selectedMateId.toLowerCase() === pedigreeCow.dam?.toLowerCase().trim()
- );
+ const sMateLower = String(selectedMateId || '').toLowerCase();
+    const isSharedPedigree = Boolean(selectedMateId && selectedMateId !== 'straw-hf' && selectedMateId !== 'straw-ay' && selectedMateId !== 'straw-js' && (
+      (pedigreeCow?.sire && sMateLower === String(pedigreeCow.sire).toLowerCase().trim()) ||
+      (pedigreeCow?.dam && sMateLower === String(pedigreeCow.dam).toLowerCase().trim())
+    ));
 
  // Compute lactation genetic merit (average of parents + 5% selection pressure)
  const damPeak = pedigreeCow.peakYieldTarget || 28;

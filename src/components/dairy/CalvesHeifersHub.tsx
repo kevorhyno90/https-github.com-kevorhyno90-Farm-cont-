@@ -328,12 +328,17 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
 
   // Filtered calves list
   const filteredCalves = calves.filter(calf => {
-    const query = calfSearch.toLowerCase();
+    if (!calf) return false;
+    const query = (calfSearch || '').toLowerCase();
+    const tag = String(calf.tag || '').toLowerCase();
+    const dam = String(calf.dam || '').toLowerCase();
+    const sire = String(calf.sire || '').toLowerCase();
+    const notes = String(calf.notes || '').toLowerCase();
     const matchesSearch =
-      calf.tag.toLowerCase().includes(query) ||
-      (calf.dam && calf.dam.toLowerCase().includes(query)) ||
-      (calf.sire && calf.sire.toLowerCase().includes(query)) ||
-      (calf.notes && calf.notes.toLowerCase().includes(query));
+      tag.includes(query) ||
+      dam.includes(query) ||
+      sire.includes(query) ||
+      notes.includes(query);
 
     if (!matchesSearch) return false;
 

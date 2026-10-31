@@ -160,10 +160,11 @@ export function VeterinaryLog({
   // Selected animal details for quick info display in form (cows, calves, heifers)
   const selectedCowInfo = useMemo(() => {
     if (!vetCowId) return null;
-    const cow = cows.find(c => c.id.toLowerCase() === vetCowId.toLowerCase());
+    const vCowIdLower = String(vetCowId || '').toLowerCase();
+    const cow = cows.find(c => c && c.id && String(c.id).toLowerCase() === vCowIdLower);
     if (cow) return { ...cow, category: 'Cow' };
 
-    const calf = nurseryCalves.find(c => (c.tag && c.tag.toLowerCase() === vetCowId.toLowerCase()) || (c.id && c.id.toLowerCase() === vetCowId.toLowerCase()));
+    const calf = nurseryCalves.find(c => (c.tag && String(c.tag).toLowerCase() === vCowIdLower) || (c.id && String(c.id).toLowerCase() === vCowIdLower));
     if (calf) {
       return {
         id: calf.tag || calf.id,
@@ -176,7 +177,7 @@ export function VeterinaryLog({
       };
     }
 
-    const heifer = replacementHeifers.find(h => (h.tag && h.tag.toLowerCase() === vetCowId.toLowerCase()) || (h.id && h.id.toLowerCase() === vetCowId.toLowerCase()));
+    const heifer = replacementHeifers.find(h => (h.tag && String(h.tag).toLowerCase() === vCowIdLower) || (h.id && String(h.id).toLowerCase() === vCowIdLower));
     if (heifer) {
       return {
         id: heifer.tag || heifer.id,
@@ -242,32 +243,47 @@ export function VeterinaryLog({
 
   // Helper to resolve cow/calf/heifer friendly name for any record (legacy or new)
   const getCowDisplayName = (rec: VetRecord) => {
+    if (!rec) return '';
     if (rec.cowName) return rec.cowName;
-    const matched = cows.find(c => 
-      c.id.toLowerCase() === rec.cowId?.toLowerCase() ||
-      (rec.cowId && (c.id.toLowerCase().startsWith(rec.cowId.toLowerCase()) || rec.cowId.toLowerCase().startsWith(c.id.toLowerCase()))) ||
-      (c.name && rec.cowId && rec.cowId.toLowerCase().includes(c.name.toLowerCase()))
-    );
+    const rCowId = String(rec.cowId || '').toLowerCase();
+    if (!rCowId) return '';
+    const matched = cows.find(c => {
+      if (!c || !c.id) return false;
+      const cId = String(c.id).toLowerCase();
+      const cName = String(c.name || '').toLowerCase();
+      return (
+        cId === rCowId ||
+        cId.startsWith(rCowId) ||
+        rCowId.startsWith(cId) ||
+        (cName && rCowId.includes(cName))
+      );
+    });
     if (matched) return matched.name || '';
 
-    const matchedCalf = nurseryCalves.find(c => (c.tag && c.tag.toLowerCase() === rec.cowId?.toLowerCase()) || (c.id && c.id.toLowerCase() === rec.cowId?.toLowerCase()));
-    if (matchedCalf) return matchedCalf.tag;
+    const matchedCalf = nurseryCalves.find(c => (c.tag && String(c.tag).toLowerCase() === rCowId) || (c.id && String(c.id).toLowerCase() === rCowId));
+    if (matchedCalf) return matchedCalf.tag || '';
 
-    const matchedHeifer = replacementHeifers.find(h => (h.tag && h.tag.toLowerCase() === rec.cowId?.toLowerCase()) || (h.id && h.id.toLowerCase() === rec.cowId?.toLowerCase()));
-    if (matchedHeifer) return matchedHeifer.tag;
+    const matchedHeifer = replacementHeifers.find(h => (h.tag && String(h.tag).toLowerCase() === rCowId) || (h.id && String(h.id).toLowerCase() === rCowId));
+    if (matchedHeifer) return matchedHeifer.tag || '';
 
     return '';
   };
 
   // Helper to open edit modal with full form normalization
   const handleStartEdit = (record: VetRecord) => {
-    const matched = cows.find(c => 
-      c.id.toLowerCase() === record.cowId?.toLowerCase() ||
-      (record.cowId && (c.id.toLowerCase().startsWith(record.cowId.toLowerCase()) || record.cowId.toLowerCase().startsWith(c.id.toLowerCase()))) ||
-      (c.name && record.cowName && c.name.toLowerCase() === record.cowName.toLowerCase()) ||
-      (c.name && record.cowId && record.cowId.toLowerCase().includes(c.name.toLowerCase()))
-    );
-
+    const rCowId = String(record?.cowId || '').toLowerCase();
+    const rCowName = String(record?.cowName || '').toLowerCase();
+    const matched = cows.find(c => {
+      if (!c || !c.id) return false;
+      const cId = String(c.id).toLowerCase();
+      const cName = String(c.name || '').toLowerCase();
+      return (
+        (rCowId && cId === rCowId) ||
+        (rCowId && (cId.startsWith(rCowId) || rCowId.startsWith(cId))) ||
+        (cName && rCowName && cName === rCowName) ||
+        (cName && rCowId && rCowId.includes(cName))
+      );
+    });
     setEditingVet({
       ...record,
       cowName: record.cowName || (matched ? matched.name : ''),
@@ -1458,7 +1474,7 @@ export function VeterinaryLog({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredRecords.map(record => {
-                    const matchedCow = cows.find(c => c.id.toLowerCase() === record.cowId.toLowerCase());
+                    const matchedCow = cows.find(c => c && c.id && String(c.id).toLowerCase() === String(record?.cowId || '').toLowerCase());
                     const cowDisplayName = record.cowName || getCowDisplayName(record);
                     const isUnderTreatment = record.recoveryStatus === 'Under Treatment' || record.treatmentStatus === 'In Progress';
 
@@ -1633,7 +1649,7 @@ export function VeterinaryLog({
           /* CARD TIMELINE VIEW */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredRecords.map(record => {
-              const matchedCow = cows.find(c => c.id.toLowerCase() === record.cowId.toLowerCase());
+              const matchedCow = cows.find(c => c && c.id && String(c.id).toLowerCase() === String(record?.cowId || '').toLowerCase());
               const cowDisplayName = record.cowName || getCowDisplayName(record);
 
               return (

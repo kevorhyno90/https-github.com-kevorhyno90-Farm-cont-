@@ -107,9 +107,10 @@ export function DairyDashboard({ milkRecords, milkOutflows, aiRecords, cows }: D
   // Lactation curves line chart mapping
   const lactationCurveData = React.useMemo(() => {
     if (!selectedCowId) return [];
+    const targetId = String(selectedCowId).toLowerCase();
     const cowMilks = milkRecords
-      .filter(r => r.id && r.id.toLowerCase() === selectedCowId.toLowerCase())
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .filter(r => r && r.id && String(r.id).toLowerCase() === targetId)
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     return cowMilks.map((r, idx) => ({
       day: `Day ${idx + 1}`,
       yield: (r.am || 0) + (r.pm || 0),

@@ -178,10 +178,11 @@ export function DairyBreeding({
 
   // Overall Statistics
   const totalCows = cows.length;
-  const lactatingCount = cows.filter(c =>
-    (c.status?.toLowerCase() || '').includes('lactat') ||
-    (c.status?.toLowerCase() || '').includes('milk')
-  ).length;
+  const lactatingCount = cows.filter(c => {
+    if (!c) return false;
+    const status = String(c.status || '').toLowerCase();
+    return status.includes('lactat') || status.includes('milk');
+  }).length;
 
   const todayMilks = milkRecords.filter(m => m.date === todayStr);
   const totalLitersToday = todayMilks.reduce((sum, m) => sum + (m.am || 0) + (m.pm || 0), 0);
@@ -239,7 +240,8 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
   // Average daily yield for a cow
   const getAverageYield = (tag: string) => {
     if (!tag) return 0;
-    const cowMilks = milkRecords.filter(r => r && r.id && r.id.toLowerCase() === tag.toLowerCase());
+    const tagLower = String(tag).toLowerCase();
+    const cowMilks = milkRecords.filter(r => r && r.id && String(r.id).toLowerCase() === tagLower);
     if (cowMilks.length === 0) return 0;
     const total = cowMilks.reduce((sum, r) => sum + (r.am ?? 0) + (r.pm ?? 0), 0);
     return total / cowMilks.length;
@@ -665,7 +667,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
 
                   if (!id || !bullName) return;
 
-                  if (semenInventory.some(s => s.id.toLowerCase() === id.trim().toLowerCase())) {
+                  if (semenInventory.some(s => s && s.id && String(s.id).toLowerCase() === id.trim().toLowerCase())) {
                     alert('A semen straw with this code already exists!');
                     return;
                   }

@@ -438,12 +438,12 @@ export function YoungstockManager({
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const matches =
-          item.tag.toLowerCase().includes(q) ||
-          item.name.toLowerCase().includes(q) ||
-          item.damId.toLowerCase().includes(q) ||
-          item.sire.toLowerCase().includes(q) ||
-          item.locality.toLowerCase().includes(q) ||
-          item.stage.toLowerCase().includes(q);
+          String(item.tag || '').toLowerCase().includes(q) ||
+          String(item.name || '').toLowerCase().includes(q) ||
+          String(item.damId || '').toLowerCase().includes(q) ||
+          String(item.sire || '').toLowerCase().includes(q) ||
+          String(item.locality || '').toLowerCase().includes(q) ||
+          String(item.stage || '').toLowerCase().includes(q);
         if (!matches) return false;
       }
 

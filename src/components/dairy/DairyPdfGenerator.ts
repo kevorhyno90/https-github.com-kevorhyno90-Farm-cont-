@@ -58,8 +58,11 @@ export function generateDairyAuditPdf(
 
   // Calculate Key Statistics
   const totalCows = cows.length;
-  const lactatingCount = cows.filter(c => c.status?.toLowerCase().includes('lactat') || c.status?.toLowerCase().includes('milk')).length;
-  const dryCount = cows.filter(c => c.status?.toLowerCase().includes('dry')).length;
+  const lactatingCount = cows.filter(c => {
+    const s = String(c?.status || '').toLowerCase();
+    return s.includes('lactat') || s.includes('milk');
+  }).length;
+  const dryCount = cows.filter(c => String(c?.status || '').toLowerCase().includes('dry')).length;
   const inCalfCount = aiRecords.filter(a => a.status === 'Confirmed Pregnant').length;
 
   const todayMilks = milkRecords.filter(m => m.date === todayStr);

@@ -94,7 +94,8 @@ export function CowRegistry({
 
   const getAverageYield = (tag: string) => {
     if (!tag) return 0;
-    const cowMilks = milkRecords.filter(r => r && r.id && r.id.toLowerCase() === tag.toLowerCase());
+    const tagLower = String(tag).toLowerCase();
+    const cowMilks = milkRecords.filter(r => r && r.id && String(r.id).toLowerCase() === tagLower);
     if (cowMilks.length === 0) return 0;
     const totalYield = cowMilks.reduce((sum, record) => sum + (record.am || 0) + (record.pm || 0), 0);
     return totalYield / cowMilks.length;
@@ -469,16 +470,17 @@ export function CowRegistry({
 
         {/* Directory View (Table or Cards) */}
         {(() => {
-          const searchLower = cowSearch.toLowerCase();
+          const searchLower = String(cowSearch || '').toLowerCase();
           const filteredCows = cows.filter(c => {
-            const matchesSearch = (
-              c.id?.toLowerCase().includes(searchLower) || 
-              c.name?.toLowerCase().includes(searchLower) || 
-              c.registrationNo?.toLowerCase().includes(searchLower) ||
-              c.locality?.toLowerCase().includes(searchLower) ||
-              c.sire?.toLowerCase().includes(searchLower) ||
-              c.dam?.toLowerCase().includes(searchLower) ||
-              c.notes?.toLowerCase().includes(searchLower)
+            if (!c) return false;
+            const matchesSearch = !searchLower || (
+              String(c.id || '').toLowerCase().includes(searchLower) || 
+              String(c.name || '').toLowerCase().includes(searchLower) || 
+              String(c.registrationNo || '').toLowerCase().includes(searchLower) ||
+              String(c.locality || '').toLowerCase().includes(searchLower) ||
+              String(c.sire || '').toLowerCase().includes(searchLower) ||
+              String(c.dam || '').toLowerCase().includes(searchLower) ||
+              String(c.notes || '').toLowerCase().includes(searchLower)
             );
             const matchesBreed = cowBreedFilter ? c.breed === cowBreedFilter : true;
             const matchesStatus = cowStatusFilter ? c.status === cowStatusFilter : true;
