@@ -142,7 +142,6 @@ export const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
 
 function normalizeStaffList(parsed: any): StaffMember[] {
   let list: StaffMember[] = Array.isArray(parsed) ? parsed : INITIAL_STAFF;
-  list = list.filter((s) => !s.name?.toLowerCase().includes('victor'));
   const hasDevin = list.some((s) => s.name?.includes('Devin') || s.role === 'Overall Farm Manager');
   if (!hasDevin) {
     list = [INITIAL_STAFF[0], ...list];
