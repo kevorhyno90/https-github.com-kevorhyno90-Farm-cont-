@@ -140,7 +140,7 @@ const FarmContext = createContext<FarmContextType | undefined>(undefined);
 
 export const REMOTE_SYNC_APPLIED_EVENT = 'jr-farm-remote-sync-applied';
 
-function normalizeStaffList(parsed: any): StaffMember[] {
+function normalizeStaffList(parsed: any, offRecords: StaffOffRecord[] = []): StaffMember[] {
   let list: StaffMember[] = Array.isArray(parsed) ? parsed : INITIAL_STAFF;
   const hasDevin = list.some((s) => s.name?.includes('Devin') || s.role === 'Overall Farm Manager');
   if (!hasDevin) {
@@ -159,6 +159,34 @@ function normalizeStaffList(parsed: any): StaffMember[] {
       return s;
     });
   }
+
+  // Restore Victor if his entry was previously stripped from staffList while his Leave/Off records remain
+  const victorOff = Array.isArray(offRecords)
+    ? offRecords.find((r) => r?.staffName?.toLowerCase().includes('victor'))
+    : undefined;
+  if (
+    victorOff &&
+    !list.some(
+      (s) =>
+        s.id === victorOff.staffId ||
+        s.name?.toLowerCase().includes('victor')
+    )
+  ) {
+    list = [
+      ...list,
+      {
+        id: victorOff.staffId || 'st-2',
+        name: victorOff.staffName || 'Victor',
+        role: 'Farm Staff',
+        unit: 'General',
+        phone: '',
+        shiftMorning: 'Morning Operations',
+        shiftAfternoon: 'Afternoon Operations',
+        status: 'Present'
+      }
+    ];
+  }
+
   return list;
 }
 
@@ -269,7 +297,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       };
 
-      setStaffList(normalizeStaffList(loadJson('jr_farm_staff', INITIAL_STAFF)));
+      const loadedOffRecords = loadJson('jr_farm_staff_off', INITIAL_STAFF_OFF_RECORDS);
+      setStaffList(normalizeStaffList(loadJson('jr_farm_staff', INITIAL_STAFF), loadedOffRecords));
       setIngredients(loadJson('jr_farm_ingredients', INITIAL_INGREDIENTS));
       setMilkRecords(normalizeMilkRecords(loadJson('jr_farm_milk', INITIAL_MILK_RECORDS)));
       setAiRecords(loadJson('jr_farm_ai', INITIAL_AI_RECORDS));
@@ -282,7 +311,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setFields(loadJson('jr_farm_fields', INITIAL_FIELDS));
       setLivestock(loadJson('jr_farm_livestock', INITIAL_LIVESTOCK));
       setInventory(loadJson('jr_farm_inventory', INITIAL_INVENTORY));
-      setStaffOffRecords(loadJson('jr_farm_staff_off', INITIAL_STAFF_OFF_RECORDS));
+      setStaffOffRecords(loadedOffRecords);
       setCows(loadJson('jr_farm_cows', INITIAL_COWS));
       setVetRecords(loadJson('jr_farm_vets', INITIAL_VET_RECORDS));
       setGoatRecords(loadJson('jr_farm_goats', INITIAL_GOAT_RECORDS));
@@ -330,7 +359,8 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
     const parsed = safeLoadJson('jr_farm_staff', INITIAL_STAFF);
-    return normalizeStaffList(parsed);
+    const offRecords = safeLoadJson('jr_farm_staff_off', INITIAL_STAFF_OFF_RECORDS);
+    return normalizeStaffList(parsed, offRecords);
   });
 
   const [ingredients, setIngredients] = useState<Ingredient[]>(() => {
