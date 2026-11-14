@@ -7,6 +7,7 @@ import {
 import { toIsoDate } from '../../utils/dateHelper';
 import { exportToCsv } from '../../utils/csvHelper';
 import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface TeaDailyHarvestHubProps {
   teaRecords: TeaRecord[];
@@ -134,8 +135,8 @@ export function TeaDailyHarvestHub({
     setShowModal(false);
   };
 
-  const handleDelete = (ref: string) => {
-    if (window.confirm(`Delete daily tea harvest ticket ${ref}?`)) {
+  const handleDelete = async (ref: string) => {
+    if (await appConfirm(`Delete daily tea harvest ticket ${ref}?`)) {
       onDeleteTea(ref);
     }
   };

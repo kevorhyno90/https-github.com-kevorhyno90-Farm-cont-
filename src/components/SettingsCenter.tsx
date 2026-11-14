@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { getStoredSettings, DEFAULT_SETTINGS, applyOrientationPreference, ROLE_PERMISSIONS, UserRole } from '../utils/settingsHelper';
 import { isFirestoreSyncEnabled } from '../firebase';
+import { appConfirm } from '../utils/appConfirm';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
 
@@ -131,7 +132,7 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  };
 
  const handlePwaPurgeAndForceUpdate = async () => {
- if (!confirm("This will fully purge the mobile browser's assets cache, unregister the old service worker, and force-reload the latest app code from the live cloud. Continue?")) {
+ if (!(await appConfirm("This will fully purge the mobile browser's assets cache, unregister the old service worker, and force-reload the latest app code from the live cloud. Continue?"))) {
  return;
  }
  setIsPurging(true);
@@ -190,8 +191,8 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  setChecklistCompleted(prev => ({ ...prev, [task]: !prev[task] }));
  };
 
- const handleFactoryReset = () => {
- if (confirm("⚠️ WARNING: This will permanently wipe all local updates and reset to the estate standard baseline. This action is irreversible. Continue?")) {
+ const handleFactoryReset = async () => {
+ if (await appConfirm("⚠️ WARNING: This will permanently wipe all local updates and reset to the estate standard baseline. This action is irreversible. Continue?")) {
  localStorage.removeItem('jr_farm_estate_settings');
  if (onResetAllData) {
  onResetAllData();

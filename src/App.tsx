@@ -52,6 +52,7 @@ import { toIsoDate } from './utils/dateHelper';
 import { buildDefaultDeductLogs, buildDefaultDiagnosticHistory, buildDefaultTimetable } from './utils/appFallbacks';
 import { buildReportPdfFilename } from './utils/reportHelper';
 import { FirebaseSyncer } from './components/FirebaseSyncer';
+import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { FarmProvider, useFarmState } from './context/FarmContext';
 import { auth } from './firebase';
@@ -8012,6 +8013,7 @@ function FarmCoreApp() {
       )}
 
       {/* 7. APP NOTIFICATION TOAST NOTIFIER */}
+      <ConfirmDialog />
       {appToastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-[11px] font-black uppercase px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-705">
           <span className="text-amber-400">🔔</span>

@@ -29,6 +29,7 @@ import { KennelBaysMap } from './canines/KennelBaysMap';
 import { EmergencyMedicalHub } from './canines/EmergencyMedicalHub';
 import { ShiftHandoverChecklist } from './canines/ShiftHandoverChecklist';
 import { generateKennelPlacardPdf } from './canines/KennelPlacardGenerator';
+import { appConfirm } from '../utils/appConfirm';
 
 interface CaninesManagerProps {
   staffList?: StaffMember[];
@@ -929,8 +930,8 @@ export function CaninesManager({
     setModalType(null);
   };
 
-  const handleDeleteDog = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to remove canine ${name} from registry?`)) {
+  const handleDeleteDog = async (id: string, name: string) => {
+    if (await appConfirm(`Are you sure you want to remove canine ${name} from registry?`)) {
       setDogs(prev => prev.filter(d => d.id !== id));
       if (dossierDog?.id === id) setDossierDog(null);
     }
@@ -2128,8 +2129,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                         <td className="p-3.5 font-bold text-gray-900">KES {(vax.cost || 0).toLocaleString()}</td>
                         <td className="p-3.5 text-right pr-5">
                           <button
-                            onClick={() => {
-                              if (window.confirm('Delete this vaccination log?')) {
+                            onClick={async () => {
+                              if (await appConfirm('Delete this vaccination log?')) {
                                 setVaccines(prev => prev.filter(v => v.id !== vax.id));
                               }
                             }}
@@ -2215,8 +2216,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                     <span className="text-xs font-mono text-gray-500">Date: {treat.date}</span>
                   </div>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Delete this treatment entry?')) {
+                    onClick={async () => {
+                      if (await appConfirm('Delete this treatment entry?')) {
                         setTreatments(prev => prev.filter(t => t.id !== treat.id));
                       }
                     }}
@@ -2333,8 +2334,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                       </td>
                       <td className="p-3.5 text-right pr-5">
                         <button
-                          onClick={() => {
-                            if (window.confirm('Delete this patrol record?')) {
+                          onClick={async () => {
+                            if (await appConfirm('Delete this patrol record?')) {
                               setPatrols(prev => prev.filter(p => p.id !== pt.id));
                             }
                           }}
@@ -2429,8 +2430,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
                   <span>Next Eval: {tr.nextEvaluationDate || 'Scheduled in 90d'}</span>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Delete training record?')) {
+                    onClick={async () => {
+                      if (await appConfirm('Delete training record?')) {
                         setTraining(prev => prev.filter(t => t.id !== tr.id));
                       }
                     }}
@@ -2755,8 +2756,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                       <td className="p-3.5 font-black text-emerald-700">KES {sale.amount.toLocaleString()}</td>
                       <td className="p-3.5 text-right pr-5">
                         <button
-                          onClick={() => {
-                            if (window.confirm('Delete this sale record?')) {
+                          onClick={async () => {
+                            if (await appConfirm('Delete this sale record?')) {
                               setSales(prev => prev.filter(s => s.id !== sale.id));
                             }
                           }}
@@ -2840,8 +2841,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <div className="flex items-center justify-between text-xs text-gray-600 pt-2 border-t border-gray-100">
                   <span>Attending DVM: {mort.attendingVet || 'Dr. Devin Omwenga, DVM'}</span>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Delete mortality entry?')) {
+                    onClick={async () => {
+                      if (await appConfirm('Delete mortality entry?')) {
                         setMortalities(prev => prev.filter(m => m.id !== mort.id));
                       }
                     }}

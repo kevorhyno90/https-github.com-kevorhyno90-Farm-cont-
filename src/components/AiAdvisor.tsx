@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Bot, X, Send, MessagesSquare, ChevronDown, RefreshCw } from 'lucide-react';
 import { getStoredSettings } from '../utils/settingsHelper';
 import { generateFreeAgroAdvisorResponse } from '../utils/localAi';
+import { useMobileFabHidden } from '../hooks/useMobileFabVisibility';
 import { motion } from 'motion/react';
 
 interface AiAdvisorProps {
@@ -27,6 +28,7 @@ export function AiAdvisor({ farmState }: AiAdvisorProps) {
  const locCode = settings?.locationCode || "KT-205A";
 
  const [isOpen, setIsOpen] = useState(false);
+  const hideFabOnMobile = useMobileFabHidden();
  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
  useEffect(() => {
@@ -115,7 +117,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  return (
  <motion.div drag dragMomentum={false} className="fixed bottom-24 right-20 md:bottom-6 md:right-24 z-50 font-sans cursor-move" id="ai-advisor-wrapper">
  {/* Active Floating Toggle Button */}
- {!isOpen && (
+ {!isOpen && !hideFabOnMobile && (
  <button
  onClick={() => setIsOpen(true)}
  type="button"

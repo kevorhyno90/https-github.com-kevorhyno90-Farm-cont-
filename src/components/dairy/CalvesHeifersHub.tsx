@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Cow, CalfRecord, HeiferRecord } from '../../types';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 import {
   Baby, Award, Heart, Plus, Scale, Sparkles, AlertCircle, CheckCircle2,
   Calendar, ArrowRight, Activity, TrendingUp, Info, HelpCircle,
@@ -263,8 +264,8 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
     setEditingHeifer(null);
   };
 
-  const handleDeleteHeifer = (id: string, tag: string) => {
-    if (window.confirm(`Are you sure you want to remove heifer "${tag}" from the pipeline?`)) {
+  const handleDeleteHeifer = async (id: string, tag: string) => {
+    if (await appConfirm(`Are you sure you want to remove heifer "${tag}" from the pipeline?`)) {
       saveHeifers(heifers.filter(h => h.id !== id));
     }
   };
@@ -309,8 +310,8 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
   };
 
   // Delete calf
-  const handleDeleteCalf = (id: string, tag: string) => {
-    if (window.confirm(`Are you sure you want to remove calf "${tag}" from the nursery?`)) {
+  const handleDeleteCalf = async (id: string, tag: string) => {
+    if (await appConfirm(`Are you sure you want to remove calf "${tag}" from the nursery?`)) {
       saveCalves(calves.filter(c => c.id !== id));
     }
   };

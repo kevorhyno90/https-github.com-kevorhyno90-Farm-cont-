@@ -3,6 +3,7 @@ import { BsfFeedingRecord, StaffMember } from '../../types';
 import { Plus, Trash2, Calendar, Utensils, Thermometer, Droplets, Layers, User, CheckCircle2, AlertTriangle, FileSpreadsheet } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { exportToCsv } from '../../utils/csvHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface BsfFeedingLogHubProps {
   staffList?: StaffMember[];
@@ -121,8 +122,8 @@ export function BsfFeedingLogHub({ staffList = [], onSubstrateDeducted }: BsfFee
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this BSF daily feeding record?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this BSF daily feeding record?')) {
       saveFeedings(feedings.filter(f => f.id !== id));
     }
   };

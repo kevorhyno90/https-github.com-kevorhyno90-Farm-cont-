@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Cow, MilkingRecord } from '../../types';
 import { exportToCsv } from '../../utils/csvHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface CowRegistryProps {
   cows: Cow[];
@@ -658,8 +659,8 @@ export function CowRegistry({
                                   <PenSquare size={13} />
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    if (confirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name}) from registry?`)) {
+                                  onClick={async () => {
+                                    if (await appConfirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name}) from registry?`)) {
                                       onDeleteCow(cow.id);
                                     }
                                   }}
@@ -706,8 +707,8 @@ export function CowRegistry({
                             <PenSquare size={13} />
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name})?`)) {
+                            onClick={async () => {
+                              if (await appConfirm(`Are you sure you want to remove cattle ${cow.id} (${cow.name})?`)) {
                                 onDeleteCow(cow.id);
                               }
                             }}

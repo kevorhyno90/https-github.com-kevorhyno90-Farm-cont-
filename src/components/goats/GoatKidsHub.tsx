@@ -80,6 +80,7 @@ const DEFAULT_KIDS: GoatKidRecord[] = [
 ];
 
 import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 
 export function GoatKidsHub({ staffList = [], onGraduateToAdultHerd }: GoatKidsHubProps) {
   const [kids, setKids] = useState<GoatKidRecord[]>(() => {
@@ -173,14 +174,14 @@ export function GoatKidsHub({ staffList = [], onGraduateToAdultHerd }: GoatKidsH
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this goat kid record?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this goat kid record?')) {
       saveKids(kids.filter(k => k.id !== id));
     }
   };
 
-  const handleGraduate = (kid: GoatKidRecord) => {
-    if (window.confirm(`Graduate ${kid.kidTagId} (${kid.kidName || kid.sex}) into the adult Dual-Purpose Goat Herd?`)) {
+  const handleGraduate = async (kid: GoatKidRecord) => {
+    if (await appConfirm(`Graduate ${kid.kidTagId} (${kid.kidName || kid.sex}) into the adult Dual-Purpose Goat Herd?`)) {
       if (onGraduateToAdultHerd) {
         onGraduateToAdultHerd(kid);
       }

@@ -15,6 +15,7 @@ import {
 import { generateInventoryAuditPdf } from './InventoryPdfGenerator';
 import { toIsoDate } from '../../utils/dateHelper';
 import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 import {
   Warehouse, Search, Plus, Edit2, Trash2, Download, AlertTriangle,
   CheckCircle2, Clock, MapPin, DollarSign, ArrowDownRight, ArrowUpRight,
@@ -916,8 +917,8 @@ export function InventoryManager({
                         </button>
 
                         <button
-                          onClick={() => {
-                            if (confirm(`Remove "${item.name}" from inventory?`)) {
+                          onClick={async () => {
+                            if (await appConfirm(`Remove "${item.name}" from inventory?`)) {
                               onDeleteInventoryItem(item.id);
                             }
                           }}

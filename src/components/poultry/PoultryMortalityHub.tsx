@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface PoultryMortalityHubProps {
   mortalityRecords: PoultryMortalityRecord[];
@@ -315,8 +316,8 @@ export function PoultryMortalityHub({
                       <Edit2 size={13} />
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`Delete record for ${r.flockName} (${r.count} birds)?`)) {
+                      onClick={async () => {
+                        if (await appConfirm(`Delete record for ${r.flockName} (${r.count} birds)?`)) {
                           onDeleteMortalityRecord(r.id);
                         }
                       }}

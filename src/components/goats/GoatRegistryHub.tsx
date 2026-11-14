@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { exportToCsv } from '../../utils/csvHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface GoatRegistryHubProps {
   goats: GoatRecord[];
@@ -369,8 +370,8 @@ export function GoatRegistryHub({
                           <Edit3 size={13} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Delete record for ${goat.tagId}?`)) {
+                          onClick={async () => {
+                            if (await appConfirm(`Delete record for ${goat.tagId}?`)) {
                               onDeleteGoat(goat.id);
                             }
                           }}

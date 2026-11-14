@@ -28,6 +28,7 @@ import {
   Activity
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface MachineryManagerProps {
   staffList?: StaffMember[];
@@ -116,8 +117,8 @@ export function MachineryManager({
     }
   };
 
-  const handleDeleteMachine = (id: string) => {
-    if (confirm('Are you sure you want to remove this machine from the active registry?')) {
+  const handleDeleteMachine = async (id: string) => {
+    if (await appConfirm('Are you sure you want to remove this machine from the active registry?')) {
       setMachines(prev => prev.filter(m => m.id !== id));
     }
   };

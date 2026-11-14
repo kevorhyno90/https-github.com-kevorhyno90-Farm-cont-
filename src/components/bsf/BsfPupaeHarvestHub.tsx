@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BsfPupaeHarvestRecord, StaffMember } from '../../types';
 import { Plus, Trash2, Scale, Sun, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface BsfPupaeHarvestHubProps {
   staffList?: StaffMember[];
@@ -78,8 +79,8 @@ export function BsfPupaeHarvestHub({ staffList = [], onTransferToLoveCage }: Bsf
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this pupae harvest record?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this pupae harvest record?')) {
       saveRecords(records.filter(r => r.id !== id));
     }
   };

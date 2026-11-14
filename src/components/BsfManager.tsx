@@ -17,6 +17,7 @@ import { BsfSalesHub } from './bsf/BsfSalesHub';
 import { BsfEggCollectionHub } from './bsf/BsfEggCollectionHub';
 import { BsfPupaeHarvestHub } from './bsf/BsfPupaeHarvestHub';
 import { BsfFeedingLogHub } from './bsf/BsfFeedingLogHub';
+import { appConfirm } from '../utils/appConfirm';
 
 interface BsfManagerProps {
   bsfRecords: BsfRecord[];
@@ -651,8 +652,8 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                         <Edit2 size={13} />
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm(`Delete batch ${batch.batchId}?`)) {
+                        onClick={async () => {
+                          if (await appConfirm(`Delete batch ${batch.batchId}?`)) {
                             onDeleteBsfRecord(batch.id);
                           }
                         }}

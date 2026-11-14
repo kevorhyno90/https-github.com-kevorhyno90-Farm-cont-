@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toIsoDate, offsetIsoDate } from '../../utils/dateHelper';
 import { autoDeductInventoryItem, autoPostFinancialTransaction } from '../../utils/inventoryHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface PoultryHealthHubProps {
   healthRecords: PoultryHealthRecord[];
@@ -389,8 +390,8 @@ export function PoultryHealthHub({
                       <Edit2 size={13} />
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`Delete health record for ${r.flockName} (${r.diseaseOrCondition})?`)) {
+                      onClick={async () => {
+                        if (await appConfirm(`Delete health record for ${r.flockName} (${r.diseaseOrCondition})?`)) {
                           onDeleteHealthRecord(r.id);
                         }
                       }}

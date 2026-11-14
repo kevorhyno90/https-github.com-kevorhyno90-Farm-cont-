@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { CalfRecord, HeiferRecord, Cow, VetRecord, AIRecord, MilkingRecord } from '../../types';
 import { exportToCsv } from '../../utils/csvHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 export interface YoungstockManagerProps {
   calfRecords: CalfRecord[];
@@ -1563,8 +1564,8 @@ export function YoungstockManager({
 
                             {/* Delete Profile Button */}
                             <button
-                              onClick={() => {
-                                if (window.confirm(`Delete ${item.tag} from youngstock registry?`)) {
+                              onClick={async () => {
+                                if (await appConfirm(`Delete ${item.tag} from youngstock registry?`)) {
                                   if (item.source === 'calf') {
                                     onDeleteCalfRecord(item.id);
                                   } else if (onDeleteHeifer) {

@@ -3,6 +3,7 @@ import { BsfCommercialSale } from '../../types';
 import { DollarSign, Plus, Trash2, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { useFarmState } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 
 const DEFAULT_SALES: BsfCommercialSale[] = [
   {
@@ -97,8 +98,8 @@ export function BsfSalesHub() {
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this commercial sale entry?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this commercial sale entry?')) {
       saveSales(sales.filter(s => s.id !== id));
     }
   };

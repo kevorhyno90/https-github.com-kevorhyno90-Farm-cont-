@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BsfHarvestDistribution, StaffMember } from '../../types';
 import { Scale, Plus, Trash2, Sparkles, Sprout, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface BsfHarvestHubProps {
   staffList?: StaffMember[];
@@ -90,8 +91,8 @@ export function BsfHarvestHub({ staffList = [], onLogHarvestYield }: BsfHarvestH
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this harvest record?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this harvest record?')) {
       saveHarvests(harvests.filter(h => h.id !== id));
     }
   };

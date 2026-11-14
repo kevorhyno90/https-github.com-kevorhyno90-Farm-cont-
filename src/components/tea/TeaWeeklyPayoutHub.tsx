@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useFarmState, REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
 import { exportToCsv } from '../../utils/csvHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface TeaWeeklyPayoutHubProps {
   teaRecords: TeaRecord[];
@@ -106,8 +107,8 @@ export function TeaWeeklyPayoutHub({
     setExpandedWeeks(prev => ({ ...prev, [sat]: !prev[sat] }));
   };
 
-  const handleDisburseWages = (week: WeekGroup) => {
-    if (!window.confirm(`Confirm Saturday payout disbursement of KES ${week.cashPaidThatWeek.toLocaleString()} for ${week.casualKg.toFixed(1)} KG casual tea plucking?`)) {
+  const handleDisburseWages = async (week: WeekGroup) => {
+    if (!(await appConfirm(`Confirm Saturday payout disbursement of KES ${week.cashPaidThatWeek.toLocaleString()} for ${week.casualKg.toFixed(1)} KG casual tea plucking?`))) {
       return;
     }
 

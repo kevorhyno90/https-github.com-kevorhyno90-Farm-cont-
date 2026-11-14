@@ -78,6 +78,7 @@ const COMMON_DIAGNOSES = [
 ];
 
 import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 
 export function GoatTreatmentHub({ goats = [], staffList = [] }: GoatTreatmentHubProps) {
   const [treatments, setTreatments] = useState<GoatTreatmentRecord[]>(() => {
@@ -153,8 +154,8 @@ export function GoatTreatmentHub({ goats = [], staffList = [] }: GoatTreatmentHu
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this caprine veterinary treatment entry?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this caprine veterinary treatment entry?')) {
       saveTreatments(treatments.filter(t => t.id !== id));
     }
   };

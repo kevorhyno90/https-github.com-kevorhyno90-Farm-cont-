@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
 import { autoPostFinancialTransaction } from '../../utils/inventoryHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface PoultryEggHubProps {
   eggRecords: PoultryEggRecord[];
@@ -502,8 +503,8 @@ export function PoultryEggHub({
                             <Edit2 size={13} />
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm(`Delete egg record for ${r.date} (${r.flockName})?`)) {
+                            onClick={async () => {
+                              if (await appConfirm(`Delete egg record for ${r.date} (${r.flockName})?`)) {
                                 onDeleteEggRecord(r.id);
                               }
                             }}

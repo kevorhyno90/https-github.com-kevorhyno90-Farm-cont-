@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CanineShiftHandoverRecord, StaffMember, DogProfile } from '../../types';
 import { CheckSquare, Square, Plus, Trash2, UserCheck, Shield, Clock, FileCheck, CheckCircle2 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface ShiftHandoverChecklistProps {
   staffList?: StaffMember[];
@@ -83,8 +84,8 @@ export function ShiftHandoverChecklist({ staffList = [], dogs }: ShiftHandoverCh
     setShowModal(false);
   };
 
-  const handleDeleteHandover = (id: string) => {
-    if (window.confirm('Delete this shift handover record?')) {
+  const handleDeleteHandover = async (id: string) => {
+    if (await appConfirm('Delete this shift handover record?')) {
       saveHandovers(handovers.filter(h => h.id !== id));
     }
   };

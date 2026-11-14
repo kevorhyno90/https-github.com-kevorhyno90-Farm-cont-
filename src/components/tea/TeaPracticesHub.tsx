@@ -26,6 +26,7 @@ const COMMON_PRACTICES = [
 ];
 
 import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 
 export function TeaPracticesHub({ staffList = [] }: TeaPracticesHubProps) {
   const [practices, setPractices] = useState<TeaPracticeRecord[]>(() => {
@@ -91,8 +92,8 @@ export function TeaPracticesHub({ staffList = [] }: TeaPracticesHubProps) {
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this tea agronomy practice log?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this tea agronomy practice log?')) {
       savePractices(practices.filter(p => p.id !== id));
     }
   };

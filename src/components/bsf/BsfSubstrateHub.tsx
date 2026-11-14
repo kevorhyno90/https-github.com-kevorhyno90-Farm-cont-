@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BsfSubstrateBatch, StaffMember } from '../../types';
 import { Leaf, Plus, Trash2, Recycle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface BsfSubstrateHubProps {
   staffList?: StaffMember[];
@@ -85,8 +86,8 @@ export function BsfSubstrateHub({ staffList = [], onAddSubstrateToBatch }: BsfSu
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this substrate feed entry?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this substrate feed entry?')) {
       saveSubstrates(substrates.filter(s => s.id !== id));
     }
   };

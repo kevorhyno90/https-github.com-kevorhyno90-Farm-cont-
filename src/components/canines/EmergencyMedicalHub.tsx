@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CanineEmergencyMedicalItem } from '../../types';
 import { AlertTriangle, Plus, Trash2, Edit2, ShieldAlert, Sparkles, CheckCircle, Package, Clock, ShieldCheck } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 const DEFAULT_MED_SUPPLIES: CanineEmergencyMedicalItem[] = [
   {
@@ -134,8 +135,8 @@ export function EmergencyMedicalHub() {
     saveSupplies(updated);
   };
 
-  const handleDeleteItem = (id: string) => {
-    if (window.confirm('Delete this medical supply record?')) {
+  const handleDeleteItem = async (id: string) => {
+    if (await appConfirm('Delete this medical supply record?')) {
       saveSupplies(supplies.filter(s => s.id !== id));
     }
   };

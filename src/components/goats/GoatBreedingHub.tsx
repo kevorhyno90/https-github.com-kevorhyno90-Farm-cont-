@@ -61,6 +61,7 @@ const DEFAULT_BREEDINGS: GoatBreedingRecord[] = [
 ];
 
 import { REMOTE_SYNC_APPLIED_EVENT } from '../../context/FarmContext';
+import { appConfirm } from '../../utils/appConfirm';
 
 export function GoatBreedingHub({ goats = [], staffList = [], onKidBorn }: GoatBreedingHubProps) {
   const [breedings, setBreedings] = useState<GoatBreedingRecord[]>(() => {
@@ -140,8 +141,8 @@ export function GoatBreedingHub({ goats = [], staffList = [], onKidBorn }: GoatB
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this caprine breeding entry?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this caprine breeding entry?')) {
       saveBreedings(breedings.filter(b => b.id !== id));
     }
   };

@@ -5,6 +5,7 @@ import {
   Layers, MapPin, Calendar, CheckCircle2, TrendingUp, Users, DollarSign
 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface PoultryFlockRegistryProps {
   flocks: PoultryFlock[];
@@ -315,8 +316,8 @@ export function PoultryFlockRegistry({
                         <Edit2 size={13} />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(`Are you sure you want to remove flock "${flk.flockName}"?`)) {
+                        onClick={async () => {
+                          if (await appConfirm(`Are you sure you want to remove flock "${flk.flockName}"?`)) {
                             onDeleteFlock(flk.id);
                           }
                         }}

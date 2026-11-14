@@ -24,6 +24,7 @@ import {
 import { realtimeDb } from '../firebase';
 import { ref, set, get, child, onValue } from 'firebase/database';
 import { nativeSetItem } from '../utils/nativeStorage';
+import { appConfirm } from '../utils/appConfirm';
 
 const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => 
  Promise.race([
@@ -739,8 +740,8 @@ export function BackupCenter({ onResetToDefaults, onImportFullBackup }: BackupCe
  if (fileInputRef.current) fileInputRef.current.value = '';
  };
 
- const triggerReset = () => {
- if (confirm("WARNING: Doing this will overwrite your current database with clean, beautiful preset default files. Are you sure you wish to rebuild the seed state?")) {
+ const triggerReset = async () => {
+ if (await appConfirm("WARNING: Doing this will overwrite your current database with clean, beautiful preset default files. Are you sure you wish to rebuild the seed state?")) {
  setIsResetting(true);
  setTimeout(() => {
  onResetToDefaults();

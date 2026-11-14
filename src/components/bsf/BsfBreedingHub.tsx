@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BsfLoveCageBreedingLog } from '../../types';
 import { Plus, Trash2, Heart, Sun, Thermometer, Droplets, Sparkles, CheckCircle2 } from 'lucide-react';
 import { toIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 const DEFAULT_BREEDING_LOGS: BsfLoveCageBreedingLog[] = [
   {
@@ -72,8 +73,8 @@ export function BsfBreedingHub() {
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete breeding aviary log?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete breeding aviary log?')) {
       saveLogs(logs.filter(l => l.id !== id));
     }
   };

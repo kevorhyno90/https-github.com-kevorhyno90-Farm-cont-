@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BsfEggCollectionRecord, StaffMember } from '../../types';
 import { Plus, Trash2, Calendar, Sparkles, Clock, CheckCircle2, User, Layers } from 'lucide-react';
 import { toIsoDate, offsetIsoDate } from '../../utils/dateHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface BsfEggCollectionHubProps {
   staffList?: StaffMember[];
@@ -87,8 +88,8 @@ export function BsfEggCollectionHub({ staffList = [], onInoculateNewBatch }: Bsf
     setShowModal(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Delete this egg collection entry?')) {
+  const handleDelete = async (id: string) => {
+    if (await appConfirm('Delete this egg collection entry?')) {
       saveCollections(collections.filter(c => c.id !== id));
     }
   };

@@ -5,6 +5,7 @@ import { Cloud, CloudOff, RefreshCw, Smartphone, Key, Check, X, ArrowUpRight, Ar
 import { executeSmartMerge } from '../utils/syncHelper';
 import { nativeSetItem } from '../utils/nativeStorage';
 import { REMOTE_SYNC_APPLIED_EVENT } from '../context/FarmContext';
+import { useMobileFabHidden } from '../hooks/useMobileFabVisibility';
 import { motion, AnimatePresence } from 'motion/react';
 
 const CLOUD_SYNC_PREF_KEY = 'jr_farm_cloud_sync_enabled';
@@ -121,6 +122,7 @@ export function FirebaseSyncer() {
   });
   const [tempKeyInput, setTempKeyInput] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const hideFabOnMobile = useMobileFabHidden();
   const [syncToast, setSyncToast] = useState<string | null>(null);
 
   // Direct P2P fast transfer modal state
@@ -625,7 +627,7 @@ export function FirebaseSyncer() {
           setTempKeyInput(cloudSyncKey);
           setIsModalOpen(true);
         }}
-        className={`fixed bottom-24 right-4 md:bottom-6 md:right-6 p-3.5 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center cursor-pointer border ${
+        className={`${hideFabOnMobile && !isModalOpen ? 'hidden md:flex' : 'flex'} fixed bottom-24 right-4 md:bottom-6 md:right-6 p-3.5 rounded-full shadow-2xl transition-all z-50 items-center justify-center cursor-pointer border ${
           !canUseCloud
             ? 'bg-gray-800 text-gray-400 border-gray-700'
             : syncStatus === 'syncing'

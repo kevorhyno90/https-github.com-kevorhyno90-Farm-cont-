@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { exportToCsv } from '../../utils/csvHelper';
 import { autoDeductInventoryItem, autoPostFinancialTransaction } from '../../utils/inventoryHelper';
+import { appConfirm } from '../../utils/appConfirm';
 
 interface VeterinaryLogProps {
   vetRecords: VetRecord[];
@@ -1622,8 +1623,8 @@ export function VeterinaryLog({
                               </button>
                             )}
                             <button
-                              onClick={() => {
-                                if (confirm(`Delete veterinary record for ${record.cowId} on ${record.date}?`)) {
+                              onClick={async () => {
+                                if (await appConfirm(`Delete veterinary record for ${record.cowId} on ${record.date}?`)) {
                                   onDeleteVetRecord(record.id);
                                 }
                               }}
@@ -1699,8 +1700,8 @@ export function VeterinaryLog({
                           </button>
                         )}
                         <button
-                          onClick={() => {
-                            if (confirm(`Delete veterinary record for ${record.cowId}?`)) {
+                          onClick={async () => {
+                            if (await appConfirm(`Delete veterinary record for ${record.cowId}?`)) {
                               onDeleteVetRecord(record.id);
                             }
                           }}

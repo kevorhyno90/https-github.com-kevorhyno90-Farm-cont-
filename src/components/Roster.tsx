@@ -11,6 +11,13 @@ import {
 import { jsPDF } from 'jspdf';
 import { useFarmState, REMOTE_SYNC_APPLIED_EVENT } from '../context/FarmContext';
 import { toIsoDate, offsetIsoDate } from '../utils/dateHelper';
+import { appConfirm } from '../utils/appConfirm';
+import {
+  calculateLeaveDays,
+  computeStaffAnnualLeaveStats,
+  getInitials,
+  formatKsh
+} from './roster/rosterUtils';
 
 interface RosterProps {
   staffList: StaffMember[];
@@ -204,48 +211,9 @@ export function Roster({
   // Today string for reminder matching
   const todayStr = toIsoDate(new Date());
 
-  // Helper to calculate days between two ISO date strings (inclusive)
-  const calculateLeaveDays = (startDate: string, endDate: string) => {
-    if (!startDate || !endDate) return 1;
-    const d1 = new Date(startDate).getTime();
-    const d2 = new Date(endDate).getTime();
-    if (isNaN(d1) || isNaN(d2)) return 1;
-    const diffTime = d2 - d1;
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return Math.max(1, diffDays);
-  };
-
   // Helper to calculate Annual Leave stats (entitlement, days taken this calendar year, remaining days)
-  const getStaffAnnualLeaveStats = (staffId: string) => {
-    const member = staffList.find((s) => s.id === staffId);
-    const entitlement = member?.annualLeaveEntitlement !== undefined ? member.annualLeaveEntitlement : 21;
-    const currentYear = new Date().getFullYear().toString();
-
-    // Sum all Annual Leave records (Approved or Completed) in current calendar year
-    const annualLeaveRecords = staffOffRecords.filter((r) => {
-      return (
-        r.staffId === staffId &&
-        r.type === 'Annual Leave' &&
-        (r.status === 'Approved' || r.status === 'Completed') &&
-        (r.startDate.startsWith(currentYear) || r.endDate.startsWith(currentYear))
-      );
-    });
-
-    const daysTaken = annualLeaveRecords.reduce((total, r) => {
-      return total + calculateLeaveDays(r.startDate, r.endDate);
-    }, 0);
-
-    const remaining = Math.max(0, entitlement - daysTaken);
-    const percentageUsed = entitlement > 0 ? Math.min(100, Math.round((daysTaken / entitlement) * 100)) : 0;
-
-    return {
-      entitlement,
-      daysTaken,
-      remaining,
-      percentageUsed,
-      recordsCount: annualLeaveRecords.length
-    };
-  };
+  const getStaffAnnualLeaveStats = (staffId: string) =>
+    computeStaffAnnualLeaveStats(staffId, staffList, staffOffRecords);
 
   // REMINDER 1: Due to Leave / Go Off Today (or active today)
   const departureReminders = useMemo(() => {
@@ -279,22 +247,6 @@ export function Roster({
       })
       .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
   }, [financials, currentMonthPrefix]);
-
-  // Helper for Initials
-  const getInitials = (name?: string) => {
-    if (!name) return '??';
-    return name
-      .split(' ')
-      .filter((n) => n.length > 0)
-      .map((n) => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
-  const formatKsh = (amount?: number) => {
-    return `KES ${(amount || 0).toLocaleString()}`;
-  };
 
   // Submit Handler for New Staff
   const handleAddSubmit = (e: React.FormEvent) => {
@@ -1641,8 +1593,8 @@ export function Roster({
                         )}
 
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Are you sure you want to remove ${st.name} from the staff roster?`)) {
+                          onClick={async () => {
+                            if (await appConfirm(`Are you sure you want to remove ${st.name} from the staff roster?`)) {
                               onDeleteStaff(st.id);
                             }
                           }}
@@ -1774,8 +1726,8 @@ export function Roster({
                               </button>
                             )}
                             <button
-                              onClick={() => {
-                                if (window.confirm(`Delete ${st.name}?`)) onDeleteStaff(st.id);
+                              onClick={async () => {
+                                if (await appConfirm(`Delete ${st.name}?`)) onDeleteStaff(st.id);
                               }}
                               className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg cursor-pointer"
                               title="Delete"
@@ -2362,8 +2314,8 @@ export function Roster({
                               )}
 
                               <button
-                                onClick={() => {
-                                  if (window.confirm(`Delete this leave record for ${r.staffName}?`)) {
+                                onClick={async () => {
+                                  if (await appConfirm(`Delete this leave record for ${r.staffName}?`)) {
                                     onDeleteOffRecord(r.id);
                                   }
                                 }}
@@ -2724,8 +2676,8 @@ export function Roster({
                                     <Edit2 size={13} />
                                   </button>
                                   <button
-                                    onClick={() => {
-                                      if (window.confirm('Delete this wage transaction?')) {
+                                    onClick={async () => {
+                                      if (await appConfirm('Delete this wage transaction?')) {
                                         setFinancials(financials.filter((f) => f.id !== tx.id));
                                       }
                                     }}
