@@ -17,11 +17,10 @@ export function useMobileFabHidden(): boolean {
       }
       const activeTag = document.activeElement?.tagName;
       const inputFocused = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
-      const hasOpenForm = document.querySelector('main form') !== null;
       const hasModal = Array.from(document.querySelectorAll('div.fixed.inset-0')).some(
         (el) => !el.closest('#ai-advisor-wrapper')
       );
-      setHidden(inputFocused || hasOpenForm || hasModal);
+      setHidden(inputFocused || hasModal);
     };
 
     check();
