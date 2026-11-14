@@ -506,7 +506,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         percentageProduction: 85,
         notes: 'Laying peak cycle. Excellent calcified egg shells.'
       }
-    ];
+    ]);
   });
 
   const [quarantineRecords, setQuarantineRecords] = useState<QuarantineRecord[]>(() => {
