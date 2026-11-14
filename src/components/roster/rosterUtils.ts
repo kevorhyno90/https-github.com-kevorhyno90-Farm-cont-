@@ -70,3 +70,4 @@ export function getInitials(name?: string): string {
 export function formatKsh(amount?: number): string {
   return `KES ${(amount || 0).toLocaleString()}`;
 }
+

@@ -19,3 +19,4 @@ export function appConfirm(message: string): Promise<boolean> {
     window.dispatchEvent(event);
   });
 }
+

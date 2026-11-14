@@ -40,3 +40,4 @@ export function useMobileFabHidden(): boolean {
 
   return hidden;
 }
+
