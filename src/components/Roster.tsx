@@ -1124,7 +1124,7 @@ export function Roster({
         <div className="space-y-6">
           {/* REGISTRATION FORM (COLLAPSIBLE) */}
           {showAddForm && (
-            <form onSubmit={handleAddSubmit} className="bg-white p-7 rounded-3xl border border-emerald-100 shadow-xl space-y-6 animate-fadeIn">
+            <form onSubmit={handleAddSubmit} noValidate className="bg-white p-7 pb-20 sm:pb-7 rounded-3xl border border-emerald-100 shadow-xl space-y-6 animate-fadeIn">
               <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                 <div>
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -1355,17 +1355,17 @@ export function Roster({
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-5 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
                 >
                   Save Employee to Roster
                 </button>
