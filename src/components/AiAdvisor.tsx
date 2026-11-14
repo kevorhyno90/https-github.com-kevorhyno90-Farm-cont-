@@ -240,7 +240,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  </div>
 
  {/* Form input controls footer */}
- <form 
+ <form noValidate 
  onSubmit={(e) => { e.preventDefault(); handleSendMessage(userInput); }}
  className="p-3 bg-white border-t border-gray-200 flex items-center gap-2.5"
  >

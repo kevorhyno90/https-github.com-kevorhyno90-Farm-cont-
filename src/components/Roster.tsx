@@ -2525,7 +2525,7 @@ export function Roster({
                 </p>
               </div>
 
-              <form
+              <form noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   const form = e.currentTarget;

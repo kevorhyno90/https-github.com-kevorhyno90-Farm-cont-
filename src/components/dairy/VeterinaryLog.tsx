@@ -739,7 +739,7 @@ export function VeterinaryLog({
 
         {/* LOG NEW VETERINARY HEALTH INTERVENTION FORM */}
         {showAddVetForm && (
-          <form onSubmit={handleVetSubmit} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl space-y-6 animate-fadeIn">
+          <form noValidate onSubmit={handleVetSubmit} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xl space-y-6 animate-fadeIn">
             <div className="flex justify-between items-start border-b border-slate-100 pb-4">
               <div>
                 <h4 className="text-base font-black text-slate-900 flex items-center gap-2">

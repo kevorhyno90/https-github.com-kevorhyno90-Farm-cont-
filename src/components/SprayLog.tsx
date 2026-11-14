@@ -200,7 +200,7 @@ export function SprayLog({ sprayRecords, onAddSpray, onDeleteSpray, onEditSprayR
  </div>
  </div>
 
- <form onSubmit={handleSubmit} className="space-y-4">
+ <form noValidate onSubmit={handleSubmit} className="space-y-4">
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Target Treatment Block</label>
  <input

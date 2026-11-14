@@ -1230,7 +1230,7 @@ export function OtherSections({
  </div>
 
  {showAddForm && (
- <form onSubmit={handleFieldSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
+ <form noValidate onSubmit={handleFieldSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
  <div className="border-b border-gray-100 pb-2">
  <h5 className="text-xs font-semibold text-green-600 ">Register New Crop/Pasture Block</h5>
  <p className="text-[10px] text-gray-900 font-medium font-bold  mt-0.5">Define core agronomic properties and environmental variables</p>
@@ -1875,7 +1875,7 @@ export function OtherSections({
 
  {/* ADD SILAGE FORM */}
  {silShowAdd && (
- <form
+ <form noValidate
  onSubmit={(e) => {
  e.preventDefault();
  const weight = silAcres * 18000;
@@ -2233,7 +2233,7 @@ export function OtherSections({
  </div>
 
  {showAddForm && (
- <form onSubmit={handleCropOpSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
+ <form noValidate onSubmit={handleCropOpSubmit} className="bg-white shadow-sm p-6 rounded-3xl border border-emerald-100 shadow-md space-y-4 font-sans text-left">
  <div className="border-b border-gray-100 pb-2">
  <h5 className="text-xs font-semibold tracking-tight text-green-600">Task Scheduling & Crop Operations Register</h5>
  <p className="text-[10px] text-gray-900 font-medium font-bold  mt-0.5">Capture operational logistics, inputs, and cost centers</p>
@@ -2523,7 +2523,7 @@ export function OtherSections({
  </div>
 
  {showAddForm && (
- <form onSubmit={handleCropSaleSubmit} className="bg-white shadow-sm p-6 rounded-2xl border border-gray-200 shadow-md space-y-4 animate-fadeIn">
+ <form noValidate onSubmit={handleCropSaleSubmit} className="bg-white shadow-sm p-6 rounded-2xl border border-gray-200 shadow-md space-y-4 animate-fadeIn">
  <h5 className="text-xs  font-semibold tracking-normal text-[#0e3a24] border-b border-gray-100 pb-2">Log New Local Sales Invoice</h5>
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
  <div>
@@ -3218,7 +3218,7 @@ export function OtherSections({
  </div>
 
  {quaShowAdd && (
- <form
+ <form noValidate
  onSubmit={(e) => {
  e.preventDefault();
  const id = `qua-${Math.floor(1000 + Math.random() * 9000).toString()}`;
@@ -3744,7 +3744,7 @@ export function OtherSections({
  {showAddForm && (
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white border border-gray-200 p-6 rounded-3xl border border-gray-200 shadow-inner">
  {/* Form 1: Add Livestock Sale */}
- <form onSubmit={handleAnimalSaleSubmit} className="bg-white shadow-sm p-5 rounded-2xl border border-gray-200 shadow-md space-y-4">
+ <form noValidate onSubmit={handleAnimalSaleSubmit} className="bg-white shadow-sm p-5 rounded-2xl border border-gray-200 shadow-md space-y-4">
  <h5 className="text-xs  font-semibold tracking-normal text-green-600 border-b pb-2 flex items-center gap-1">💰 Add Animal Sale record</h5>
  <div className="grid grid-cols-2 gap-3">
  <div>
@@ -3859,7 +3859,7 @@ export function OtherSections({
  </form>
 
  {/* Form 2: Add Mortality */}
- <form onSubmit={handleMortalitySubmit} className="bg-white shadow-sm p-5 rounded-2xl border border-gray-200 shadow-md space-y-4">
+ <form noValidate onSubmit={handleMortalitySubmit} className="bg-white shadow-sm p-5 rounded-2xl border border-gray-200 shadow-md space-y-4">
  <h5 className="text-xs  font-semibold tracking-normal text-[#d32f2f] border-b pb-2 flex items-center gap-1">💀 Add Deceased Mortality Record</h5>
  <div className="grid grid-cols-2 gap-3">
  <div>

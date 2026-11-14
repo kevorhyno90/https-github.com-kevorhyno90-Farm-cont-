@@ -1223,7 +1223,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
             <h4 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">
               🍼 Register Newborn Nursery Calf
             </h4>
-            <form
+            <form noValidate
               onSubmit={e => {
                 e.preventDefault();
                 if (!newCalfTag.trim()) return;
@@ -1351,7 +1351,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
             <h4 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3">
               🐄 Register Replacement Heifer
             </h4>
-            <form
+            <form noValidate
               onSubmit={e => {
                 e.preventDefault();
                 if (!newHeiferTag.trim()) return;
@@ -1499,7 +1499,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
               </h4>
               <button onClick={() => setEditingCalf(null)} className="text-gray-400 hover:text-gray-600 p-1 text-sm font-bold">✕</button>
             </div>
-            <form onSubmit={handleSaveEditedCalf} className="space-y-3">
+            <form noValidate onSubmit={handleSaveEditedCalf} className="space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-600 block mb-1">Calf Tag / Name*</label>
                 <input
@@ -1674,7 +1674,7 @@ export function CalvesHeifersHub({ cows, onAddCow, onGoToSubTab }: CalvesHeifers
               </h4>
               <button onClick={() => setEditingHeifer(null)} className="text-gray-400 hover:text-gray-600 p-1 text-sm font-bold">✕</button>
             </div>
-            <form onSubmit={handleSaveEditedHeifer} className="space-y-3">
+            <form noValidate onSubmit={handleSaveEditedHeifer} className="space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-600 block mb-1">Heifer Tag / Name*</label>
                 <input

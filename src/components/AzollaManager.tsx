@@ -96,7 +96,7 @@ export function AzollaManager({ records, onAddRecord, onDeleteRecord, onTriggerS
  <h3 className="text-lg font-semibold text-gray-900">Log Harvest</h3>
  </div>
  
- <form onSubmit={handleAdd} className="space-y-4">
+ <form noValidate onSubmit={handleAdd} className="space-y-4">
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="block text-sm font-medium text-gray-900 font-semibold mb-1">Date</label>

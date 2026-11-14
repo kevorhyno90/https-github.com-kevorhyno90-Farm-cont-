@@ -1150,7 +1150,7 @@ export default function LactationLedger({
                 </div>
               </div>
 
-              <form onSubmit={handleMilkingSubmit} className="space-y-3.5">
+              <form noValidate onSubmit={handleMilkingSubmit} className="space-y-3.5">
                 <div>
                   <label className="text-[11px] font-bold text-gray-700 block mb-1">Select Registered Cow</label>
                   <select
@@ -1306,7 +1306,7 @@ export default function LactationLedger({
                 </div>
               </div>
 
-              <form onSubmit={handleOutflowSubmit} className="space-y-4">
+              <form noValidate onSubmit={handleOutflowSubmit} className="space-y-4">
 
                 {/* Section A: Morning Distribution */}
                 <div className="p-3.5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2.5">
@@ -2100,7 +2100,7 @@ export default function LactationLedger({
               </button>
             </div>
 
-            <form onSubmit={handleConfirmFridayPayment} className="space-y-3.5 text-xs">
+            <form noValidate onSubmit={handleConfirmFridayPayment} className="space-y-3.5 text-xs">
               <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-200">
                 <span className="text-[10px] uppercase font-bold text-indigo-700 block">Contract Buyer</span>
                 <span className="font-bold text-sm text-indigo-950 block">{morningBuyerName}</span>
@@ -2178,7 +2178,7 @@ export default function LactationLedger({
               </button>
             </div>
 
-            <form onSubmit={handleSaveQuickBuyerDelivery} className="space-y-3.5 text-xs">
+            <form noValidate onSubmit={handleSaveQuickBuyerDelivery} className="space-y-3.5 text-xs">
               <div>
                 <label className="text-[11px] font-bold text-gray-700 block mb-1">Delivery Date</label>
                 <input
@@ -2274,7 +2274,7 @@ export default function LactationLedger({
               </button>
             </div>
 
-            <form onSubmit={handleSettleCustomerDebt} className="space-y-3.5 text-xs">
+            <form noValidate onSubmit={handleSettleCustomerDebt} className="space-y-3.5 text-xs">
               <div>
                 <label className="text-[11px] font-bold text-gray-700 block mb-1">Customer / Debtor Name</label>
                 <input
@@ -2359,7 +2359,7 @@ export default function LactationLedger({
               </button>
             </div>
 
-            <form onSubmit={handleManualRemittance} className="space-y-3.5 text-xs">
+            <form noValidate onSubmit={handleManualRemittance} className="space-y-3.5 text-xs">
               <div>
                 <label className="text-[11px] font-bold text-gray-700 block mb-1">Amount Sent (Ksh)</label>
                 <input

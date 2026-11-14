@@ -311,7 +311,7 @@ export function KennelBaysMap({ dogs, onUpdateDogKennel }: KennelBaysMapProps) {
               Select which registered working dog is housed in this kennel bay, or choose "Leave Vacant".
             </p>
 
-            <form onSubmit={handleAssignDogToBay} className="space-y-4">
+            <form noValidate onSubmit={handleAssignDogToBay} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Select Canine:</label>
                 <select

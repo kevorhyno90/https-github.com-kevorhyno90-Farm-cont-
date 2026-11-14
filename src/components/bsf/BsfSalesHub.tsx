@@ -197,7 +197,7 @@ export function BsfSalesHub() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <h3 className="text-base font-black text-gray-900">Record Commercial BSF Product Sale</h3>
 
-            <form onSubmit={handleSave} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSave} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Product Type *</label>

@@ -116,7 +116,7 @@ export function MachineEditModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-left text-xs">
+        <form noValidate onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-left text-xs">
           
           {/* Name & Reg / Serial */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

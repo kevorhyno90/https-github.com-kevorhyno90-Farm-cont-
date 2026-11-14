@@ -760,7 +760,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
               {editingBatch ? 'Edit BSF Batch' : 'Log New Insect Grub Batch'}
             </h3>
 
-            <form onSubmit={handleSaveBatch} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveBatch} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Batch Code ID *</label>

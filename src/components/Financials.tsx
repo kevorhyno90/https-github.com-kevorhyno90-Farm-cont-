@@ -739,7 +739,7 @@ export function Financials({
  <p className="text-xs text-green-600 font-medium mt-0.5">Record revenue payouts, sales advances, or cash receipts</p>
  </div>
 
- <form onSubmit={handleIncomeSubmit} className="space-y-4 text-left">
+ <form noValidate onSubmit={handleIncomeSubmit} className="space-y-4 text-left">
  <div>
  <label className="text-[10px] font-semibold text-green-600 tracking-tight block mb-1">Amount (Ksh)</label>
  <input
@@ -811,7 +811,7 @@ export function Financials({
  <p className="text-xs text-rose-700 font-medium mt-0.5">Record wages, veterinarian fees, chemical treatments, or machine repair</p>
  </div>
 
- <form onSubmit={handleExpenseSubmit} className="space-y-4 text-left">
+ <form noValidate onSubmit={handleExpenseSubmit} className="space-y-4 text-left">
  <div>
  <label className="text-[10px] font-semibold text-rose-950 tracking-tight block mb-1">Amount (Ksh)</label>
  <input

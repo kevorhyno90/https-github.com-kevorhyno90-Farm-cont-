@@ -2975,7 +2975,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
               </button>
             </div>
 
-            <form onSubmit={handleSaveDog} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveDog} className="space-y-3 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>
@@ -3146,7 +3146,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveVaccine} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveVaccine} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
                 <select
@@ -3243,7 +3243,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveTreatment} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveTreatment} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
                 <select
@@ -3362,7 +3362,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSavePatrol} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSavePatrol} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
                 <select
@@ -3459,7 +3459,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveTraining} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveTraining} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
                 <select
@@ -3552,7 +3552,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveFeeding} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveFeeding} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Select Canine *</label>
                 <select
@@ -3639,7 +3639,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveBreeding} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveBreeding} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Dam (Mother) *</label>
@@ -3709,7 +3709,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveBiosecurity} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveBiosecurity} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Kennel Unit / Block *</label>
                 <input
@@ -3772,7 +3772,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveSale} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveSale} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>
@@ -3877,7 +3877,7 @@ _Presented & Approved by: Dr. Devin Omwenga (General Farm Manager)_`;
                 <X size={16} />
               </button>
             </div>
-            <form onSubmit={handleSaveMortality} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveMortality} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Canine Name *</label>

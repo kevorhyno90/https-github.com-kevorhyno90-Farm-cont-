@@ -256,7 +256,7 @@ export function AvocadoPracticesHub({
             </div>
           </div>
 
-          <form onSubmit={handleFormSubmit} className="space-y-4 text-left">
+          <form noValidate onSubmit={handleFormSubmit} className="space-y-4 text-left">
             
             {/* Practice Type Quick Selection Pills */}
             <div>

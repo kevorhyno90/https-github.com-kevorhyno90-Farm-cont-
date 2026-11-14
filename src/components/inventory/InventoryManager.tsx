@@ -951,7 +951,7 @@ export function InventoryManager({
             </p>
           </div>
 
-          <form onSubmit={handleSaveDispense} className="space-y-4 max-w-2xl">
+          <form noValidate onSubmit={handleSaveDispense} className="space-y-4 max-w-2xl">
             <div>
               <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Select Item to Dispense *</label>
               <select
@@ -1249,7 +1249,7 @@ export function InventoryManager({
               <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
             </div>
 
-            <form onSubmit={handleSaveAdd} className="p-6 space-y-4">
+            <form noValidate onSubmit={handleSaveAdd} className="p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Item / Commodity Name *</label>
@@ -1406,7 +1406,7 @@ export function InventoryManager({
               <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+            <form noValidate onSubmit={handleSaveEdit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Item Name *</label>
@@ -1557,7 +1557,7 @@ export function InventoryManager({
               <button onClick={() => setShowRestockModal(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
             </div>
 
-            <form onSubmit={handleSaveRestock} className="p-6 space-y-4">
+            <form noValidate onSubmit={handleSaveRestock} className="p-6 space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-emerald-700 uppercase mb-1">Incoming Shipment Quantity *</label>
                 <input
@@ -1648,7 +1648,7 @@ export function InventoryManager({
               <button onClick={() => setShowDispenseModal(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
             </div>
 
-            <form onSubmit={handleSaveDispense} className="p-6 space-y-4">
+            <form noValidate onSubmit={handleSaveDispense} className="p-6 space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Item to Dispense *</label>
                 <select

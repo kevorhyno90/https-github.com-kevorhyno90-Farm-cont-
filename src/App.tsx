@@ -820,6 +820,15 @@ function FarmCoreApp() {
             ? { label: `RESP FAIR ${latestInteractionDuration}MS`, tone: 'text-amber-800 bg-amber-50 border-amber-200' }
             : { label: `RESP SLOW ${latestInteractionDuration}MS`, tone: 'text-rose-800 bg-rose-50 border-rose-200' };
 
+  useEffect(() => {
+    const onToast = (e: Event) => {
+      const msg = (e as CustomEvent<string>).detail;
+      if (msg) triggerAppToastMessage(msg);
+    };
+    window.addEventListener('jr-farm-toast', onToast);
+    return () => window.removeEventListener('jr-farm-toast', onToast);
+  }, []);
+
   const triggerAppToastMessage = (txt: string) => {
     setAppToastMessage(txt);
     setTimeout(() => setAppToastMessage(null), 4000);

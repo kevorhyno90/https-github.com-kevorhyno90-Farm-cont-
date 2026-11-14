@@ -369,7 +369,7 @@ export function BsfFeedingLogHub({ staffList = [], onSubstrateDeducted }: BsfFee
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+            <form noValidate onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-400 mb-1 font-semibold">Feeding Date</label>

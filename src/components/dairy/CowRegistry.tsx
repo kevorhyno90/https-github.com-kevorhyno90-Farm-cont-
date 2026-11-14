@@ -280,7 +280,7 @@ export function CowRegistry({
         </div>
 
         {showAddCowForm && (
-          <form onSubmit={handleCowSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
+          <form noValidate onSubmit={handleCowSubmit} className="bg-white p-6 rounded-2xl border border-slate-150 shadow-md space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h4 className="text-sm font-black text-slate-800 uppercase flex items-center gap-2">
                 <Plus size={16} className="text-emerald-600"/> Add New Cattle to Registry

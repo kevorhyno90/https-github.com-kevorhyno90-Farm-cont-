@@ -258,7 +258,7 @@ export function AvocadoSalesHub({
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          <form noValidate onSubmit={handleSubmit} className="space-y-4 text-left">
             
             {/* Date, Ref & Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">

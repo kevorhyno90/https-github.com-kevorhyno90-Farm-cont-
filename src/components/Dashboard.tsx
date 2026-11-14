@@ -1229,7 +1229,7 @@ export function Dashboard({
  <p className="text-xs text-gray-900 font-semibold mt-1">Link operations to key officers</p>
  </div>
 
- <form onSubmit={handleSubmitTodo} className="space-y-4 mb-6">
+ <form noValidate onSubmit={handleSubmitTodo} className="space-y-4 mb-6">
  <input
  type="text"
  value={newTodo}

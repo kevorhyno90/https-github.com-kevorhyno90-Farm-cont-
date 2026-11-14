@@ -517,7 +517,7 @@ export function FeedFormulator({ ingredients, onAddIngredientToLib, onDeleteIngr
  <p className="text-xs text-gray-900 font-medium mt-1 font-medium">Add materials to your compounding bank</p>
  </div>
 
- <form onSubmit={handleAddLabIngredient} className="space-y-4">
+ <form noValidate onSubmit={handleAddLabIngredient} className="space-y-4">
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium tracking-tight block mb-1">Ingredient Name</label>
  <input

@@ -471,7 +471,7 @@ export function GoatKidsHub({ staffList = [], onGraduateToAdultHerd }: GoatKidsH
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleCreate} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Kid Tag ID *</label>

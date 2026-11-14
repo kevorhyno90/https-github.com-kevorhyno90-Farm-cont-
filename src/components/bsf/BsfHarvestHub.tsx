@@ -206,7 +206,7 @@ export function BsfHarvestHub({ staffList = [], onLogHarvestYield }: BsfHarvestH
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <h3 className="text-base font-black text-gray-900">Record BSF Harvest & Product Dispatch</h3>
 
-            <form onSubmit={handleSave} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSave} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-gray-700 mb-1">Batch ID *</label>

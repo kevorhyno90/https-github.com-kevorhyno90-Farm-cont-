@@ -5,6 +5,14 @@ import { getItemKey } from './utils/syncHelper';
 import App from './App.tsx';
 import './index.css';
 
+// Route blocking native alert() calls to non-blocking in-app toast banner
+if (typeof window !== 'undefined') {
+  window.alert = (msg?: any) => {
+    window.dispatchEvent(new CustomEvent('jr-farm-toast', { detail: String(msg ?? '') }));
+  };
+}
+
+
 // Guard against detached-node Range.selectNode errors thrown by third-party instrumentation scripts.
 if (typeof window !== 'undefined' && typeof Range !== 'undefined') {
   const originalSelectNode = Range.prototype.selectNode;

@@ -1730,7 +1730,7 @@ export function YoungstockManager({
               </button>
             </div>
 
-            <form onSubmit={handleAddSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleAddSubmit} className="space-y-4">
               {/* Type Switcher */}
               <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
                 <button
@@ -2024,7 +2024,7 @@ export function YoungstockManager({
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-4">
+            <form noValidate onSubmit={handleSaveEdit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-gray-700 block mb-1">Ear Tag ID</label>
@@ -2447,7 +2447,7 @@ export function YoungstockManager({
               </button>
             </div>
 
-            <form onSubmit={handleSaveAiService} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveAiService} className="space-y-3 text-xs">
               <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
                 <span className="text-emerald-900 font-bold block text-xs">
                   {inseminateItem.tag} is {inseminateItem.currentWeightKg} KG ({inseminateItem.ageMonths} mos).
@@ -2548,7 +2548,7 @@ export function YoungstockManager({
               </button>
             </div>
 
-            <form onSubmit={handleSaveMedicalIntervention} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSaveMedicalIntervention} className="space-y-3 text-xs">
               <div>
                 <label className="text-[10px] font-bold text-gray-700 block mb-1">Date Administered</label>
                 <input
@@ -2768,7 +2768,7 @@ export function YoungstockManager({
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-4">
+            <form noValidate onSubmit={handleSaveEdit} className="space-y-4">
               {/* Row 1: Identification & Pedigree */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>

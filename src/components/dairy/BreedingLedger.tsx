@@ -442,7 +442,7 @@ export function BreedingLedger({
  <p className="text-xs text-gray-900 font-medium mt-1 font-medium">Artificial Insemination (AI) tracker & gestations</p>
  </div>
 
- <form onSubmit={handleAISubmit} className="grid grid-cols-2 gap-4">
+ <form noValidate onSubmit={handleAISubmit} className="grid grid-cols-2 gap-4">
  <div>
  <label className="text-[10px] font-semibold text-gray-900 font-medium  block mb-1">Inseminated Cow ID</label>
  {cows.length > 0 ? (

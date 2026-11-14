@@ -652,7 +652,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
               <h4 className="text-xs font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-1.5">
                 ➕ Register Genetic Semen Straw
               </h4>
-              <form
+              <form noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   const form = e.currentTarget;
@@ -923,7 +923,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
                     <Plus size={14} className="text-emerald-600" />
                     Record Sealed Silage Pit
                   </h4>
-                  <form
+                  <form noValidate
                     onSubmit={(e) => {
                       e.preventDefault();
                       const fd = new FormData(e.currentTarget);
@@ -1119,7 +1119,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
               </div>
 
               {/* Add Sale Form */}
-              <form
+              <form noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   const target = e.currentTarget as HTMLFormElement;
@@ -1235,7 +1235,7 @@ _Presented & Approved by: Dr. Devin Omwenga (Overall Farm Manager & Vet Director
               </div>
 
               {/* Add Mortality Form */}
-              <form
+              <form noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   const target = e.currentTarget as HTMLFormElement;

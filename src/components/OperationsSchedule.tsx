@@ -1119,7 +1119,7 @@ export default function OperationsSchedule({ onTriggerSectionReport }: Operation
  </button>
  </div>
 
- <form onSubmit={handleAddCustom} className="space-y-4">
+ <form noValidate onSubmit={handleAddCustom} className="space-y-4">
  
  <div>
  <label className="text-[10px] font-semibold tracking-tight text-gray-900 font-medium block mb-1">

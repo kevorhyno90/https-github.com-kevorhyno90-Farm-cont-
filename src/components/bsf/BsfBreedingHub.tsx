@@ -188,7 +188,7 @@ export function BsfBreedingHub() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <h3 className="text-base font-black text-gray-900">Record Love Cage Aviary & Eggies Harvest</h3>
 
-            <form onSubmit={handleSave} className="space-y-3 text-xs">
+            <form noValidate onSubmit={handleSave} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-gray-700 mb-1">Aviary Cage ID *</label>
                 <input
