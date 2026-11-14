@@ -625,7 +625,7 @@ export function FirebaseSyncer() {
           setTempKeyInput(cloudSyncKey);
           setIsModalOpen(true);
         }}
-        className={`fixed bottom-6 right-6 p-3.5 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center cursor-pointer border ${
+        className={`fixed bottom-24 right-4 md:bottom-6 md:right-6 p-3.5 rounded-full shadow-2xl transition-all z-50 flex items-center justify-center cursor-pointer border ${
           !canUseCloud
             ? 'bg-gray-800 text-gray-400 border-gray-700'
             : syncStatus === 'syncing'

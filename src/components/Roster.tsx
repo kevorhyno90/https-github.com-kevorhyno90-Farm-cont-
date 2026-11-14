@@ -2023,7 +2023,7 @@ export function Roster({
 
           {/* Schedule Form */}
           {showOffForm && (
-            <form onSubmit={handleOffSubmit} className="bg-white p-7 rounded-3xl border border-indigo-100 shadow-xl space-y-6 animate-fadeIn">
+            <form onSubmit={handleOffSubmit} noValidate className="bg-white p-7 rounded-3xl border border-indigo-100 shadow-xl space-y-6 animate-fadeIn">
               <div className="border-b border-indigo-50 pb-3">
                 <h4 className="text-sm font-bold text-indigo-950">Book Staff Off-Duty / Leave Rotation</h4>
                 <p className="text-xs text-gray-500 mt-0.5">

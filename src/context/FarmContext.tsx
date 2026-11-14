@@ -222,6 +222,15 @@ function normalizeAvoRecords(parsed: any): AvocadoRecord[] {
   return INITIAL_AVOCADO_RECORDS;
 }
 
+function safeLoadJson<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? (JSON.parse(saved) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isRemoteHydrationRef = useRef(false);
   const hydrationTimerRef = useRef<number | null>(null);
@@ -321,132 +330,107 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
-    const saved = localStorage.getItem('jr_farm_staff');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_STAFF;
+    const parsed = safeLoadJson('jr_farm_staff', INITIAL_STAFF);
     return normalizeStaffList(parsed);
   });
 
   const [ingredients, setIngredients] = useState<Ingredient[]>(() => {
-    const saved = localStorage.getItem('jr_farm_ingredients');
-    return saved ? JSON.parse(saved) : INITIAL_INGREDIENTS;
+    return safeLoadJson('jr_farm_ingredients', INITIAL_INGREDIENTS);
   });
 
   const [milkRecords, setMilkRecords] = useState<MilkingRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_milk');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_MILK_RECORDS;
+    const parsed = safeLoadJson('jr_farm_milk', INITIAL_MILK_RECORDS);
     return normalizeMilkRecords(parsed);
   });
 
   const [aiRecords, setAiRecords] = useState<AIRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_ai');
-    return saved ? JSON.parse(saved) : INITIAL_AI_RECORDS;
+    return safeLoadJson('jr_farm_ai', INITIAL_AI_RECORDS);
   });
 
   const [teaRecords, setTeaRecords] = useState<TeaRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_tea');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_TEA_RECORDS;
+    const parsed = safeLoadJson('jr_farm_tea', INITIAL_TEA_RECORDS);
     return normalizeTeaRecords(parsed);
   });
 
   const [avoRecords, setAvoRecords] = useState<AvocadoRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_avo');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_AVOCADO_RECORDS;
+    const parsed = safeLoadJson('jr_farm_avo', INITIAL_AVOCADO_RECORDS);
     return normalizeAvoRecords(parsed);
   });
 
   const [financials, setFinancials] = useState<FinancialRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_financials');
-    return saved ? JSON.parse(saved) : INITIAL_FINICAL_RECORDS;
+    return safeLoadJson('jr_farm_financials', INITIAL_FINICAL_RECORDS);
   });
 
   const [sprayRecords, setSprayRecords] = useState<SprayRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_sprays');
-    return saved ? JSON.parse(saved) : INITIAL_SPRAY_RECORDS;
+    return safeLoadJson('jr_farm_sprays', INITIAL_SPRAY_RECORDS);
   });
 
   const [milkOutflows, setMilkOutflows] = useState<MilkOutflowRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_milk_outflows');
-    return saved ? JSON.parse(saved) : INITIAL_MILK_OUTFLOW_RECORDS;
+    return safeLoadJson('jr_farm_milk_outflows', INITIAL_MILK_OUTFLOW_RECORDS);
   });
 
   const [todos, setTodos] = useState<Todo[]>(() => {
-    const saved = localStorage.getItem('jr_farm_todos');
-    return saved ? JSON.parse(saved) : INITIAL_TODOS;
+    return safeLoadJson('jr_farm_todos', INITIAL_TODOS);
   });
 
   const [fields, setFields] = useState<FieldRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_fields');
-    return saved ? JSON.parse(saved) : INITIAL_FIELDS;
+    return safeLoadJson('jr_farm_fields', INITIAL_FIELDS);
   });
 
   const [livestock, setLivestock] = useState<LivestockRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_livestock');
-    return saved ? JSON.parse(saved) : INITIAL_LIVESTOCK;
+    return safeLoadJson('jr_farm_livestock', INITIAL_LIVESTOCK);
   });
 
   const [inventory, setInventory] = useState<InventoryItem[]>(() => {
-    const saved = localStorage.getItem('jr_farm_inventory');
-    return saved ? JSON.parse(saved) : INITIAL_INVENTORY;
+    return safeLoadJson('jr_farm_inventory', INITIAL_INVENTORY);
   });
 
   const [staffOffRecords, setStaffOffRecords] = useState<StaffOffRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_staff_off');
-    return saved ? JSON.parse(saved) : INITIAL_STAFF_OFF_RECORDS;
+    return safeLoadJson('jr_farm_staff_off', INITIAL_STAFF_OFF_RECORDS);
   });
 
   const [cows, setCows] = useState<Cow[]>(() => {
-    const saved = localStorage.getItem('jr_farm_cows');
-    return saved ? JSON.parse(saved) : INITIAL_COWS;
+    return safeLoadJson('jr_farm_cows', INITIAL_COWS);
   });
 
   const [vetRecords, setVetRecords] = useState<VetRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_vets');
-    return saved ? JSON.parse(saved) : INITIAL_VET_RECORDS;
+    return safeLoadJson('jr_farm_vets', INITIAL_VET_RECORDS);
   });
 
   const [goatRecords, setGoatRecords] = useState<GoatRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_goats');
-    return saved ? JSON.parse(saved) : INITIAL_GOAT_RECORDS;
+    return safeLoadJson('jr_farm_goats', INITIAL_GOAT_RECORDS);
   });
 
   const [calfRecords, setCalfRecords] = useState<CalfRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_calves');
-    return saved ? JSON.parse(saved) : INITIAL_CALF_RECORDS;
+    return safeLoadJson('jr_farm_calves', INITIAL_CALF_RECORDS);
   });
 
   const [bsfRecords, setBsfRecords] = useState<BsfRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_bsfs');
-    return saved ? JSON.parse(saved) : INITIAL_BSF_RECORDS;
+    return safeLoadJson('jr_farm_bsfs', INITIAL_BSF_RECORDS);
   });
 
   const [cropOps, setCropOps] = useState<CropOpRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_crop_ops');
-    return saved ? JSON.parse(saved) : INITIAL_CROP_OP_RECORDS;
+    return safeLoadJson('jr_farm_crop_ops', INITIAL_CROP_OP_RECORDS);
   });
 
   const [cropSales, setCropSales] = useState<CropSaleRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_crop_sales');
-    return saved ? JSON.parse(saved) : INITIAL_CROP_SALES;
+    return safeLoadJson('jr_farm_crop_sales', INITIAL_CROP_SALES);
   });
 
   const [animalSales, setAnimalSales] = useState<AnimalSaleRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_animal_sales');
-    return saved ? JSON.parse(saved) : INITIAL_ANIMAL_SALES;
+    return safeLoadJson('jr_farm_animal_sales', INITIAL_ANIMAL_SALES);
   });
 
   const [mortalities, setMortalities] = useState<MortalityRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_mortalities');
-    return saved ? JSON.parse(saved) : INITIAL_MORTALITY_RECORDS;
+    return safeLoadJson('jr_farm_mortalities', INITIAL_MORTALITY_RECORDS);
   });
 
   const [activityLogs, setActivityLogs] = useState<ActivityLogEntry[]>(() => {
-    const saved = localStorage.getItem('jr_farm_activity_logs');
-    return saved ? JSON.parse(saved) : [];
+    return safeLoadJson('jr_farm_activity_logs', []);
   });
 
   const [silageRecords, setSilageRecords] = useState<SilageRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_silages');
-    return saved ? JSON.parse(saved) : [
+    return safeLoadJson('jr_farm_silages', [
       {
         id: 'silage-1',
         rawMaterial: 'Maize',
@@ -461,12 +445,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         recommendedDailyIntakePerAnimal: 15,
         daysOfFeedAvailable: 160
       }
-    ];
+    ]);
   });
 
   const [heiferRecords, setHeiferRecords] = useState<HeiferRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_heifers');
-    return saved ? JSON.parse(saved) : [
+    return safeLoadJson('jr_farm_heifers', [
       {
         id: 'heifer-1',
         cowId: 'C-083 (Precious)',
@@ -478,12 +461,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         breedingReady: true,
         notes: 'Exceeded the 280kg insemination marker. Frame growth is superb. Ready for AI.'
       }
-    ];
+    ]);
   });
 
   const [poultryRecords, setPoultryRecords] = useState<PoultryRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_poultries');
-    return saved ? JSON.parse(saved) : [
+    return safeLoadJson('jr_farm_poultries', [
       {
         id: 'poultry-chick',
         stage: 'Chick',
@@ -495,7 +477,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         mortalityCount: 1,
         waterIntakeLiters: 90,
         vaccinesAdministered: 'Gumboro Booster Dose',
-        notes: 'Chicks are active; brooder temperature stands at ~31°C.'
+        notes: 'Chicks are active); brooder temperature stands at ~31°C.'
       },
       {
         id: 'poultry-grower',
@@ -528,8 +510,7 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [quarantineRecords, setQuarantineRecords] = useState<QuarantineRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_quarantines');
-    return saved ? JSON.parse(saved) : [
+    return safeLoadJson('jr_farm_quarantines', [
       {
         id: 'quar-1',
         animalType: 'Cow',
@@ -542,32 +523,27 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
         vetInCharge: 'Dr. Joseph Ndwiga',
         notes: 'Isolated in Section C Quarantine Pen.'
       }
-    ];
+    ]);
   });
 
   const [semenInventory, setSemenInventory] = useState<SemenInventoryItem[]>(() => {
-    const saved = localStorage.getItem('jr_farm_semen_inventory');
-    return saved ? JSON.parse(saved) : INITIAL_SEMEN_INVENTORY;
+    return safeLoadJson('jr_farm_semen_inventory', INITIAL_SEMEN_INVENTORY);
   });
 
   const [azollaRecords, setAzollaRecords] = useState<AzollaRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_azolla');
-    return saved ? JSON.parse(saved) : [];
+    return safeLoadJson('jr_farm_azolla', []);
   });
 
   const [machines, setMachines] = useState<MachineItem[]>(() => {
-    const saved = localStorage.getItem('jr_farm_machinery');
-    return saved ? JSON.parse(saved) : INITIAL_MACHINES;
+    return safeLoadJson('jr_farm_machinery', INITIAL_MACHINES);
   });
 
   const [machineServices, setMachineServices] = useState<MachineServiceRecord[]>(() => {
-    const saved = localStorage.getItem('jr_farm_machinery_services');
-    return saved ? JSON.parse(saved) : INITIAL_MACHINE_SERVICES;
+    return safeLoadJson('jr_farm_machinery_services', INITIAL_MACHINE_SERVICES);
   });
 
   const [farmNotes, setFarmNotes] = useState<FarmNote[]>(() => {
-    const saved = localStorage.getItem('jr_farm_notes');
-    return saved ? JSON.parse(saved) : INITIAL_FARM_NOTES;
+    return safeLoadJson('jr_farm_notes', INITIAL_FARM_NOTES);
   });
 
   // LocalStorage synchronizations

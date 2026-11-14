@@ -113,7 +113,7 @@ How can I assist you with livestock, crop health, or navigating this app today?`
  };
 
  return (
- <motion.div drag dragMomentum={false} className="fixed bottom-6 right-6 z-50 font-sans cursor-move" id="ai-advisor-wrapper">
+ <motion.div drag dragMomentum={false} className="fixed bottom-24 right-20 md:bottom-6 md:right-24 z-50 font-sans cursor-move" id="ai-advisor-wrapper">
  {/* Active Floating Toggle Button */}
  {!isOpen && (
  <button
