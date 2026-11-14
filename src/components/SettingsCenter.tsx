@@ -692,6 +692,8 @@ export function SettingsCenter({ onSaveConfig, onResetAllData }: SettingsProps) 
  console.error("Sign out error", e);
  }
  sessionStorage.removeItem('jr_farm_entered');
+ localStorage.removeItem('jr_farm_entered');
+ localStorage.removeItem('jr_farm_user_uid');
  window.location.reload();
  }}
  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-gray-900 font-bold rounded-xl shadow-sm text-sm"
