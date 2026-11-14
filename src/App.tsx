@@ -3712,7 +3712,14 @@ function FarmCoreApp() {
       ...member,
       id: `st-${Date.now()}`
     };
-    setStaffList([...staffList, newStaff]);
+    setStaffList((prev) => {
+      const updated = [...prev, newStaff];
+      try {
+        localStorage.setItem('jr_farm_staff', JSON.stringify(updated));
+        window.dispatchEvent(new Event('local-storage-update-immediate'));
+      } catch {}
+      return updated;
+    });
   };
 
   const handleAddIngredientLib = (ing: Ingredient) => {

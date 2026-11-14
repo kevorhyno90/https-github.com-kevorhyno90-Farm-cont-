@@ -295,11 +295,11 @@ export const FarmProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMachineServices(loadJson('jr_farm_machinery_services', INITIAL_MACHINE_SERVICES));
       setFarmNotes(loadJson('jr_farm_notes', INITIAL_FARM_NOTES));
     } finally {
-      // Keep hydration lock for 1500ms so all batched renders and effects finish
+      // Keep hydration lock for 50ms so all batched renders and effects finish
       hydrationTimerRef.current = window.setTimeout(() => {
         isRemoteHydrationRef.current = false;
         hydrationTimerRef.current = null;
-      }, 1500);
+      }, 50);
     }
   };
 
